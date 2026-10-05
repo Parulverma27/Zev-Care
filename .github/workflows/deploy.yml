@@ -1,0 +1,113 @@
+# Zevota Care CI/CD — build + deploy on MilesWeb self-hosted runner
+name: Deploy Zevota Care
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: zevota-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HEALTH_LOCAL: http://127.0.0.1:8215/api/health
+  HEALTH_PUBLIC: https://api.zevota.neighshopglobal.com/api/health
+  USER_URL: https://user.zevota.neighshopglobal.com/user/home
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install + build web
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build:web
+          test -f public/index.html
+          test -f scripts/deploy-milesweb.sh
+          test -f deploy/smoke.sh
+
+      - name: API syntax check
+        run: node --check server.js && node --check routes/api.js
+
+  deploy:
+    name: Deploy
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.repository == 'NeighShop-Global/Zevota-Care'
+    runs-on: [self-hosted, Linux, zevota, milesweb]
+    timeout-minutes: 45
+    steps:
+      - name: Assert MilesWeb public IP
+        run: |
+          set -euo pipefail
+          ip=$(curl -fsS --max-time 10 https://api.ipify.org || curl -fsS --max-time 10 ifconfig.me)
+          test "$ip" = "45.195.159.63"
+
+      - name: Free disk on VPS
+        run: |
+          set -euo pipefail
+          df -h /
+          # Drop stale app deps + runner caches so large catalog assets can sync
+          sudo rm -rf \
+            /opt/zevota-api/node_modules \
+            /opt/zevota-api/resources/views/node_modules \
+            /opt/zevota-api/resources/views/dist \
+            /opt/zevota-api/images \
+            /opt/zevota-api/.git 2>/dev/null || true
+          sudo rm -rf \
+            /tmp/* \
+            /var/tmp/* \
+            /home/github-runner/.npm/_cacache \
+            /opt/actions-runner-zevota/_work/_tool 2>/dev/null || true
+          sudo npm cache clean --force 2>/dev/null || true
+          # Keep at least ~1.5GB free if possible
+          df -h /
+
+      - name: Fix workspace ownership
+        run: |
+          set -euo pipefail
+          sudo chown -R "$(id -u)":"$(id -g)" "$GITHUB_WORKSPACE" 2>/dev/null || true
+
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          clean: true
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - name: Install + build web
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build:web
+          test -f public/index.html
+
+      - name: Deploy API + static panels
+        run: |
+          set -euo pipefail
+          chmod +x scripts/deploy-milesweb.sh deploy/smoke.sh
+          sudo /bin/bash "$GITHUB_WORKSPACE/scripts/deploy-milesweb.sh" "$GITHUB_WORKSPACE"
+
+      - name: Smoke tests
+        run: |
+          set -euo pipefail
+          bash "$GITHUB_WORKSPACE/deploy/smoke.sh"
+
+      - name: Restore workspace ownership
+        if: always()
+        run: sudo chown -R "$(id -u)":"$(id -g)" "$GITHUB_WORKSPACE" 2>/dev/null || true

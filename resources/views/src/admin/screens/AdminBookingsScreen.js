@@ -1,0 +1,1114 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Image } from 'react-native';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useApp } from '../../context/AppContext';
+import UserProfileModal from '../components/UserProfileModal';
+import ProviderProfileModal from '../components/ProviderProfileModal';
+import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
+import { exportToCSV } from '../../utils/exportUtils';
+
+export default function AdminBookingsScreen() {
+  const { bookings, users, providers, acceptBooking, rejectBooking, assignProvider, generateBill } = useApp();
+  const { bookingId: routeBookingId } = useParams();
+  const navigate = useNavigate();
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [assignModal, setAssignModal] = useState(false);
+  const [billModal, setBillModal] = useState(false);
+  const [reportModal, setReportModal] = useState(false);
+  const [viewBillModal, setViewBillModal] = useState(false);
+  const [reviewModal, setReviewModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // User & Provider detail modal states
+  const [modalUser, setModalUser] = useState(null);
+  const [modalUserVisible, setModalUserVisible] = useState(false);
+  const [modalProvider, setModalProvider] = useState(null);
+  const [modalProviderVisible, setModalProviderVisible] = useState(false);
+
+  // Customer Media Modal state
+  const [customerMediaModal, setCustomerMediaModal] = useState(false);
+  const [mediaBooking, setMediaBooking] = useState(null);
+
+  const getAllBookingMediaItems = (b) => {
+    if (!b) return [];
+    const items = [];
+    if (Array.isArray(b.issueMedia?.photos)) {
+      b.issueMedia.photos.forEach((p) => {
+        if (p?.uri) items.push({ type: 'photo', uri: p.uri });
+      });
+    }
+    if (Array.isArray(b.issueMedia?.videos)) {
+      b.issueMedia.videos.forEach((v) => {
+        if (v?.uri) items.push({ type: 'video', uri: v.uri });
+      });
+    }
+    const fallbackUrl = b.issue_media_url || b.mediaUrl || b.media_url;
+    if (items.length === 0 && fallbackUrl) {
+      items.push({ type: 'photo', uri: fallbackUrl });
+    }
+    return items;
+  };
+
+  // Local state tracking accepted bookings
+  const [acceptedState, setAcceptedState] = useState({});
+  const [rejectedState, setRejectedState] = useState({});
+
+  // Bill Builder Form State
+  const [serviceCharge, setServiceCharge] = useState('2000');
+  const [partsCharge, setPartsCharge] = useState('4500');
+  const [labourCharge, setLabourCharge] = useState('1500');
+  const [discount, setDiscount] = useState('0');
+
+  const activeBookings = bookings;
+
+  // Deep-link: /admin/bookings/:bookingId opens that work order
+  useEffect(() => {
+    if (!routeBookingId) return;
+    const match = (bookings || []).find((b) => b.booking_id === routeBookingId);
+    if (!match) return;
+    setSelectedBooking(match);
+    if (match.status === 'ASSIGNED_TO_ADMIN' || match.inspection_report) {
+      setReportModal(true);
+    } else {
+      setReviewModal(true);
+    }
+  }, [routeBookingId, bookings]);
+
+  const closeBookingModals = () => {
+    setReviewModal(false);
+    setReportModal(false);
+    setAssignModal(false);
+    setBillModal(false);
+    setViewBillModal(false);
+    setSelectedBooking(null);
+    if (routeBookingId) navigate('/admin/bookings', { replace: true });
+  };
+
+  const handleAcceptClick = (b) => {
+    setAcceptedState((prev) => ({ ...prev, [b.booking_id]: true }));
+    setRejectedState((prev) => ({ ...prev, [b.booking_id]: false }));
+    if (acceptBooking) acceptBooking(b.booking_id);
+  };
+
+  const handleRejectClick = (b) => {
+    setRejectedState((prev) => ({ ...prev, [b.booking_id]: true }));
+    setAcceptedState((prev) => ({ ...prev, [b.booking_id]: false }));
+    if (rejectBooking) rejectBooking(b.booking_id);
+  };
+
+  const handleAssignAction = async (providerId) => {
+    if (!selectedBooking) return;
+    setSubmitting(true);
+    await assignProvider(selectedBooking.booking_id, providerId);
+    setSubmitting(false);
+    setAssignModal(false);
+  };
+
+  const openBillModalWithReport = (b) => {
+    setSelectedBooking(b);
+    setPartsCharge(String(b.parts_charge || 4500));
+    setLabourCharge(String(b.labour_charge || 1500));
+    setServiceCharge(String(b.service_charge || 2000));
+    setDiscount(String(b.discount_amount || 0));
+    setBillModal(true);
+  };
+
+  const handleGenerateBillAction = async () => {
+    if (!selectedBooking) return;
+    setSubmitting(true);
+
+    const sCharge = Number(serviceCharge || 0);
+    const pCharge = Number(partsCharge || 0);
+    const lCharge = Number(labourCharge || 0);
+    const dAmount = Number(discount || 0);
+    const total = sCharge + pCharge + lCharge - dAmount;
+    const payout = Math.round(total * 0.8);
+
+    await generateBill(selectedBooking.booking_id, {
+      service_charge: serviceCharge,
+      parts_charge: partsCharge,
+      labour_charge: labourCharge,
+      discount,
+      notes: 'Itemized Zevota Estimate based on Provider Inspection Report',
+    });
+
+    const updatedBooking = {
+      ...selectedBooking,
+      service_charge: sCharge,
+      parts_charge: pCharge,
+      labour_charge: lCharge,
+      discount_amount: dAmount,
+      total_bill: total,
+      payout_amount: payout,
+      bill_status: selectedBooking.bill_status || 'UNPAID',
+      status: 'AWAITING_USER_APPROVAL',
+    };
+
+    setSelectedBooking(updatedBooking);
+    setSubmitting(false);
+    setBillModal(false);
+    setViewBillModal(true);
+  };
+
+  // Find all bookings with inspection reports
+  const reportedBookings = activeBookings.filter(
+    (b) => b.status === 'ASSIGNED_TO_ADMIN' || b.inspection_report
+  );
+
+  const handleExportBookings = () => {
+    const columns = [
+      { label: 'Booking ID', accessor: (b) => b.booking_id },
+      { label: 'Customer Name', accessor: (b) => b.user_name || 'N/A' },
+      { label: 'Customer Phone', accessor: (b) => b.user_phone || 'N/A' },
+      { label: 'Service Name', accessor: (b) => b.service_name },
+      { label: 'Category', accessor: (b) => b.category_name || 'N/A' },
+      { label: 'Field Partner', accessor: (b) => b.provider_name || 'Unassigned' },
+      { label: 'Scheduled Date', accessor: (b) => b.scheduled_date || 'N/A' },
+      { label: 'Status', accessor: (b) => b.status },
+      { label: 'Service Charge (INR)', accessor: (b) => b.service_charge || 0 },
+      { label: 'Parts Charge (INR)', accessor: (b) => b.parts_charge || 0 },
+      { label: 'Labour Charge (INR)', accessor: (b) => b.labour_charge || 0 },
+      { label: 'Discount (INR)', accessor: (b) => b.discount_amount || 0 },
+      { label: 'Total Bill (INR)', accessor: (b) => b.total_bill || 0 },
+      { label: 'Partner Payout (INR)', accessor: (b) => b.payout_amount || Math.round((b.total_bill || 0) * 0.8) },
+      { label: 'Payment Status', accessor: (b) => b.bill_status || 'UNPAID' },
+    ];
+    exportToCSV('Zevota_Bookings_Report', columns, activeBookings);
+  };
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Booking Operations & Field Management</Text>
+          <Text style={styles.subtitle}>Review work orders, inspect provider field reports (video/photos), assign field partners, and generate estimate bills.</Text>
+        </View>
+
+        <TouchableOpacity
+          style={{ backgroundColor: '#059669', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 }}
+          onPress={handleExportBookings}
+          activeOpacity={0.85}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 13 }}>Export Bookings (Excel/CSV)</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Bookings Table */}
+      <View style={styles.tableCard}>
+        {activeBookings.length === 0 && (
+          <View style={styles.emptyState}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <path d="M8 21h8M12 17v4" />
+            </svg>
+            <Text style={styles.emptyStateTitle}>No bookings yet</Text>
+            <Text style={styles.emptyStateSub}>Service bookings placed by users will appear here for review & dispatch.</Text>
+          </View>
+        )}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.th, { flex: 1.1 }]}>Booking ID</Text>
+          <Text style={[styles.th, { flex: 1.4 }]}>Customer</Text>
+          <Text style={[styles.th, { flex: 1.2 }]}>Service</Text>
+          <Text style={[styles.th, { flex: 1.2 }]}>Field Partner</Text>
+          <Text style={[styles.th, { flex: 1.0 }]}>Scheduled</Text>
+          <Text style={[styles.th, { flex: 1.2 }]}>Status</Text>
+          <Text style={[styles.th, { flex: 2.0 }]}>Actions & Field Reports</Text>
+        </View>
+
+        {activeBookings.map((b, idx) => {
+          const isRejected = Boolean(rejectedState[b.booking_id] || b.status === 'ADMIN_REJECTED');
+          const isAccepted = Boolean(
+            acceptedState[b.booking_id] ||
+            b.is_accepted ||
+            (b.status !== 'PENDING_ADMIN_REVIEW' && b.status !== 'ADMIN_REJECTED')
+          );
+          const hasInspection = b.status === 'ASSIGNED_TO_ADMIN' || Boolean(b.inspection_report);
+          const isAssigned = Boolean(b.provider_id || b.provider_name || (b.status !== 'PENDING_ADMIN_REVIEW' && b.status !== 'ADMIN_ACCEPTED'));
+
+          const statusLabels = {
+            PENDING_ADMIN_REVIEW: 'PENDING REVIEW',
+            ADMIN_ACCEPTED: 'ACCEPTED',
+            PROVIDER_ASSIGNED: 'PARTNER ASSIGNED',
+            PROVIDER_ACCEPTED: 'PARTNER ACCEPTED',
+            PROVIDER_ON_THE_WAY: 'EN ROUTE',
+            PROVIDER_ARRIVED: 'ON SITE',
+            ISSUE_INSPECTED: 'INSPECTED',
+            ASSIGNED_TO_ADMIN: 'INSPECTION RECEIVED',
+            AWAITING_USER_APPROVAL: 'AWAITING APPROVAL',
+            SERVICE_IN_PROGRESS: 'IN PROGRESS',
+            BOOKING_COMPLETED: 'COMPLETED',
+            ADMIN_REJECTED: 'REJECTED',
+          };
+
+          let displayStatus = statusLabels[b.status] || b.status;
+          if (isAccepted && b.status === 'PENDING_ADMIN_REVIEW') displayStatus = 'ACCEPTED';
+          if (isRejected) displayStatus = 'REJECTED';
+
+          const getStatusPillStyle = (status, accepted, rejected) => {
+            if (rejected || status === 'ADMIN_REJECTED') {
+              return { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' };
+            }
+            switch (status) {
+              case 'PENDING_ADMIN_REVIEW':
+                return accepted
+                  ? { bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d' }
+                  : { bg: '#fffbeb', border: '#fde68a', text: '#b45309' };
+              case 'ADMIN_ACCEPTED':
+                return { bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d' };
+              case 'PROVIDER_ASSIGNED':
+              case 'PROVIDER_ACCEPTED':
+                return { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' };
+              case 'PROVIDER_ON_THE_WAY':
+                return { bg: '#f5f3ff', border: '#ddd6fe', text: '#6d28d9' };
+              case 'PROVIDER_ARRIVED':
+                return { bg: '#ecfeff', border: '#a5f3fc', text: '#0e7490' };
+              case 'ISSUE_INSPECTED':
+              case 'ASSIGNED_TO_ADMIN':
+                return { bg: '#ecfdf5', border: '#a7f3d0', text: '#047857' };
+              case 'AWAITING_USER_APPROVAL':
+                return { bg: '#fff7ed', border: '#ffedd5', text: '#c2410c' };
+              case 'SERVICE_IN_PROGRESS':
+                return { bg: '#f0f9ff', border: '#bae6fd', text: '#0369a1' };
+              case 'BOOKING_COMPLETED':
+                return { bg: '#f0fdf4', border: '#bbf7d0', text: '#166534' };
+              default:
+                return { bg: '#f1f5f9', border: '#e2e8f0', text: '#475569' };
+            }
+          };
+
+          const pillStyle = getStatusPillStyle(b.status, isAccepted, isRejected);
+
+          // Resolve user & provider
+          const cleanPhone = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
+          const matchedUser = (users || []).find((u) => u.id === b.user_id || (b.user_phone && cleanPhone(u.phone) === cleanPhone(b.user_phone))) || {
+            id: b.user_id,
+            name: b.user_name || b.userName || '—',
+            phone: b.user_phone || '—',
+            email: '',
+            subscription_plan: null,
+            wallet_balance: 0,
+            property_verification_status: 'PENDING',
+          };
+
+          const matchedProvider = (providers || []).find((p) => p.id === b.provider_id || p.name === b.provider_name) || {
+            id: b.provider_id || null,
+            name: b.provider_name || 'Unassigned',
+            phone: '—',
+            rating: null,
+            total_jobs: 0,
+            earnings: 0,
+            location: '—',
+            is_online: false,
+          };
+
+          const isPaid = Boolean(
+            b.bill_status === 'PAID' ||
+            Number(b.wallet_deducted) > 0 ||
+            (b.status === 'BOOKING_COMPLETED' && b.bill_status !== 'UNPAID')
+          );
+
+          return (
+            <View key={idx} style={styles.tableRowContainer}>
+              <View style={styles.tableRow}>
+                <TouchableOpacity
+                  style={{ flex: 1.1 }}
+                  onPress={() => navigate(`/admin/bookings/${b.booking_id}`)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.tdBold, { color: '#2563eb', textDecorationLine: 'underline' }]}>
+                    {b.booking_id}
+                  </Text>
+                </TouchableOpacity>
+                
+                {/* Clickable Customer Name */}
+                <TouchableOpacity
+                  style={{ flex: 1.4 }}
+                  onPress={() => { setModalUser(matchedUser); setModalUserVisible(true); }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.tdBold, { color: '#2563eb', textDecorationLine: 'underline' }]}>{matchedUser.name}</Text>
+                  <Text style={{ fontSize: 11, color: '#64748b' }}>{matchedUser.phone}</Text>
+                </TouchableOpacity>
+
+                <View style={{ flex: 1.4 }}>
+                  <Text style={styles.tdBold}>{b.service_name}</Text>
+                  {Boolean(b.applianceName) && (
+                    <Text style={{ fontSize: 10.5, color: '#64748b' }}>Appliance: {b.applianceName}</Text>
+                  )}
+                  {Boolean(b.issue || b.issue_description) && (
+                    <Text style={{ fontSize: 10.5, color: '#475569', fontStyle: 'italic' }} numberOfLines={1}>
+                      {b.issue || b.issue_description}
+                    </Text>
+                  )}
+                  {getAllBookingMediaItems(b).length > 0 && (
+                    <TouchableOpacity
+                      style={{
+                        marginTop: 4,
+                        backgroundColor: '#eff6ff',
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        borderRadius: 6,
+                        borderWidth: 1,
+                        borderColor: '#bfdbfe',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                        alignSelf: 'flex-start',
+                      }}
+                      onPress={() => {
+                        setMediaBooking(b);
+                        setCustomerMediaModal(true);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                        <circle cx="12" cy="13" r="4" />
+                      </svg>
+                      <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1d4ed8' }}>
+                        View Photo ({getAllBookingMediaItems(b).length})
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Clickable Provider Name */}
+                <TouchableOpacity
+                  style={{ flex: 1.2 }}
+                  onPress={() => { setModalProvider(matchedProvider); setModalProviderVisible(true); }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.td, { color: '#7c3aed', fontWeight: '700' }]}>{matchedProvider.name}</Text>
+                  <Text style={{ fontSize: 10.5, color: '#64748b' }}>★ {matchedProvider.rating || '5.0'}</Text>
+                </TouchableOpacity>
+
+                <Text style={[styles.td, { flex: 1.0 }]}>{b.scheduled_date}</Text>
+
+                <View style={{ flex: 1.2 }}>
+                  <View style={[styles.statusPill, { backgroundColor: pillStyle.bg, borderColor: pillStyle.border, borderWidth: 1 }]}>
+                    <Text style={[styles.statusPillText, { color: pillStyle.text }]}>
+                      {displayStatus}
+                    </Text>
+                  </View>
+                  {Boolean(b.total_bill > 0 || b.service_charge) && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedBooking(b);
+                        setViewBillModal(true);
+                      }}
+                      style={{ marginTop: 4, backgroundColor: '#f0fdf4', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#bbf7d0', alignSelf: 'flex-start' }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#166534' }}>
+                        Bill: ₹{Number(b.total_bill || 0).toLocaleString()}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  {Boolean(b.user_rating) && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedBooking(b);
+                        setReviewModal(true);
+                      }}
+                      style={{ marginTop: 4, backgroundColor: '#fffbeb', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#fde68a', alignSelf: 'flex-start' }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#b45309' }}>
+                        {'★'.repeat(b.user_rating)} ({b.user_rating}/5) · View review
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  {!b.user_rating && b.rating_skipped && (
+                    <View style={{ marginTop: 4, backgroundColor: '#f1f5f9', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#e2e8f0', alignSelf: 'flex-start' }}>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b' }}>Rating skipped</Text>
+                    </View>
+                  )}
+                  {b.status === 'BOOKING_COMPLETED' && !b.user_rating && !b.rating_skipped && (
+                    <View style={{ marginTop: 4, backgroundColor: '#eff6ff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#bfdbfe', alignSelf: 'flex-start' }}>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#1d4ed8' }}>Awaiting customer rating</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={{ flex: 2.2, flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                  {/* STAGE 1: ACCEPT / REJECT BUTTONS */}
+                  {!isAccepted && !isRejected && (
+                    <>
+                      <TouchableOpacity
+                        style={[styles.actionBtn, { backgroundColor: '#059669' }]}
+                        onPress={() => handleAcceptClick(b)}
+                      >
+                        <Text style={styles.actionBtnText}>Accept</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.actionBtn, { backgroundColor: '#dc2626' }]}
+                        onPress={() => handleRejectClick(b)}
+                      >
+                        <Text style={styles.actionBtnText}>Reject</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+
+                  {/* STAGE 2: AFTER ACCEPTANCE -> ASSIGN / REASSIGN PARTNER & GENERATE BILL */}
+                  {isAccepted && !isRejected && (
+                    <>
+                      <TouchableOpacity
+                        style={[styles.actionBtn, { backgroundColor: isAssigned ? '#4f46e5' : '#2563eb' }]}
+                        onPress={() => {
+                          setSelectedBooking(b);
+                          setAssignModal(true);
+                        }}
+                      >
+                        <Text style={styles.actionBtnText}>{isAssigned ? 'Reassign Partner' : 'Assign Partner'}</Text>
+                      </TouchableOpacity>
+
+                      {hasInspection && (
+                        <TouchableOpacity
+                          style={[styles.actionBtn, { backgroundColor: '#059669' }]}
+                          onPress={() => {
+                            setSelectedBooking(b);
+                            setReportModal(true);
+                          }}
+                        >
+                          <Text style={styles.actionBtnText}>View Report</Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {Boolean(b.total_bill > 0 || b.service_charge || b.status === 'AWAITING_USER_APPROVAL') ? (
+                        <>
+                          <TouchableOpacity
+                            style={[styles.actionBtn, { backgroundColor: '#059669' }]}
+                            onPress={() => {
+                              setSelectedBooking(b);
+                              setViewBillModal(true);
+                            }}
+                          >
+                            <Text style={styles.actionBtnText}>View Bill</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            style={[styles.actionBtn, { backgroundColor: '#7c3aed' }]}
+                            onPress={() => openBillModalWithReport(b)}
+                          >
+                            <Text style={styles.actionBtnText}>Edit Bill</Text>
+                          </TouchableOpacity>
+
+                          {/* Download Bill button - only when paid */}
+                          {isPaid && (
+                            <TouchableOpacity
+                              style={[styles.actionBtn, { backgroundColor: '#0284c7' }]}
+                              onPress={() => downloadInvoicePDF(b)}
+                              activeOpacity={0.8}
+                            >
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                  <polyline points="7 10 12 15 17 10" />
+                                  <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                                <Text style={styles.actionBtnText}>Download Bill</Text>
+                              </View>
+                            </TouchableOpacity>
+                          )}
+                        </>
+                      ) : hasInspection ? (
+                        <TouchableOpacity
+                          style={[styles.actionBtn, { backgroundColor: '#7c3aed' }]}
+                          onPress={() => openBillModalWithReport(b)}
+                        >
+                          <Text style={styles.actionBtnText}>Generate Bill</Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '600' }}>
+                          Waiting for inspection report
+                        </Text>
+                      )}
+                    </>
+                  )}
+
+                  {/* REJECTED BADGE */}
+                  {isRejected && (
+                    <Text style={styles.rejectedLabel}>Booking Rejected by Admin</Text>
+                  )}
+                </View>
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
+      {/* PROVIDER REPORT AUDIT MODAL */}
+      <Modal visible={reportModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Field Provider Inspection & Video Audit</Text>
+            <Text style={styles.modalSub}>Work Order: {selectedBooking?.booking_id} • Assigned to Admin</Text>
+
+            <Text style={styles.inputLabel}>Provider Explanation & Findings</Text>
+            <Text style={styles.modalNotes}>
+              {selectedBooking?.inspection_report || 'No inspection report submitted yet.'}
+            </Text>
+
+            <View style={{ flexDirection: 'row', gap: 16, marginVertical: 8, backgroundColor: '#f8fafc', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 10, color: '#64748b', fontWeight: '600', fontFamily: 'Inter, sans-serif' }}>Parts Cost</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0f172a', marginTop: 2, fontFamily: 'Inter, sans-serif' }}>₹{selectedBooking?.parts_charge || 4500}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 10, color: '#64748b', fontWeight: '600', fontFamily: 'Inter, sans-serif' }}>Labour Cost</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0f172a', marginTop: 2, fontFamily: 'Inter, sans-serif' }}>₹{selectedBooking?.labour_charge || 1500}</Text>
+              </View>
+              <View style={{ flex: 1.2 }}>
+                <Text style={{ fontSize: 10, color: '#64748b', fontWeight: '600', fontFamily: 'Inter, sans-serif' }}>Estimated Total</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#10b981', marginTop: 2, fontFamily: 'Inter, sans-serif' }}>
+                  ₹{(Number(selectedBooking?.parts_charge || 4500) + Number(selectedBooking?.labour_charge || 1500) + Number(selectedBooking?.service_charge || 2000)).toLocaleString()}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.inputLabel}>Attached Issue Video / Photo</Text>
+            <View style={styles.modalMediaBox}>
+              <Image source={{ uri: selectedBooking?.issue_media_url || 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?auto=format&fit=crop&q=80&w=600' }} style={styles.modalMediaImg} />
+            </View>
+
+            <TouchableOpacity style={styles.sendBillBtn} onPress={() => { setReportModal(false); openBillModalWithReport(selectedBooking); }}>
+              <Text style={styles.sendBillBtnText}>Proceed to Generate Estimate Bill</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.closeModalBtn} onPress={closeBookingModals}>
+              <Text style={styles.closeModalBtnText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* PROVIDER ASSIGNMENT MODAL */}
+      <Modal visible={assignModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Assign Field Partner</Text>
+            <Text style={styles.modalSub}>Select best candidate for Work Order {selectedBooking?.booking_id}</Text>
+
+            <View style={styles.candidateList}>
+              {providers.length > 0 ? providers.map((p, idx) => (
+                <View key={idx} style={styles.candidateCard}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.candName}>{p.name}  ★ {p.rating ?? '—'}</Text>
+                    <Text style={styles.candSub}>{p.location || '—'} · {p.phone || '—'}</Text>
+                  </View>
+                  <TouchableOpacity style={styles.assignSelectBtn} onPress={() => handleAssignAction(p.id)} disabled={submitting}>
+                    <Text style={styles.assignSelectBtnText}>{submitting ? 'Dispatching...' : 'Assign Partner'}</Text>
+                  </TouchableOpacity>
+                </View>
+              )) : (
+                <Text style={{ textAlign: 'center', color: '#64748b', padding: 12 }}>No providers available.</Text>
+              )}
+            </View>
+
+            <TouchableOpacity style={styles.closeModalBtn} onPress={() => setAssignModal(false)}>
+              <Text style={styles.closeModalBtnText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* BILL BUILDER MODAL WITH EMBEDDED PROVIDER INSPECTION SUMMARY */}
+      <Modal visible={billModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxWidth: 520 }]}>
+            <Text style={styles.modalTitle}>Generate Estimate Bill Builder</Text>
+            <Text style={styles.modalSub}>Build itemized estimate for {selectedBooking?.booking_id || '—'}</Text>
+
+            {/* EMBEDDED PROVIDER REPORT SUMMARY BOX INSIDE BILL BUILDER */}
+            <View style={styles.modalReportBox}>
+              <Text style={styles.modalReportTag}>PROVIDER FIELD INSPECTION REPORT</Text>
+              <Text style={styles.modalReportNotes}>
+                <Text style={styles.boldText}>Diagnosis:</Text> {selectedBooking?.inspection_report || 'Armature coil burnt due to jar overload. Requires replacement jar coupler.'}
+              </Text>
+              <View style={styles.modalReportRow}>
+                <Image source={{ uri: selectedBooking?.issue_media_url || 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?auto=format&fit=crop&q=80&w=600' }} style={styles.modalReportImg} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalReportItem}>Provider Parts Cost: <Text style={styles.boldGreen}>₹{partsCharge}</Text></Text>
+                  <Text style={styles.modalReportItem}>Provider Labour Cost: <Text style={styles.boldGreen}>₹{labourCharge}</Text></Text>
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.inputLabel}>Service & Inspection Charge (₹)</Text>
+            <TextInput style={styles.textInput} keyboardType="number-pad" value={serviceCharge} onChangeText={setServiceCharge} />
+
+            <Text style={styles.inputLabel}>Spare Parts Charge (₹) [Pre-filled from Provider Report]</Text>
+            <TextInput style={styles.textInput} keyboardType="number-pad" value={partsCharge} onChangeText={setPartsCharge} />
+
+            <Text style={styles.inputLabel}>Labour Charge (₹) [Pre-filled from Provider Report]</Text>
+            <TextInput style={styles.textInput} keyboardType="number-pad" value={labourCharge} onChangeText={setLabourCharge} />
+
+            <Text style={styles.inputLabel}>Discount (₹)</Text>
+            <TextInput style={styles.textInput} keyboardType="number-pad" value={discount} onChangeText={setDiscount} />
+
+            <View style={styles.totalPreviewBox}>
+              <Text style={styles.totalPreviewLabel}>TOTAL BILL SENT TO USER:</Text>
+              <Text style={styles.totalPreviewVal}>
+                ₹{(Number(serviceCharge || 0) + Number(partsCharge || 0) + Number(labourCharge || 0) - Number(discount || 0)).toLocaleString()}
+              </Text>
+            </View>
+
+            <TouchableOpacity style={styles.sendBillBtn} onPress={handleGenerateBillAction} disabled={submitting}>
+              <Text style={styles.sendBillBtnText}>{submitting ? 'Sending...' : 'Send Estimate Bill to User'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.closeModalBtn} onPress={() => setBillModal(false)}>
+              <Text style={styles.closeModalBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ITEMIZED GENERATED BILL INVOICE MODAL */}
+      <Modal visible={viewBillModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxWidth: 540, padding: 0, overflow: 'hidden' }]}>
+            {/* Luxury Header */}
+            <View style={{ backgroundColor: '#0f172a', padding: 20, gap: 4 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View style={{ backgroundColor: '#2563eb', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                    <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: '800', letterSpacing: 1 }}>ZEVOTA CARE</Text>
+                  </View>
+                  <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '600' }}>TAX INVOICE / ESTIMATE RECEIPT</Text>
+                </View>
+                <View style={{ backgroundColor: selectedBooking?.bill_status === 'PAID' ? '#166534' : '#1e3a8a', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                  <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: '700' }}>
+                    {selectedBooking?.bill_status === 'PAID' ? 'PAID VIA WALLET' : 'AWAITING USER APPROVAL'}
+                  </Text>
+                </View>
+              </View>
+              <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '800', marginTop: 6 }}>
+                Invoice #{selectedBooking?.booking_id?.replace('BK-', 'INV-') || 'INV-2026-000125'}
+              </Text>
+              <Text style={{ color: '#94a3b8', fontSize: 11 }}>Work Order: {selectedBooking?.booking_id} • Service: {selectedBooking?.service_name}</Text>
+            </View>
+
+            <ScrollView style={{ padding: 20, maxHeight: 440 }} contentContainerStyle={{ gap: 16 }}>
+              {/* Success Banner */}
+              <View style={{ backgroundColor: '#f0fdf4', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#bbf7d0', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#10b981', justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: '800' }}>✓</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#166534' }}>Estimate Bill Generated & Sent Successfully</Text>
+                  <Text style={{ fontSize: 11, color: '#15803d' }}>Itemized breakdown is now visible to customer for approval & wallet payment.</Text>
+                </View>
+              </View>
+
+              {/* Customer & Partner Info Grid */}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <View style={{ flex: 1, backgroundColor: '#f8fafc', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' }}>
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Customer Details</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#0f172a', marginTop: 4 }}>{selectedBooking?.user_name || selectedBooking?.userName || '—'}</Text>
+                  <Text style={{ fontSize: 11, color: '#475569' }}>{selectedBooking?.user_phone || '—'}</Text>
+                  <Text style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }} numberOfLines={2}>{selectedBooking?.address_text || '—'}</Text>
+                </View>
+
+                <View style={{ flex: 1, backgroundColor: '#f8fafc', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' }}>
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Assigned Field Partner</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#0f172a', marginTop: 4 }}>{selectedBooking?.provider_name || 'Unassigned'}</Text>
+                  <Text style={{ fontSize: 11, color: '#475569' }}>Category: {selectedBooking?.category_name || '—'}</Text>
+                  <Text style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>Field Inspection Complete</Text>
+                </View>
+              </View>
+
+              {/* Itemized Table */}
+              <View style={{ backgroundColor: '#ffffff', borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', overflow: 'hidden' }}>
+                <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 8, flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>ITEM & DESCRIPTION</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>AMOUNT</Text>
+                </View>
+
+                <View style={{ paddingHorizontal: 12, paddingVertical: 10, gap: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View>
+                      <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#0f172a' }}>Service Visit & Field Inspection</Text>
+                      <Text style={{ fontSize: 10.5, color: '#64748b' }}>Standard diagnostic & visit charges</Text>
+                    </View>
+                    <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0f172a' }}>₹{Number(selectedBooking?.service_charge || 0).toLocaleString()}</Text>
+                  </View>
+
+                  <View style={{ height: 1, backgroundColor: '#f1f5f9' }} />
+
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View>
+                      <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#0f172a' }}>Replacement Spare Parts</Text>
+                      <Text style={{ fontSize: 10.5, color: '#64748b' }}>Original manufacturer components</Text>
+                    </View>
+                    <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0f172a' }}>₹{Number(selectedBooking?.parts_charge || 0).toLocaleString()}</Text>
+                  </View>
+
+                  <View style={{ height: 1, backgroundColor: '#f1f5f9' }} />
+
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View>
+                      <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#0f172a' }}>Technician Labour & Workmanship</Text>
+                      <Text style={{ fontSize: 10.5, color: '#64748b' }}>Field technician installation & testing</Text>
+                    </View>
+                    <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0f172a' }}>₹{Number(selectedBooking?.labour_charge || 0).toLocaleString()}</Text>
+                  </View>
+
+                  {Number(selectedBooking?.discount_amount || 0) > 0 && (
+                    <>
+                      <View style={{ height: 1, backgroundColor: '#f1f5f9' }} />
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: '#16a34a' }}>Special Discount Applied</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#16a34a' }}>-₹{Number(selectedBooking?.discount_amount || 0).toLocaleString()}</Text>
+                      </View>
+                    </>
+                  )}
+                </View>
+
+                {/* Grand Total Box */}
+                <View style={{ backgroundColor: '#1e3a8a', padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View>
+                    <Text style={{ color: '#bfdbfe', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 }}>TOTAL ESTIMATE BILL AMOUNT</Text>
+                    <Text style={{ color: '#ffffff', fontSize: 11 }}>Includes taxes and service charges</Text>
+                  </View>
+                  <Text style={{ color: '#ffffff', fontSize: 22, fontWeight: '900' }}>
+                    ₹{Number(selectedBooking?.total_bill || 0).toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Payout & Revenue Distribution Box */}
+              <View style={{ backgroundColor: '#eff6ff', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#bfdbfe', gap: 6 }}>
+                <Text style={{ fontSize: 10, fontWeight: '700', color: '#1e40af', textTransform: 'uppercase' }}>Financial Payout Breakdown</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 11.5, color: '#334155' }}>Partner Payout Share (80%):</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#1d4ed8' }}>₹{Number(selectedBooking?.payout_amount || Math.round((selectedBooking?.total_bill || 0) * 0.8)).toLocaleString()}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 11.5, color: '#334155' }}>Zevota Platform Revenue (20%):</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#047857' }}>₹{Number((selectedBooking?.total_bill || 0) - (selectedBooking?.payout_amount || Math.round((selectedBooking?.total_bill || 0) * 0.8))).toLocaleString()}</Text>
+                </View>
+              </View>
+
+              {/* Actions */}
+              <View style={{ gap: 10, marginTop: 4, marginBottom: 8 }}>
+                {Boolean(selectedBooking?.bill_status === 'PAID' || Number(selectedBooking?.wallet_deducted) > 0 || (selectedBooking?.status === 'BOOKING_COMPLETED' && selectedBooking?.bill_status !== 'UNPAID')) ? (
+                  <TouchableOpacity
+                    style={{ backgroundColor: '#2563eb', paddingVertical: 13, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+                    onPress={() => downloadInvoicePDF(selectedBooking)}
+                    activeOpacity={0.8}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="12" y1="18" x2="12" y2="12" />
+                      <polyline points="9 15 12 18 15 15" />
+                    </svg>
+                    <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 13.5 }}>Download Tax Invoice / Bill (PDF)</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={{ backgroundColor: '#f1f5f9', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, borderWidth: 1, borderColor: '#cbd5e1' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <Text style={{ color: '#64748b', fontWeight: '700', fontSize: 11.5 }}>
+                      Official Tax Invoice downloadable once customer approves & pays for service
+                    </Text>
+                  </View>
+                )}
+
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <TouchableOpacity
+                    style={{ flex: 1, backgroundColor: '#7c3aed', paddingVertical: 12, borderRadius: 10, alignItems: 'center' }}
+                    onPress={() => {
+                      setViewBillModal(false);
+                      openBillModalWithReport(selectedBooking);
+                    }}
+                  >
+                    <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 13 }}>Edit / Modify Bill</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{ flex: 1, backgroundColor: '#0f172a', paddingVertical: 12, borderRadius: 10, alignItems: 'center' }}
+                    onPress={() => setViewBillModal(false)}
+                  >
+                    <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 13 }}>Done & Close</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Customer Rating Review Modal */}
+      <Modal visible={reviewModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxWidth: 480 }]}>
+            <Text style={styles.modalTitle}>Customer review</Text>
+            <Text style={styles.modalSub}>
+              {selectedBooking?.booking_id} · {selectedBooking?.service_name}
+            </Text>
+
+            {selectedBooking?.user_rating ? (
+              <View style={{ gap: 10 }}>
+                <Text style={{ fontSize: 22, color: '#d97706', fontWeight: '800' }}>
+                  {'★'.repeat(selectedBooking.user_rating)} ({selectedBooking.user_rating}/5)
+                </Text>
+                {selectedBooking.issue_resolved ? (
+                  <Text style={{ fontSize: 13, color: '#334155' }}>
+                    Issue resolved:{' '}
+                    <Text style={{ fontWeight: '700' }}>
+                      {selectedBooking.issue_resolved === 'yes'
+                        ? 'Yes, completely'
+                        : selectedBooking.issue_resolved === 'partial'
+                          ? 'Partially'
+                          : 'No'}
+                    </Text>
+                  </Text>
+                ) : null}
+                {selectedBooking.user_feedback ? (
+                  <Text style={{ fontSize: 14, color: '#0f172a', fontStyle: 'italic', lineHeight: 20 }}>
+                    &ldquo;{selectedBooking.user_feedback}&rdquo;
+                  </Text>
+                ) : (
+                  <Text style={{ fontSize: 13, color: '#64748b' }}>No written feedback.</Text>
+                )}
+                {Array.isArray(selectedBooking.feedback_tags) && selectedBooking.feedback_tags.length > 0 && (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                    {selectedBooking.feedback_tags.map((t) => (
+                      <View key={t} style={{ backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#1d4ed8' }}>{t}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                {Array.isArray(selectedBooking.rating_photos) && selectedBooking.rating_photos.length > 0 && (
+                  <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                    {selectedBooking.rating_photos.map((uri, i) => (
+                      <Image
+                        key={`ar-${i}`}
+                        source={{ uri }}
+                        style={{ width: 80, height: 80, borderRadius: 8, backgroundColor: '#e2e8f0' }}
+                        resizeMode="cover"
+                      />
+                    ))}
+                  </View>
+                )}
+                {selectedBooking.rating_submitted_at ? (
+                  <Text style={{ fontSize: 11, color: '#94a3b8' }}>
+                    Submitted {new Date(selectedBooking.rating_submitted_at).toLocaleString()}
+                  </Text>
+                ) : null}
+              </View>
+            ) : selectedBooking?.rating_skipped ? (
+              <Text style={{ fontSize: 14, color: '#64748b' }}>Customer skipped rating.</Text>
+            ) : (
+              <Text style={{ fontSize: 14, color: '#64748b' }}>No customer rating yet.</Text>
+            )}
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: '#0f172a', marginTop: 16, alignSelf: 'stretch' }]}
+              onPress={closeBookingModals}
+            >
+              <Text style={styles.actionBtnText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Customer Profile Detail Modal */}
+      <UserProfileModal
+        visible={modalUserVisible}
+        user={modalUser}
+        onClose={() => { setModalUserVisible(false); setModalUser(null); }}
+      />
+
+      {/* Field Partner Detail Modal */}
+      <ProviderProfileModal
+        visible={modalProviderVisible}
+        provider={modalProvider}
+        onClose={() => { setModalProviderVisible(false); setModalProvider(null); }}
+      />
+
+      {/* Customer Uploaded Photo & Media Modal */}
+      <Modal visible={customerMediaModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxWidth: 540 }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ gap: 2 }}>
+                <Text style={styles.modalTitle}>Customer Uploaded Photo & Media</Text>
+                <Text style={styles.modalSub}>
+                  Work Order: {mediaBooking?.booking_id} • Customer: {mediaBooking?.user_name || '—'}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setCustomerMediaModal(false)}>
+                <Text style={{ fontSize: 22, color: '#64748b', fontWeight: '700' }}>×</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ backgroundColor: '#f8fafc', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', gap: 4 }}>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Service & Issue Details</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#0f172a' }}>
+                {mediaBooking?.service_name} ({mediaBooking?.category_name})
+              </Text>
+              {mediaBooking?.applianceName ? (
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569' }}>
+                  Appliance: {mediaBooking.applianceName}
+                </Text>
+              ) : null}
+              {mediaBooking?.issue ? (
+                <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#2563eb' }}>
+                  Issue: {mediaBooking.issue}
+                </Text>
+              ) : null}
+              {mediaBooking?.issue_description || mediaBooking?.issueDescription ? (
+                <Text style={{ fontSize: 12, color: '#334155', fontStyle: 'italic', marginTop: 2 }}>
+                  "{mediaBooking?.issue_description || mediaBooking?.issueDescription}"
+                </Text>
+              ) : null}
+            </View>
+
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginTop: 6 }}>Attached Media (Photos / Videos)</Text>
+            <ScrollView style={{ maxHeight: 360 }} contentContainerStyle={{ gap: 12 }}>
+              {getAllBookingMediaItems(mediaBooking).length > 0 ? (
+                getAllBookingMediaItems(mediaBooking).map((item, index) => (
+                  <View key={index} style={{ gap: 6, backgroundColor: '#0f172a', padding: 8, borderRadius: 12, overflow: 'hidden' }}>
+                    {item.type === 'video' ? (
+                      <video src={item.uri} controls style={{ width: '100%', maxHeight: 300, borderRadius: 8, objectFit: 'contain' }} />
+                    ) : (
+                      <Image source={{ uri: item.uri }} style={{ width: '100%', height: 260, borderRadius: 8 }} resizeMode="contain" />
+                    )}
+                    <Text style={{ color: '#94a3b8', fontSize: 10.5, textAlign: 'center' }}>
+                      {item.type === 'video' ? 'Recorded Video' : `Captured Photo ${index + 1}`}
+                    </Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={{ fontSize: 13, color: '#64748b', textAlign: 'center', padding: 20 }}>
+                  No photo attached for this booking.
+                </Text>
+              )}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: '#0f172a', marginTop: 8, paddingVertical: 12, alignSelf: 'stretch' }]}
+              onPress={() => setCustomerMediaModal(false)}
+            >
+              <Text style={styles.actionBtnText}>Close Media Viewer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f8fafc' },
+  content: { padding: 20, gap: 16 },
+  header: { gap: 4 },
+  title: { fontSize: 22, fontWeight: '700', color: '#0f172a' },
+  subtitle: { fontSize: 13, color: '#64748b' },
+
+  topReportCard: { backgroundColor: '#ffffff', borderRadius: 16, padding: 18, borderWidth: 2, borderColor: '#059669', gap: 12 },
+  topReportHeader: { gap: 2, borderBottomWidth: 1, borderBottomColor: '#ecfdf5', pb: 8 },
+  topReportTitle: { fontSize: 14, fontWeight: '600', color: '#047857' },
+  topReportSub: { fontSize: 12, color: '#64748b' },
+
+  reportRowCard: { backgroundColor: '#f0fdf4', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#a7f3d0', gap: 8 },
+  reportCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  reportWorkId: { fontSize: 15, fontWeight: '600', color: '#0f172a' },
+  reportCust: { fontSize: 12, color: '#475569', marginTop: 2 },
+  boldGreen: { color: '#059669', fontWeight: '600' },
+
+  viewFullBtn: { backgroundColor: '#059669', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
+  viewFullBtnText: { color: '#ffffff', fontSize: 11, fontWeight: '600' },
+
+  reportNotes: { fontSize: 13, color: '#1e293b', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#cbd5e1' },
+  boldText: { fontWeight: '700', color: '#0f172a' },
+
+  reportCardBottom: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 4 },
+  mediaThumbBox: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  mediaThumbImg: { width: 48, height: 48, borderRadius: 8 },
+  mediaLabel: { fontSize: 10, color: '#047857', fontWeight: '600' },
+
+  costBoxInline: { flex: 1, backgroundColor: '#ffffff', padding: 8, borderRadius: 6, borderWidth: 1, borderColor: '#a7f3d0' },
+  costItemInline: { fontSize: 11, color: '#475569' },
+  costTotalInline: { fontSize: 12, fontWeight: '600', color: '#15803d', marginTop: 2 },
+
+  generateBillQuickBtn: { backgroundColor: '#7c3aed', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8 },
+  generateBillQuickBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 12 },
+
+  tableCard: { backgroundColor: '#ffffff', borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0', overflow: 'hidden' },
+  tableHeader: { flexDirection: 'row', backgroundColor: '#0f172a', padding: 14 },
+  th: { color: '#94a3b8', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 },
+  tableRowContainer: { borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  tableRow: { flexDirection: 'row', padding: 14, alignItems: 'center' },
+  tdBold: { fontSize: 13, fontWeight: '600', color: '#2563eb' },
+  td: { fontSize: 13, color: '#334155' },
+
+  emptyState: {
+    padding: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  emptyStateTitle: { fontSize: 16, fontWeight: '700', color: '#64748b' },
+  emptyStateSub: { fontSize: 13, color: '#94a3b8', textAlign: 'center', lineHeight: 18, maxWidth: 320 },
+
+  statusPill: { backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start' },
+  statusPillText: { fontSize: 10, fontWeight: '600', color: '#1d4ed8' },
+  acceptedPill: { backgroundColor: '#f0fdf4' },
+  acceptedPillText: { color: '#15803d' },
+  rejectedPill: { backgroundColor: '#fef2f2' },
+  rejectedPillText: { color: '#dc2626' },
+
+  actionBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
+  actionBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 11 },
+
+  rejectedLabel: { fontSize: 12, color: '#dc2626', fontWeight: '600' },
+
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.7)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContent: { backgroundColor: '#ffffff', borderRadius: 20, padding: 20, width: '100%', maxWidth: 480, gap: 10 },
+  modalTitle: { fontSize: 18, fontWeight: '600', color: '#0f172a' },
+  modalSub: { fontSize: 12, color: '#64748b' },
+  modalNotes: { fontSize: 13, color: '#334155', backgroundColor: '#f8fafc', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#cbd5e1' },
+
+  modalReportBox: { backgroundColor: '#f0fdf4', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#a7f3d0', gap: 6, marginVertical: 4 },
+  modalReportTag: { fontSize: 10, fontWeight: '600', color: '#166534' },
+  modalReportNotes: { fontSize: 12, color: '#1e293b' },
+  modalReportRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 2 },
+  modalReportImg: { width: 44, height: 44, borderRadius: 6 },
+  modalReportItem: { fontSize: 11, color: '#334155' },
+
+  modalMediaBox: { height: 160, borderRadius: 10, overflow: 'hidden', borderWidth: 1, borderColor: '#cbd5e1' },
+  modalMediaImg: { width: '100%', height: '100%' },
+
+  candidateList: { gap: 10, marginVertical: 8 },
+  candidateCard: { backgroundColor: '#f8fafc', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#cbd5e1', flexDirection: 'row', alignItems: 'center' },
+  candName: { fontSize: 14, fontWeight: '600', color: '#0f172a' },
+  candSub: { fontSize: 11, color: '#64748b', marginTop: 2 },
+  assignSelectBtn: { backgroundColor: '#059669', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
+  assignSelectBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 11 },
+
+  inputLabel: { fontSize: 11, fontWeight: '600', color: '#475569' },
+  textInput: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 10, fontSize: 13, color: '#0f172a' },
+
+  totalPreviewBox: { backgroundColor: '#f0fdf4', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#bbf7d0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
+  totalPreviewLabel: { fontSize: 11, fontWeight: '600', color: '#166534' },
+  totalPreviewVal: { fontSize: 20, fontWeight: '700', color: '#15803d' },
+
+  sendBillBtn: { backgroundColor: '#7c3aed', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginTop: 8 },
+  sendBillBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
+
+  closeModalBtn: { paddingVertical: 8, alignItems: 'center' },
+  closeModalBtnText: { color: '#64748b', fontWeight: '600', fontSize: 13 },
+});

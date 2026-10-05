@@ -1,0 +1,137 @@
+import React from 'react';
+import { AppIcon } from '../components/AppIcons';
+
+/**
+ * Urban Company (UrbanClap) Plus / Club Membership Style Theme
+ * Authentic Metallic Colors with Glassmorphism Specular Sheen:
+ * - Gold: #D3AF37
+ * - Silver: #C4C4C4
+ * - Platinum: #D9D9D9
+ */
+export const PLAN_THEMES = {
+  Silver: {
+    name: 'Silver Home AMC',
+    tagline: 'Essential Home Appliance & Systems Protection',
+    tierBadge: 'SILVER AMC',
+    isSilver: true,
+    metalColor: '#C4C4C4',
+    icon: <AppIcon name="shield" size={18} color="#334155" strokeWidth={2.5} />,
+    // Glassmorphic Metallic Silver (#C4C4C4) with specular highlights
+    headerBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(228, 228, 228, 0.78) 25%, rgba(196, 196, 196, 0.55) 45%, rgba(255, 255, 255, 0.92) 55%, rgba(215, 215, 215, 0.68) 75%, rgba(196, 196, 196, 0.88) 100%)',
+    headerBgSolid: '#C4C4C4',
+    headerTextColor: '#0f172a',
+    headerPeriodColor: '#475569',
+    headerTaglineColor: '#334155',
+    borderColor: '#C4C4C4',
+    borderGold: '#C4C4C4',
+    badgeBg: 'rgba(255, 255, 255, 0.82)',
+    badgeBorder: '#C4C4C4',
+    badgeTextColor: '#1e293b',
+    profileBadgeBg: '#f1f5f9',
+    profileBadgeBorder: '#C4C4C4',
+    profileBadgeTextColor: '#334155',
+    creditBoxBg: '#f8fafc',
+    creditBoxBorder: '#C4C4C4',
+    creditTextColor: '#0f172a',
+    goldAccent: '#C4C4C4',
+    checkBg: '#C4C4C4',
+    checkColor: '#0f172a',
+    btnBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(225, 225, 225, 0.82) 50%, rgba(196, 196, 196, 0.9) 100%)',
+    btnBorder: '#C4C4C4',
+    btnTextColor: '#0f172a',
+    specHighlight: '#475569',
+    cardGlow: '0 8px 32px 0 rgba(196, 196, 196, 0.38), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9)',
+    buttonBg: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #C4C4C4 100%)',
+    buttonTextColor: '#0f172a',
+    accentColor: '#C4C4C4',
+    preventiveVisits: 2,
+    partsCap: 15000,
+    slaHours: 4,
+  },
+  Gold: {
+    name: 'Gold Comprehensive AMC',
+    tagline: 'Most Popular • Full Home & Appliance AMC',
+    tierBadge: 'VIP GOLD AMC',
+    isGold: true,
+    metalColor: '#D3AF37',
+    icon: <AppIcon name="award" size={18} color="#b45309" strokeWidth={2.5} />,
+    // Glassmorphic Metallic Gold (#D3AF37) with specular highlights
+    headerBg: 'linear-gradient(135deg, rgba(255, 253, 240, 0.95) 0%, rgba(245, 228, 155, 0.8) 25%, rgba(211, 175, 55, 0.62) 45%, rgba(255, 255, 255, 0.93) 55%, rgba(230, 198, 88, 0.72) 75%, rgba(211, 175, 55, 0.9) 100%)',
+    headerBgSolid: '#D3AF37',
+    headerTextColor: '#451a03',
+    headerPeriodColor: '#78350f',
+    headerTaglineColor: '#713f12',
+    borderColor: '#D3AF37',
+    borderGold: '#D3AF37',
+    badgeBg: 'rgba(255, 255, 255, 0.85)',
+    badgeBorder: '#D3AF37',
+    badgeTextColor: '#713f12',
+    profileBadgeBg: '#fffbeb',
+    profileBadgeBorder: '#D3AF37',
+    profileBadgeTextColor: '#92400e',
+    creditBoxBg: '#fefce8',
+    creditBoxBorder: '#D3AF37',
+    creditTextColor: '#451a03',
+    goldAccent: '#D3AF37',
+    checkBg: '#D3AF37',
+    checkColor: '#ffffff',
+    btnBg: 'linear-gradient(135deg, rgba(255, 254, 245, 0.96) 0%, rgba(247, 233, 168, 0.86) 50%, rgba(211, 175, 55, 0.92) 100%)',
+    btnBorder: '#D3AF37',
+    btnTextColor: '#451a03',
+    specHighlight: '#b45309',
+    cardGlow: '0 8px 32px 0 rgba(211, 175, 55, 0.38), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9)',
+    buttonBg: 'linear-gradient(135deg, #fffdf5 0%, #fef08a 50%, #D3AF37 100%)',
+    buttonTextColor: '#451a03',
+    accentColor: '#D3AF37',
+    preventiveVisits: 4,
+    partsCap: 40000,
+    slaHours: 2,
+  },
+  Platinum: {
+    name: 'Platinum Villa AMC',
+    tagline: 'Executive Luxury Coverage • Dedicated Account Mgr',
+    tierBadge: 'PRESTIGE PLATINUM AMC',
+    isPlatinum: true,
+    metalColor: '#D9D9D9',
+    icon: <AppIcon name="crown" size={18} color="#0f172a" strokeWidth={2.5} />,
+    // Glassmorphic Metallic Platinum (#D9D9D9) with specular highlights
+    headerBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 242, 245, 0.82) 25%, rgba(217, 217, 217, 0.62) 45%, rgba(255, 255, 255, 0.95) 55%, rgba(225, 228, 232, 0.72) 75%, rgba(217, 217, 217, 0.9) 100%)',
+    headerBgSolid: '#D9D9D9',
+    headerTextColor: '#0f172a',
+    headerPeriodColor: '#334155',
+    headerTaglineColor: '#475569',
+    borderColor: '#D9D9D9',
+    borderGold: '#D9D9D9',
+    badgeBg: 'rgba(255, 255, 255, 0.85)',
+    badgeBorder: '#D9D9D9',
+    badgeTextColor: '#0f172a',
+    profileBadgeBg: '#f0f9ff',
+    profileBadgeBorder: '#D9D9D9',
+    profileBadgeTextColor: '#0369a1',
+    creditBoxBg: '#f0f9ff',
+    creditBoxBorder: '#D9D9D9',
+    creditTextColor: '#082f49',
+    goldAccent: '#D9D9D9',
+    checkBg: '#D9D9D9',
+    checkColor: '#0f172a',
+    btnBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(238, 240, 244, 0.86) 50%, rgba(217, 217, 217, 0.92) 100%)',
+    btnBorder: '#D9D9D9',
+    btnTextColor: '#0f172a',
+    specHighlight: '#334155',
+    cardGlow: '0 8px 32px 0 rgba(217, 217, 217, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95)',
+    buttonBg: 'linear-gradient(135deg, #ffffff 0%, #e0f2fe 50%, #D9D9D9 100%)',
+    buttonTextColor: '#082f49',
+    accentColor: '#D9D9D9',
+    preventiveVisits: 6,
+    partsCap: 100000,
+    slaHours: 1,
+  },
+};
+
+export function getPlanTheme(planName) {
+  if (!planName) return PLAN_THEMES.Silver;
+  const normalized = String(planName).trim().toLowerCase();
+  if (normalized.includes('platinum')) return PLAN_THEMES.Platinum;
+  if (normalized.includes('gold')) return PLAN_THEMES.Gold;
+  return PLAN_THEMES.Silver;
+}
