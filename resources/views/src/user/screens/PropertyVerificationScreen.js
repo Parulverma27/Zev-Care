@@ -700,8 +700,13 @@ export default function PropertyVerificationScreen({ onNavigate }) {
     } else if (view === 'DETAILS') {
       setView('LIST');
     } else {
-      if (navigate) navigate('/user/home');
-      else if (onNavigate) onNavigate('/user/home');
+      if (window?.history?.state && window.history.state.idx > 0) {
+        if (navigate) navigate(-1);
+        else if (onNavigate) onNavigate(-1);
+      } else {
+        if (navigate) navigate('/user/home');
+        else if (onNavigate) onNavigate('/user/home');
+      }
     }
   };
 

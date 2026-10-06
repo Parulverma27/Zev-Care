@@ -9,10 +9,18 @@ export default function UserBookingsScreen() {
   const navigate = useNavigate();
   const userBookings = getUserBookings(activeUser);
 
+  const handleGoBack = () => {
+    if (window?.history?.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/user/home');
+    }
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigate('/user/home')} style={styles.backBtn} activeOpacity={0.7}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.backBtn} activeOpacity={0.7}>
           <Text style={styles.backArrow}>←</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>

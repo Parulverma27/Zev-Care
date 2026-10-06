@@ -141,17 +141,6 @@ const ALL_SERVICES_SLIDESHOW = [
     ),
   },
   {
-    id: 'cleaning',
-    name: 'Home Deep Cleaning',
-    category: 'Cleaning Services',
-    bg: '#f5f3ff',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9333ea" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1" />
-      </svg>
-    ),
-  },
-  {
     id: 'tv_av',
     name: 'TV Mount & AV Fix',
     category: 'Television Services',

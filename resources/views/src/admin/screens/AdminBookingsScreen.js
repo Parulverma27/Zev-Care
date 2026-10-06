@@ -81,7 +81,13 @@ export default function AdminBookingsScreen() {
     setBillModal(false);
     setViewBillModal(false);
     setSelectedBooking(null);
-    if (routeBookingId) navigate('/admin/bookings', { replace: true });
+    if (routeBookingId) {
+      if (window?.history?.state && window.history.state.idx > 0) {
+        navigate(-1);
+      } else {
+        navigate('/admin/bookings', { replace: true });
+      }
+    }
   };
 
   const handleAcceptClick = (b) => {

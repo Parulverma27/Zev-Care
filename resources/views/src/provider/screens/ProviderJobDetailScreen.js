@@ -79,6 +79,14 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bk?.booking_id, bk?.status]);
 
+  const handleGoBack = () => {
+    if (window?.history?.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/provider/bookings');
+    }
+  };
+
   if (!bk) {
     return (
       <View style={{ flex: 1, backgroundColor: '#eff6ff', padding: 24, justifyContent: 'center', alignItems: 'center', gap: 12 }}>
@@ -87,10 +95,10 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
           This work order ID is invalid or no longer available.
         </Text>
         <TouchableOpacity
-          onPress={() => navigate('/provider/dashboard')}
+          onPress={handleGoBack}
           style={{ backgroundColor: '#2563eb', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 }}
         >
-          <Text style={{ color: '#fff', fontWeight: '700' }}>Back to Dashboard</Text>
+          <Text style={{ color: '#fff', fontWeight: '700' }}>Back to Work Orders</Text>
         </TouchableOpacity>
       </View>
     );
@@ -198,7 +206,7 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
       <View style={styles.headerRow}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigate('/provider/bookings')}
+          onPress={handleGoBack}
           activeOpacity={0.7}
         >
           <ProviderIcon name="back" color="#0f172a" size={16} />

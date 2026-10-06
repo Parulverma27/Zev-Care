@@ -218,6 +218,15 @@ export default function BookingFlowScreen({ onNavigate }) {
     else if (onNavigate) onNavigate('/user/home');
   };
 
+  const goBack = () => {
+    if (window?.history?.state && window.history.state.idx > 0) {
+      if (navigate) navigate(-1);
+      else if (onNavigate) onNavigate(-1);
+    } else {
+      goHome();
+    }
+  };
+
   const goLiveSupport = () => {
     if (navigate) navigate('/user/support');
     else if (onNavigate) onNavigate('/user/support');
@@ -327,7 +336,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       } else if (category) {
         setStep('SERVICE_TYPE');
       } else {
-        goHome();
+        goBack();
       }
       return;
     }
@@ -359,16 +368,16 @@ export default function BookingFlowScreen({ onNavigate }) {
     }
     if (step === 'SERVICE_TYPE') {
       if (categoryHasGroups(category)) setStep('SUB_GROUP');
-      else if (skippedCategoryStep) goHome();
+      else if (skippedCategoryStep) goBack();
       else setStep(1);
       return;
     }
     if (step === 'SUB_GROUP') {
-      if (skippedCategoryStep) goHome();
+      if (skippedCategoryStep) goBack();
       else setStep(1);
       return;
     }
-    goHome();
+    goBack();
   };
 
   const handleWizardComplete = (units, applianceType) => {
@@ -1059,7 +1068,7 @@ export default function BookingFlowScreen({ onNavigate }) {
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.pad}>
         <View style={styles.rowHeader}>
-          <TouchableOpacity style={styles.backBtn} onPress={goHome}>
+          <TouchableOpacity style={styles.backBtn} onPress={goBack}>
             <Text style={styles.backChevron}>‹</Text>
           </TouchableOpacity>
           <View style={{ flex: 1 }}>

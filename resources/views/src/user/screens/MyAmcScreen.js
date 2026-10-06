@@ -203,6 +203,15 @@ export default function MyAmcScreen({ onNavigate }) {
     else if (onNavigate) onNavigate(path);
   };
 
+  const handleGoBack = () => {
+    if (window?.history?.state && window.history.state.idx > 0) {
+      if (navigate) navigate(-1);
+      else if (onNavigate) onNavigate(-1);
+    } else {
+      go('/user/home');
+    }
+  };
+
   const isGuest = Boolean(
     activeUser?.isGuest ||
     activeUser?.id === 0 ||
@@ -476,7 +485,7 @@ export default function MyAmcScreen({ onNavigate }) {
     <ScrollView style={styles.root} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
       {/* Top Header */}
       <View style={styles.topHeader}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => go('/user/home')} activeOpacity={0.75}>
+        <TouchableOpacity style={styles.backBtn} onPress={handleGoBack} activeOpacity={0.75}>
           <IconChevronLeft />
         </TouchableOpacity>
         <View style={{ flex: 1, minWidth: 0, marginLeft: 10 }}>

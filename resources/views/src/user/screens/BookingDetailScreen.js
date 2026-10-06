@@ -87,6 +87,14 @@ export default function BookingDetailScreen() {
     navigate(`/user/bookings/${bk.booking_id}/rate`, { replace: false });
   }, [bk?.booking_id, bk?.status, bk?.user_rating, bk?.rating_skipped, navigate]);
 
+  const handleGoBack = () => {
+    if (window?.history?.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/user/bookings');
+    }
+  };
+
   if (!bk) {
     return (
       <View style={{ flex: 1, backgroundColor: '#fff', padding: 24, justifyContent: 'center', alignItems: 'center', gap: 12 }}>
@@ -95,7 +103,7 @@ export default function BookingDetailScreen() {
           This work order is missing or does not belong to your account.
         </Text>
         <TouchableOpacity
-          onPress={() => navigate('/user/bookings')}
+          onPress={handleGoBack}
           style={{ backgroundColor: '#2563eb', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 }}
         >
           <Text style={{ color: '#fff', fontWeight: '700' }}>Back to My Bookings</Text>
@@ -209,7 +217,7 @@ export default function BookingDetailScreen() {
       {/* Top Header */}
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <TouchableOpacity onPress={() => navigate('/user/home')} style={styles.backBtn} activeOpacity={0.7}>
+          <TouchableOpacity onPress={handleGoBack} style={styles.backBtn} activeOpacity={0.7}>
             <Text style={styles.backArrow}>←</Text>
           </TouchableOpacity>
           <View style={{ flex: 1 }}>

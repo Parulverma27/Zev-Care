@@ -55,6 +55,15 @@ export default function SavedAddressesScreen({ onNavigate }) {
     else if (onNavigate) onNavigate(path);
   };
 
+  const handleGoBack = () => {
+    if (window?.history?.state && window.history.state.idx > 0) {
+      if (navigate) navigate(-1);
+      else if (onNavigate) onNavigate(-1);
+    } else {
+      handleNav('/user/profile');
+    }
+  };
+
   const updateSavedAddresses = (updatedList) => {
     if (isGuest || !activeUser || !updateProfile) {
       if (isGuest) setShowGuestModal(true);
@@ -143,7 +152,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.topHeader}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => handleNav('/user/profile')} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.backBtn} onPress={handleGoBack} activeOpacity={0.7}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F1F3D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 19 5 12 12 5" />

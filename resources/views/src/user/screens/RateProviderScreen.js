@@ -55,7 +55,11 @@ export default function RateProviderScreen() {
   const [error, setError] = useState('');
 
   const goBack = () => {
-    if (navigate) navigate(`/user/bookings/${bookingId}`);
+    if (window?.history?.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else if (navigate) {
+      navigate(`/user/bookings/${bookingId}`);
+    }
   };
 
   const pickPhotos = () => {

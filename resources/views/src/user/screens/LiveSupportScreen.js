@@ -64,6 +64,15 @@ export default function LiveSupportScreen({ onNavigate }) {
     else if (onNavigate) onNavigate(path);
   };
 
+  const handleGoBack = () => {
+    if (window?.history?.state && window.history.state.idx > 0) {
+      if (navigate) navigate(-1);
+      else if (onNavigate) onNavigate(-1);
+    } else {
+      handleNav('/user/home');
+    }
+  };
+
   const getFmtTime = () => {
     return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
   };
@@ -337,7 +346,7 @@ export default function LiveSupportScreen({ onNavigate }) {
       {/* WhatsApp Dark Green Header */}
       <View style={styles.topHeader}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => handleNav('/user/profile')} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.backBtn} onPress={handleGoBack} activeOpacity={0.7}>
             <Text style={styles.backArrow}>←</Text>
           </TouchableOpacity>
           <View style={styles.avatarWrap}>
@@ -552,7 +561,7 @@ export default function LiveSupportScreen({ onNavigate }) {
         animationType="fade"
         onRequestClose={() => {
           setShowGuestModal(false);
-          handleNav('/user/profile');
+          handleGoBack();
         }}
       >
         <View style={styles.guestModalOverlay}>
@@ -561,7 +570,7 @@ export default function LiveSupportScreen({ onNavigate }) {
               style={styles.guestCloseBtn}
               onPress={() => {
                 setShowGuestModal(false);
-                handleNav('/user/profile');
+                handleGoBack();
               }}
               accessibilityLabel="Close modal"
             >
