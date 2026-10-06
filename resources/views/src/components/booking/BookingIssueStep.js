@@ -19,6 +19,7 @@ export default function BookingIssueStep({
   onChangeIssueMedia,
   issueDescription = '',
   onChangeIssueDescription,
+  isComplaint = false,
 }) {
   const [panelValue, setPanelValue] = useState(() => setPrimaryPanelValue(issueMedia));
   const photos = issueMedia?.photos || [];
@@ -45,9 +46,22 @@ export default function BookingIssueStep({
         </View>
       </View>
 
-      <Text style={styles.title}>What&apos;s the issue?</Text>
+      {isComplaint && (
+        <View style={styles.complaintBanner}>
+          <Text style={styles.complaintBannerTag}>⚡ PRIORITY COMPLAINT</Text>
+          <Text style={styles.complaintBannerSub}>
+            Select the problem below for expedited technician diagnosis & dispatch.
+          </Text>
+        </View>
+      )}
+
+      <Text style={styles.title}>
+        {isComplaint ? "What's the problem?" : "What's the issue?"}
+      </Text>
       <Text style={styles.subtitle}>
-        Tell us what&apos;s happening with your {displayName}.
+        {isComplaint
+          ? `Tell us what's wrong with your ${displayName}.`
+          : `Tell us what's happening with your ${displayName}.`}
       </Text>
 
       <View style={styles.grid}>
@@ -138,6 +152,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backChevron: { fontSize: 28, color: '#0f172a', marginTop: -2 },
+  complaintBanner: {
+    backgroundColor: '#fffbeb',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1.2,
+    borderColor: '#fde68a',
+    gap: 3,
+  },
+  complaintBannerTag: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#b45309',
+    letterSpacing: 0.5,
+  },
+  complaintBannerSub: {
+    fontSize: 12,
+    color: '#92400e',
+    fontWeight: '500',
+    lineHeight: 16,
+  },
   title: { fontSize: 22, fontWeight: '800', color: '#0f172a' },
   subtitle: { fontSize: 14, color: '#64748b', marginTop: -6, lineHeight: 20 },
   grid: {

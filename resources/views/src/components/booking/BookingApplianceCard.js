@@ -36,6 +36,15 @@ export default function BookingApplianceCard({ appliance, selected, onPress }) {
             {appliance.condition}
           </Text>
         )}
+        {appliance.isCoveredByAmc ? (
+          <View style={styles.coveredBadge}>
+            <Text style={styles.coveredBadgeText}>✓ Covered by AMC • ₹0 Labor</Text>
+          </View>
+        ) : (
+          <View style={styles.outOfPlanBadge}>
+            <Text style={styles.outOfPlanBadgeText}>Out-of-Plan • ₹500 Fee</Text>
+          </View>
+        )}
       </View>
       <Text style={[styles.chevron, selected && styles.chevronOn]}>{selected ? '✓' : '›'}</Text>
     </TouchableOpacity>
@@ -64,4 +73,34 @@ const styles = StyleSheet.create({
   condition: { fontSize: 11, color: '#2563eb', fontWeight: '600', marginTop: 2 },
   chevron: { fontSize: 20, color: '#94a3b8', fontWeight: '600' },
   chevronOn: { color: '#2563eb' },
+  coveredBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginTop: 3,
+  },
+  coveredBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#047857',
+  },
+  outOfPlanBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fff7ed',
+    borderWidth: 1,
+    borderColor: '#fed7aa',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginTop: 3,
+  },
+  outOfPlanBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#c2410c',
+  },
 });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform, TextInput } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import api from '../../services/ApiService';
@@ -29,11 +29,13 @@ const loadRazorpayScript = () => {
 };
 
 export default function SubscriptionPlansScreen({ onNavigate }) {
-  const { subscriptionPlans, activeUser, purchaseSubscription, activeAmc } = useApp();
+  const { subscriptionPlans, activeUser, purchaseSubscription, activeAmc, getAppliancesForUser } = useApp();
   const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
+  const [selectedCoveredAppliances, setSelectedCoveredAppliances] = useState([]);
+  const [customApplianceName, setCustomApplianceName] = useState('');
 
   const isAnonymous = Boolean(
     !activeUser ||
@@ -82,8 +84,43 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
       );
       return;
     }
+
+    const theme = getPlanTheme(plan.name);
+    const existing = getAppliancesForUser ? getAppliancesForUser(activeUser) : [];
+    const limit = theme.applianceAllowance || 20;
+    const initialList = existing.slice(0, Number.isFinite(limit) ? limit : existing.length);
+    setSelectedCoveredAppliances(initialList);
+    setCustomApplianceName('');
     setSelectedPlan(plan);
     setModalVisible(true);
+  };
+
+  const handleAddApplianceChip = (applianceName) => {
+    if (!selectedPlan) return;
+    const theme = getPlanTheme(selectedPlan.name);
+    const maxLimit = theme.applianceAllowance || 20;
+    if (Number.isFinite(maxLimit) && selectedCoveredAppliances.length >= maxLimit) {
+      showAlert(
+        'Allowance Limit Reached',
+        `Your ${selectedPlan.name} covers up to ${maxLimit} appliances. You cannot add more appliances under this tier allowance.`,
+        'info'
+      );
+      return;
+    }
+    const newApp = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      name: applianceName,
+      displayName: applianceName,
+      brand: 'Standard',
+      category: 'Home Appliance',
+      isCoveredByAmc: true,
+      linkedAtPlanPurchase: true,
+    };
+    setSelectedCoveredAppliances((prev) => [...prev, newApp]);
+  };
+
+  const handleRemoveApplianceChip = (indexToRemove) => {
+    setSelectedCoveredAppliances((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
   const handleConfirmPurchase = async () => {
@@ -120,11 +157,11 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
           });
 
           if (verifyRes.data.success) {
-            purchaseSubscription(selectedPlan, verifyRes.data.transaction_id);
+            purchaseSubscription(selectedPlan, verifyRes.data.transaction_id, selectedCoveredAppliances);
             setModalVisible(false);
             showAlert(
               'AMC Activated Successfully!',
-              `Welcome to Zevota Care VIP! Your ${selectedPlan.name} is now ACTIVE. Contract #${verifyRes.data.amc_contract_number || 'AMC-2026-ACTIVE'} has been issued.`,
+              `Welcome to Zevota Care VIP! Your ${selectedPlan.name} is now ACTIVE with ${selectedCoveredAppliances.length} covered appliances. Contract #${verifyRes.data.amc_contract_number || 'AMC-2026-ACTIVE'} has been issued.`,
               'success'
             );
           } else {
@@ -165,11 +202,11 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
             });
 
             if (verifyRes.data.success) {
-              purchaseSubscription(selectedPlan, verifyRes.data.transaction_id);
+              purchaseSubscription(selectedPlan, verifyRes.data.transaction_id, selectedCoveredAppliances);
               setModalVisible(false);
               showAlert(
                 'AMC Activated Successfully!',
-                `Payment verified! Your ${selectedPlan.name} is now active under Contract #${verifyRes.data.amc_contract_number || 'AMC-ACTIVE'}.`,
+                `Payment verified! Your ${selectedPlan.name} is now active with ${selectedCoveredAppliances.length} covered appliances under Contract #${verifyRes.data.amc_contract_number || 'AMC-ACTIVE'}.`,
                 'success'
               );
             } else {
@@ -303,18 +340,18 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
               {/* UrbanClap Style AMC Entitlements Metric Bar */}
               <View style={styles.amcSpecsBox}>
                 <View style={styles.amcSpecItem}>
-                  <Text style={styles.amcSpecLabel}>PREVENTIVE VISITS</Text>
-                  <Text style={styles.amcSpecVal}>{theme.preventiveVisits} Free Services</Text>
+                  <Text style={styles.amcSpecLabel}>ANNUAL COVERAGE</Text>
+                  <Text style={[styles.amcSpecVal, { color: theme.headerTextColor }]}>{theme.coverageLimitText || '₹1 Lakh'}</Text>
+                </View>
+                <View style={styles.amcSpecDivider} />
+                <View style={styles.amcSpecItem}>
+                  <Text style={styles.amcSpecLabel}>APPLIANCES COVERED</Text>
+                  <Text style={[styles.amcSpecVal, { color: '#0369a1' }]}>{theme.applianceAllowanceText}</Text>
                 </View>
                 <View style={styles.amcSpecDivider} />
                 <View style={styles.amcSpecItem}>
                   <Text style={styles.amcSpecLabel}>BREAKDOWN LABOR</Text>
                   <Text style={[styles.amcSpecVal, { color: '#059669' }]}>100% Free (₹0)</Text>
-                </View>
-                <View style={styles.amcSpecDivider} />
-                <View style={styles.amcSpecItem}>
-                  <Text style={styles.amcSpecLabel}>PARTS ALLOWANCE</Text>
-                  <Text style={[styles.amcSpecVal, { color: theme.specHighlight || '#d97706' }]}>Up to ₹{theme.partsCap.toLocaleString('en-IN')}</Text>
                 </View>
               </View>
 
@@ -384,10 +421,109 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                     You are activating a 365-day Annual Maintenance Contract covering your home, verified appliances, and emergency repairs.
                   </Text>
 
+                  {/* Covered Appliances Onboarding Section */}
+                  <View style={[styles.applianceOnboardingSection, { borderColor: modalTheme.borderGold || '#d4af37' }]}>
+                    <View style={styles.applianceSectionHeader}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <AppIcon name="shield" size={15} color={modalTheme.metalColor || '#d4af37'} strokeWidth={2.5} />
+                        <Text style={styles.applianceSectionTitle}>Covered Appliances Allowance</Text>
+                      </View>
+                      <View style={[styles.allowancePill, { borderColor: modalTheme.borderGold }]}>
+                        <Text style={[styles.allowancePillText, { color: modalTheme.badgeTextColor }]}>
+                          {Number.isFinite(modalTheme.applianceAllowance)
+                            ? `${selectedCoveredAppliances.length} / ${modalTheme.applianceAllowance} Added`
+                            : `${selectedCoveredAppliances.length} Added • Unlimited`}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Mandatory Rule Banner */}
+                    <View style={styles.mandatoryNoticeBox}>
+                      <Text style={styles.mandatoryNoticeText}>
+                        <Text style={{ fontWeight: '800' }}>⚠️ Mandatory Rule: </Text>
+                        All appliances covered under AMC must be registered now at plan purchase. Any appliance serviced outside this allowance will incur a ₹500 fee per booking.
+                      </Text>
+                    </View>
+
+                    {/* Selected Appliances Chips Wrap */}
+                    <View style={styles.chipsScrollWrap}>
+                      {selectedCoveredAppliances.length === 0 ? (
+                        <Text style={styles.noChipsHint}>No appliances selected yet. Tap quick-add buttons below to include your appliances.</Text>
+                      ) : (
+                        selectedCoveredAppliances.map((app, idx) => (
+                          <View key={app.id || idx} style={[styles.selectedChip, { borderColor: modalTheme.borderGold }]}>
+                            <Text style={styles.selectedChipText} numberOfLines={1}>
+                              {app.name || app.displayName || 'Appliance'}
+                            </Text>
+                            <TouchableOpacity onPress={() => handleRemoveApplianceChip(idx)} style={styles.chipRemoveBtn} accessibilityLabel="Remove appliance">
+                              <Text style={styles.chipRemoveText}>✕</Text>
+                            </TouchableOpacity>
+                          </View>
+                        ))
+                      )}
+                    </View>
+
+                    {/* Quick Add Chips */}
+                    <Text style={styles.quickAddLabel}>Quick-Add Common Household Appliances:</Text>
+                    <View style={styles.quickAddRow}>
+                      {[
+                        '1.5 Ton AC',
+                        'Refrigerator',
+                        'Washing Machine',
+                        'RO Purifier',
+                        'Smart TV',
+                        'Microwave',
+                        'Geyser',
+                        'Chimney',
+                        'Ceiling Fan',
+                        'Air Cooler',
+                      ].map((item) => (
+                        <TouchableOpacity
+                          key={item}
+                          style={styles.quickAddChip}
+                          onPress={() => handleAddApplianceChip(item)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.quickAddChipText}>+ {item}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    {/* Custom Add Input */}
+                    <View style={styles.customAddRow}>
+                      <TextInput
+                        style={styles.customAddInput}
+                        placeholder="Or type custom appliance name..."
+                        placeholderTextColor="#94a3b8"
+                        value={customApplianceName}
+                        onChangeText={setCustomApplianceName}
+                      />
+                      <TouchableOpacity
+                        style={[styles.customAddBtn, !customApplianceName.trim() && styles.customAddBtnDisabled]}
+                        disabled={!customApplianceName.trim()}
+                        onPress={() => {
+                          if (!customApplianceName.trim()) return;
+                          handleAddApplianceChip(customApplianceName.trim());
+                          setCustomApplianceName('');
+                        }}
+                      >
+                        <Text style={styles.customAddBtnText}>Add</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
                   <View style={[styles.summaryBox, { borderColor: modalTheme.borderGold || '#d4af37', borderWidth: 1.5 }]}>
                     <View style={styles.summaryRow}>
                       <Text style={styles.sumLabel}>Contract Duration</Text>
                       <Text style={styles.sumVal}>{selectedPlan?.validity_months || 12} Months (365 Days)</Text>
+                    </View>
+                    <View style={styles.summaryRow}>
+                      <Text style={styles.sumLabel}>Annual Plan Coverage</Text>
+                      <Text style={[styles.sumVal, { color: '#0369a1' }]}>{modalTheme.coverageLimitText} Limit</Text>
+                    </View>
+                    <View style={styles.summaryRow}>
+                      <Text style={styles.sumLabel}>Appliance Allowance</Text>
+                      <Text style={[styles.sumVal, { color: '#0369a1' }]}>{modalTheme.applianceAllowanceText}</Text>
                     </View>
                     <View style={styles.summaryRow}>
                       <Text style={styles.sumLabel}>Preventive Services</Text>
@@ -734,7 +870,9 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 22,
     width: '95%',
-    maxWidth: 380,
+    maxWidth: 480,
+    maxHeight: '90vh',
+    overflowY: 'auto',
     gap: 14,
     boxShadow: '0 20px 35px rgba(0, 0, 0, 0.25)',
     borderWidth: 1.2,
@@ -742,6 +880,159 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#0a192f', fontFamily: 'Inter, sans-serif' },
   modalSub: { fontSize: 12.5, color: '#475569', lineHeight: 18 },
+
+  /* Appliance Onboarding in Modal */
+  applianceOnboardingSection: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1.5,
+    gap: 10,
+  },
+  applianceSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  applianceSectionTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.2,
+  },
+  allowancePill: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 99,
+    backgroundColor: '#ffffff',
+    borderWidth: 1.2,
+  },
+  allowancePillText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  mandatoryNoticeBox: {
+    backgroundColor: '#fff7ed',
+    borderWidth: 1,
+    borderColor: '#fed7aa',
+    borderRadius: 10,
+    padding: 10,
+  },
+  mandatoryNoticeText: {
+    fontSize: 11.5,
+    color: '#9a3412',
+    lineHeight: 16,
+  },
+  chipsScrollWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    maxHeight: 120,
+    overflowY: 'auto',
+    backgroundColor: '#ffffff',
+    padding: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    minHeight: 44,
+    alignItems: 'center',
+  },
+  noChipsHint: {
+    fontSize: 11.5,
+    color: '#94a3b8',
+    fontStyle: 'italic',
+    paddingHorizontal: 4,
+  },
+  selectedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    borderRadius: 20,
+    paddingVertical: 3,
+    paddingHorizontal: 9,
+    borderWidth: 1,
+    gap: 5,
+    maxWidth: '100%',
+  },
+  selectedChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0f172a',
+    maxWidth: 160,
+  },
+  chipRemoveBtn: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#cbd5e1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chipRemoveText: {
+    fontSize: 10,
+    color: '#0f172a',
+    fontWeight: '800',
+    lineHeight: 12,
+  },
+  quickAddLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+    marginTop: 2,
+  },
+  quickAddRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  quickAddChip: {
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 14,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  quickAddChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#0f172a',
+  },
+  customAddRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 2,
+  },
+  customAddInput: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    fontSize: 12,
+    color: '#0f172a',
+    outlineStyle: 'none',
+  },
+  customAddBtn: {
+    backgroundColor: '#0a192f',
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  customAddBtnDisabled: {
+    opacity: 0.5,
+  },
+  customAddBtnText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
   summaryBox: { backgroundColor: '#f8fafc', padding: 12, borderRadius: 12, gap: 7 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sumLabel: { fontSize: 12, color: '#64748b' },

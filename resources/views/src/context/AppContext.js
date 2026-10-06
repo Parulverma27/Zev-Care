@@ -1439,6 +1439,8 @@ export function AppProvider({ children }) {
       applianceDetails: bookingData.applianceDetails || null,
       isNewAppliance: !!bookingData.isNewAppliance,
       applianceCount: bookingData.applianceCount ?? 1,
+      appliance_registration_fee: Number(bookingData.applianceRegistrationFee ?? (bookingData.isCoveredByAmc || isConsultation ? 0 : (bookingData.applianceId ? 500 : 0))),
+      is_covered_by_amc: !!bookingData.isCoveredByAmc,
       booking_mode: isConsultation ? 'consultation' : bookingData.bookingMode || 'service',
       isConsultation,
       service_charge: 0,
@@ -1866,7 +1868,58 @@ export function AppProvider({ children }) {
     }
   };
 
-  const purchaseSubscription = (plan, txId) => {
+  const registerAmcCoveredAppliances = (selectedList = [], planName = 'Gold') => {
+    if (!activeUser || !Array.isArray(selectedList)) return;
+    const nowIso = new Date().toISOString();
+    const selectedIds = new Set(
+      selectedList.map((item) => (typeof item === 'object' && item?.id ? String(item.id) : String(item)))
+    );
+
+    setUserAppliances((prev) => {
+      const updated = prev.map((app) => {
+        const belongsToUser =
+          app.userId === activeUser.id ||
+          String(app.userId) === String(activeUser.id) ||
+          app.user_id === activeUser.id ||
+          String(app.user_id) === String(activeUser.id);
+        if (!belongsToUser) return app;
+
+        if (selectedIds.has(String(app.id))) {
+          return {
+            ...app,
+            isCoveredByAmc: true,
+            coveredPlanTier: planName,
+            linkedAtPlanPurchase: true,
+            amcLinkedAt: nowIso,
+          };
+        }
+        return app;
+      });
+
+      const existingIds = new Set(updated.map((a) => String(a.id)));
+      const brandNew = selectedList
+        .filter((item) => typeof item === 'object' && item !== null && (!item.id || !existingIds.has(String(item.id))))
+        .map((item) => ({
+          id: item.id || Date.now() + Math.floor(Math.random() * 1000),
+          userId: activeUser.id,
+          user_id: activeUser.id,
+          user_phone: activeUser.phone,
+          isCoveredByAmc: true,
+          coveredPlanTier: planName,
+          linkedAtPlanPurchase: true,
+          amcLinkedAt: nowIso,
+          ...item,
+        }));
+
+      const finalAppliances = [...brandNew, ...updated];
+      try {
+        localStorage.setItem('zevota_user_appliances', JSON.stringify(finalAppliances));
+      } catch (e) {}
+      return finalAppliances;
+    });
+  };
+
+  const purchaseSubscription = (plan, txId, coveredAppliances = []) => {
     if (!activeUser || !plan) return;
 
     const finalTxId = txId || `TX-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -1899,6 +1952,10 @@ export function AppProvider({ children }) {
 
     setActiveUser(updatedUser);
     localStorage.setItem('zevota_active_user', JSON.stringify(updatedUser));
+
+    if (Array.isArray(coveredAppliances) && coveredAppliances.length > 0) {
+      registerAmcCoveredAppliances(coveredAppliances, plan.name);
+    }
 
     const newTx = {
       transaction_id: finalTxId,
@@ -2052,6 +2109,7 @@ export function AppProvider({ children }) {
         rejectBill,
         verifyPropertyVideo,
         purchaseSubscription,
+        registerAmcCoveredAppliances,
         topUpWallet,
         userAppliances,
         getAppliancesForUser,

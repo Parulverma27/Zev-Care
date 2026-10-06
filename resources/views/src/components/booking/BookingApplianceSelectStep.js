@@ -31,6 +31,13 @@ export default function BookingApplianceSelectStep({
         Choose a registered {displayName.toLowerCase()} or add a new one.
       </Text>
 
+      <View style={styles.amcPolicyBanner}>
+        <Text style={styles.amcPolicyText}>
+          <Text style={{ fontWeight: '700' }}>🛡️ AMC Coverage Rule: </Text>
+          Appliances added during AMC purchase are covered at ₹0 breakdown labor. Any appliance added after plan purchase incurs a ₹{APPLIANCE_REGISTRATION_FEE} booking fee.
+        </Text>
+      </View>
+
       {empty ? (
         <View style={styles.emptyCard}>
           <Text style={styles.emptyTitle}>No {displayName} added yet</Text>
@@ -41,7 +48,7 @@ export default function BookingApplianceSelectStep({
             <Text style={styles.primaryBtnText}>+ Add {displayName}</Text>
           </TouchableOpacity>
           <View style={styles.feeBanner}>
-            <Text style={styles.feeTitle}>Additional appliance registration charge</Text>
+            <Text style={styles.feeTitle}>Out-of-plan appliance registration fee</Text>
             <Text style={styles.feeAmount}>₹{APPLIANCE_REGISTRATION_FEE}</Text>
           </View>
         </View>
@@ -59,7 +66,7 @@ export default function BookingApplianceSelectStep({
           <TouchableOpacity style={styles.addCard} onPress={onAddNew} activeOpacity={0.88}>
             <Text style={styles.addTitle}>+ Add another {displayName}</Text>
             <Text style={styles.addSub}>
-              Additional ₹{APPLIANCE_REGISTRATION_FEE} registration charge
+              Out-of-plan appliance: ₹{APPLIANCE_REGISTRATION_FEE} service fee applies
             </Text>
           </TouchableOpacity>
         </View>
@@ -88,6 +95,18 @@ const styles = StyleSheet.create({
   backChevron: { fontSize: 28, color: '#0f172a', marginTop: -2 },
   title: { fontSize: 22, fontWeight: '800', color: '#0f172a', letterSpacing: -0.3 },
   subtitle: { fontSize: 14, color: '#64748b', lineHeight: 20, marginTop: -6 },
+  amcPolicyBanner: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 12,
+    padding: 10,
+  },
+  amcPolicyText: {
+    fontSize: 12,
+    color: '#1e40af',
+    lineHeight: 17,
+  },
   list: { gap: 10 },
   emptyCard: {
     padding: 20,

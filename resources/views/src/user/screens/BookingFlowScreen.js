@@ -38,7 +38,7 @@ import {
   getApplianceDisplayName,
   filterAppliancesByType,
 } from '../../config/serviceApplianceMapping';
-import { getIssuesForApplianceType } from '../../config/applianceIssues';
+import { getIssuesForApplianceType, getIssuesForService } from '../../config/applianceIssues';
 import { APPLIANCE_REGISTRATION_FEE } from '../../config/applianceConstants';
 import { emptyIssueMedia, issueMediaToLegacyUrl, countIssueMedia, applyPanelValueToIssueMedia } from '../../utils/bookingMedia';
 
@@ -68,6 +68,7 @@ export default function BookingFlowScreen({ onNavigate }) {
   const preSelectedService = locationState?.state?.preSelectedService;
   const bookingMode = locationState?.state?.bookingMode;
   const isConsultation = bookingMode === 'consultation';
+  const isComplaint = bookingMode === 'complaint';
 
   const [step, setStep] = useState(1);
   const [skippedCategoryStep, setSkippedCategoryStep] = useState(false);
@@ -183,7 +184,14 @@ export default function BookingFlowScreen({ onNavigate }) {
   );
 
   const displayName = getApplianceDisplayName(applianceTypeId);
-  const issues = useMemo(() => getIssuesForApplianceType(applianceTypeId), [applianceTypeId]);
+  const effectiveDisplayName =
+    (isApplianceLinkedService(service) && selectedAppliance?.name) ||
+    (applianceTypeId ? getApplianceDisplayName(applianceTypeId) : service) ||
+    'service';
+  const issues = useMemo(
+    () => getIssuesForService(service, applianceTypeId, category),
+    [service, applianceTypeId, category]
+  );
 
   const serviceTypes = useMemo(() => {
     const groupName = categoryHasGroups(category, subCategories) ? subCategory : null;
@@ -235,7 +243,8 @@ export default function BookingFlowScreen({ onNavigate }) {
     const changed = String(selectedAppliance?.id) !== String(appliance?.id);
     setSelectedAppliance(appliance);
     setIsNewAppliance(false);
-    setApplianceRegistrationFee(0);
+    const isCovered = Boolean(appliance?.isCoveredByAmc);
+    setApplianceRegistrationFee(isConsultation || isCovered ? 0 : APPLIANCE_REGISTRATION_FEE);
     if (changed) clearIssueState();
   };
 
@@ -266,10 +275,8 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
     resetApplianceDraftForType(null);
-    setCustomIssueText('');
-    setCatalogOtherMedia(null);
-    setIssueLabel(`Require assistance for ${serviceName}`);
-    setStep('OTHER_DETAIL');
+    clearIssueState();
+    setStep('ISSUE');
   };
 
   const selectCategoryAndNext = (catName) => {
@@ -332,7 +339,15 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
     if (step === 'ISSUE') {
-      setStep('APPLIANCE_SELECT');
+      if (isApplianceLinkedService(service)) {
+        setStep('APPLIANCE_SELECT');
+      } else if (category && categoryHasGroups(category)) {
+        setStep('SERVICE_TYPE');
+      } else if (category) {
+        setStep('SERVICE_TYPE');
+      } else {
+        setStep(1);
+      }
       return;
     }
     if (step === 'ISSUE_OTHER') {
@@ -345,8 +360,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
     if (step === 'SCHEDULE') {
-      if (applianceTypeId) setStep('DETAILS_SUMMARY');
-      else setStep('OTHER_DETAIL');
+      setStep('DETAILS_SUMMARY');
       return;
     }
     if (step === 'LOCATION') {
@@ -503,6 +517,8 @@ export default function BookingFlowScreen({ onNavigate }) {
         applianceDetails,
         isNewAppliance,
         applianceCount: 1,
+        applianceRegistrationFee,
+        isCoveredByAmc: Boolean(selectedAppliance?.isCoveredByAmc),
         bookingMode: isConsultation ? 'consultation' : bookingMode || 'service',
         isConsultation,
       });
@@ -662,7 +678,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       return (
         <View style={styles.container}>
           <BookingIssueStep
-            displayName={displayName}
+            displayName={effectiveDisplayName}
             issues={issues}
             selectedIssueId={issueId}
             onSelect={handleIssueSelect}
@@ -672,6 +688,7 @@ export default function BookingFlowScreen({ onNavigate }) {
             onChangeIssueMedia={setIssueMedia}
             issueDescription={issueDescription}
             onChangeIssueDescription={setIssueDescription}
+            isComplaint={isComplaint}
           />
         </View>
       );
@@ -706,11 +723,19 @@ export default function BookingFlowScreen({ onNavigate }) {
               <BookingProgress activeIndex={1} />
             </View>
           </View>
-          <Text style={styles.h1}>{isConsultation ? `${service} Consultation` : `${service} Service`}</Text>
+          <Text style={styles.h1}>
+            {isComplaint
+              ? `${service} Complaint & Repair`
+              : isConsultation
+                ? `${service} Consultation`
+                : `${service} Service`}
+          </Text>
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Appliance</Text>
+            <Text style={styles.summaryLabel}>
+              {isApplianceLinkedService(service) ? 'Appliance' : 'Service'}
+            </Text>
             <Text style={styles.summaryValue}>
-              {selectedAppliance?.name || displayName}
+              {selectedAppliance?.name || service || effectiveDisplayName}
             </Text>
             {!!applianceSummaryLine && <Text style={styles.summaryMeta}>{applianceSummaryLine}</Text>}
             <Text style={[styles.summaryLabel, { marginTop: 12 }]}>Issue</Text>
@@ -730,6 +755,24 @@ export default function BookingFlowScreen({ onNavigate }) {
               </>
             )}
           </View>
+          {!!selectedAppliance && (
+            selectedAppliance.isCoveredByAmc ? (
+              <View style={styles.coveredAmcBanner}>
+                <Text style={styles.coveredAmcTitle}>✓ Covered Under AMC Plan</Text>
+                <Text style={styles.coveredAmcSub}>This appliance is protected under your AMC. ₹0 Breakdown inspection & labor included.</Text>
+              </View>
+            ) : !isConsultation ? (
+              <View style={styles.outOfPlanFeeBanner}>
+                <View style={styles.outOfPlanFeeRow}>
+                  <Text style={styles.outOfPlanFeeTitle}>Out-of-Plan Appliance Service Charge</Text>
+                  <Text style={styles.outOfPlanFeeAmount}>₹{APPLIANCE_REGISTRATION_FEE}</Text>
+                </View>
+                <Text style={styles.outOfPlanFeeSub}>
+                  This appliance was not added during your AMC plan purchase. Standard ₹{APPLIANCE_REGISTRATION_FEE} fee applies for this booking.
+                </Text>
+              </View>
+            ) : null
+          )}
           <View style={styles.billNote}>
             <Text style={styles.billNoteText}>
               No payment now. A technician will inspect first, and the bill will be shared with you after that.
@@ -815,6 +858,12 @@ export default function BookingFlowScreen({ onNavigate }) {
                 <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Appliance</Text>
                 <Text style={styles.summaryValue}>{selectedAppliance.name}</Text>
                 {!!applianceSummaryLine && <Text style={styles.summaryMeta}>{applianceSummaryLine}</Text>}
+                <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Coverage Status</Text>
+                {selectedAppliance.isCoveredByAmc ? (
+                  <Text style={[styles.summaryValue, { color: '#15803d' }]}>✓ Covered under AMC (₹0 Labor & Inspection)</Text>
+                ) : (
+                  <Text style={[styles.summaryValue, { color: '#c2410c' }]}>Out-of-Plan (₹{APPLIANCE_REGISTRATION_FEE} Booking Fee Applies)</Text>
+                )}
               </>
             )}
             {!!issueLabel && (
@@ -831,6 +880,17 @@ export default function BookingFlowScreen({ onNavigate }) {
             <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Location</Text>
             <Text style={styles.summaryMeta}>{address}</Text>
           </View>
+          {!!selectedAppliance && !selectedAppliance.isCoveredByAmc && !isConsultation && (
+            <View style={styles.outOfPlanFeeBanner}>
+              <View style={styles.outOfPlanFeeRow}>
+                <Text style={styles.outOfPlanFeeTitle}>Out-of-Plan Appliance Fee</Text>
+                <Text style={styles.outOfPlanFeeAmount}>₹{APPLIANCE_REGISTRATION_FEE}</Text>
+              </View>
+              <Text style={styles.outOfPlanFeeSub}>
+                Added because this appliance was not registered during AMC plan purchase.
+              </Text>
+            </View>
+          )}
           <View style={styles.billNote}>
             <Text style={styles.billNoteText}>
               No payment now. A technician will inspect first, and the bill will be shared with you after that.
@@ -1389,5 +1449,52 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     fontSize: 13,
     fontWeight: '600',
+  },
+  coveredAmcBanner: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    borderRadius: 14,
+    padding: 14,
+    gap: 3,
+  },
+  coveredAmcTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#047857',
+  },
+  coveredAmcSub: {
+    fontSize: 12,
+    color: '#065f46',
+    lineHeight: 17,
+  },
+  outOfPlanFeeBanner: {
+    backgroundColor: '#fff7ed',
+    borderWidth: 1.5,
+    borderColor: '#fed7aa',
+    borderRadius: 14,
+    padding: 14,
+    gap: 4,
+  },
+  outOfPlanFeeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  outOfPlanFeeTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#9a3412',
+    flex: 1,
+  },
+  outOfPlanFeeAmount: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#c2410c',
+  },
+  outOfPlanFeeSub: {
+    fontSize: 11.5,
+    color: '#7c2d12',
+    lineHeight: 16,
   },
 });

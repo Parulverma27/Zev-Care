@@ -209,27 +209,6 @@ export default function UserProfileScreen({ onNavigate }) {
       {/* Profile Card */}
       <View style={styles.profileCard}>
         <View style={styles.profileHeaderTopRow}>
-          {isAnonymous ? (
-            <View style={styles.guestAvatarCircle}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </View>
-          ) : isGuest ? (
-            <View style={styles.guestAvatarCircle}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </View>
-          ) : (
-            <Image
-              source={{ uri: activeUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200' }}
-              style={styles.avatar}
-            />
-          )}
-
           <View style={styles.profileMainInfo}>
             <View style={styles.nameAndActionRow}>
               <Text style={styles.userName}>
