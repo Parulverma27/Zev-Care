@@ -3,7 +3,6 @@ import axios from 'axios';
 import { CATALOG_VERSION, flattenToLegacyCatalog } from '../config/serviceCatalogUtils';
 import { BANNERS_VERSION, DEFAULT_BANNERS, isStaleLocalImageUrl, resolveImageUri } from '../utils/imageUtils';
 import { getHardcodedCatalogImage } from '../utils/bundledImages';
-import { calculateBookingPrice } from '../utils/bookingPricing';
 import { normalizeSavedAddresses, upsertDefaultAddress } from '../utils/savedAddresses';
 import { getPlanTheme } from '../config/planTheme';
 
@@ -1372,20 +1371,11 @@ export function AppProvider({ children }) {
 
   // Global Actions
   const createBooking = async (bookingData) => {
-    const pricing =
-      bookingData.pricing ||
-      calculateBookingPrice({
-        serviceCharge: bookingData.serviceCharge,
-        applianceCount: bookingData.applianceCount ?? 1,
-        applianceRegistrationFee: bookingData.applianceRegistrationFee ?? 0,
-        discount: bookingData.discount ?? 0,
-        isConsultation: !!(bookingData.isConsultation || bookingData.bookingMode === 'consultation'),
-      });
-
+    // No amount is attached at booking time. The bill is created later by the admin
+    // (after the provider inspects) via generateBill().
     const isConsultation = !!(
       bookingData.isConsultation ||
-      bookingData.bookingMode === 'consultation' ||
-      pricing.isConsultation
+      bookingData.bookingMode === 'consultation'
     );
 
     const scheduleLabel =
@@ -1448,18 +1438,17 @@ export function AppProvider({ children }) {
       applianceName: bookingData.applianceName || '',
       applianceDetails: bookingData.applianceDetails || null,
       isNewAppliance: !!bookingData.isNewAppliance,
-      applianceRegistrationFee: pricing.applianceRegistrationFee || 0,
       applianceCount: bookingData.applianceCount ?? 1,
-      pricing,
       booking_mode: isConsultation ? 'consultation' : bookingData.bookingMode || 'service',
       isConsultation,
-      totalAmount: pricing.total,
-      service_charge: pricing.serviceCharge,
+      service_charge: 0,
       parts_charge: 0,
       labour_charge: 0,
-      discount_amount: pricing.discount || 0,
-      total_bill: pricing.total,
-      bill_status: isConsultation || pricing.total === 0 ? 'PAID' : 'UNPAID',
+      discount_amount: 0,
+      total_bill: null,
+      bill_status: null,
+      bill_sent: false,
+      bill_generated: false,
       completion_otp: '4829',
     };
 
@@ -1471,20 +1460,24 @@ export function AppProvider({ children }) {
     const prov = providers.find((p) => p.id === providerId);
     if (!prov) return;
     setBookings((prev) =>
-      prev.map((b) =>
-        b.booking_id === bookingId
-          ? {
-              ...b,
-              provider_id: prov.id,
-              provider_name: prov.name,
-              provider_phone: prov.phone || '',
-              provider_rating: prov.rating ?? null,
-              provider_trade: prov.trade || prov.specialty || 'Certified Technician',
-              provider_photo: prov.photo || prov.avatar || null,
-              status: 'PROVIDER_ASSIGNED',
-            }
-          : b
-      )
+      prev.map((b) => {
+        if (b.booking_id !== bookingId) return b;
+        const bLat = Number(b.latitude) || 19.0596;
+        const bLng = Number(b.longitude) || 72.8295;
+        return {
+          ...b,
+          provider_id: prov.id,
+          provider_name: prov.name,
+          provider_phone: prov.phone || '',
+          provider_rating: prov.rating ?? null,
+          provider_trade: prov.trade || prov.specialty || 'Certified Technician',
+          provider_photo: prov.photo || prov.avatar || null,
+          provider_lat: b.provider_lat || bLat + 0.0075,
+          provider_lng: b.provider_lng || bLng + 0.0065,
+          last_location_update: new Date().toISOString(),
+          status: 'PROVIDER_ASSIGNED',
+        };
+      })
     );
   };
 
@@ -1516,9 +1509,9 @@ export function AppProvider({ children }) {
               ...b,
               inspection_report: reportData.findings,
               issue_media_url: reportData.mediaUrl || b.issue_media_url,
-              parts_charge: Number(reportData.partsCost || 4500),
-              labour_charge: Number(reportData.labourCost || 1500),
-              service_charge: Number(reportData.serviceCost || 2000),
+              parts_charge: Number(reportData.partsCost || 0),
+              labour_charge: Number(reportData.labourCost || 0),
+              service_charge: Number(reportData.serviceCost || 0),
               status: 'ASSIGNED_TO_ADMIN',
             }
           : b
@@ -1646,7 +1639,7 @@ export function AppProvider({ children }) {
               discount_amount,
               total_bill: total,
               payout_amount,
-              bill_status: b.bill_status || 'UNPAID',
+              bill_status: b.bill_status === 'PAID' ? 'PAID' : 'UNPAID',
               bill_sent: true,
               bill_generated: true,
               status: 'AWAITING_USER_APPROVAL',

@@ -6,6 +6,7 @@ import UserProfileModal from '../components/UserProfileModal';
 import ProviderProfileModal from '../components/ProviderProfileModal';
 import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
 import { exportToCSV } from '../../utils/exportUtils';
+import { hasGeneratedBill, isBillPaid } from '../../utils/billing';
 
 export default function AdminBookingsScreen() {
   const { bookings, users, providers, acceptBooking, rejectBooking, assignProvider, generateBill } = useApp();
@@ -54,10 +55,11 @@ export default function AdminBookingsScreen() {
   const [rejectedState, setRejectedState] = useState({});
 
   // Bill Builder Form State
-  const [serviceCharge, setServiceCharge] = useState('2000');
-  const [partsCharge, setPartsCharge] = useState('4500');
-  const [labourCharge, setLabourCharge] = useState('1500');
+  const [serviceCharge, setServiceCharge] = useState('');
+  const [partsCharge, setPartsCharge] = useState('');
+  const [labourCharge, setLabourCharge] = useState('');
   const [discount, setDiscount] = useState('0');
+  const [billFormError, setBillFormError] = useState('');
 
   const activeBookings = bookings;
 
@@ -112,29 +114,36 @@ export default function AdminBookingsScreen() {
 
   const openBillModalWithReport = (b) => {
     setSelectedBooking(b);
-    setPartsCharge(String(b.parts_charge || 4500));
-    setLabourCharge(String(b.labour_charge || 1500));
-    setServiceCharge(String(b.service_charge || 2000));
+    // Pre-fill only with what the provider reported / admin previously billed — never invented defaults.
+    setPartsCharge(b.parts_charge ? String(b.parts_charge) : '');
+    setLabourCharge(b.labour_charge ? String(b.labour_charge) : '');
+    setServiceCharge(b.service_charge ? String(b.service_charge) : '');
     setDiscount(String(b.discount_amount || 0));
+    setBillFormError('');
     setBillModal(true);
   };
 
   const handleGenerateBillAction = async () => {
     if (!selectedBooking) return;
-    setSubmitting(true);
 
     const sCharge = Number(serviceCharge || 0);
     const pCharge = Number(partsCharge || 0);
     const lCharge = Number(labourCharge || 0);
     const dAmount = Number(discount || 0);
     const total = sCharge + pCharge + lCharge - dAmount;
+    if (![sCharge, pCharge, lCharge, dAmount].every(Number.isFinite) || total <= 0) {
+      setBillFormError('Enter the bill amounts. Total must be greater than ₹0.');
+      return;
+    }
+    setBillFormError('');
+    setSubmitting(true);
     const payout = Math.round(total * 0.8);
 
     await generateBill(selectedBooking.booking_id, {
-      service_charge: serviceCharge,
-      parts_charge: partsCharge,
-      labour_charge: labourCharge,
-      discount,
+      service_charge: sCharge,
+      parts_charge: pCharge,
+      labour_charge: lCharge,
+      discount: dAmount,
       notes: 'Itemized Zevota Estimate based on Provider Inspection Report',
     });
 
@@ -146,7 +155,9 @@ export default function AdminBookingsScreen() {
       discount_amount: dAmount,
       total_bill: total,
       payout_amount: payout,
-      bill_status: selectedBooking.bill_status || 'UNPAID',
+      bill_status: selectedBooking.bill_status === 'PAID' ? 'PAID' : 'UNPAID',
+      bill_sent: true,
+      bill_generated: true,
       status: 'AWAITING_USER_APPROVAL',
     };
 
@@ -171,13 +182,13 @@ export default function AdminBookingsScreen() {
       { label: 'Field Partner', accessor: (b) => b.provider_name || 'Unassigned' },
       { label: 'Scheduled Date', accessor: (b) => b.scheduled_date || 'N/A' },
       { label: 'Status', accessor: (b) => b.status },
-      { label: 'Service Charge (INR)', accessor: (b) => b.service_charge || 0 },
-      { label: 'Parts Charge (INR)', accessor: (b) => b.parts_charge || 0 },
-      { label: 'Labour Charge (INR)', accessor: (b) => b.labour_charge || 0 },
-      { label: 'Discount (INR)', accessor: (b) => b.discount_amount || 0 },
-      { label: 'Total Bill (INR)', accessor: (b) => b.total_bill || 0 },
-      { label: 'Partner Payout (INR)', accessor: (b) => b.payout_amount || Math.round((b.total_bill || 0) * 0.8) },
-      { label: 'Payment Status', accessor: (b) => b.bill_status || 'UNPAID' },
+      { label: 'Service Charge (INR)', accessor: (b) => (hasGeneratedBill(b) ? b.service_charge || 0 : '') },
+      { label: 'Parts Charge (INR)', accessor: (b) => (hasGeneratedBill(b) ? b.parts_charge || 0 : '') },
+      { label: 'Labour Charge (INR)', accessor: (b) => (hasGeneratedBill(b) ? b.labour_charge || 0 : '') },
+      { label: 'Discount (INR)', accessor: (b) => (hasGeneratedBill(b) ? b.discount_amount || 0 : '') },
+      { label: 'Total Bill (INR)', accessor: (b) => (hasGeneratedBill(b) ? b.total_bill || 0 : '') },
+      { label: 'Partner Payout (INR)', accessor: (b) => (hasGeneratedBill(b) ? b.payout_amount || Math.round((b.total_bill || 0) * 0.8) : '') },
+      { label: 'Payment Status', accessor: (b) => (hasGeneratedBill(b) ? b.bill_status || 'UNPAID' : 'NOT BILLED') },
     ];
     exportToCSV('Zevota_Bookings_Report', columns, activeBookings);
   };
@@ -314,11 +325,8 @@ export default function AdminBookingsScreen() {
             is_online: false,
           };
 
-          const isPaid = Boolean(
-            b.bill_status === 'PAID' ||
-            Number(b.wallet_deducted) > 0 ||
-            (b.status === 'BOOKING_COMPLETED' && b.bill_status !== 'UNPAID')
-          );
+          const hasBill = hasGeneratedBill(b);
+          const isPaid = isBillPaid(b);
 
           return (
             <View key={idx} style={styles.tableRowContainer}>
@@ -403,7 +411,7 @@ export default function AdminBookingsScreen() {
                       {displayStatus}
                     </Text>
                   </View>
-                  {Boolean(b.total_bill > 0 || b.service_charge) && (
+                  {hasBill && (
                     <TouchableOpacity
                       onPress={() => {
                         setSelectedBooking(b);
@@ -486,7 +494,16 @@ export default function AdminBookingsScreen() {
                         </TouchableOpacity>
                       )}
 
-                      {Boolean(b.total_bill > 0 || b.service_charge || b.status === 'AWAITING_USER_APPROVAL') ? (
+                      {!hasBill && isAssigned && (
+                        <TouchableOpacity
+                          style={[styles.actionBtn, { backgroundColor: '#7c3aed' }]}
+                          onPress={() => openBillModalWithReport(b)}
+                        >
+                          <Text style={styles.actionBtnText}>Create Bill</Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {hasBill ? (
                         <>
                           <TouchableOpacity
                             style={[styles.actionBtn, { backgroundColor: '#059669' }]}
@@ -563,18 +580,12 @@ export default function AdminBookingsScreen() {
 
             <View style={{ flexDirection: 'row', gap: 16, marginVertical: 8, backgroundColor: '#f8fafc', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 10, color: '#64748b', fontWeight: '600', fontFamily: 'Inter, sans-serif' }}>Parts Cost</Text>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0f172a', marginTop: 2, fontFamily: 'Inter, sans-serif' }}>₹{selectedBooking?.parts_charge || 4500}</Text>
+                <Text style={{ fontSize: 10, color: '#64748b', fontWeight: '600', fontFamily: 'Inter, sans-serif' }}>Parts Cost (reported)</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0f172a', marginTop: 2, fontFamily: 'Inter, sans-serif' }}>{selectedBooking?.parts_charge ? `₹${Number(selectedBooking.parts_charge).toLocaleString()}` : '—'}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 10, color: '#64748b', fontWeight: '600', fontFamily: 'Inter, sans-serif' }}>Labour Cost</Text>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0f172a', marginTop: 2, fontFamily: 'Inter, sans-serif' }}>₹{selectedBooking?.labour_charge || 1500}</Text>
-              </View>
-              <View style={{ flex: 1.2 }}>
-                <Text style={{ fontSize: 10, color: '#64748b', fontWeight: '600', fontFamily: 'Inter, sans-serif' }}>Estimated Total</Text>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#10b981', marginTop: 2, fontFamily: 'Inter, sans-serif' }}>
-                  ₹{(Number(selectedBooking?.parts_charge || 4500) + Number(selectedBooking?.labour_charge || 1500) + Number(selectedBooking?.service_charge || 2000)).toLocaleString()}
-                </Text>
+                <Text style={{ fontSize: 10, color: '#64748b', fontWeight: '600', fontFamily: 'Inter, sans-serif' }}>Labour Cost (reported)</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0f172a', marginTop: 2, fontFamily: 'Inter, sans-serif' }}>{selectedBooking?.labour_charge ? `₹${Number(selectedBooking.labour_charge).toLocaleString()}` : '—'}</Text>
               </View>
             </View>
 
@@ -584,7 +595,7 @@ export default function AdminBookingsScreen() {
             </View>
 
             <TouchableOpacity style={styles.sendBillBtn} onPress={() => { setReportModal(false); openBillModalWithReport(selectedBooking); }}>
-              <Text style={styles.sendBillBtnText}>Proceed to Generate Estimate Bill</Text>
+              <Text style={styles.sendBillBtnText}>{hasGeneratedBill(selectedBooking) ? 'Edit Bill' : 'Proceed to Create Bill'}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.closeModalBtn} onPress={closeBookingModals}>
@@ -635,28 +646,28 @@ export default function AdminBookingsScreen() {
             <View style={styles.modalReportBox}>
               <Text style={styles.modalReportTag}>PROVIDER FIELD INSPECTION REPORT</Text>
               <Text style={styles.modalReportNotes}>
-                <Text style={styles.boldText}>Diagnosis:</Text> {selectedBooking?.inspection_report || 'Armature coil burnt due to jar overload. Requires replacement jar coupler.'}
+                <Text style={styles.boldText}>Diagnosis:</Text> {selectedBooking?.inspection_report || 'No inspection report submitted yet.'}
               </Text>
               <View style={styles.modalReportRow}>
                 <Image source={{ uri: selectedBooking?.issue_media_url || 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?auto=format&fit=crop&q=80&w=600' }} style={styles.modalReportImg} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.modalReportItem}>Provider Parts Cost: <Text style={styles.boldGreen}>₹{partsCharge}</Text></Text>
-                  <Text style={styles.modalReportItem}>Provider Labour Cost: <Text style={styles.boldGreen}>₹{labourCharge}</Text></Text>
+                  <Text style={styles.modalReportItem}>Provider Parts Cost: <Text style={styles.boldGreen}>{selectedBooking?.parts_charge ? `₹${selectedBooking.parts_charge}` : '—'}</Text></Text>
+                  <Text style={styles.modalReportItem}>Provider Labour Cost: <Text style={styles.boldGreen}>{selectedBooking?.labour_charge ? `₹${selectedBooking.labour_charge}` : '—'}</Text></Text>
                 </View>
               </View>
             </View>
 
             <Text style={styles.inputLabel}>Service & Inspection Charge (₹)</Text>
-            <TextInput style={styles.textInput} keyboardType="number-pad" value={serviceCharge} onChangeText={setServiceCharge} />
+            <TextInput style={styles.textInput} keyboardType="number-pad" value={serviceCharge} onChangeText={setServiceCharge} placeholder="0" placeholderTextColor="#94a3b8" />
 
-            <Text style={styles.inputLabel}>Spare Parts Charge (₹) [Pre-filled from Provider Report]</Text>
-            <TextInput style={styles.textInput} keyboardType="number-pad" value={partsCharge} onChangeText={setPartsCharge} />
+            <Text style={styles.inputLabel}>Spare Parts Charge (₹)</Text>
+            <TextInput style={styles.textInput} keyboardType="number-pad" value={partsCharge} onChangeText={setPartsCharge} placeholder="0" placeholderTextColor="#94a3b8" />
 
-            <Text style={styles.inputLabel}>Labour Charge (₹) [Pre-filled from Provider Report]</Text>
-            <TextInput style={styles.textInput} keyboardType="number-pad" value={labourCharge} onChangeText={setLabourCharge} />
+            <Text style={styles.inputLabel}>Labour Charge (₹)</Text>
+            <TextInput style={styles.textInput} keyboardType="number-pad" value={labourCharge} onChangeText={setLabourCharge} placeholder="0" placeholderTextColor="#94a3b8" />
 
             <Text style={styles.inputLabel}>Discount (₹)</Text>
-            <TextInput style={styles.textInput} keyboardType="number-pad" value={discount} onChangeText={setDiscount} />
+            <TextInput style={styles.textInput} keyboardType="number-pad" value={discount} onChangeText={setDiscount} placeholder="0" placeholderTextColor="#94a3b8" />
 
             <View style={styles.totalPreviewBox}>
               <Text style={styles.totalPreviewLabel}>TOTAL BILL SENT TO USER:</Text>
@@ -665,8 +676,12 @@ export default function AdminBookingsScreen() {
               </Text>
             </View>
 
+            {!!billFormError && (
+              <Text style={{ color: '#dc2626', fontSize: 12, fontWeight: '600', marginTop: 4 }}>{billFormError}</Text>
+            )}
+
             <TouchableOpacity style={styles.sendBillBtn} onPress={handleGenerateBillAction} disabled={submitting}>
-              <Text style={styles.sendBillBtnText}>{submitting ? 'Sending...' : 'Send Estimate Bill to User'}</Text>
+              <Text style={styles.sendBillBtnText}>{submitting ? 'Sending...' : 'Send Bill to User'}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.closeModalBtn} onPress={() => setBillModal(false)}>
@@ -804,7 +819,7 @@ export default function AdminBookingsScreen() {
 
               {/* Actions */}
               <View style={{ gap: 10, marginTop: 4, marginBottom: 8 }}>
-                {Boolean(selectedBooking?.bill_status === 'PAID' || Number(selectedBooking?.wallet_deducted) > 0 || (selectedBooking?.status === 'BOOKING_COMPLETED' && selectedBooking?.bill_status !== 'UNPAID')) ? (
+                {isBillPaid(selectedBooking) ? (
                   <TouchableOpacity
                     style={{ backgroundColor: '#2563eb', paddingVertical: 13, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
                     onPress={() => downloadInvoicePDF(selectedBooking)}

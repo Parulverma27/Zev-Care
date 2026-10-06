@@ -61,32 +61,41 @@ const AMC_HOME_ACTIONS = [
   {
     key: 'plans',
     title: 'AMC Plans',
-    subtitle: 'Cover your home',
+    subtitle: 'Cover your home with complete peace of mind',
     route: '/user/plans',
-    accent: '#d4af37',
-    bgSolid: '#fffbeb',
-    bg: 'linear-gradient(160deg, #fffbeb 0%, #ffffff 70%)',
-    border: '#fde68a',
-    iconBg: '#0a192f',
+    cardBg: 'linear-gradient(90deg, #ffffff 50%, #eff6ff 100%)',
+    borderColor: '#dbeafe',
+    iconBg: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
+    iconBoxShadow: '0 3px 10px rgba(37, 99, 235, 0.22)',
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <path d="m9 12 2 2 4-4" />
+      </svg>
+    ),
+    watermark: (
+      <svg width="76" height="76" viewBox="0 0 24 24" fill="#2563eb" fillOpacity="0.06">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
         <path d="m9 12 2 2 4-4" />
       </svg>
     ),
   },
   {
-    key: 'complains',
-    title: 'AMC Complains',
-    subtitle: 'Repair any appliance',
+    key: 'complaints',
+    title: 'AMC Complaints',
+    subtitle: 'Repair any appliance or issue at your home',
     route: '/user/complains',
-    accent: '#2563eb',
-    bgSolid: '#eff6ff',
-    bg: 'linear-gradient(160deg, #eff6ff 0%, #ffffff 70%)',
-    border: '#bfdbfe',
-    iconBg: '#2563eb',
+    cardBg: 'linear-gradient(90deg, #ffffff 50%, #eff6ff 100%)',
+    borderColor: '#dbeafe',
+    iconBg: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+    iconBoxShadow: '0 3px 10px rgba(37, 99, 235, 0.22)',
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      </svg>
+    ),
+    watermark: (
+      <svg width="76" height="76" viewBox="0 0 24 24" fill="#2563eb" fillOpacity="0.05">
         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
       </svg>
     ),
@@ -95,15 +104,19 @@ const AMC_HOME_ACTIONS = [
     key: 'consultation',
     title: 'AMC Consultation',
     subtitle: 'Free for logged-in users',
-    route: '/user/consultation',
-    accent: '#059669',
-    bgSolid: '#ecfdf5',
-    bg: 'linear-gradient(160deg, #ecfdf5 0%, #ffffff 70%)',
-    border: '#a7f3d0',
-    iconBg: '#059669',
     badge: 'FREE',
+    route: '/user/consultation',
+    cardBg: 'linear-gradient(90deg, #ffffff 50%, #ecfdf5 100%)',
+    borderColor: '#d1fae5',
+    iconBg: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+    iconBoxShadow: '0 3px 10px rgba(13, 148, 136, 0.22)',
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    ),
+    watermark: (
+      <svg width="76" height="76" viewBox="0 0 24 24" fill="#0d9488" fillOpacity="0.06">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
       </svg>
     ),
@@ -414,32 +427,76 @@ export default function HomeScreen({ onNavigate }) {
       </View>
 
       <View style={styles.amcSection}>
-        <Text style={styles.amcSectionTitle}>How can we help?</Text>
-        <View style={styles.amcGrid}>
+        <View style={styles.amcHeaderBlock}>
+          <View style={styles.kickerRow}>
+            <View style={styles.kickerLine} />
+            <Text style={styles.kickerText}>GET STARTED</Text>
+          </View>
+          <Text style={styles.amcSectionTitle}>How can we help?</Text>
+          <Text style={styles.amcSectionSub}>Choose a service to get started</Text>
+        </View>
+
+        <View style={styles.amcStack}>
           {AMC_HOME_ACTIONS.map((item) => (
             <TouchableOpacity
               key={item.key}
               style={[
-                styles.amcCard,
-                item.key === 'consultation' && styles.amcCardWide,
-                { borderColor: item.border, backgroundColor: item.bgSolid, backgroundImage: item.bg },
+                styles.amcCardNew,
+                {
+                  backgroundImage: item.cardBg,
+                  borderColor: item.borderColor,
+                },
               ]}
               onPress={() => handleNav(item.route, { state: {} })}
               activeOpacity={0.88}
             >
-              <View style={[styles.amcIconWrap, { backgroundColor: item.iconBg }]}>{item.icon}</View>
-              <View style={styles.amcCardCopy}>
-                <View style={styles.amcTitleRow}>
-                  <Text style={styles.amcCardTitle}>{item.title}</Text>
+              {/* Subtle background icon watermark */}
+              <View style={styles.amcWatermarkWrap} pointerEvents="none">
+                {item.watermark}
+              </View>
+
+              {/* Left Squircle Gradient Icon */}
+              <View
+                style={[
+                  styles.amcIconBox,
+                  {
+                    backgroundImage: item.iconBg,
+                    boxShadow: item.iconBoxShadow,
+                  },
+                ]}
+              >
+                {item.icon}
+              </View>
+
+              {/* Middle Title & Subtitle */}
+              <View style={styles.amcCardTextWrap}>
+                <View style={styles.amcTitleBadgeRow}>
+                  <Text style={styles.amcCardHeading}>{item.title}</Text>
                   {item.badge ? (
-                    <View style={styles.amcFreeBadge}>
-                      <Text style={styles.amcFreeBadgeText}>{item.badge}</Text>
+                    <View style={styles.amcFreeBadgeBlue}>
+                      <Text style={styles.amcFreeBadgeBlueText}>{item.badge}</Text>
                     </View>
                   ) : null}
                 </View>
-                <Text style={styles.amcCardSub}>{item.subtitle}</Text>
+                <Text style={styles.amcCardDescription}>{item.subtitle}</Text>
               </View>
-              <Text style={[styles.amcChevron, { color: item.accent }]}>›</Text>
+
+              {/* Right Circular Arrow Button */}
+              <View style={styles.amcArrowCircle}>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#2563eb"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -632,86 +689,132 @@ const styles = StyleSheet.create({
 
   amcSection: {
     width: '100%',
-    gap: 10,
+    gap: 9,
     marginTop: 2,
+    marginBottom: 4,
+  },
+  amcHeaderBlock: {
+    gap: 2,
+  },
+  kickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 1,
+  },
+  kickerLine: {
+    width: 14,
+    height: 2,
+    backgroundColor: '#2563eb',
+    borderRadius: 2,
+  },
+  kickerText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#2563eb',
+    letterSpacing: 0.8,
   },
   amcSectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#002574',
-    fontFamily: 'Inter, sans-serif',
+    fontSize: 19,
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.3,
+    fontFamily: "'Outfit', 'Inter', sans-serif",
   },
-  amcGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+  amcSectionSub: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '500',
   },
-  amcCard: {
-    width: '48%',
-    flexGrow: 1,
-    flexBasis: '47%',
-    minWidth: 140,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    paddingVertical: 14,
+  amcStack: {
+    flexDirection: 'column',
+    gap: 9,
+    width: '100%',
+  },
+  amcCardNew: {
+    width: '100%',
+    borderRadius: 14,
+    borderWidth: 1.2,
+    paddingVertical: 10,
     paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 11,
+    position: 'relative',
+    overflow: 'hidden',
     backgroundColor: '#ffffff',
-    boxShadow: '0 6px 16px rgba(15, 23, 42, 0.05)',
+    boxShadow: '0 2px 10px rgba(15, 23, 42, 0.03)',
   },
-  amcCardWide: {
-    width: '100%',
-    flexBasis: '100%',
+  amcWatermarkWrap: {
+    position: 'absolute',
+    right: -8,
+    top: -8,
+    bottom: -8,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    opacity: 0.8,
+    zIndex: 0,
   },
-  amcIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+  amcIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    zIndex: 1,
+  },
+  amcCardTextWrap: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+    zIndex: 1,
+  },
+  amcTitleBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'nowrap',
+  },
+  amcCardHeading: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    letterSpacing: -0.2,
+  },
+  amcFreeBadgeBlue: {
+    backgroundColor: '#2563eb',
+    borderRadius: 99,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  amcCardCopy: {
-    flex: 1,
-    minWidth: 0,
-    gap: 3,
-  },
-  amcTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexWrap: 'wrap',
-  },
-  amcCardTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#0a192f',
-    fontFamily: 'Inter, sans-serif',
-  },
-  amcCardSub: {
-    fontSize: 11.5,
-    color: '#64748b',
-    fontWeight: '500',
-    fontFamily: 'Inter, sans-serif',
-  },
-  amcChevron: {
-    fontSize: 22,
-    fontWeight: '300',
-    lineHeight: 22,
-  },
-  amcFreeBadge: {
-    backgroundColor: '#059669',
-    borderRadius: 99,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-  },
-  amcFreeBadgeText: {
+  amcFreeBadgeBlueText: {
     color: '#ffffff',
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.3,
+  },
+  amcCardDescription: {
+    fontSize: 11.5,
+    color: '#64748b',
+    fontWeight: '500',
+    lineHeight: 15,
+  },
+  amcArrowCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#f0f7ff',
+    borderWidth: 1,
+    borderColor: '#e0effe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    zIndex: 1,
   },
 
   trustBanner: {

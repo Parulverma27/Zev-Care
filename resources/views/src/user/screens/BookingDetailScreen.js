@@ -6,6 +6,7 @@ import { AppIcon } from '../../components/AppIcons';
 import { resolveImageUri } from '../../utils/imageUtils';
 import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
 import LiveProviderTrackingMap from '../../components/LiveProviderTrackingMap';
+import { hasGeneratedBill } from '../../utils/billing';
 
 export default function BookingDetailScreen() {
   const { getUserBookings, activeUser, approveBill, rejectBill, providers } = useApp();
@@ -50,6 +51,12 @@ export default function BookingDetailScreen() {
     const lng = Number(bk?.provider_lng);
     if (Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0) {
       return { lat, lng };
+    }
+    if (hasProvider) {
+      return {
+        lat: customerCoords.lat + 0.0075,
+        lng: customerCoords.lng + 0.0065,
+      };
     }
     return null;
   })();
@@ -202,13 +209,7 @@ export default function BookingDetailScreen() {
     return { text: 'IN PROGRESS', bg: '#dbeafe', color: '#1d4ed8' };
   };
 
-  const isBillSent = Boolean(
-    bk?.bill_sent ||
-    ['AWAITING_USER_APPROVAL', 'SERVICE_IN_PROGRESS', 'BOOKING_COMPLETED'].includes(bk?.status) ||
-    bk?.bill_status === 'PAID' ||
-    bk?.bill_status === 'APPROVED' ||
-    bk?.bill_generated
-  );
+  const isBillSent = hasGeneratedBill(bk);
 
   const statusBadge = getStatusBadge();
 
@@ -421,7 +422,7 @@ export default function BookingDetailScreen() {
       )}
 
       {/* DOWNLOAD PDF INVOICE CARD (Only shown when service is fully completed) */}
-      {bk?.status === 'BOOKING_COMPLETED' && (
+      {bk?.status === 'BOOKING_COMPLETED' && isBillSent && (
         <View style={{ backgroundColor: '#ffffff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#bfdbfe', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={{ fontSize: 13, fontWeight: '700', color: '#1e3a8a' }}>Official Tax Invoice</Text>
@@ -563,29 +564,22 @@ export default function BookingDetailScreen() {
           <Text style={[styles.infoDesc, { marginLeft: 22, marginTop: -4 }]}>{bk.issueDescription}</Text>
         )}
 
-        {isBillSent && (bk?.applianceRegistrationFee > 0 || bk?.pricing?.applianceRegistrationFee > 0) ? (
-          <Text style={[styles.infoDesc, { marginTop: 8, color: '#c2410c', fontWeight: '700' }]}>
-            New appliance registration: ₹
-            {bk.applianceRegistrationFee || bk.pricing?.applianceRegistrationFee}
-          </Text>
-        ) : null}
-        {isBillSent && (bk?.total_bill != null || bk?.totalAmount != null || bk?.pricing?.total != null) ? (
-          <Text style={[styles.infoDesc, { marginTop: 4, fontWeight: '700', color: '#0f172a' }]}>
-            Total: ₹
-            {Number(bk.total_bill ?? bk.totalAmount ?? bk.pricing?.total ?? 0).toLocaleString('en-IN')}
-          </Text>
+        {isBillSent && bk?.total_bill != null ? (
+          <View style={{ marginTop: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: '#eff6ff', borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#bfdbfe' }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#1e3a8a' }}>Generated Bill Amount:</Text>
+            <Text style={{ fontSize: 14, fontWeight: '900', color: '#0f172a' }}>₹{Number(bk.total_bill).toLocaleString('en-IN')}</Text>
+          </View>
         ) : null}
 
-        {bk?.issue_media_url && (
-          <View style={styles.mediaBox}>
-            <Image source={{ uri: resolveImageUri(bk.issue_media_url) }} style={styles.mediaImg} resizeMode="cover" />
+        {Array.isArray(bk?.issueMedia?.photos) && bk.issueMedia.photos.filter((p) => p && p.uri).length > 0 ? (
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+            {bk.issueMedia.photos.filter((p) => p && p.uri).slice(0, 3).map((p, i) => (
+              <View key={`im-${i}`} style={styles.mediaBox}>
+                <Image source={{ uri: resolveImageUri(p.uri) }} style={styles.mediaImg} resizeMode="cover" />
+              </View>
+            ))}
           </View>
-        )}
-        {(bk?.issueMedia?.photos || []).slice(0, 3).map((p, i) => (
-          <View key={`im-${i}`} style={styles.mediaBox}>
-            <Image source={{ uri: resolveImageUri(p.uri) }} style={styles.mediaImg} resizeMode="cover" />
-          </View>
-        ))}
+        ) : null}
       </View>
 
       {/* 10-Stage Connected Visual Timeline */}

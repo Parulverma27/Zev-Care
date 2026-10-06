@@ -22,7 +22,9 @@ export default function UserAppLayout() {
     path.includes('/rate');
 
   const showBottomNav = !isAuthPage && !isBookingFlow && !isBookingDetail && !isImmersive;
+  const isAmcTab = path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans');
   const isBookingsTab = path.includes('/bookings') && !path.includes('/new') && !isBookingDetail;
+  const isProfileTab = path.includes('/profile');
 
   return (
     <View style={styles.container}>
@@ -32,44 +34,61 @@ export default function UserAppLayout() {
 
       {showBottomNav && (
         <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.tabItem} onPress={() => navigate('/user/my-amc')} activeOpacity={0.8}>
-            <View style={[styles.tabPill, (path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans')) && styles.activeAmcTabPill]}>
+          {/* Top Hairline Gloss Accent */}
+          <View style={styles.topHairline} />
+
+          {/* TAB 1: My AMC */}
+          <TouchableOpacity
+            style={styles.tabItem}
+            onPress={() => navigate('/user/my-amc')}
+            activeOpacity={0.78}
+          >
+            {isAmcTab && <View style={styles.amcActiveTopPip} />}
+            <View style={[styles.tabPill, isAmcTab && styles.activeAmcTabPill]}>
               <VectorTabIcon
                 name="amc"
-                active={path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans')}
-                activeColor="#d4af37"
+                active={isAmcTab}
+                activeColor="#d97706"
                 inactiveColor="#64748b"
               />
-              <Text style={[styles.tabLabel, (path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans')) && styles.activeAmcLabel]}>My AMC</Text>
             </View>
+            <Text style={[styles.tabLabel, isAmcTab && styles.activeAmcLabel]}>My AMC</Text>
           </TouchableOpacity>
 
+          {/* TAB 2: Bookings */}
           <TouchableOpacity
             style={styles.tabItem}
             onPress={() => navigate('/user/bookings')}
-            activeOpacity={0.8}
+            activeOpacity={0.78}
           >
-            <View style={[styles.tabPill, isBookingsTab && styles.activeTabPill]}>
+            {isBookingsTab && <View style={styles.bookingsActiveTopPip} />}
+            <View style={[styles.tabPill, isBookingsTab && styles.activeBookingsTabPill]}>
               <VectorTabIcon
                 name="bookings"
                 active={isBookingsTab}
                 activeColor="#2563eb"
                 inactiveColor="#64748b"
               />
-              <Text style={[styles.tabLabel, isBookingsTab && styles.activeLabel]}>Bookings</Text>
             </View>
+            <Text style={[styles.tabLabel, isBookingsTab && styles.activeBookingsLabel]}>Bookings</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.tabItem} onPress={() => navigate('/user/profile')} activeOpacity={0.8}>
-            <View style={[styles.tabPill, path.includes('/profile') && styles.activeTabPill]}>
+          {/* TAB 3: Profile */}
+          <TouchableOpacity
+            style={styles.tabItem}
+            onPress={() => navigate('/user/profile')}
+            activeOpacity={0.78}
+          >
+            {isProfileTab && <View style={styles.profileActiveTopPip} />}
+            <View style={[styles.tabPill, isProfileTab && styles.activeProfileTabPill]}>
               <VectorTabIcon
                 name="profile"
-                active={path.includes('/profile')}
-                activeColor="#2563eb"
+                active={isProfileTab}
+                activeColor="#0f172a"
                 inactiveColor="#64748b"
               />
-              <Text style={[styles.tabLabel, path.includes('/profile') && styles.activeLabel]}>Profile</Text>
             </View>
+            <Text style={[styles.tabLabel, isProfileTab && styles.activeProfileLabel]}>Profile</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -84,41 +103,114 @@ const styles = StyleSheet.create({
 
   bottomBar: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    paddingTop: 6,
-    paddingBottom: 8,
-    paddingHorizontal: 8,
+    borderTopColor: 'rgba(226, 232, 240, 0.85)',
+    paddingTop: 8,
+    paddingBottom: 10,
+    paddingHorizontal: 14,
     justifyContent: 'space-around',
     alignItems: 'center',
     width: '100%',
     position: 'relative',
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 10,
+    boxShadow: '0 -10px 30px rgba(15, 23, 42, 0.08), 0 -2px 6px rgba(15, 23, 42, 0.03)',
+    ...(typeof window !== 'undefined'
+      ? {
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }
+      : {}),
   },
-  tabItem: { alignItems: 'center', flex: 1, position: 'relative' },
-  tabPill: {
+  topHairline: {
+    position: 'absolute',
+    top: 0,
+    left: '12%',
+    right: '12%',
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    width: '100%',
-    maxWidth: 78,
+    flex: 1,
+    position: 'relative',
+    paddingVertical: 2,
+    cursor: 'pointer',
   },
-  activeTabPill: {
-    backgroundColor: '#eff6ff',
+  tabPill: {
+    width: 50,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   activeAmcTabPill: {
-    backgroundColor: 'rgba(212, 175, 55, 0.14)',
+    backgroundColor: 'rgba(245, 158, 11, 0.14)',
+    boxShadow: '0 2px 10px rgba(217, 119, 6, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(217, 119, 6, 0.28)',
   },
-  tabLabel: { fontSize: 11, color: '#64748b', fontWeight: '500', marginTop: 1, whiteSpace: 'nowrap' },
-  activeLabel: { color: '#2563eb', fontWeight: '800' },
-  activeAmcLabel: { color: '#b45309', fontWeight: '800' },
+  activeBookingsTabPill: {
+    backgroundColor: 'rgba(37, 99, 235, 0.12)',
+    boxShadow: '0 2px 10px rgba(37, 99, 235, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.25)',
+  },
+  activeProfileTabPill: {
+    backgroundColor: 'rgba(15, 23, 42, 0.08)',
+    boxShadow: '0 2px 10px rgba(15, 23, 42, 0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(15, 23, 42, 0.18)',
+  },
+  amcActiveTopPip: {
+    position: 'absolute',
+    top: -8,
+    width: 20,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#d97706',
+    boxShadow: '0 1px 6px rgba(217, 119, 6, 0.45)',
+  },
+  bookingsActiveTopPip: {
+    position: 'absolute',
+    top: -8,
+    width: 20,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#2563eb',
+    boxShadow: '0 1px 6px rgba(37, 99, 235, 0.45)',
+  },
+  profileActiveTopPip: {
+    position: 'absolute',
+    top: -8,
+    width: 20,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#0f172a',
+    boxShadow: '0 1px 6px rgba(15, 23, 42, 0.35)',
+  },
+  tabLabel: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '600',
+    marginTop: 2,
+    letterSpacing: 0.2,
+    whiteSpace: 'nowrap',
+    fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif",
+  },
+  activeAmcLabel: {
+    color: '#92400e',
+    fontWeight: '800',
+  },
+  activeBookingsLabel: {
+    color: '#1d4ed8',
+    fontWeight: '800',
+  },
+  activeProfileLabel: {
+    color: '#0f172a',
+    fontWeight: '800',
+  },
 });

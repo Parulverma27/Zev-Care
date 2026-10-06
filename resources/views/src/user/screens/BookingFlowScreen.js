@@ -29,7 +29,6 @@ import BookingIssueStep from '../../components/booking/BookingIssueStep';
 import BookingIssueOtherStep from '../../components/booking/BookingIssueOtherStep';
 import BookingScheduleStep from '../../components/booking/BookingScheduleStep';
 import BookingLocationStep from '../../components/booking/BookingLocationStep';
-import BookingPriceSummary from '../../components/booking/BookingPriceSummary';
 import BookingConfirmation from '../../components/booking/BookingConfirmation';
 import BookingProgress from '../../components/booking/BookingProgress';
 import LiveSupportOptionCard from '../../components/booking/LiveSupportOptionCard';
@@ -41,7 +40,6 @@ import {
 } from '../../config/serviceApplianceMapping';
 import { getIssuesForApplianceType } from '../../config/applianceIssues';
 import { APPLIANCE_REGISTRATION_FEE } from '../../config/applianceConstants';
-import { calculateBookingPrice } from '../../utils/bookingPricing';
 import { emptyIssueMedia, issueMediaToLegacyUrl, countIssueMedia, applyPanelValueToIssueMedia } from '../../utils/bookingMedia';
 
 /**
@@ -186,16 +184,6 @@ export default function BookingFlowScreen({ onNavigate }) {
 
   const displayName = getApplianceDisplayName(applianceTypeId);
   const issues = useMemo(() => getIssuesForApplianceType(applianceTypeId), [applianceTypeId]);
-
-  const pricing = useMemo(
-    () =>
-      calculateBookingPrice({
-        applianceCount: 1,
-        applianceRegistrationFee: isConsultation ? 0 : applianceRegistrationFee,
-        isConsultation,
-      }),
-    [applianceRegistrationFee, isConsultation]
-  );
 
   const serviceTypes = useMemo(() => {
     const groupName = categoryHasGroups(category, subCategories) ? subCategory : null;
@@ -477,11 +465,6 @@ export default function BookingFlowScreen({ onNavigate }) {
     setSubmitting(true);
     setFormError('');
     try {
-      const finalPricing = calculateBookingPrice({
-        applianceCount: 1,
-        applianceRegistrationFee: isConsultation ? 0 : isNewAppliance ? APPLIANCE_REGISTRATION_FEE : 0,
-        isConsultation,
-      });
       const applianceDetails = selectedAppliance
         ? {
             brand: selectedAppliance.brand || '',
@@ -519,9 +502,7 @@ export default function BookingFlowScreen({ onNavigate }) {
           '',
         applianceDetails,
         isNewAppliance,
-        applianceRegistrationFee: finalPricing.applianceRegistrationFee,
         applianceCount: 1,
-        pricing: finalPricing,
         bookingMode: isConsultation ? 'consultation' : bookingMode || 'service',
         isConsultation,
       });
@@ -749,7 +730,11 @@ export default function BookingFlowScreen({ onNavigate }) {
               </>
             )}
           </View>
-          <BookingPriceSummary pricing={pricing} />
+          <View style={styles.billNote}>
+            <Text style={styles.billNoteText}>
+              No payment now. A technician will inspect first, and the bill will be shared with you after that.
+            </Text>
+          </View>
           <TouchableOpacity style={styles.primaryBtn} onPress={() => setStep('SCHEDULE')}>
             <Text style={styles.primaryBtnText}>Choose Date & Time</Text>
           </TouchableOpacity>
@@ -846,13 +831,11 @@ export default function BookingFlowScreen({ onNavigate }) {
             <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Location</Text>
             <Text style={styles.summaryMeta}>{address}</Text>
           </View>
-          <BookingPriceSummary
-            pricing={calculateBookingPrice({
-              applianceCount: 1,
-              applianceRegistrationFee: isConsultation ? 0 : isNewAppliance ? APPLIANCE_REGISTRATION_FEE : 0,
-              isConsultation,
-            })}
-          />
+          <View style={styles.billNote}>
+            <Text style={styles.billNoteText}>
+              No payment now. A technician will inspect first, and the bill will be shared with you after that.
+            </Text>
+          </View>
           {!!formError && <Text style={styles.error}>{formError}</Text>}
           <TouchableOpacity
             style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
@@ -1143,6 +1126,14 @@ const serviceGridCss = {
 };
 
 const styles = StyleSheet.create({
+  billNote: {
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    backgroundColor: '#eff6ff',
+  },
+  billNoteText: { fontSize: 13, color: '#1e3a8a', fontWeight: '600', lineHeight: 19 },
   container: { flex: 1, backgroundColor: '#ffffff' },
   pad: {
     padding: 20,

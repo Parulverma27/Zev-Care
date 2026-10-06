@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { getPlanTheme } from '../../config/planTheme';
 import { normalizeSavedAddresses } from '../../utils/savedAddresses';
 import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
+import { hasGeneratedBill } from '../../utils/billing';
 
 const SECTIONS = [
   { key: 'overview', label: 'Overview' },
@@ -837,24 +838,34 @@ export default function UserProfileModal({ visible, user, onClose }) {
                             {bk.provider_name ? ` · ${bk.provider_name}` : ' · Unassigned'}
                           </Text>
                           <View style={styles.bookingAmtRow}>
-                            <Text style={styles.paidAmt}>
-                              {money(bk.total_bill ?? bk.wallet_deducted ?? 0)}
-                            </Text>
-                            <View
-                              style={[
-                                styles.statusPill,
-                                isPaid ? styles.greenPill : { backgroundColor: '#fef2f2' },
-                              ]}
-                            >
-                              <Text
-                                style={[
-                                  styles.statusPillText,
-                                  isPaid ? styles.greenPillText : { color: '#dc2626' },
-                                ]}
-                              >
-                                {isPaid ? 'PAID' : 'UNPAID'}
-                              </Text>
-                            </View>
+                            {hasGeneratedBill(bk) ? (
+                              <>
+                                <Text style={styles.paidAmt}>
+                                  {money(bk.total_bill ?? bk.wallet_deducted ?? 0)}
+                                </Text>
+                                <View
+                                  style={[
+                                    styles.statusPill,
+                                    isPaid ? styles.greenPill : { backgroundColor: '#fef2f2' },
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.statusPillText,
+                                      isPaid ? styles.greenPillText : { color: '#dc2626' },
+                                    ]}
+                                  >
+                                    {isPaid ? 'PAID' : 'UNPAID'}
+                                  </Text>
+                                </View>
+                              </>
+                            ) : (
+                              <View style={[styles.statusPill, { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe' }]}>
+                                <Text style={[styles.statusPillText, { color: '#1d4ed8' }]}>
+                                  BILL PENDING INSPECTION
+                                </Text>
+                              </View>
+                            )}
                           </View>
                           {bk.address_text ? (
                             <Text style={styles.addrText} numberOfLines={2}>

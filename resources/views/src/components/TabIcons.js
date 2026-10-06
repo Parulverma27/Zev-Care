@@ -22,13 +22,34 @@ export function VectorTabIcon({ name, active, activeColor = '#2563eb', inactiveC
         );
 
       case 'bookings':
+        if (active) {
+          return (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <defs>
+                <linearGradient id="bookGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#1d4ed8" />
+                </linearGradient>
+              </defs>
+              <rect x="3" y="4" width="18" height="17" rx="3" ry="3" stroke="url(#bookGrad)" fill="rgba(37, 99, 235, 0.16)" />
+              <line x1="16" y1="2" x2="16" y2="6" stroke="url(#bookGrad)" strokeWidth="2.4" />
+              <line x1="8" y1="2" x2="8" y2="6" stroke="url(#bookGrad)" strokeWidth="2.4" />
+              <line x1="3" y1="10" x2="21" y2="10" stroke="url(#bookGrad)" strokeWidth="2" />
+              <circle cx="8" cy="14.5" r="1.2" fill="#2563eb" />
+              <circle cx="12" cy="14.5" r="1.2" fill="#2563eb" />
+              <circle cx="16" cy="14.5" r="1.2" fill="#2563eb" />
+            </svg>
+          );
+        }
         return (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="17" rx="3" ry="3" />
             <line x1="16" y1="2" x2="16" y2="6" />
             <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="4" y1="10" x2="20" y2="10" />
-            <line x1="8" y1="14" x2="16" y2="14" />
+            <line x1="3" y1="10" x2="21" y2="10" strokeWidth="1.6" />
+            <circle cx="8" cy="14.5" r="1" fill={color} />
+            <circle cx="12" cy="14.5" r="1" fill={color} />
+            <circle cx="16" cy="14.5" r="1" fill={color} />
           </svg>
         );
 
@@ -36,23 +57,43 @@ export function VectorTabIcon({ name, active, activeColor = '#2563eb', inactiveC
       case 'wallet':
         if (active) {
           return (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(212, 175, 55, 0.18)" />
-              <path d="m9 12 2 2 4-4" />
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <defs>
+                <linearGradient id="amcGoldGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#f59e0b" />
+                  <stop offset="100%" stopColor="#d97706" />
+                </linearGradient>
+              </defs>
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="url(#amcGoldGrad)" fill="rgba(245, 158, 11, 0.22)" />
+              <path d="m9 12 2 2 4-4" stroke="url(#amcGoldGrad)" strokeWidth="2.4" />
             </svg>
           );
         }
         return (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            <path d="m9 12 2 2 4-4" />
+            <path d="m9 12 2 2 4-4" strokeWidth="1.9" />
           </svg>
         );
 
       case 'profile':
+        if (active) {
+          return (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <defs>
+                <linearGradient id="profGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#334155" />
+                  <stop offset="100%" stopColor="#0f172a" />
+                </linearGradient>
+              </defs>
+              <path d="M20 21v-1.5a4.5 4.5 0 0 0-4.5-4.5h-7A4.5 4.5 0 0 0 4 19.5V21" stroke="url(#profGrad)" fill="rgba(15, 23, 42, 0.14)" />
+              <circle cx="12" cy="7" r="4" stroke="url(#profGrad)" fill="rgba(15, 23, 42, 0.14)" />
+            </svg>
+          );
+        }
         return (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-1.5a4.5 4.5 0 0 0-4.5-4.5h-7A4.5 4.5 0 0 0 4 19.5V21" />
             <circle cx="12" cy="7" r="4" />
           </svg>
         );
