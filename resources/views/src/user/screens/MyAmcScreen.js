@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Image } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { getPlanTheme } from '../../config/planTheme';
+import { getPlanTheme, PLAN_THEMES } from '../../config/planTheme';
 import { SERVICE_IMAGES } from '../../utils/bundledImages';
 import SubscriptionPlansScreen from './SubscriptionPlansScreen';
 import ApplianceAddWizard, { buildSavedApplianceRecords } from '../../components/appliances/ApplianceAddWizard';
@@ -145,6 +145,41 @@ const txBelongsToUser = (tx, user) => {
 
 const formatMoney = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
+/** Compact rupee format: 100000 -> ₹1 Lakh, 40000 -> ₹40,000 */
+const formatLakh = (n) => {
+  const v = Number(n || 0);
+  if (v >= 10000000) return `₹${+(v / 10000000).toFixed(2)} Cr`;
+  if (v >= 100000) return `₹${+(v / 100000).toFixed(2)} Lakh`;
+  return formatMoney(v);
+};
+
+const TIER_KEYS = ['Silver', 'Gold', 'Platinum'];
+
+const TIER_ACCENTS = {
+  Silver: { pillBg: '#e2e8f0', pillText: '#334155', ring: '#94a3b8' },
+  Gold: { pillBg: '#fef3c7', pillText: '#92400e', ring: '#D3AF37' },
+  Platinum: { pillBg: '#ede9fe', pillText: '#6d28d9', ring: '#8b5cf6' },
+};
+
+/** What each covered part is used in — shown when a part chip is tapped. */
+const PART_DETAILS = {
+  Compressor: 'AC & Refrigerator cooling compressor',
+  'Fan Motors': 'AC, cooler, chimney & ceiling fan motors',
+  'PCB Circuits': 'Control boards of AC, washing machine & microwave',
+  Thermostat: 'Temperature sensors in fridge, geyser & oven',
+  'Valves & Gas': 'Gas refill & solenoid / inlet valves',
+  'Internal Wiring': 'Internal harness & power wiring of appliances',
+  'Heating Elements': 'Geyser, iron, oven & dryer heating coils',
+  'Burners & Sensors': 'Stove burners, RO & flame sensors',
+};
+
+const getTierKey = (name) => {
+  const n = String(name || '').toLowerCase();
+  if (n.includes('platinum')) return 'Platinum';
+  if (n.includes('gold')) return 'Gold';
+  return 'Silver';
+};
+
 const formatTxDate = (value) => {
   if (!value || value === 'Just now' || value === 'Synced') return value || '';
   const d = new Date(value);
@@ -182,6 +217,10 @@ export default function MyAmcScreen({ onNavigate }) {
     addUserAppliance,
     removeUserAppliance,
     wallet = {},
+    bookings = [],
+    bookingBelongsToUser,
+    getUserBookings,
+    subscriptionPlans = [],
   } = useApp();
   const navigate = useNavigate();
 
@@ -198,6 +237,11 @@ export default function MyAmcScreen({ onNavigate }) {
   const [actionSuccessMsg, setActionSuccessMsg] = useState('');
   const [deletingApplianceId, setDeletingApplianceId] = useState(null);
   const [showAllPlansModal, setShowAllPlansModal] = useState(false);
+
+  // Interactive card state
+  const [previewTier, setPreviewTier] = useState(null); // null => show active tier
+  const [benefitTab, setBenefitTab] = useState('LABOR'); // 'LABOR' | 'PARTS' | 'PERKS'
+  const [selectedPart, setSelectedPart] = useState(null);
 
   const go = (path) => {
     if (navigate) navigate(path);
@@ -260,13 +304,50 @@ export default function MyAmcScreen({ onNavigate }) {
       ? Number(activeUser.wallet_balance)
       : totalPlanMoney;
 
+    const rawExpiry =
+      activeAmc?.expiryDate ||
+      activeUser?.amc_expiry_date ||
+      activeUser?.subscription_expires_at ||
+      '2027-09-07T00:00:00.000Z';
+
+    const computeStartFromExpiry = (expStr) => {
+      try {
+        const d = new Date(expStr);
+        if (!Number.isNaN(d.getTime())) {
+          const s = new Date(d);
+          s.setFullYear(s.getFullYear() - 1);
+          return s.toISOString();
+        }
+      } catch (e) {}
+      return '2026-09-07T00:00:00.000Z';
+    };
+
+    let rawStart =
+      activeUser?.amc_start_date ||
+      activeUser?.subscription_started_at ||
+      activeAmc?.startDate;
+
+    if (!rawStart || String(rawStart).includes('2026-01-01')) {
+      rawStart = computeStartFromExpiry(rawExpiry);
+    }
+
+    const expiryMs = new Date(rawExpiry).getTime();
+    const startMs = new Date(rawStart).getTime();
+    const daysRemaining = Number.isNaN(expiryMs)
+      ? 0
+      : Math.max(0, Math.ceil((expiryMs - Date.now()) / 86400000));
+    const totalDays = !Number.isNaN(expiryMs) && !Number.isNaN(startMs) && expiryMs > startMs
+      ? Math.ceil((expiryMs - startMs) / 86400000)
+      : 365;
+
     return {
       contractNo,
       planName: activeAmc?.planName || planName,
       tierBadge: planTheme.tierBadge || 'VIP AMC',
-      startDate: formatTxDate(activeAmc?.startDate || activeUser?.amc_start_date || '2026-01-01'),
-      expiryDate: formatTxDate(activeAmc?.expiryDate || activeUser?.amc_expiry_date || '2027-01-01'),
-      daysRemaining: activeAmc?.daysRemaining || 342,
+      startDate: formatTxDate(rawStart),
+      expiryDate: formatTxDate(rawExpiry),
+      daysRemaining,
+      totalDays,
       visitsLeft,
       totalVisits,
       partsCap,
@@ -287,21 +368,184 @@ export default function MyAmcScreen({ onNavigate }) {
     return (wallet.transactions || []).filter((tx) => txBelongsToUser(tx, activeUser));
   }, [wallet.transactions, activeUser, isGuest]);
 
+  const unifiedHistoryList = useMemo(() => {
+    if (isGuest) return [];
+
+    // 1. Service transactions from wallet ledger
+    const serviceTxs = (userTransactions || []).filter((tx) => {
+      const isTopUpTx =
+        tx.type === 'WALLET_CREDIT' ||
+        String(tx.transaction_id || '').includes('TOPUP') ||
+        String(tx.description || '').toLowerCase().includes('top-up');
+      return !isTopUpTx && (tx.type === 'SERVICE_PAYMENT' || tx.type === 'AMC_SERVICE_CLAIM' || tx.category === 'Services');
+    });
+
+    // 2. Service claims from real bookings
+    const userBookings = getUserBookings
+      ? getUserBookings(activeUser)
+      : (bookings || []).filter((b) =>
+          bookingBelongsToUser
+            ? bookingBelongsToUser(b, activeUser)
+            : b.user_id === activeUser?.id || (b.user_phone && normalizePhone(b.user_phone) === normalizePhone(activeUser?.phone))
+        );
+
+    const bookingClaims = (userBookings || [])
+      .filter((b) => b.is_covered_by_amc || b.service_name || b.category_name)
+      .map((b) => {
+        const laborCharge = Number(b.labour_charge || b.laborCharge || 499);
+        const isCovered = b.is_covered_by_amc !== false;
+        return {
+          id: `booking-claim-${b.booking_id || b.id}`,
+          type: 'AMC_SERVICE_CLAIM',
+          service_name: b.service_name || `${b.sub_category_name || b.category_name || 'Appliance'} Repair`,
+          date: b.completed_date || b.scheduled_date || '5 Oct 2026',
+          refNumber: b.booking_id ? String(b.booking_id).replace(/^BK-2026-/, 'K-').replace(/^BK-/, 'K-') : 'K-000125',
+          laborCharge: laborCharge,
+          benefit: isCovered ? `-₹${laborCharge} (100% Free)` : '₹0',
+          totalCustomerPaid: isCovered ? '₹0.00 (Fully Covered)' : `₹${b.total_bill || laborCharge}`,
+          category: 'Services',
+          createdAt: b.scheduled_date || b.completed_date || '2026-10-05T10:00:00.000Z',
+        };
+      });
+
+    const allServices = [...serviceTxs, ...bookingClaims];
+    const resolvedServices = allServices.length > 0 ? allServices : [
+      {
+        id: 'sample-claim-1',
+        type: 'AMC_SERVICE_CLAIM',
+        service_name: 'Mixer & Grinder Repair',
+        date: '5 Oct 2026',
+        refNumber: 'K-000125',
+        laborCharge: 499,
+        benefit: '-₹499 (100% Free)',
+        totalCustomerPaid: '₹0.00 (Fully Covered)',
+        category: 'Services',
+        createdAt: '2026-10-05T10:00:00.000Z',
+      },
+    ];
+
+    // 3. Contract transactions from wallet ledger
+    const contractTxs = (userTransactions || []).filter((tx) => {
+      const isTopUpTx =
+        tx.type === 'WALLET_CREDIT' ||
+        String(tx.transaction_id || '').includes('TOPUP') ||
+        String(tx.description || '').toLowerCase().includes('top-up');
+      return isTopUpTx || tx.type === 'AMC_PURCHASE' || tx.type === 'PLAN_PURCHASE' || tx.category === 'Plans';
+    });
+
+    const resolvedContracts = contractTxs.length > 0 ? contractTxs : (hasActiveAmc ? [
+      {
+        id: 'sample-contract-1',
+        type: 'AMC_PURCHASE',
+        plan_name: contractDetails?.planName || planName || 'Gold',
+        date: '7 Sept 2026',
+        refNumber: contractDetails?.contractNo ? contractDetails.contractNo.replace('AMC-2026-', 'X-') : 'X-373004',
+        amount: planTheme?.cost || 1499,
+        badgeText: 'Contract Activated',
+        category: 'Contracts',
+        createdAt: '2026-09-07T10:00:00.000Z',
+      },
+    ] : []);
+
+    // Return unified list containing BOTH services and contracts
+    return [...resolvedServices, ...resolvedContracts];
+  }, [
+    isGuest,
+    userTransactions,
+    getUserBookings,
+    activeUser,
+    bookings,
+    bookingBelongsToUser,
+    hasActiveAmc,
+    contractDetails,
+    planName,
+    planTheme,
+  ]);
+
   const filteredTxs = useMemo(() => {
     if (historyFilter === 'Services') {
-      return userTransactions.filter((tx) => {
-        const isTopUpTx = tx.type === 'WALLET_CREDIT' || String(tx.transaction_id || '').includes('TOPUP') || String(tx.description || '').toLowerCase().includes('top-up');
-        return !isTopUpTx && (tx.type === 'SERVICE_PAYMENT' || tx.type === 'AMC_SERVICE_CLAIM' || tx.category === 'Services');
-      });
+      return unifiedHistoryList.filter((item) =>
+        item.category === 'Services' ||
+        item.type === 'AMC_SERVICE_CLAIM' ||
+        item.type === 'SERVICE_PAYMENT'
+      );
     }
     if (historyFilter === 'Contracts') {
-      return userTransactions.filter((tx) => {
-        const isTopUpTx = tx.type === 'WALLET_CREDIT' || String(tx.transaction_id || '').includes('TOPUP') || String(tx.description || '').toLowerCase().includes('top-up');
-        return isTopUpTx || tx.type === 'AMC_PURCHASE' || tx.type === 'PLAN_PURCHASE' || tx.category === 'Plans';
-      });
+      return unifiedHistoryList.filter((item) =>
+        item.category === 'Contracts' ||
+        item.type === 'AMC_PURCHASE' ||
+        item.type === 'PLAN_PURCHASE' ||
+        item.type === 'WALLET_CREDIT' ||
+        item.type === 'TOPUP' ||
+        item.type === 'ALLOWANCE_TOPUP'
+      );
     }
-    return userTransactions;
-  }, [userTransactions, historyFilter]);
+    // 'All' returns all unified history items (both Services and Contracts)!
+    return unifiedHistoryList;
+  }, [unifiedHistoryList, historyFilter]);
+
+  // ---------------------------------------------------------------------------
+  // Dynamic tier specs (admin-managed subscriptionPlans -> fallback PLAN_THEMES)
+  // ---------------------------------------------------------------------------
+  const tierData = useMemo(() => {
+    return TIER_KEYS.map((key, rank) => {
+      const theme = PLAN_THEMES[key];
+      const plan = (subscriptionPlans || []).find((p) => getTierKey(p?.name) === key && String(p?.name || '').toLowerCase().includes(key.toLowerCase()));
+      let features = [];
+      try {
+        features = plan?.features_json ? JSON.parse(plan.features_json) : [];
+      } catch (e) {
+        features = [];
+      }
+      const appliances = theme.applianceAllowance;
+      return {
+        key,
+        rank,
+        theme,
+        accent: TIER_ACCENTS[key],
+        price: Number(plan?.price ?? theme.coverageLimit),
+        coverage: Number(plan?.wallet_credit ?? theme.coverageLimit),
+        appliances,
+        appliancesText: Number.isFinite(appliances) ? String(appliances) : 'Unlimited',
+        partsCap: Number(plan?.parts_coverage_cap ?? theme.partsCap),
+        visits: Number(plan?.preventive_visits_count ?? theme.preventiveVisits),
+        slaHours: Number(plan?.priority_sla_hours ?? theme.slaHours),
+        validityMonths: Number(plan?.validity_months ?? 12),
+        features: Array.isArray(features) ? features : [],
+      };
+    });
+  }, [subscriptionPlans]);
+
+  const activeTierKey = getTierKey(contractDetails?.planName || planName);
+  const activeTier = tierData.find((t) => t.key === activeTierKey) || tierData[0];
+  const shownTier = tierData.find((t) => t.key === (previewTier || activeTierKey)) || activeTier;
+
+  const usage = useMemo(() => {
+    const pct = (part, whole) => (whole > 0 ? Math.max(0, Math.min(100, Math.round((part / whole) * 100))) : 0);
+    const total = Number(contractDetails?.totalPlanMoney || activeTier.coverage || 0);
+    const remaining = Number(contractDetails?.remainingPlanMoney ?? total);
+    const partsCap = Number(contractDetails?.partsCap || activeTier.partsCap || 0);
+    const partsLeft = Number(contractDetails?.partsLeft ?? partsCap);
+    const visitsTotal = Number(contractDetails?.totalVisits || activeTier.visits || 0);
+    const visitsLeft = Number(contractDetails?.visitsLeft ?? visitsTotal);
+    const claims = unifiedHistoryList.filter((i) => i.category === 'Services' || i.type === 'AMC_SERVICE_CLAIM');
+    const laborSaved = claims.reduce((sum, c) => sum + Number(c.laborCharge || 499), 0);
+    const totalDays = Number(contractDetails?.totalDays || 365);
+    const daysLeft = Number(contractDetails?.daysRemaining || 0);
+    return {
+      balance: { total, remaining, used: Math.max(0, total - remaining), pctLeft: pct(remaining, total) },
+      parts: { cap: partsCap, left: partsLeft, pctLeft: pct(partsLeft, partsCap) },
+      visits: { total: visitsTotal, left: visitsLeft, pctLeft: pct(visitsLeft, visitsTotal) },
+      appliances: {
+        used: coveredCount,
+        limit: allowanceLimit,
+        pctUsed: isUnlimitedAllowance ? 100 : pct(coveredCount, allowanceLimit),
+      },
+      days: { left: daysLeft, total: totalDays, pctLeft: pct(daysLeft, totalDays) },
+      claimsCount: claims.length,
+      laborSaved,
+    };
+  }, [contractDetails, activeTier, unifiedHistoryList, coveredCount, allowanceLimit, isUnlimitedAllowance]);
 
   const handleCopyContractNo = () => {
     if (contractDetails?.contractNo) {
@@ -385,36 +629,14 @@ export default function MyAmcScreen({ onNavigate }) {
 
         {/* Ledger List */}
         <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
-          {(() => {
-            const listToRender = filteredTxs.length > 0 ? filteredTxs : [
-              {
-                id: 'sample-claim-1',
-                type: 'AMC_SERVICE_CLAIM',
-                service_name: 'Mixer & Grinder Repair',
-                date: '5 Oct 2026',
-                refNumber: 'K-000125',
-                laborCharge: 499,
-                benefit: '-₹499 (100% Free)',
-                totalCustomerPaid: '₹0.00 (Fully Covered)',
-                category: 'Services',
-              },
-              {
-                id: 'sample-contract-1',
-                type: 'AMC_PURCHASE',
-                plan_name: contractDetails?.planName || 'Gold',
-                date: '5 Sept 2026',
-                refNumber: 'D-PLAN-1',
-                amount: 1499,
-                badgeText: 'Contract Activated',
-                category: 'Contracts',
-              },
-            ].filter((tx) => {
-              if (historyFilter === 'Services') return tx.category === 'Services';
-              if (historyFilter === 'Contracts') return tx.category === 'Contracts';
-              return true;
-            });
-
-            return listToRender.map((tx, idx) => {
+          {filteredTxs.length === 0 ? (
+            <View style={{ padding: 36, alignItems: 'center' }}>
+              <Text style={{ fontSize: 14, color: '#64748b', fontWeight: '500' }}>
+                No {historyFilter === 'All' ? 'history' : historyFilter.toLowerCase()} records found.
+              </Text>
+            </View>
+          ) : (
+            filteredTxs.map((tx, idx) => {
               const isContractPurchase = tx.type === 'AMC_PURCHASE' || tx.type === 'PLAN_PURCHASE';
               const isTopUp =
                 !isContractPurchase &&
@@ -442,9 +664,13 @@ export default function MyAmcScreen({ onNavigate }) {
                 ? 'Allowance Added'
                 : '₹0 Labor Covered';
 
-              const displayRef = tx.refNumber
-                ? tx.refNumber
-                : String(tx.transaction_id || tx.id || 'TX-2026').slice(-8);
+              const cleanRef = String(
+                tx.refNumber ||
+                tx.amc_contract_number ||
+                tx.transaction_id ||
+                tx.id ||
+                '2026'
+              ).replace(/^#/, '').replace(/^TX-/, 'X-').slice(-10);
 
               return (
                 <View key={tx.id || tx.transaction_id || idx} style={styles.claimCard}>
@@ -452,7 +678,7 @@ export default function MyAmcScreen({ onNavigate }) {
                     <View style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
                       <Text style={styles.claimTitle} numberOfLines={1}>{cardTitle}</Text>
                       <Text style={styles.claimDate}>
-                        {formatTxDate(tx.date || tx.created_at || tx.timestamp || 'Just now')} • Ref #{displayRef}
+                        {formatTxDate(tx.date || tx.created_at || tx.createdAt || tx.timestamp || 'Just now')} • Ref #{cleanRef}
                       </Text>
                     </View>
                     <View style={[styles.claimBadge, badgeStyle]}>
@@ -464,11 +690,11 @@ export default function MyAmcScreen({ onNavigate }) {
                     <View style={styles.amcCostBreakdown}>
                       <View style={styles.amcCostRow}>
                         <Text style={styles.amcCostItemLabel}>Breakdown Labor Charge:</Text>
-                        <Text style={styles.amcCostItemStrike}>₹499</Text>
+                        <Text style={styles.amcCostItemStrike}>₹{tx.laborCharge || 499}</Text>
                       </View>
                       <View style={styles.amcCostRow}>
                         <Text style={styles.amcCostItemLabel}>AMC Member Benefit:</Text>
-                        <Text style={styles.amcCostBenefit}>-₹499 (100% Free)</Text>
+                        <Text style={styles.amcCostBenefit}>{tx.benefit || '-₹499 (100% Free)'}</Text>
                       </View>
                     </View>
                   )}
@@ -491,8 +717,8 @@ export default function MyAmcScreen({ onNavigate }) {
                   </View>
                 </View>
               );
-            });
-          })()}
+            })
+          )}
         </View>
       </ScrollView>
     );
@@ -565,105 +791,350 @@ export default function MyAmcScreen({ onNavigate }) {
       {activeTab === 'BALANCE' && contractDetails && (
         <View style={{ paddingHorizontal: 16 }}>
           {/* Main Gold Membership Card with Specular Metallic Sheen */}
-          <View style={styles.goldCard}>
-            {/* Top row: Metallic Smart Chip + Days Left Badge */}
+          <View
+            style={[
+              styles.goldCard,
+              {
+                borderColor: activeTier.theme.borderColor,
+                backgroundImage: activeTier.theme.headerBg,
+                boxShadow: activeTier.theme.cardGlow,
+              },
+            ]}
+          >
+            {/* ---------- Header: identity + days left ---------- */}
             <View style={styles.goldTopRow}>
-              <View style={styles.chipGraphic}>
-                <View style={styles.chipInnerGrid}>
-                  <View style={styles.chipCenterPin} />
+              <View style={styles.cardIdentity}>
+                <View style={styles.chipGraphic}>
+                  <View style={styles.chipInnerGrid}>
+                    <View style={styles.chipCenterPin} />
+                  </View>
+                </View>
+                <View style={{ marginLeft: 10, minWidth: 0, flex: 1 }}>
+                  <Text style={[styles.cardTierName, { color: activeTier.theme.headerTextColor }]} numberOfLines={1}>
+                    {activeTier.theme.tierBadge}
+                  </Text>
+                  <Text style={[styles.cardTierSub, { color: activeTier.theme.headerPeriodColor }]} numberOfLines={1}>
+                    Valid till {contractDetails.expiryDate}
+                  </Text>
                 </View>
               </View>
               <View style={styles.daysLeftBadge}>
                 <IconClock size={12} color="#0f172a" />
-                <Text style={styles.daysLeftBadgeText}>
-                  {contractDetails.daysRemaining || 342} days left
+                <Text style={styles.daysLeftBadgeText}>{usage.days.left} days left</Text>
+              </View>
+            </View>
+
+            {/* ---------- Balance with live usage meter ---------- */}
+            <View style={styles.balanceSection}>
+              <Text style={[styles.balanceLabel, { color: activeTier.theme.headerPeriodColor }]}>AVAILABLE AMC BALANCE</Text>
+              <Text style={[styles.balanceAmount, { color: activeTier.theme.headerTextColor }]}>
+                {formatMoney(usage.balance.remaining)}
+              </Text>
+              <View style={styles.meterTrack}>
+                <View style={[styles.meterFill, { width: `${usage.balance.pctLeft}%` }]} />
+              </View>
+              <View style={styles.meterLegendRow}>
+                <Text style={[styles.meterLegend, { color: activeTier.theme.headerPeriodColor }]}>
+                  {usage.balance.pctLeft}% left • Used {formatMoney(usage.balance.used)}
+                </Text>
+                <Text style={[styles.meterLegend, { color: activeTier.theme.headerPeriodColor }]}>
+                  of {formatLakh(usage.balance.total)}
                 </Text>
               </View>
             </View>
 
-            {/* Available AMC Balance Heading */}
-            <View style={styles.balanceSection}>
-              <Text style={styles.balanceLabel}>AVAILABLE AMC BALANCE</Text>
-              <Text style={styles.balanceAmount}>
-                {formatMoney(contractDetails.remainingPlanMoney || 500000)}
-              </Text>
-            </View>
-
-            {/* Active AMC Protection White Card */}
-            <View style={styles.activePlanCard}>
-              <View style={styles.activePlanTopHeader}>
-                <View style={styles.activePlanBadgeRow}>
-                  <IconShieldCheck size={14} color="#b45309" />
-                  <Text style={styles.activePlanBadgeText}>ACTIVE AMC PROTECTION</Text>
-                </View>
+            {/* ---------- 4 quick metric tiles ---------- */}
+            <Text style={[styles.sectionKicker, { color: activeTier.theme.headerPeriodColor }]}>YOUR PLAN AT A GLANCE</Text>
+            <View style={styles.metricGrid}>
+              {[
+                {
+                  id: 'appliances',
+                  icon: <IconHome size={16} color="#0284c7" />,
+                  tint: '#e0f2fe',
+                  color: '#0284c7',
+                  value: isUnlimitedAllowance ? `${coveredCount}` : `${coveredCount}/${allowanceLimit}`,
+                  label: 'Appliances covered',
+                  hint: isUnlimitedAllowance ? 'Unlimited slots' : `${availableSlots} slots free`,
+                  pct: usage.appliances.pctUsed,
+                  onPress: () => setActiveTab('APPLIANCES'),
+                },
+                {
+                  id: 'labor',
+                  icon: <IconShieldCheck size={16} color="#15803d" />,
+                  tint: '#dcfce7',
+                  color: '#16a34a',
+                  value: '₹0',
+                  label: 'Repair labour charge',
+                  hint: `Saved ${formatMoney(usage.laborSaved)}`,
+                  pct: 100,
+                  onPress: () => setBenefitTab('LABOR'),
+                },
+                {
+                  id: 'parts',
+                  icon: <IconCpu size={16} color="#b45309" />,
+                  tint: '#fef3c7',
+                  color: '#d97706',
+                  value: formatLakh(usage.parts.left),
+                  label: 'Spare parts allowance',
+                  hint: `of ${formatMoney(usage.parts.cap)}`,
+                  pct: usage.parts.pctLeft,
+                  onPress: () => setBenefitTab('PARTS'),
+                },
+                {
+                  id: 'visits',
+                  icon: <IconUserTie size={16} color="#7c3aed" />,
+                  tint: '#ede9fe',
+                  color: '#7c3aed',
+                  value: `${usage.visits.left}/${usage.visits.total}`,
+                  label: 'Free maintenance visits',
+                  hint: 'Book a visit',
+                  pct: usage.visits.pctLeft,
+                  onPress: () => go('/user/home'),
+                },
+              ].map((tile) => (
                 <TouchableOpacity
-                  style={styles.allPlansBtn}
-                  onPress={() => setShowAllPlansModal(true)}
-                  activeOpacity={0.8}
+                  key={tile.id}
+                  nativeID={`amc-metric-${tile.id}`}
+                  style={styles.metricTile}
+                  onPress={tile.onPress}
+                  activeOpacity={0.85}
                 >
-                  <Text style={styles.allPlansBtnText}>All Plans →</Text>
+                  <View style={[styles.metricIconWrap, { backgroundColor: tile.tint }]}>{tile.icon}</View>
+                  <Text style={styles.metricValue} numberOfLines={1}>{tile.value}</Text>
+                  <Text style={styles.metricLabel} numberOfLines={1}>{tile.label}</Text>
+                  <View style={styles.miniTrack}>
+                    <View style={[styles.miniFill, { width: `${tile.pct}%`, backgroundColor: tile.color }]} />
+                  </View>
+                  <Text style={[styles.metricHint, { color: tile.color }]} numberOfLines={1}>{tile.hint} →</Text>
                 </TouchableOpacity>
-              </View>
-
-              <Text style={styles.activePlanTitle}>
-                {contractDetails.planName || 'Gold'} • Verified Active Coverage
-              </Text>
-              <Text style={styles.activePlanSub}>
-                Active Plan — Ye hamara active plan hai • 100% Free breakdown repairs & labor covered
-              </Text>
+              ))}
             </View>
 
-            {/* Covered Amounts by Plan Tier */}
-            <Text style={styles.tierSectionTitle}>COVERED AMOUNTS BY PLAN TIER</Text>
+            {/* ---------- Interactive tier comparison ---------- */}
+            <View style={styles.sectionHeadRow}>
+              <Text style={[styles.sectionKicker, { color: activeTier.theme.headerPeriodColor, marginBottom: 0 }]}>
+                COMPARE PLANS • TAP ONE
+              </Text>
+              <TouchableOpacity style={styles.allPlansBtn} onPress={() => setShowAllPlansModal(true)} activeOpacity={0.8}>
+                <Text style={styles.allPlansBtnText}>All Plans →</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.tierGrid}>
-              {/* Silver Tier */}
-              <View style={styles.tierCard}>
-                <View style={[styles.tierPill, { backgroundColor: '#e2e8f0' }]}>
-                  <Text style={[styles.tierPillText, { color: '#475569' }]}>SILVER</Text>
-                </View>
-                <Text style={styles.tierAmount}>₹1 Lakh</Text>
-                <Text style={styles.tierLimitLabel}>Coverage Limit</Text>
-                <Text style={styles.tierPrice}>₹799 / yr</Text>
-              </View>
-
-              {/* Gold Tier (Active) */}
-              <View style={[styles.tierCard, styles.tierCardActive]}>
-                <View style={[styles.tierPill, { backgroundColor: '#fef08a', borderWidth: 1, borderColor: '#D3AF37' }]}>
-                  <Text style={[styles.tierPillText, { color: '#78350f' }]}>ACTIVE</Text>
-                </View>
-                <Text style={styles.tierAmount}>₹5 Lakh</Text>
-                <Text style={styles.tierLimitLabel}>Coverage Limit</Text>
-                <Text style={styles.tierPrice}>₹1,499 / yr</Text>
-                <View style={styles.tierActiveIndicator}>
-                  <Text style={styles.tierActiveIndicatorText}>✓ Active</Text>
-                </View>
-              </View>
-
-              {/* Platinum Tier */}
-              <View style={styles.tierCard}>
-                <View style={[styles.tierPill, { backgroundColor: '#f3e8ff' }]}>
-                  <Text style={[styles.tierPillText, { color: '#7e22ce' }]}>PLATINUM</Text>
-                </View>
-                <Text style={styles.tierAmount}>₹10 Lakh</Text>
-                <Text style={styles.tierLimitLabel}>Coverage Limit</Text>
-                <Text style={styles.tierPrice}>₹2,499 / yr</Text>
-              </View>
+              {tierData.map((t) => {
+                const isActive = t.key === activeTierKey;
+                const isShown = t.key === shownTier.key;
+                return (
+                  <TouchableOpacity
+                    key={t.key}
+                    nativeID={`amc-tier-${t.key.toLowerCase()}`}
+                    style={[
+                      styles.tierCard,
+                      isShown && { borderColor: t.accent.ring, borderWidth: 2, boxShadow: `0 6px 18px ${t.accent.ring}55` },
+                    ]}
+                    onPress={() => setPreviewTier(isActive ? null : t.key)}
+                    activeOpacity={0.85}
+                  >
+                    <View style={[styles.tierPill, { backgroundColor: t.accent.pillBg }]}>
+                      <Text style={[styles.tierPillText, { color: t.accent.pillText }]}>{t.key.toUpperCase()}</Text>
+                    </View>
+                    <Text style={styles.tierAmount}>{formatLakh(t.coverage)}</Text>
+                    <Text style={styles.tierLimitLabel}>Coverage</Text>
+                    <Text style={styles.tierPrice}>{t.appliancesText} appliances</Text>
+                    {isActive && (
+                      <View style={styles.tierActiveIndicator}>
+                        <Text style={styles.tierActiveIndicatorText}>✓ Your Plan</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
-            {/* Contract # Strip Card */}
+            {(() => {
+              const isActiveShown = shownTier.key === activeTierKey;
+              const isHigher = shownTier.rank > activeTier.rank;
+              const rows = [
+                { label: 'Coverage amount', value: formatLakh(shownTier.coverage), a: shownTier.coverage, b: activeTier.coverage },
+                { label: 'Appliances covered', value: shownTier.appliancesText, a: shownTier.appliances, b: activeTier.appliances },
+                { label: 'Spare parts allowance', value: formatMoney(shownTier.partsCap), a: shownTier.partsCap, b: activeTier.partsCap },
+                { label: 'Free maintenance visits', value: `${shownTier.visits} / year`, a: shownTier.visits, b: activeTier.visits },
+                { label: 'Technician arrives within', value: `${shownTier.slaHours} hr`, a: -shownTier.slaHours, b: -activeTier.slaHours },
+                { label: 'Repair labour', value: '₹0 (Free)', a: 0, b: 0 },
+                { label: 'Plan price', value: `${formatMoney(shownTier.price)} / ${shownTier.validityMonths} mo`, a: 0, b: 0 },
+              ];
+              return (
+                <View style={[styles.inspectorCard, { borderColor: shownTier.accent.ring }]}>
+                  <View style={styles.inspectorHead}>
+                    <Text style={styles.inspectorTitle} numberOfLines={1}>{shownTier.theme.name}</Text>
+                    <View style={[styles.tierPill, { backgroundColor: shownTier.accent.pillBg, marginBottom: 0 }]}>
+                      <Text style={[styles.tierPillText, { color: shownTier.accent.pillText }]}>
+                        {isActiveShown ? 'CURRENT' : isHigher ? 'UPGRADE' : 'LOWER'}
+                      </Text>
+                    </View>
+                  </View>
+                  {rows.map((row) => {
+                    const diff = isActiveShown || row.a === row.b ? 0 : row.a > row.b ? 1 : -1;
+                    return (
+                      <View key={row.label} style={styles.inspectorRow}>
+                        <Text style={styles.inspectorLabel}>{row.label}</Text>
+                        <Text
+                          style={[
+                            styles.inspectorValue,
+                            diff === 1 && { color: '#15803d' },
+                            diff === -1 && { color: '#b91c1c' },
+                          ]}
+                        >
+                          {diff === 1 ? '▲ ' : diff === -1 ? '▼ ' : ''}{row.value}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                  {isActiveShown ? (
+                    <Text style={styles.inspectorNote}>✓ You are on this plan. Tap another plan above to compare.</Text>
+                  ) : isHigher ? (
+                    <TouchableOpacity
+                      nativeID="amc-upgrade-btn"
+                      style={styles.upgradeBtn}
+                      onPress={() => setShowAllPlansModal(true)}
+                      activeOpacity={0.88}
+                    >
+                      <Text style={styles.upgradeBtnText}>Upgrade to {shownTier.key} →</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <Text style={styles.inspectorNote}>
+                      Your {activeTier.key} plan already gives you more than {shownTier.key}.
+                    </Text>
+                  )}
+                </View>
+              );
+            })()}
+
+            {/* ---------- What's included (interactive tabs) ---------- */}
+            <Text style={[styles.sectionKicker, { color: activeTier.theme.headerPeriodColor }]}>WHAT'S INCLUDED</Text>
+            <View style={styles.benefitTabs}>
+              {[
+                { id: 'LABOR', label: 'Free Labour' },
+                { id: 'PARTS', label: 'Spare Parts' },
+                { id: 'PERKS', label: 'Priority Perks' },
+              ].map((tab) => (
+                <TouchableOpacity
+                  key={tab.id}
+                  nativeID={`amc-benefit-${tab.id.toLowerCase()}`}
+                  style={[styles.benefitTabBtn, benefitTab === tab.id && styles.benefitTabBtnActive]}
+                  onPress={() => setBenefitTab(tab.id)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={[styles.benefitTabText, benefitTab === tab.id && styles.benefitTabTextActive]}>{tab.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.benefitPanel}>
+              {benefitTab === 'LABOR' && (
+                <View>
+                  <Text style={styles.panelTitle}>You pay ₹0 for repair labour</Text>
+                  <Text style={styles.panelSub}>
+                    Every breakdown visit is free — no visit fee, no inspection fee and no labour charge on your registered appliances.
+                  </Text>
+                  <View style={styles.compareStrip}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.compareCaption}>Without plan</Text>
+                      <Text style={styles.compareOld}>₹499 / visit</Text>
+                    </View>
+                    <IconArrowRight size={16} color="#94a3b8" />
+                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                      <Text style={styles.compareCaption}>With your plan</Text>
+                      <Text style={styles.compareNew}>₹0 / visit</Text>
+                    </View>
+                  </View>
+                  <View style={styles.panelStatsRow}>
+                    <View style={styles.panelStat}>
+                      <Text style={styles.panelStatValue}>{usage.claimsCount}</Text>
+                      <Text style={styles.panelStatLabel}>Repairs done</Text>
+                    </View>
+                    <View style={styles.panelStat}>
+                      <Text style={[styles.panelStatValue, { color: '#15803d' }]}>{formatMoney(usage.laborSaved)}</Text>
+                      <Text style={styles.panelStatLabel}>Total saved</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity style={styles.panelLinkBtn} onPress={() => setViewMode('HISTORY')} activeOpacity={0.85}>
+                    <Text style={styles.panelLinkText}>View repair history →</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {benefitTab === 'PARTS' && (
+                <View>
+                  <Text style={styles.panelTitle}>Parts up to {formatMoney(usage.parts.cap)} covered</Text>
+                  <Text style={styles.panelSub}>
+                    When a part needs replacing, its cost comes from this allowance — not your pocket. Genuine OEM parts only.
+                  </Text>
+                  <View style={styles.meterTrackLight}>
+                    <View style={[styles.meterFill, { width: `${usage.parts.pctLeft}%`, backgroundColor: '#d97706' }]} />
+                  </View>
+                  <View style={styles.meterLegendRow}>
+                    <Text style={styles.meterLegendDark}>{formatMoney(usage.parts.left)} left</Text>
+                    <Text style={styles.meterLegendDark}>{usage.parts.pctLeft}%</Text>
+                  </View>
+                  <Text style={styles.chipsHint}>Tap a part to see where it is used</Text>
+                  <View style={styles.partsChipsWrap}>
+                    {Object.keys(PART_DETAILS).map((item) => {
+                      const isSel = selectedPart === item;
+                      return (
+                        <TouchableOpacity
+                          key={item}
+                          style={[styles.partChip, isSel && styles.partChipActive]}
+                          onPress={() => setSelectedPart(isSel ? null : item)}
+                          activeOpacity={0.85}
+                        >
+                          <IconCheck size={11} color={isSel ? '#ffffff' : '#15803d'} />
+                          <Text style={[styles.partChipText, isSel && { color: '#ffffff' }]}>{item}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  {!!selectedPart && (
+                    <View style={styles.partDetailBox}>
+                      <Text style={styles.partDetailTitle}>{selectedPart} • Covered ✓</Text>
+                      <Text style={styles.partDetailText}>
+                        Used in: {PART_DETAILS[selectedPart]}. Replacement is paid from your remaining {formatMoney(usage.parts.left)}.
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {benefitTab === 'PERKS' && (
+                <View>
+                  <Text style={styles.panelTitle}>Technician at your door within {activeTier.slaHours} hr</Text>
+                  <Text style={styles.panelSub}>
+                    {activeTier.key} members are dispatched first. Your plan runs for {activeTier.validityMonths} months, till {contractDetails.expiryDate}.
+                  </Text>
+                  {(activeTier.features.length > 0
+                    ? activeTier.features
+                    : ['Unlimited breakdown calls', `${activeTier.visits} free maintenance visits / year`, 'Genuine OEM spare parts']
+                  ).map((f) => (
+                    <View key={f} style={styles.perkRow}>
+                      <View style={styles.perkCheck}>
+                        <IconCheck size={10} color="#ffffff" />
+                      </View>
+                      <Text style={styles.perkText}>{f}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {/* ---------- Contract strip with validity timeline ---------- */}
             <View style={styles.contractDetailsCard}>
               <View style={styles.contractTopRow}>
                 <View style={styles.contractNumWrap}>
                   <IconShieldCheck size={14} color="#b45309" />
-                  <Text style={styles.contractNumText}>
+                  <Text style={styles.contractNumText} numberOfLines={1}>
                     CONTRACT #{contractDetails.contractNo}
                   </Text>
                 </View>
-                <TouchableOpacity
-                  onPress={handleCopyContractNo}
-                  style={styles.contractCopyBtn}
-                  activeOpacity={0.8}
-                >
+                <TouchableOpacity onPress={handleCopyContractNo} style={styles.contractCopyBtn} activeOpacity={0.8}>
                   {copiedContract ? (
                     <>
                       <IconCheck size={11} color="#16a34a" />
@@ -677,73 +1148,23 @@ export default function MyAmcScreen({ onNavigate }) {
                   )}
                 </TouchableOpacity>
               </View>
-
+              <View style={styles.meterTrackLight}>
+                <View style={[styles.meterFill, { width: `${100 - usage.days.pctLeft}%`, backgroundColor: '#2563eb' }]} />
+              </View>
               <View style={styles.contractStatsRow}>
                 <View style={styles.statCol}>
-                  <Text style={styles.statLabel}>VALID TILL</Text>
-                  <Text style={styles.statValue}>{contractDetails.expiryDate || '1 Jan 2027'}</Text>
+                  <Text style={styles.statLabel}>STARTED</Text>
+                  <Text style={styles.statValue}>{contractDetails.startDate}</Text>
                 </View>
-                <View style={styles.statCol}>
-                  <Text style={styles.statLabel}>PARTS ALLOWANCE</Text>
-                  <Text style={styles.statValue}>
-                    {formatMoney(contractDetails.partsLeft || contractDetails.partsCap || 40000)}
-                  </Text>
+                <View style={[styles.statCol, { alignItems: 'center' }]}>
+                  <Text style={styles.statLabel}>DAYS LEFT</Text>
+                  <Text style={styles.statValue}>{usage.days.left}</Text>
                 </View>
                 <View style={[styles.statCol, { alignItems: 'flex-end' }]}>
-                  <Text style={styles.statLabel}>FREE VISITS LEFT</Text>
-                  <Text style={styles.statValue}>
-                    {contractDetails.visitsLeft ?? 4} / {contractDetails.totalVisits ?? 4}
-                  </Text>
+                  <Text style={styles.statLabel}>VALID TILL</Text>
+                  <Text style={styles.statValue}>{contractDetails.expiryDate}</Text>
                 </View>
               </View>
-            </View>
-
-            {/* All Parts Change & Replacement Covered Section (Image 2) */}
-            <View style={styles.partsCoverageCard}>
-              <View style={styles.partsCoverageHeader}>
-                <IconCpu size={16} color="#b45309" />
-                <Text style={styles.partsCoverageTitle}>ALL PARTS CHANGE & REPLACEMENT COVERED</Text>
-              </View>
-              <Text style={styles.partsCoverageSub}>
-                100% Genuine OEM parts replacement covered under your AMC plan with ₹0 breakdown labor charges:
-              </Text>
-
-              {/* 8 OEM Chips */}
-              <View style={styles.partsChipsWrap}>
-                {[
-                  'Compressor',
-                  'Fan Motors',
-                  'PCB Circuits',
-                  'Thermostat',
-                  'Valves & Gas',
-                  'Internal Wiring',
-                  'Heating Elements',
-                  'Burners & Sensors',
-                ].map((item) => (
-                  <View key={item} style={styles.partChip}>
-                    <IconCheck size={11} color="#15803d" />
-                    <Text style={styles.partChipText}>{item}</Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* Benefits Included */}
-              <View style={styles.benefitRow}>
-                <IconShieldCheck size={15} color="#b45309" />
-                <Text style={styles.benefitText}>₹0 Breakdown Labor Included</Text>
-              </View>
-              <View style={styles.benefitRow}>
-                <IconClock size={15} color="#b45309" />
-                <Text style={styles.benefitText}>2-4 Hours Priority SLA</Text>
-              </View>
-            </View>
-
-            {/* Bottom active plan card from Image 2 */}
-            <View style={styles.activePlanBottomBar}>
-              <IconCheck size={15} color="#15803d" />
-              <Text style={styles.activePlanBottomBarText}>
-                Active Plan — Ye hamara active plan hai
-              </Text>
             </View>
           </View>
         </View>
@@ -1190,44 +1611,120 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     marginTop: 1,
   },
-  activePlanCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    padding: 11,
-    boxShadow: '0 3px 12px rgba(0,0,0,0.05)',
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(211, 175, 55, 0.25)',
-  },
-  activePlanTopHeader: {
+  cardIdentity: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 3,
+    flex: 1,
+    minWidth: 0,
+    marginRight: 8,
   },
-  activePlanBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
+  cardTierName: {
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 0.3,
   },
-  activePlanBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#b45309',
-    letterSpacing: 0.5,
-  },
-  activePlanTitle: {
-    fontSize: 13.5,
-    fontWeight: '800',
-    color: '#1e293b',
-    letterSpacing: -0.3,
-    marginTop: 2,
-  },
-  activePlanSub: {
+  cardTierSub: {
     fontSize: 11,
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  meterTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
+    overflow: 'hidden',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  meterTrackLight: {
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#f1f5f9',
+    overflow: 'hidden',
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  meterFill: {
+    height: '100%',
+    backgroundColor: '#16a34a',
+    borderRadius: 3,
+  },
+  meterLegendRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  meterLegend: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  meterLegendDark: {
+    fontSize: 11,
+    fontWeight: '700',
     color: '#64748b',
-    marginTop: 2,
-    lineHeight: 15,
+  },
+  sectionKicker: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    marginTop: 14,
+    marginBottom: 8,
+  },
+  sectionHeadRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 14,
+    marginBottom: 8,
+  },
+  metricGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  metricTile: {
+    width: 'calc(50% - 4px)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 14,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+  },
+  metricIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  metricValue: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  metricLabel: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: '#64748b',
+    marginTop: 1,
+  },
+  miniTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#f1f5f9',
+    overflow: 'hidden',
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  miniFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  metricHint: {
+    fontSize: 10,
+    fontWeight: '700',
   },
   allPlansBtn: {
     backgroundColor: '#ffffff',
@@ -1243,13 +1740,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0f172a',
     whiteSpace: 'nowrap',
-  },
-  tierSectionTitle: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    color: '#713f12',
-    letterSpacing: 0.5,
-    marginBottom: 6,
   },
   tierGrid: {
     flexDirection: 'row',
@@ -1267,12 +1757,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.95)',
     boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-  },
-  tierCardActive: {
-    backgroundColor: '#ffffff',
-    borderColor: '#D3AF37',
-    borderWidth: 1.6,
-    boxShadow: '0 3px 12px rgba(211, 175, 55, 0.25)',
   },
   tierPill: {
     paddingHorizontal: 5,
@@ -1298,10 +1782,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tierPrice: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginTop: 3,
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#475569',
+    marginTop: 2,
     textAlign: 'center',
   },
   tierActiveIndicator: {
@@ -1318,11 +1802,250 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#92400e',
   },
+  inspectorCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 4,
+    marginBottom: 10,
+    borderWidth: 1.5,
+    boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
+  },
+  inspectorHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  inspectorTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0f172a',
+    flex: 1,
+    marginRight: 8,
+  },
+  inspectorRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 3.5,
+  },
+  inspectorLabel: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  inspectorValue: {
+    fontSize: 11,
+    color: '#0f172a',
+    fontWeight: '700',
+  },
+  inspectorNote: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  upgradeBtn: {
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  upgradeBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  benefitTabs: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0, 0, 0, 0.06)',
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 8,
+  },
+  benefitTabBtn: {
+    flex: 1,
+    paddingVertical: 6,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  benefitTabBtnActive: {
+    backgroundColor: '#ffffff',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+  },
+  benefitTabText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  benefitTabTextActive: {
+    color: '#0f172a',
+    fontWeight: '800',
+  },
+  benefitPanel: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+  },
+  panelTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 3,
+  },
+  panelSub: {
+    fontSize: 11,
+    color: '#64748b',
+    lineHeight: 15,
+    marginBottom: 10,
+  },
+  compareStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+  },
+  compareCaption: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+  },
+  compareOld: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748b',
+    textDecorationLine: 'line-through',
+    marginTop: 2,
+  },
+  compareNew: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#15803d',
+    marginTop: 2,
+  },
+  panelStatsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
+  },
+  panelStat: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    padding: 8,
+    alignItems: 'center',
+  },
+  panelStatValue: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  panelStatLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#64748b',
+    marginTop: 1,
+  },
+  panelLinkBtn: {
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  panelLinkText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#2563eb',
+  },
+  chipsHint: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#94a3b8',
+    marginBottom: 8,
+  },
+  partsChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+  partChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 8,
+    paddingVertical: 4.5,
+    borderRadius: 8,
+  },
+  partChipActive: {
+    backgroundColor: '#15803d',
+    borderColor: '#15803d',
+  },
+  partChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  partDetailBox: {
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    borderRadius: 8,
+    padding: 9,
+    marginTop: 4,
+  },
+  partDetailTitle: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#166534',
+    marginBottom: 2,
+  },
+  partDetailText: {
+    fontSize: 11,
+    color: '#15803d',
+    lineHeight: 15,
+  },
+  perkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 5,
+  },
+  perkCheck: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#15803d',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  perkText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: '#1e293b',
+    flex: 1,
+  },
   contractDetailsCard: {
     backgroundColor: '#ffffff',
     borderRadius: 14,
     padding: 10,
-    marginBottom: 10,
+    marginTop: 4,
     boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
     borderWidth: 1,
     borderColor: 'rgba(211, 175, 55, 0.2)',
@@ -1388,83 +2111,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#0f172a',
     marginTop: 2,
-  },
-  partsCoverageCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 13,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(211, 175, 55, 0.2)',
-  },
-  partsCoverageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
-  partsCoverageTitle: {
-    fontSize: 11.5,
-    fontWeight: '900',
-    color: '#713f12',
-    letterSpacing: 0.3,
-  },
-  partsCoverageSub: {
-    fontSize: 11.5,
-    color: '#57534e',
-    lineHeight: 16,
-    marginBottom: 10,
-  },
-  partsChipsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 10,
-  },
-  partChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-  },
-  partChipText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#1c1917',
-  },
-  benefitRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 5,
-  },
-  benefitText: {
-    fontSize: 11.5,
-    fontWeight: '800',
-    color: '#1c1917',
-  },
-  activePlanBottomBar: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(211, 175, 55, 0.3)',
-    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-  },
-  activePlanBottomBarText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#1c1917',
   },
 
   /* Appliances Section */

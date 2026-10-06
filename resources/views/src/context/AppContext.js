@@ -802,16 +802,39 @@ export function AppProvider({ children }) {
         ? activeUser.amc_parts_allowance_remaining
         : partsCap;
 
+    const resolvedExpiry =
+      activeUser.amc_expiry_date ||
+      activeUser.subscription_expires_at ||
+      '2027-09-07T00:00:00.000Z';
+
+    const computeStartFromExpiry = (expStr) => {
+      try {
+        const d = new Date(expStr);
+        if (!Number.isNaN(d.getTime())) {
+          const s = new Date(d);
+          s.setFullYear(s.getFullYear() - 1);
+          return s.toISOString();
+        }
+      } catch (e) {}
+      return '2026-09-07T00:00:00.000Z';
+    };
+
+    const rawStart =
+      activeUser.amc_start_date ||
+      activeUser.subscription_started_at;
+
+    const resolvedStart =
+      rawStart && !String(rawStart).includes('2026-01-01')
+        ? rawStart
+        : computeStartFromExpiry(resolvedExpiry);
+
     return {
       status: 'ACTIVE',
       planName: planName,
       contractNo: contractNo,
-      startDate: activeUser.amc_start_date || '2026-01-01T00:00:00.000Z',
-      expiryDate:
-        activeUser.amc_expiry_date ||
-        activeUser.subscription_expires_at ||
-        '2027-01-01T00:00:00.000Z',
-      daysRemaining: 342,
+      startDate: resolvedStart,
+      expiryDate: resolvedExpiry,
+      daysRemaining: 336,
       visitsRemaining: visitsRemaining,
       totalVisits: totalVisits,
       partsRemaining: partsRemaining,

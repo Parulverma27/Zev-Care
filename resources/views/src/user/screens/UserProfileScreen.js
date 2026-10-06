@@ -152,18 +152,6 @@ export default function UserProfileScreen({ onNavigate }) {
       ),
     },
     {
-      label: 'My Appliances',
-      sub: isGuest ? '0 Covered Appliances' : `Status: ${activeUser?.property_verification_status || 'PENDING'}`,
-      path: '/user/property-verification',
-      bgColor: '#ecfdf5',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
-      ),
-    },
-    {
       label: 'Saved Addresses',
       sub: isGuest ? 'No address saved (Guest Mode)' : (() => {
         const addrs = activeUser?.saved_addresses || [];
