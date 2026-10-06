@@ -170,6 +170,9 @@ export default function BookingFlowScreen({ onNavigate }) {
         setStep(getInitialStepForCategory(preSelectedCategory));
       }
       setSkippedCategoryStep(true);
+    } else if (isComplaint) {
+      if (navigate) navigate('/user/complains', { replace: true });
+      else if (onNavigate) onNavigate('/user/complains');
     }
   }, [preSelectedCategory, preSelectedSubCategory, preSelectedService]);
 
@@ -218,6 +221,11 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   const goBack = () => {
+    if (isComplaint) {
+      if (navigate) navigate('/user/complains', { replace: true });
+      else if (onNavigate) onNavigate('/user/complains');
+      return;
+    }
     if (window?.history?.state && window.history.state.idx > 0) {
       if (navigate) navigate(-1);
       else if (onNavigate) onNavigate(-1);
@@ -329,7 +337,9 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
     if (step === 'APPLIANCE_SELECT') {
-      if (category && categoryHasGroups(category)) {
+      if (skippedCategoryStep || isComplaint) {
+        goBack();
+      } else if (category && categoryHasGroups(category)) {
         setStep('SUB_GROUP');
       } else if (category) {
         setStep('SERVICE_TYPE');
@@ -345,6 +355,8 @@ export default function BookingFlowScreen({ onNavigate }) {
         setStep('SERVICE_TYPE');
       } else if (category) {
         setStep('SERVICE_TYPE');
+      } else if (isComplaint) {
+        goBack();
       } else {
         setStep(1);
       }
@@ -373,12 +385,12 @@ export default function BookingFlowScreen({ onNavigate }) {
     }
     if (step === 'SERVICE_TYPE') {
       if (categoryHasGroups(category)) setStep('SUB_GROUP');
-      else if (skippedCategoryStep) goBack();
+      else if (skippedCategoryStep || isComplaint) goBack();
       else setStep(1);
       return;
     }
     if (step === 'SUB_GROUP') {
-      if (skippedCategoryStep) goBack();
+      if (skippedCategoryStep || isComplaint) goBack();
       else setStep(1);
       return;
     }

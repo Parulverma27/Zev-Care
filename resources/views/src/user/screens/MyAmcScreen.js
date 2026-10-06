@@ -235,8 +235,6 @@ export default function MyAmcScreen({ onNavigate }) {
 
   const [copiedContract, setCopiedContract] = useState(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState('');
-  const [deletingApplianceId, setDeletingApplianceId] = useState(null);
-  const [showAllPlansModal, setShowAllPlansModal] = useState(false);
 
   // Interactive card state
   const [previewTier, setPreviewTier] = useState(null); // null => show active tier
@@ -246,6 +244,22 @@ export default function MyAmcScreen({ onNavigate }) {
   const go = (path) => {
     if (navigate) navigate(path);
     else if (onNavigate) onNavigate(path);
+  };
+
+  const handleOpenAllPlans = () => {
+    if (navigate) {
+      try {
+        navigate('/user/plans');
+        return;
+      } catch (e) {}
+    }
+    if (onNavigate) {
+      try {
+        onNavigate('/user/plans');
+        return;
+      } catch (e) {}
+    }
+    setViewMode('PLANS');
   };
 
   const handleGoBack = () => {
@@ -567,21 +581,27 @@ export default function MyAmcScreen({ onNavigate }) {
     setTimeout(() => setActionSuccessMsg(''), 4000);
   };
 
-  const handleRemoveAppliance = (id) => {
-    if (removeUserAppliance) {
-      removeUserAppliance(id);
-      setDeletingApplianceId(null);
-      setActionSuccessMsg('Appliance removed from AMC coverage.');
-      setTimeout(() => setActionSuccessMsg(''), 3000);
-    }
-  };
-
   // =========================================================================
   // CONDITION 1: User has NOT purchased a plan yet ("Jab tak user ne plan nhi liya ho")
   // Directly renders the Subscription Plans screen (Silver, Gold, Platinum).
   // =========================================================================
   if (!hasActiveAmc) {
     return <SubscriptionPlansScreen onNavigate={onNavigate} />;
+  }
+
+  // All AMC Plans Full Page mode
+  if (viewMode === 'PLANS') {
+    return (
+      <SubscriptionPlansScreen
+        onNavigate={(path) => {
+          if (path === '/user/amc' || path === 'amc' || path === -1 || !path) {
+            setViewMode('DASHBOARD');
+          } else {
+            go(path);
+          }
+        }}
+      />
+    );
   }
 
   // Wizard mode to add new appliance directly
@@ -915,7 +935,7 @@ export default function MyAmcScreen({ onNavigate }) {
               <Text style={[styles.sectionKicker, { color: activeTier.theme.headerPeriodColor, marginBottom: 0 }]}>
                 COMPARE PLANS • TAP ONE
               </Text>
-              <TouchableOpacity style={styles.allPlansBtn} onPress={() => setShowAllPlansModal(true)} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.allPlansBtn} onPress={handleOpenAllPlans} activeOpacity={0.8}>
                 <Text style={styles.allPlansBtnText}>All Plans →</Text>
               </TouchableOpacity>
             </View>
@@ -995,7 +1015,7 @@ export default function MyAmcScreen({ onNavigate }) {
                     <TouchableOpacity
                       nativeID="amc-upgrade-btn"
                       style={styles.upgradeBtn}
-                      onPress={() => setShowAllPlansModal(true)}
+                      onPress={handleOpenAllPlans}
                       activeOpacity={0.88}
                     >
                       <Text style={styles.upgradeBtnText}>Upgrade to {shownTier.key} →</Text>
@@ -1328,18 +1348,9 @@ export default function MyAmcScreen({ onNavigate }) {
                       resizeMode="cover"
                     />
                     <View style={{ flex: 1, minWidth: 0, marginLeft: 12 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Text style={styles.applianceName} numberOfLines={1}>
-                          {appliance.name || appliance.category || 'Home Appliance'}
-                        </Text>
-                        <TouchableOpacity
-                          onPress={() => setDeletingApplianceId(appliance.id)}
-                          style={{ padding: 4 }}
-                          activeOpacity={0.7}
-                        >
-                          <IconTrash size={14} color="#94a3b8" />
-                        </TouchableOpacity>
-                      </View>
+                      <Text style={styles.applianceName} numberOfLines={1}>
+                        {appliance.name || appliance.category || 'Home Appliance'}
+                      </Text>
                       <Text style={styles.applianceMeta} numberOfLines={1}>
                         {appliance.brand ? `${appliance.brand} • ` : ''}
                         {appliance.location || 'Home'}
@@ -1364,72 +1375,8 @@ export default function MyAmcScreen({ onNavigate }) {
         </View>
       )}
 
-      {/* All Plans Modal */}
-      {showAllPlansModal && (
-        <Modal visible transparent animationType="slide">
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalCard, { maxHeight: '90%', width: '92%', maxWidth: 440, padding: 18 }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <Text style={styles.modalTitle}>All AMC Plans</Text>
-                <TouchableOpacity onPress={() => setShowAllPlansModal(false)} style={{ padding: 4 }}>
-                  <Text style={{ fontSize: 18, fontWeight: '700', color: '#64748b' }}>✕</Text>
-                </TouchableOpacity>
-              </View>
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Silver */}
-                <View style={[styles.tierCard, { marginBottom: 12, padding: 12, backgroundColor: '#f8fafc', borderColor: '#e2e8f0', borderWidth: 1 }]}>
-                  <Text style={{ fontSize: 16, fontWeight: '900', color: '#0f172a' }}>Silver Plan • ₹799 / yr</Text>
-                  <Text style={{ fontSize: 12.5, color: '#64748b', marginTop: 4 }}>₹1 Lakh Coverage Limit • 2 Preventive Visits • ₹10,000 Parts Cap • Priority SLA</Text>
-                </View>
-                {/* Gold */}
-                <View style={[styles.tierCard, { marginBottom: 12, padding: 12, backgroundColor: '#fefce8', borderColor: '#f59e0b', borderWidth: 2 }]}>
-                  <Text style={{ fontSize: 16, fontWeight: '900', color: '#92400e' }}>Gold Plan (Active) • ₹1,499 / yr</Text>
-                  <Text style={{ fontSize: 12.5, color: '#78350f', marginTop: 4 }}>₹5 Lakh Coverage Limit • 4 Preventive Visits • ₹40,000 Parts Cap • 2-4 Hr SLA</Text>
-                </View>
-                {/* Platinum */}
-                <View style={[styles.tierCard, { marginBottom: 12, padding: 12, backgroundColor: '#faf5ff', borderColor: '#c084fc', borderWidth: 1 }]}>
-                  <Text style={{ fontSize: 16, fontWeight: '900', color: '#6b21a8' }}>Platinum Plan • ₹2,499 / yr</Text>
-                  <Text style={{ fontSize: 12.5, color: '#6b21a8', marginTop: 4 }}>₹10 Lakh Coverage Limit • 6 Preventive Visits • ₹1,00,000 Parts Cap • 1-2 Hr VIP SLA</Text>
-                </View>
-              </ScrollView>
-              <TouchableOpacity
-                style={[styles.modalBtn, { backgroundColor: '#2563eb', marginTop: 14 }]}
-                onPress={() => setShowAllPlansModal(false)}
-              >
-                <Text style={{ color: '#ffffff', fontWeight: '700' }}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      )}
 
-      {/* Appliance Delete Confirmation Modal */}
-      {deletingApplianceId != null && (
-        <Modal visible transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>Remove Appliance?</Text>
-              <Text style={styles.modalSub}>
-                Are you sure you want to remove this appliance from your active AMC contract coverage?
-              </Text>
-              <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
-                <TouchableOpacity
-                  style={[styles.modalBtn, { backgroundColor: '#f1f5f9' }]}
-                  onPress={() => setDeletingApplianceId(null)}
-                >
-                  <Text style={{ color: '#475569', fontWeight: '600' }}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalBtn, { backgroundColor: '#ef4444' }]}
-                  onPress={() => handleRemoveAppliance(deletingApplianceId)}
-                >
-                  <Text style={{ color: '#ffffff', fontWeight: '600' }}>Remove</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-      )}
+
     </ScrollView>
   );
 }
@@ -2403,23 +2350,23 @@ const styles = StyleSheet.create({
   /* History Screen Specific Styles */
   subFilterRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
     paddingHorizontal: 16,
-    marginTop: 14,
-    marginBottom: 4,
+    marginTop: 10,
+    marginBottom: 2,
   },
   subFilterPill: {
-    paddingHorizontal: 18,
-    paddingVertical: 7,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 16,
     backgroundColor: '#e2e8f0',
   },
   subFilterPillActive: {
     backgroundColor: '#2563eb',
-    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+    boxShadow: '0 2px 6px rgba(37, 99, 235, 0.25)',
   },
   subFilterText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: '#334155',
   },
@@ -2429,37 +2376,38 @@ const styles = StyleSheet.create({
   },
   claimCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.03)',
   },
   claimHeaderRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 6,
   },
   claimTitle: {
-    fontSize: 16,
+    fontSize: 13.5,
     fontWeight: '800',
     color: '#0f172a',
+    letterSpacing: -0.2,
   },
   claimDate: {
-    fontSize: 12.5,
+    fontSize: 11,
     color: '#64748b',
-    marginTop: 3,
+    marginTop: 2,
     fontWeight: '500',
   },
   claimBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 6,
   },
   claimBadgeText: {
-    fontSize: 11.5,
+    fontSize: 10.5,
     fontWeight: '800',
   },
   claimStatusActive: {
@@ -2473,10 +2421,10 @@ const styles = StyleSheet.create({
   },
   amcCostBreakdown: {
     backgroundColor: '#f8fafc',
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 10,
-    gap: 5,
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 8,
+    gap: 3,
   },
   amcCostRow: {
     flexDirection: 'row',
@@ -2484,18 +2432,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   amcCostItemLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#64748b',
     fontWeight: '500',
   },
   amcCostItemStrike: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#94a3b8',
     textDecorationLine: 'line-through',
     fontWeight: '600',
   },
   amcCostBenefit: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
     color: '#16a34a',
   },
@@ -2503,18 +2451,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 10,
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#f1f5f9',
   },
   claimCoveredLabel: {
-    fontSize: 13,
+    fontSize: 11.5,
     fontWeight: '700',
     color: '#334155',
   },
   claimCoveredVal: {
-    fontSize: 14.5,
+    fontSize: 12.5,
     fontWeight: '900',
   },
   emptyClaimsCard: {

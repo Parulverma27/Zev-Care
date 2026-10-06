@@ -237,7 +237,19 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       {/* Top Header */}
       <View style={styles.topHeader}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigate(-1)} activeOpacity={0.75}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => {
+            if (window?.history?.state && window.history.state.idx > 0 && navigate) {
+              navigate(-1);
+            } else if (onNavigate) {
+              onNavigate('/user/my-amc');
+            } else if (navigate) {
+              navigate('/user/my-amc');
+            }
+          }}
+          activeOpacity={0.75}
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F1F3D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>

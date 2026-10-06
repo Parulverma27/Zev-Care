@@ -405,7 +405,7 @@
 .zevota-confetti-4 { width: 7px; height: 7px; background: #8b5cf6; animation: zevotaConfetti4 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s forwards; }
 .zevota-confetti-5 { width: 9px; height: 9px; background: #ec4899; animation: zevotaConfetti5 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) 0.08s forwards; }
 
-.zevota-fade-up-1 { animation: zevotaFadeUp 0.5s ease-out 0.2s both; }
-.zevota-fade-up-2 { animation: zevotaFadeUp 0.5s ease-out 0.35s both; }
-.zevota-fade-up-3 { animation: zevotaFadeUp 0.5s ease-out 0.5s both; }
-.zevota-fade-up-4 { animation: zevotaFadeUp 0.5s ease-out 0.65s both; }
+.zevota-fade-up-1 { animation: zevotaFadeUp 0.5s ease-out 0.2s both; width: 100%; display: flex; flex-direction: column; align-items: center; }
+.zevota-fade-up-2 { animation: zevotaFadeUp 0.5s ease-out 0.35s both; width: 100%; display: flex; flex-direction: column; }
+.zevota-fade-up-3 { animation: zevotaFadeUp 0.5s ease-out 0.5s both; width: 100%; display: flex; flex-direction: column; }
+.zevota-fade-up-4 { animation: zevotaFadeUp 0.5s ease-out 0.65s both; width: 100%; display: flex; flex-direction: column; }

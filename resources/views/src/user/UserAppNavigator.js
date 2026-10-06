@@ -18,8 +18,16 @@ export default function UserAppNavigator() {
   const [screenParams, setScreenParams] = useState({});
 
   const handleNavigate = (screen, params = {}) => {
+    let target = screen;
+    if (typeof screen === 'string') {
+      if (screen === '/user/home' || screen.endsWith('/home')) target = 'HOME';
+      else if (screen === '/user/my-amc' || screen.endsWith('/my-amc')) target = 'WALLET';
+      else if (screen === '/user/bookings' || screen.endsWith('/bookings')) target = 'BOOKING_DETAIL';
+      else if (screen === '/user/profile' || screen.endsWith('/profile')) target = 'PROFILE';
+      else if (screen === '/user/complains' || screen.endsWith('/complains')) target = 'COMPLAINS';
+    }
     setScreenParams(params);
-    setCurrentScreen(screen);
+    setCurrentScreen(target);
   };
 
   const handleAuthComplete = (profileData) => {
@@ -49,9 +57,9 @@ export default function UserAppNavigator() {
       case 'LIVE_SUPPORT':
         return <LiveSupportScreen onNavigate={handleNavigate} />;
       case 'COMPLAINS':
-        return <ServiceBrowseScreen />;
+        return <ServiceBrowseScreen onNavigate={handleNavigate} />;
       case 'CONSULTATION':
-        return <ServiceBrowseScreen />;
+        return <ServiceBrowseScreen onNavigate={handleNavigate} />;
       default:
         return <HomeScreen onNavigate={handleNavigate} />;
     }

@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import BookingProgress from './BookingProgress';
-import GoogleMapsLocationPicker from '../GoogleMapsLocationPicker';
 
 export default function BookingLocationStep({
   addresses = [],
@@ -17,7 +16,6 @@ export default function BookingLocationStep({
   onBack,
   onContinue,
 }) {
-  const [showMap, setShowMap] = useState(false);
   const canContinue = locationValidation?.isSupported;
 
   return (
@@ -62,16 +60,6 @@ export default function BookingLocationStep({
         multiline
       />
 
-      <View style={styles.rowBtns}>
-        <TouchableOpacity style={styles.secondaryBtn} onPress={onFetchGps} disabled={locatingGps}>
-          <Text style={styles.secondaryBtnText}>{locatingGps ? 'Detecting…' : 'Use current location'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.secondaryBtn} onPress={() => setShowMap(true)}>
-          <Text style={styles.secondaryBtnText}>Pick on map</Text>
-        </TouchableOpacity>
-      </View>
-
-      {!!gpsError && <Text style={styles.error}>{gpsError}</Text>}
 
       {locationValidation && (
         <View style={[styles.validBanner, canContinue ? styles.validOk : styles.validBad]}>
@@ -89,30 +77,6 @@ export default function BookingLocationStep({
         <Text style={styles.primaryBtnText}>Continue</Text>
       </TouchableOpacity>
 
-      {showMap && (
-        <View style={styles.mapBox}>
-          <View style={styles.mapHeader}>
-            <Text style={styles.mapTitle}>Pick location</Text>
-            <TouchableOpacity onPress={() => setShowMap(false)}>
-              <Text style={styles.mapClose}>Close</Text>
-            </TouchableOpacity>
-          </View>
-          <GoogleMapsLocationPicker
-            initialAddress={address}
-            onClose={() => setShowMap(false)}
-            onSelectLocation={(loc) => {
-              const text = loc?.address || loc?.formatted_address || '';
-              if (text) onChangeAddress?.(text);
-              if (loc?.lat != null && loc?.lng != null) {
-                onChangeCoords?.({ latitude: loc.lat, longitude: loc.lng });
-              } else if (loc?.latitude != null) {
-                onChangeCoords?.({ latitude: loc.latitude, longitude: loc.longitude });
-              }
-              setShowMap(false);
-            }}
-          />
-        </View>
-      )}
     </ScrollView>
   );
 }

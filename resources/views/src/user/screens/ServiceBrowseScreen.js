@@ -4,17 +4,27 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import HomeExploreServices from './HomeExploreServices';
 
-export default function ServiceBrowseScreen() {
+export default function ServiceBrowseScreen({ onNavigate }) {
   const { categories } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const isConsultation = (location.pathname || '').includes('consultation');
 
   const goHome = () => {
-    if (window?.history?.state && window.history.state.idx > 0) {
-      navigate(-1);
-    } else {
-      navigate('/user/home');
+    if (onNavigate) {
+      try {
+        onNavigate('HOME');
+        onNavigate('/user/home');
+      } catch (e) {}
+    }
+    if (navigate) {
+      try {
+        navigate('/user/home');
+        return;
+      } catch (e) {}
+    }
+    if (typeof window !== 'undefined') {
+      window.location.href = '/user/home';
     }
   };
 
@@ -30,8 +40,24 @@ export default function ServiceBrowseScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={goHome} activeOpacity={0.75}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F1F3D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={goHome}
+          activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel="Back to Home"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#0F1F3D"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ pointerEvents: 'none' }}
+          >
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </TouchableOpacity>
@@ -54,12 +80,6 @@ export default function ServiceBrowseScreen() {
       <HomeExploreServices
         categories={categories}
         title={isConsultation ? 'Select appliance or service' : 'Explore Services'}
-        viewAllLabel="View all"
-        onViewAll={() =>
-          navigate('/user/bookings/new', {
-            state: { bookingMode: isConsultation ? 'consultation' : 'complaint' },
-          })
-        }
         onSelectCategory={openBooking}
       />
     </ScrollView>
@@ -84,6 +104,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+    cursor: 'pointer',
+    zIndex: 10,
   },
   title: {
     fontSize: 18,
