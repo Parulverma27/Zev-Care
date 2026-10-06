@@ -211,6 +211,35 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
         </View>
       </View>
 
+      {activeAmc ? (
+        <View style={styles.purchasedCard}>
+          <View style={styles.purchasedBadge}>
+            <Text style={styles.purchasedBadgeText}>PURCHASED</Text>
+          </View>
+          <Text style={styles.purchasedLabel}>Your active AMC</Text>
+          <Text style={styles.purchasedPlan}>{activeAmc.planName}</Text>
+          <Text style={styles.purchasedMeta}>Contract {activeAmc.contractNo}</Text>
+          <Text style={styles.purchasedMeta}>
+            Valid till{' '}
+            {activeAmc.expiryDate
+              ? new Date(activeAmc.expiryDate).toLocaleDateString('en-IN', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })
+              : '—'}
+          </Text>
+          <TouchableOpacity style={styles.purchasedLink} onPress={() => navigate('/user/my-amc')} activeOpacity={0.85}>
+            <Text style={styles.purchasedLinkText}>View in My AMC →</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.noPlanCard}>
+          <Text style={styles.noPlanTitle}>No AMC purchased yet</Text>
+          <Text style={styles.noPlanSub}>Browse plans below and activate coverage for your appliances.</Text>
+        </View>
+      )}
+
       {/* Plan Cards Container */}
       <View style={styles.plansContainer}>
         {subscriptionPlans.map((plan) => {
@@ -520,6 +549,74 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontWeight: '500',
     marginTop: 1,
+  },
+
+  purchasedCard: {
+    backgroundColor: '#0a192f',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#d4af37',
+    gap: 4,
+  },
+  purchasedBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(212, 175, 55, 0.18)',
+    borderWidth: 1,
+    borderColor: '#d4af37',
+    borderRadius: 99,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 6,
+  },
+  purchasedBadgeText: {
+    color: '#fbbf24',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  purchasedLabel: {
+    color: '#94a3b8',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  purchasedPlan: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  purchasedMeta: {
+    color: '#cbd5e1',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  purchasedLink: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+  purchasedLinkText: {
+    color: '#fbbf24',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  noPlanCard: {
+    backgroundColor: '#fffbeb',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    gap: 4,
+  },
+  noPlanTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#92400e',
+  },
+  noPlanSub: {
+    fontSize: 12,
+    color: '#78350f',
+    lineHeight: 17,
   },
 
   plansContainer: { gap: 24, paddingTop: 10 },

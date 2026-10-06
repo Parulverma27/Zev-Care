@@ -57,7 +57,12 @@ export default function UserBookingsScreen() {
               >
                 <View style={styles.cardTop}>
                   <Text style={styles.cardService}>{booking.service_name}</Text>
-                  <Text style={styles.cardStatus}>{formatStatus(booking.status)}</Text>
+                  <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                    {booking.isConsultation || booking.booking_mode === 'consultation' ? (
+                      <Text style={styles.consultBadge}>FREE CONSULT</Text>
+                    ) : null}
+                    <Text style={styles.cardStatus}>{formatStatus(booking.status)}</Text>
+                  </View>
                 </View>
                 <Text style={styles.cardMeta}>
                   {booking.category_name} › {booking.sub_category_name}
@@ -150,6 +155,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#2563eb',
     backgroundColor: '#eff6ff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 99,
+  },
+  consultBadge: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#047857',
+    backgroundColor: '#ecfdf5',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 99,

@@ -27,6 +27,7 @@ import MyAmcScreen from '../user/screens/MyAmcScreen';
 import UserProfileScreen from '../user/screens/UserProfileScreen';
 import SavedAddressesScreen from '../user/screens/SavedAddressesScreen';
 import LiveSupportScreen from '../user/screens/LiveSupportScreen';
+import ServiceBrowseScreen from '../user/screens/ServiceBrowseScreen';
 import TermsAndConditionsScreen from '../user/screens/TermsAndConditionsScreen';
 
 import ProviderAuthScreen from '../provider/screens/ProviderAuthScreen';
@@ -75,6 +76,8 @@ export default function AppRouter() {
           <Route path="add-property" element={<Protected><AddPropertyScreen /></Protected>} />
           <Route path="home" element={<Protected><HomeScreen /></Protected>} />
           <Route path="plans" element={<Protected><SubscriptionPlansScreen /></Protected>} />
+          <Route path="complains" element={<Protected><ServiceBrowseScreen /></Protected>} />
+          <Route path="consultation" element={<Protected><ServiceBrowseScreen /></Protected>} />
           <Route path="property-verification" element={<Protected><PropertyVerificationScreen /></Protected>} />
           <Route path="categories" element={<Protected><HomeScreen /></Protected>} />
           <Route path="bookings/new" element={<Protected><BookingFlowScreen /></Protected>} />

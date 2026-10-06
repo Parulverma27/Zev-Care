@@ -18,9 +18,11 @@ export default function BookingConfirmation({
       <View style={styles.badge}>
         <Text style={styles.check}>✓</Text>
       </View>
-      <Text style={styles.title}>Booking Confirmed</Text>
+      <Text style={styles.title}>{booking.isConsultation ? 'Consultation Confirmed' : 'Booking Confirmed'}</Text>
       <Text style={styles.subtitle}>
-        Your {service} has been successfully booked.
+        {booking.isConsultation
+          ? `Your free ${service} consultation has been booked.`
+          : `Your ${service} has been successfully booked.`}
       </Text>
 
       <View style={styles.card}>

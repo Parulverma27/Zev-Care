@@ -1,11 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
 import { VectorTabIcon } from '../components/TabIcons';
 
 export default function UserAppLayout() {
-  const { activeUser } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
@@ -34,15 +32,15 @@ export default function UserAppLayout() {
 
       {showBottomNav && (
         <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.tabItem} onPress={() => navigate('/user/home')} activeOpacity={0.8}>
-            <View style={[styles.tabPill, path.includes('/home') && styles.activeTabPill]}>
+          <TouchableOpacity style={styles.tabItem} onPress={() => navigate('/user/my-amc')} activeOpacity={0.8}>
+            <View style={[styles.tabPill, (path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans')) && styles.activeAmcTabPill]}>
               <VectorTabIcon
-                name="home"
-                active={path.includes('/home')}
-                activeColor="#2563eb"
+                name="amc"
+                active={path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans')}
+                activeColor="#d4af37"
                 inactiveColor="#64748b"
               />
-              <Text style={[styles.tabLabel, path.includes('/home') && styles.activeLabel]}>Home</Text>
+              <Text style={[styles.tabLabel, (path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans')) && styles.activeAmcLabel]}>My AMC</Text>
             </View>
           </TouchableOpacity>
 
@@ -59,26 +57,6 @@ export default function UserAppLayout() {
                 inactiveColor="#64748b"
               />
               <Text style={[styles.tabLabel, isBookingsTab && styles.activeLabel]}>Bookings</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.floatingAddButton}
-            onPress={() => navigate('/user/bookings/new', { state: {} })}
-            activeOpacity={0.87}
-          >
-            <Text style={styles.floatingAddText}>+</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.tabItem} onPress={() => navigate('/user/my-amc')} activeOpacity={0.8}>
-            <View style={[styles.tabPill, (path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans')) && styles.activeAmcTabPill]}>
-              <VectorTabIcon
-                name="amc"
-                active={path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans')}
-                activeColor="#d4af37"
-                inactiveColor="#64748b"
-              />
-              <Text style={[styles.tabLabel, (path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans')) && styles.activeAmcLabel]}>My AMC</Text>
             </View>
           </TouchableOpacity>
 
@@ -143,29 +121,4 @@ const styles = StyleSheet.create({
   tabLabel: { fontSize: 11, color: '#64748b', fontWeight: '500', marginTop: 1, whiteSpace: 'nowrap' },
   activeLabel: { color: '#2563eb', fontWeight: '800' },
   activeAmcLabel: { color: '#b45309', fontWeight: '800' },
-
-  floatingAddButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -22,
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.38,
-    shadowRadius: 12,
-    elevation: 8,
-    borderWidth: 3,
-    borderColor: '#ffffff',
-    zIndex: 10,
-  },
-  floatingAddText: {
-    color: '#ffffff',
-    fontSize: 28,
-    fontWeight: '300',
-    lineHeight: 28,
-    textAlign: 'center',
-  },
 });

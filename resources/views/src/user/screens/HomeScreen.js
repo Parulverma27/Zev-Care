@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput,
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { searchAllServices } from '../../config/serviceCatalogUtils';
-import { resolveCategoryImageUri, resolveImageUri, DEFAULT_BANNERS } from '../../utils/imageUtils';
+import { resolveImageUri, DEFAULT_BANNERS } from '../../utils/imageUtils';
 import { SERVICE_IMAGES } from '../../utils/bundledImages';
 import { AppIcon } from '../../components/AppIcons';
+import ZevotaLogo from '../../components/ZevotaLogo';
 import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker';
 import { upsertDefaultAddress } from '../../utils/savedAddresses';
 
@@ -56,106 +57,61 @@ const TRUST_FEATURES = [
   },
 ];
 
-const ALL_SERVICES_SLIDESHOW = [
+const AMC_HOME_ACTIONS = [
   {
-    id: 'ac_service',
-    name: 'AC Service & Repair',
-    category: 'AC Services',
-    bg: '#eff6ff',
+    key: 'plans',
+    title: 'AMC Plans',
+    subtitle: 'Cover your home',
+    route: '/user/plans',
+    accent: '#d4af37',
+    bgSolid: '#fffbeb',
+    bg: 'linear-gradient(160deg, #fffbeb 0%, #ffffff 70%)',
+    border: '#fde68a',
+    iconBg: '#0a192f',
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 12h20M12 2v20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <path d="m9 12 2 2 4-4" />
       </svg>
     ),
   },
   {
-    id: 'electrician',
-    name: 'Electrician & Wiring',
-    category: 'Electrical Services',
-    bg: '#fffbeb',
+    key: 'complains',
+    title: 'AMC Complains',
+    subtitle: 'Repair any appliance',
+    route: '/user/complains',
+    accent: '#2563eb',
+    bgSolid: '#eff6ff',
+    bg: 'linear-gradient(160deg, #eff6ff 0%, #ffffff 70%)',
+    border: '#bfdbfe',
+    iconBg: '#2563eb',
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-      </svg>
-    ),
-  },
-  {
-    id: 'plumber',
-    name: 'Plumbing & Leak Fix',
-    category: 'Plumbing Services',
-    bg: '#ecfeff',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'carpenter',
-    name: 'Carpenter & Furniture',
-    category: 'Carpentry Services',
-    bg: '#fff7ed',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
       </svg>
     ),
   },
   {
-    id: 'washing_machine',
-    name: 'Washing Machine',
-    category: 'Washing Machine Repair',
-    bg: '#f0fdfa',
+    key: 'consultation',
+    title: 'AMC Consultation',
+    subtitle: 'Free for logged-in users',
+    route: '/user/consultation',
+    accent: '#059669',
+    bgSolid: '#ecfdf5',
+    bg: 'linear-gradient(160deg, #ecfdf5 0%, #ffffff 70%)',
+    border: '#a7f3d0',
+    iconBg: '#059669',
+    badge: 'FREE',
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="5" y="2" width="14" height="20" rx="2" />
-        <circle cx="12" cy="13" r="4" />
-        <circle cx="12" cy="6" r="1" />
-      </svg>
-    ),
-  },
-  {
-    id: 'refrigerator',
-    name: 'Refrigerator Repair',
-    category: 'Refrigerator Repair',
-    bg: '#f0f9ff',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="5" y="2" width="14" height="20" rx="2" />
-        <line x1="5" y1="10" x2="19" y2="10" />
-        <line x1="9" y1="5" x2="9" y2="8" />
-        <line x1="9" y1="13" x2="9" y2="17" />
-      </svg>
-    ),
-  },
-  {
-    id: 'pest_control',
-    name: 'Pest & Bug Control',
-    category: 'Pest Control Services',
-    bg: '#f0fdf4',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <polyline points="9 11 11 13 15 9" />
-      </svg>
-    ),
-  },
-  {
-    id: 'tv_av',
-    name: 'TV Mount & AV Fix',
-    category: 'Television Services',
-    bg: '#faf5ff',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9333ea" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="7" width="20" height="13" rx="2" />
-        <polyline points="17 2 12 7 7 2" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
       </svg>
     ),
   },
 ];
 
 export default function HomeScreen({ onNavigate }) {
-  const { activeUser, updateProfile, categories, services, banners } = useApp();
+  const { activeUser, updateProfile, banners } = useApp();
   const navigate = useNavigate();
 
   const defaultAddr =
@@ -350,6 +306,7 @@ export default function HomeScreen({ onNavigate }) {
                         preSelectedCategory: item.category_name,
                         preSelectedSubCategory: item.sub_category_name || item.name,
                         preSelectedService: item.name,
+                        bookingMode: 'complaint',
                       },
                     };
                     if (navigate) navigate('/user/bookings/new', navPayload);
@@ -369,14 +326,6 @@ export default function HomeScreen({ onNavigate }) {
             </View>
           )}
         </View>
-
-        <TouchableOpacity
-          style={styles.headerProfileBtn}
-          onPress={() => handleNav('/user/profile')}
-          activeOpacity={0.8}
-        >
-          <Image source={{ uri: activeUser?.avatar || profilePic }} style={styles.headerProfileImg} />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.heroCardContainer}>
@@ -464,78 +413,36 @@ export default function HomeScreen({ onNavigate }) {
         )}
       </View>
 
-      <View style={styles.exploreHeader}>
-        <Text style={styles.exploreTitle}>Explore Services</Text>
-        <TouchableOpacity onPress={() => handleNav('/user/bookings/new', { state: {} })}>
-          <Text style={styles.viewAllText}>View all</Text>
-        </TouchableOpacity>
-      </View>
-
-      <div style={exploreGridCss.wrapper}>
-        {(categories || []).map((cat) => (
-          <TouchableOpacity
-            key={cat.id}
-            style={styles.gridCardContainer}
-            onPress={() => {
-              if (navigate) navigate('/user/bookings/new', { state: { preSelectedCategory: cat.name } });
-              else if (onNavigate) onNavigate('/user/bookings/new', { state: { preSelectedCategory: cat.name } });
-            }}
-            activeOpacity={0.85}
-          >
-            <View style={styles.gridImgWrap}>
-              <Image
-                source={{ uri: resolveCategoryImageUri(cat.name, cat.image_url) }}
-                style={styles.gridImg}
-                resizeMode="cover"
-              />
-            </View>
-            <Text style={styles.gridCardTitleUnder} numberOfLines={1}>
-              {cat.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </div>
-
-      {/* Auto-scrolling Non-clickable Services Ticker */}
-      <View style={styles.allServicesSection} pointerEvents="none">
-        <style>{`
-          @keyframes marqueeScroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-33.333%); }
-          }
-        `}</style>
-        {Platform.OS === 'web' ? (
-          <div style={marqueeWebCss.container}>
-            <div style={marqueeWebCss.track}>
-              {[...ALL_SERVICES_SLIDESHOW, ...ALL_SERVICES_SLIDESHOW, ...ALL_SERVICES_SLIDESHOW].map((serviceItem, idx) => (
-                <div key={`${serviceItem.id}-${idx}`} style={marqueeWebCss.card}>
-                  <div style={{ ...marqueeWebCss.iconCircle, backgroundColor: serviceItem.bg }}>
-                    {serviceItem.icon}
-                  </div>
-                  <span style={marqueeWebCss.title}>{serviceItem.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.servicesScrollContainer}
-            pointerEvents="none"
-          >
-            {ALL_SERVICES_SLIDESHOW.map((serviceItem) => (
-              <View key={serviceItem.id} style={styles.serviceSlideCardStatic}>
-                <View style={[styles.serviceIconCircle, { backgroundColor: serviceItem.bg }]}>
-                  {serviceItem.icon}
+      <View style={styles.amcSection}>
+        <Text style={styles.amcSectionTitle}>How can we help?</Text>
+        <View style={styles.amcGrid}>
+          {AMC_HOME_ACTIONS.map((item) => (
+            <TouchableOpacity
+              key={item.key}
+              style={[
+                styles.amcCard,
+                item.key === 'consultation' && styles.amcCardWide,
+                { borderColor: item.border, backgroundColor: item.bgSolid, backgroundImage: item.bg },
+              ]}
+              onPress={() => handleNav(item.route, { state: {} })}
+              activeOpacity={0.88}
+            >
+              <View style={[styles.amcIconWrap, { backgroundColor: item.iconBg }]}>{item.icon}</View>
+              <View style={styles.amcCardCopy}>
+                <View style={styles.amcTitleRow}>
+                  <Text style={styles.amcCardTitle}>{item.title}</Text>
+                  {item.badge ? (
+                    <View style={styles.amcFreeBadge}>
+                      <Text style={styles.amcFreeBadgeText}>{item.badge}</Text>
+                    </View>
+                  ) : null}
                 </View>
-                <Text style={styles.serviceSlideTitle} numberOfLines={2}>
-                  {serviceItem.name}
-                </Text>
+                <Text style={styles.amcCardSub}>{item.subtitle}</Text>
               </View>
-            ))}
-          </ScrollView>
-        )}
+              <Text style={[styles.amcChevron, { color: item.accent }]}>›</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       <View style={styles.trustBanner}>
@@ -655,6 +562,16 @@ const styles = StyleSheet.create({
     gap: 10,
     zIndex: 1000,
   },
+  headerLogoBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    overflow: 'hidden',
+    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8fafc',
+  },
   headerProfileBtn: {
     width: 42,
     height: 42,
@@ -711,6 +628,90 @@ const styles = StyleSheet.create({
   heroDotInactive: {
     width: 6,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+
+  amcSection: {
+    width: '100%',
+    gap: 10,
+    marginTop: 2,
+  },
+  amcSectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#002574',
+    fontFamily: 'Inter, sans-serif',
+  },
+  amcGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  amcCard: {
+    width: '48%',
+    flexGrow: 1,
+    flexBasis: '47%',
+    minWidth: 140,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#ffffff',
+    boxShadow: '0 6px 16px rgba(15, 23, 42, 0.05)',
+  },
+  amcCardWide: {
+    width: '100%',
+    flexBasis: '100%',
+  },
+  amcIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  amcCardCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 3,
+  },
+  amcTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  amcCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0a192f',
+    fontFamily: 'Inter, sans-serif',
+  },
+  amcCardSub: {
+    fontSize: 11.5,
+    color: '#64748b',
+    fontWeight: '500',
+    fontFamily: 'Inter, sans-serif',
+  },
+  amcChevron: {
+    fontSize: 22,
+    fontWeight: '300',
+    lineHeight: 22,
+  },
+  amcFreeBadge: {
+    backgroundColor: '#059669',
+    borderRadius: 99,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  amcFreeBadgeText: {
+    color: '#ffffff',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
 
   trustBanner: {

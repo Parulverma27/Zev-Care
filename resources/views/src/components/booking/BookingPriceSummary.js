@@ -13,7 +13,21 @@ export default function BookingPriceSummary({ pricing, showRegistration = true }
     applianceRegistrationFee = 0,
     discount = 0,
     total = 0,
+    isConsultation = false,
   } = pricing;
+
+  if (isConsultation) {
+    return (
+      <View style={styles.card}>
+        <Text style={styles.title}>Charges</Text>
+        <Row label="Consultation" value="Free" />
+        <Row label="Service charge" value={formatINR(0)} />
+        <View style={styles.divider} />
+        <Row label="Total" value="₹0" bold />
+        <Text style={styles.freeNote}>Complimentary for every logged-in user. No AMC plan required.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.card}>
@@ -57,4 +71,5 @@ const styles = StyleSheet.create({
   bold: { fontSize: 15, fontWeight: '800', color: '#0f172a' },
   highlight: { color: '#c2410c' },
   divider: { height: 1, backgroundColor: '#e2e8f0', marginVertical: 4 },
+  freeNote: { fontSize: 12, color: '#059669', fontWeight: '600', marginTop: 4, lineHeight: 16 },
 });

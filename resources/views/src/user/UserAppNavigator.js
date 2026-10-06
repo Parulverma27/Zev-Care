@@ -11,6 +11,7 @@ import MyAmcScreen from './screens/MyAmcScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 import SavedAddressesScreen from './screens/SavedAddressesScreen';
 import LiveSupportScreen from './screens/LiveSupportScreen';
+import ServiceBrowseScreen from './screens/ServiceBrowseScreen';
 
 export default function UserAppNavigator() {
   const [currentScreen, setCurrentScreen] = useState('HOME');
@@ -47,6 +48,10 @@ export default function UserAppNavigator() {
         return <SavedAddressesScreen onNavigate={handleNavigate} />;
       case 'LIVE_SUPPORT':
         return <LiveSupportScreen onNavigate={handleNavigate} />;
+      case 'COMPLAINS':
+        return <ServiceBrowseScreen />;
+      case 'CONSULTATION':
+        return <ServiceBrowseScreen />;
       default:
         return <HomeScreen onNavigate={handleNavigate} />;
     }
@@ -60,19 +65,11 @@ export default function UserAppNavigator() {
       {currentScreen !== 'AUTH' && (
         <View style={styles.bottomBar}>
           <TouchableOpacity
-            style={[styles.tabItem, currentScreen === 'HOME' && styles.activeTab]}
-            onPress={() => handleNavigate('HOME')}
+            style={[styles.tabItem, currentScreen === 'WALLET' && styles.activeTab]}
+            onPress={() => handleNavigate('WALLET')}
           >
-            <Text style={styles.tabIcon}>🏠</Text>
-            <Text style={[styles.tabLabel, currentScreen === 'HOME' && styles.activeLabel]}>Home</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tabItem, currentScreen === 'BOOKING_FLOW' && styles.activeTab]}
-            onPress={() => handleNavigate('BOOKING_FLOW')}
-          >
-            <Text style={styles.tabIcon}>⚡</Text>
-            <Text style={[styles.tabLabel, currentScreen === 'BOOKING_FLOW' && styles.activeLabel]}>Book</Text>
+            <Text style={styles.tabIcon}>🛡️</Text>
+            <Text style={[styles.tabLabel, currentScreen === 'WALLET' && styles.activeLabel]}>My AMC</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -81,14 +78,6 @@ export default function UserAppNavigator() {
           >
             <Text style={styles.tabIcon}>📋</Text>
             <Text style={[styles.tabLabel, currentScreen === 'BOOKING_DETAIL' && styles.activeLabel]}>Bookings</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tabItem, currentScreen === 'WALLET' && styles.activeTab]}
-            onPress={() => handleNavigate('WALLET')}
-          >
-            <Text style={styles.tabIcon}>🛡️</Text>
-            <Text style={[styles.tabLabel, currentScreen === 'WALLET' && styles.activeLabel]}>My AMC</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

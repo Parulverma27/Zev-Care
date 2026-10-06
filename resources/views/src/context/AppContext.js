@@ -830,7 +830,9 @@ export function AppProvider({ children }) {
       if (localStorage.getItem(WALLET_SYNC_KEY) === WALLET_SYNC_VERSION) return;
     } catch (e) {}
 
-    const paid = (bookings || []).filter((b) => b.bill_status === 'PAID');
+    const paid = (bookings || []).filter(
+      (b) => b.bill_status === 'PAID' && !b.isConsultation && paidBookingAmount(b) > 0
+    );
     const txs = [...(wallet.transactions || [])];
     const missing = paid.filter(
       (b) => !txs.some((tx) => tx.type === 'SERVICE_PAYMENT' && tx.booking_id === b.booking_id)
@@ -1377,7 +1379,14 @@ export function AppProvider({ children }) {
         applianceCount: bookingData.applianceCount ?? 1,
         applianceRegistrationFee: bookingData.applianceRegistrationFee ?? 0,
         discount: bookingData.discount ?? 0,
+        isConsultation: !!(bookingData.isConsultation || bookingData.bookingMode === 'consultation'),
       });
+
+    const isConsultation = !!(
+      bookingData.isConsultation ||
+      bookingData.bookingMode === 'consultation' ||
+      pricing.isConsultation
+    );
 
     const scheduleLabel =
       bookingData.schedule ||
@@ -1417,7 +1426,7 @@ export function AppProvider({ children }) {
         bookingData.issueDescription ||
         bookingData.issue ||
         bookingData.description ||
-        'Service required',
+        (isConsultation ? 'Consultation requested' : 'Service required'),
       issue: bookingData.issue || bookingData.description || '',
       issueId: bookingData.issueId || null,
       issueDescription: bookingData.issueDescription || '',
@@ -1442,13 +1451,15 @@ export function AppProvider({ children }) {
       applianceRegistrationFee: pricing.applianceRegistrationFee || 0,
       applianceCount: bookingData.applianceCount ?? 1,
       pricing,
+      booking_mode: isConsultation ? 'consultation' : bookingData.bookingMode || 'service',
+      isConsultation,
       totalAmount: pricing.total,
       service_charge: pricing.serviceCharge,
       parts_charge: 0,
       labour_charge: 0,
       discount_amount: pricing.discount || 0,
       total_bill: pricing.total,
-      bill_status: 'UNPAID',
+      bill_status: isConsultation || pricing.total === 0 ? 'PAID' : 'UNPAID',
       completion_otp: '4829',
     };
 

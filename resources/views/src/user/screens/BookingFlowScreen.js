@@ -68,6 +68,8 @@ export default function BookingFlowScreen({ onNavigate }) {
   const preSelectedCategory = locationState?.state?.preSelectedCategory;
   const preSelectedSubCategory = locationState?.state?.preSelectedSubCategory;
   const preSelectedService = locationState?.state?.preSelectedService;
+  const bookingMode = locationState?.state?.bookingMode;
+  const isConsultation = bookingMode === 'consultation';
 
   const [step, setStep] = useState(1);
   const [skippedCategoryStep, setSkippedCategoryStep] = useState(false);
@@ -189,9 +191,10 @@ export default function BookingFlowScreen({ onNavigate }) {
     () =>
       calculateBookingPrice({
         applianceCount: 1,
-        applianceRegistrationFee,
+        applianceRegistrationFee: isConsultation ? 0 : applianceRegistrationFee,
+        isConsultation,
       }),
-    [applianceRegistrationFee]
+    [applianceRegistrationFee, isConsultation]
   );
 
   const serviceTypes = useMemo(() => {
@@ -386,7 +389,7 @@ export default function BookingFlowScreen({ onNavigate }) {
     const first = records[0];
     setSelectedAppliance(first);
     setIsNewAppliance(true);
-    setApplianceRegistrationFee(APPLIANCE_REGISTRATION_FEE);
+    setApplianceRegistrationFee(isConsultation ? 0 : APPLIANCE_REGISTRATION_FEE);
     clearIssueState();
     setStep('ISSUE');
   };
@@ -442,7 +445,11 @@ export default function BookingFlowScreen({ onNavigate }) {
 
   const handleConfirm = async () => {
     if (isGuest) {
-      promptGuestRegistration('Please register your account to confirm and place your service booking.');
+      promptGuestRegistration(
+        isConsultation
+          ? 'Please register or log in to book a free consultation. Consultations are complimentary for every logged-in user.'
+          : 'Please register your account to confirm and place your service booking.'
+      );
       return;
     }
     if (submitting) return;
@@ -472,7 +479,8 @@ export default function BookingFlowScreen({ onNavigate }) {
     try {
       const finalPricing = calculateBookingPrice({
         applianceCount: 1,
-        applianceRegistrationFee: isNewAppliance ? APPLIANCE_REGISTRATION_FEE : 0,
+        applianceRegistrationFee: isConsultation ? 0 : isNewAppliance ? APPLIANCE_REGISTRATION_FEE : 0,
+        isConsultation,
       });
       const applianceDetails = selectedAppliance
         ? {
@@ -496,7 +504,7 @@ export default function BookingFlowScreen({ onNavigate }) {
         scheduledDateLabel,
         scheduledTime,
         schedule: [scheduledDateLabel || scheduledDate, scheduledTime].filter(Boolean).join(', '),
-        description: issueLabel || `Require assistance for ${service}`,
+        description: issueLabel || (isConsultation ? `Consultation for ${service}` : `Require assistance for ${service}`),
         issue: issueLabel,
         issueId,
         issueDescription,
@@ -514,6 +522,8 @@ export default function BookingFlowScreen({ onNavigate }) {
         applianceRegistrationFee: finalPricing.applianceRegistrationFee,
         applianceCount: 1,
         pricing: finalPricing,
+        bookingMode: isConsultation ? 'consultation' : bookingMode || 'service',
+        isConsultation,
       });
       setConfirmedBooking(newBk);
       setStep('CONFIRMED');
@@ -715,7 +725,7 @@ export default function BookingFlowScreen({ onNavigate }) {
               <BookingProgress activeIndex={1} />
             </View>
           </View>
-          <Text style={styles.h1}>{service} Service</Text>
+          <Text style={styles.h1}>{isConsultation ? `${service} Consultation` : `${service} Service`}</Text>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Appliance</Text>
             <Text style={styles.summaryValue}>
@@ -811,7 +821,7 @@ export default function BookingFlowScreen({ onNavigate }) {
               <BookingProgress activeIndex={4} />
             </View>
           </View>
-          <Text style={styles.h1}>Review booking</Text>
+          <Text style={styles.h1}>{isConsultation ? 'Review consultation' : 'Review booking'}</Text>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Service</Text>
             <Text style={styles.summaryValue}>{service || category}</Text>
@@ -839,7 +849,8 @@ export default function BookingFlowScreen({ onNavigate }) {
           <BookingPriceSummary
             pricing={calculateBookingPrice({
               applianceCount: 1,
-              applianceRegistrationFee: isNewAppliance ? APPLIANCE_REGISTRATION_FEE : 0,
+              applianceRegistrationFee: isConsultation ? 0 : isNewAppliance ? APPLIANCE_REGISTRATION_FEE : 0,
+              isConsultation,
             })}
           />
           {!!formError && <Text style={styles.error}>{formError}</Text>}
@@ -849,7 +860,13 @@ export default function BookingFlowScreen({ onNavigate }) {
             onPress={handleConfirm}
           >
             <Text style={styles.primaryBtnText}>
-              {submitting ? 'Confirming booking…' : 'Confirm Booking'}
+              {submitting
+                ? isConsultation
+                  ? 'Confirming consultation…'
+                  : 'Confirming booking…'
+                : isConsultation
+                  ? 'Confirm free consultation'
+                  : 'Confirm Booking'}
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -1072,8 +1089,12 @@ export default function BookingFlowScreen({ onNavigate }) {
             <Text style={styles.backChevron}>‹</Text>
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={styles.h1}>What can we help with?</Text>
-            <Text style={styles.sub}>Choose a service category.</Text>
+            <Text style={styles.h1}>{isConsultation ? 'Book a free consultation' : 'What can we help with?'}</Text>
+            <Text style={styles.sub}>
+              {isConsultation
+                ? 'Choose a service. This visit is free for logged-in users, with or without an AMC plan.'
+                : 'Choose a service category.'}
+            </Text>
           </View>
         </View>
         <View style={{ gap: 10 }}>

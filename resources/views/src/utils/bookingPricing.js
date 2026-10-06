@@ -26,7 +26,19 @@ export function calculateBookingPrice({
   applianceCount = 1,
   applianceRegistrationFee = 0,
   discount = 0,
+  isConsultation = false,
 } = {}) {
+  if (isConsultation) {
+    return {
+      serviceCharge: 0,
+      extraApplianceServiceCharge: 0,
+      applianceRegistrationFee: 0,
+      discount: 0,
+      total: 0,
+      isConsultation: true,
+    };
+  }
+
   const service = Number(serviceCharge) || 0;
   const extra = calculateExtraApplianceServiceCharge(applianceCount);
   const registration = Math.max(0, Number(applianceRegistrationFee) || 0);
@@ -39,6 +51,7 @@ export function calculateBookingPrice({
     applianceRegistrationFee: registration,
     discount: disc,
     total,
+    isConsultation: false,
   };
 }
 
