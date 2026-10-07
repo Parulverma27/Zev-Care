@@ -243,6 +243,64 @@ export function getCategoryImageUrl(categoryName) {
   return CATEGORY_IMAGE_FALLBACKS[categoryName] || SERVICE_IMAGES.other;
 }
 
+export const COMPLAINT_CATEGORY_IMAGES = {
+  carpenter: getImageUrl(require('../../assets/services/complaints/carpenter-complaint.png')),
+  plumber: getImageUrl(require('../../assets/services/complaints/plumber-complaint.png')),
+  cleaning: getImageUrl(require('../../assets/services/complaints/cleaning-complaint.png')),
+  electrician: getImageUrl(require('../../assets/services/complaints/electrician-complaint.png')),
+};
+
+export const COMPLAINT_CATEGORY_IMAGE_FALLBACKS = {
+  Electrician: COMPLAINT_CATEGORY_IMAGES.electrician,
+  Electrical: COMPLAINT_CATEGORY_IMAGES.electrician,
+  'Electrical Services': COMPLAINT_CATEGORY_IMAGES.electrician,
+  'Electrician & Wiring': COMPLAINT_CATEGORY_IMAGES.electrician,
+  'AC Service & Repair': COMPLAINT_CATEGORY_IMAGES.electrician,
+  electrician: COMPLAINT_CATEGORY_IMAGES.electrician,
+
+  Plumber: COMPLAINT_CATEGORY_IMAGES.plumber,
+  Plumbing: COMPLAINT_CATEGORY_IMAGES.plumber,
+  'Plumbing Services': COMPLAINT_CATEGORY_IMAGES.plumber,
+  'Plumbing & Leak Fix': COMPLAINT_CATEGORY_IMAGES.plumber,
+  plumber: COMPLAINT_CATEGORY_IMAGES.plumber,
+
+  Carpenter: COMPLAINT_CATEGORY_IMAGES.carpenter,
+  Carpentry: COMPLAINT_CATEGORY_IMAGES.carpenter,
+  'Carpentry Services': COMPLAINT_CATEGORY_IMAGES.carpenter,
+  'Carpenter & Furniture': COMPLAINT_CATEGORY_IMAGES.carpenter,
+  carpenter: COMPLAINT_CATEGORY_IMAGES.carpenter,
+
+  'Dry Cleaning': COMPLAINT_CATEGORY_IMAGES.cleaning,
+  'Dry Cleaning Services': COMPLAINT_CATEGORY_IMAGES.cleaning,
+  'dry-cleaning': COMPLAINT_CATEGORY_IMAGES.cleaning,
+  Cleaning: COMPLAINT_CATEGORY_IMAGES.cleaning,
+  'Cleaning Services': COMPLAINT_CATEGORY_IMAGES.cleaning,
+  'Sofa Cleaning': COMPLAINT_CATEGORY_IMAGES.cleaning,
+  cleaning: COMPLAINT_CATEGORY_IMAGES.cleaning,
+};
+
+export function getComplaintCategoryImageUrl(categoryName) {
+  if (!categoryName || typeof categoryName !== 'string') return null;
+  const trimmed = categoryName.trim();
+  if (COMPLAINT_CATEGORY_IMAGE_FALLBACKS[trimmed]) {
+    return COMPLAINT_CATEGORY_IMAGE_FALLBACKS[trimmed];
+  }
+  const lower = trimmed.toLowerCase();
+  if (lower.includes('carpenter') || lower.includes('carpentr')) {
+    return COMPLAINT_CATEGORY_IMAGES.carpenter;
+  }
+  if (lower.includes('plumb')) {
+    return COMPLAINT_CATEGORY_IMAGES.plumber;
+  }
+  if (lower.includes('clean') || lower.includes('sofa')) {
+    return COMPLAINT_CATEGORY_IMAGES.cleaning;
+  }
+  if (lower.includes('electr') || lower.includes('technician')) {
+    return COMPLAINT_CATEGORY_IMAGES.electrician;
+  }
+  return null;
+}
+
 export function getHardcodedCatalogImage(name) {
   if (!name) return SERVICE_IMAGES.other;
   return (

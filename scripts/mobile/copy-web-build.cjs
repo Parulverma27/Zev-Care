@@ -48,6 +48,12 @@ if (fs.existsSync(catalogSrc)) {
   copyRecursive(catalogSrc, catalogDest);
 }
 
+const complaintsSrc = path.join(viewsDir, 'assets', 'services', 'complaints');
+const complaintsDest = path.join(targetDir, 'assets', 'services', 'complaints');
+if (fs.existsSync(complaintsSrc)) {
+  copyRecursive(complaintsSrc, complaintsDest);
+}
+
 const serveJsonSrc = path.join(viewsDir, 'serve.json');
 if (fs.existsSync(serveJsonSrc)) {
   fs.copyFileSync(serveJsonSrc, path.join(distDir, 'serve.json'));

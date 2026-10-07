@@ -674,21 +674,12 @@ export default function HomeScreen({ onNavigate }) {
                 <div
                   key={`${serviceItem.id}-${idx}`}
                   style={marqueeWebCss.card}
-                  onClick={() => {
-                    handleNav('/user/bookings/new', {
-                      state: {
-                        preSelectedCategory: serviceItem.category || serviceItem.name,
-                        bookingMode: 'complaint',
-                      },
-                    });
-                  }}
                 >
                   <div style={marqueeWebCss.squircle}>
                     {serviceItem.icon}
                   </div>
                   <div style={marqueeWebCss.labelWrap}>
                     <span style={marqueeWebCss.title}>{serviceItem.name}</span>
-                    <span style={marqueeWebCss.arrow}>→</span>
                   </div>
                 </div>
               ))}
@@ -699,29 +690,20 @@ export default function HomeScreen({ onNavigate }) {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.servicesScrollContainer}
+            pointerEvents="none"
           >
             {ALL_SERVICES_SLIDESHOW.map((serviceItem) => (
-              <TouchableOpacity
+              <View
                 key={serviceItem.id}
                 style={styles.serviceSlideCardStatic}
-                onPress={() => {
-                  handleNav('/user/bookings/new', {
-                    state: {
-                      preSelectedCategory: serviceItem.category || serviceItem.name,
-                      bookingMode: 'complaint',
-                    },
-                  });
-                }}
-                activeOpacity={0.8}
               >
                 <View style={styles.serviceSquircleStatic}>
                   {serviceItem.icon}
                 </View>
                 <View style={styles.serviceLabelRowStatic}>
                   <Text style={styles.serviceSlideTitle}>{serviceItem.name}</Text>
-                  <Text style={styles.serviceArrowStatic}>→</Text>
                 </View>
-              </TouchableOpacity>
+              </View>
             ))}
           </ScrollView>
         )}
@@ -1630,8 +1612,8 @@ const marqueeWebCss = {
     gap: '7px',
     width: '76px',
     flexShrink: 0,
-    cursor: 'pointer',
-    transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    cursor: 'default',
+    pointerEvents: 'none',
   },
   squircle: {
     width: '64px',
@@ -1643,15 +1625,15 @@ const marqueeWebCss = {
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 4px 14px rgba(37, 99, 235, 0.08), 0 1px 3px rgba(37, 99, 235, 0.04)',
-    transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+    pointerEvents: 'none',
   },
   labelWrap: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '4px',
     width: '100%',
+    pointerEvents: 'none',
   },
   title: {
     fontSize: '11.5px',
@@ -1661,13 +1643,7 @@ const marqueeWebCss = {
     lineHeight: '14px',
     fontFamily: "'Inter', sans-serif",
     whiteSpace: 'nowrap',
-  },
-  arrow: {
-    fontSize: '11px',
-    fontWeight: 700,
-    color: '#2563eb',
-    lineHeight: '12px',
-    transition: 'transform 0.15s ease',
+    pointerEvents: 'none',
   },
 };
 

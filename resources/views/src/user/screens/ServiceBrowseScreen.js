@@ -81,6 +81,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
         categories={categories}
         title={isConsultation ? 'Select appliance or service' : 'Explore Services'}
         onSelectCategory={openBooking}
+        isComplaint={!isConsultation}
       />
     </ScrollView>
   );

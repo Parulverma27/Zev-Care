@@ -3,6 +3,8 @@ import {
   CATEGORY_IMAGE_FALLBACKS,
   SERVICE_ITEM_IMAGE_KEYS,
   getHardcodedCatalogImage,
+  getComplaintCategoryImageUrl,
+  COMPLAINT_CATEGORY_IMAGES,
 } from './bundledImages';
 
 export const DEFAULT_BANNERS = [
@@ -96,9 +98,23 @@ export function resolveImageUri(url, fallback = '') {
   return url || fallback || DEFAULT_BANNERS[0].image_url;
 }
 
-/** Always use hardcoded catalog assets — admin cannot override. */
-export function resolveCategoryImageUri(categoryName, _url) {
+/**
+ * Category image resolver.
+ * When isComplaint is true, uses the dedicated complaint images for the 4 categories
+ * (Carpenter, Plumber, Dry Cleaning / Sofa Cleaning, Electrician).
+ * When isComplaint is false (e.g. adding appliances, regular catalog), strictly uses standard catalog images.
+ */
+export function resolveCategoryImageUri(categoryName, _url, isComplaint = false) {
+  if (isComplaint) {
+    const complaintImg = getComplaintCategoryImageUrl(categoryName);
+    if (complaintImg) return complaintImg;
+  }
   return CATEGORY_IMAGE_FALLBACKS[categoryName] || getHardcodedCatalogImage(categoryName);
+}
+
+/** Convenience resolver specifically for complaint category cards */
+export function resolveComplaintCategoryImageUri(categoryName, _url = '') {
+  return resolveCategoryImageUri(categoryName, _url, true);
 }
 
 /** Always use hardcoded service assets — admin cannot override. */
