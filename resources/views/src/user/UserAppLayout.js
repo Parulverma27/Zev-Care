@@ -23,7 +23,6 @@ export default function UserAppLayout() {
 
   const showBottomNav = !isAuthPage && !isBookingFlow && !isBookingDetail && !isImmersive;
   const isHomeTab = path === '/user/home' || path === '/user' || path === '/user/' || path.includes('/categories');
-  const isAmcTab = path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans');
   const isBookingsTab = path.includes('/bookings') && !path.includes('/new') && !isBookingDetail;
   const isProfileTab = path.includes('/profile');
 
@@ -56,25 +55,7 @@ export default function UserAppLayout() {
             <Text style={[styles.tabLabel, isHomeTab && styles.activeHomeLabel]}>Home</Text>
           </TouchableOpacity>
 
-          {/* TAB 1: My AMC */}
-          <TouchableOpacity
-            style={styles.tabItem}
-            onPress={() => navigate('/user/my-amc')}
-            activeOpacity={0.78}
-          >
-            {isAmcTab && <View style={styles.amcActiveTopPip} />}
-            <View style={[styles.tabPill, isAmcTab && styles.activeAmcTabPill]}>
-              <VectorTabIcon
-                name="amc"
-                active={isAmcTab}
-                activeColor="#d97706"
-                inactiveColor="#64748b"
-              />
-            </View>
-            <Text style={[styles.tabLabel, isAmcTab && styles.activeAmcLabel]}>My AMC</Text>
-          </TouchableOpacity>
-
-          {/* TAB 2: Bookings */}
+          {/* TAB 1: Bookings */}
           <TouchableOpacity
             style={styles.tabItem}
             onPress={() => navigate('/user/bookings')}

@@ -1080,15 +1080,15 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
               {/* ============================================================= */}
               <View style={styles.planApplianceSection}>
                 <View style={styles.planApplianceHeaderRow}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
                     <AppIcon name="shield" size={14} color="#2563eb" strokeWidth={2.4} />
                     <Text style={styles.planApplianceTitle}>Covered Appliances</Text>
                   </View>
                   <View style={styles.planApplianceAllowancePill}>
                     <Text style={styles.planApplianceAllowancePillText}>
                       {selectedForThisPlan.length > 0
-                        ? `${selectedForThisPlan.length} Selected • Unlimited`
-                        : 'Unlimited Allowance'}
+                        ? `${selectedForThisPlan.length} Selected`
+                        : 'Unlimited'}
                     </Text>
                   </View>
                 </View>
@@ -1144,30 +1144,25 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                 <TouchableOpacity
                   style={[
                     styles.purchaseBtn,
-                    hasAddedAppliances
-                      ? { backgroundColor: theme.btnBg, borderColor: theme.borderGold }
-                      : styles.purchaseBtnPrompt,
+                    { backgroundColor: theme.btnBg, borderColor: theme.borderGold },
                   ]}
                   onPress={() => {
                     if (!hasAddedAppliances) {
-                      setApplianceModalPlan(plan);
+                      setWizardTargetPlan(plan);
+                      setViewMode('WIZARD');
                     } else {
                       handleInitiatePurchase(plan);
                     }
                   }}
                   activeOpacity={0.88}
                 >
-                  {hasAddedAppliances ? (
-                    <Text style={[styles.purchaseBtnText, { color: theme.btnTextColor }]}>
-                      {hasActiveAmc
-                        ? `Upgrade to ${plan.name} • ₹${plan.price.toLocaleString('en-IN')}`
-                        : `Activate ${plan.name} • ₹${plan.price.toLocaleString('en-IN')}`}
-                    </Text>
-                  ) : (
-                    <Text style={styles.purchaseBtnPromptText}>
-                      + Add Appliances to Purchase Plan
-                    </Text>
-                  )}
+                  <Text style={[styles.purchaseBtnText, { color: theme.btnTextColor }]}>
+                    {hasActiveAmc
+                      ? `Upgrade to ${plan.name}`
+                      : hasAddedAppliances
+                        ? `Activate ${plan.name}`
+                        : `Purchase Plan`}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -1960,6 +1955,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
   },
   planApplianceTitle: {
     fontSize: 12,
@@ -1973,6 +1970,7 @@ const styles = StyleSheet.create({
     borderRadius: 99,
     paddingHorizontal: 8,
     paddingVertical: 2,
+    flexShrink: 0,
   },
   planApplianceAllowancePillText: {
     fontSize: 10,
