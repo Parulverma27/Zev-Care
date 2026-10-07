@@ -60,64 +60,185 @@ const TRUST_FEATURES = [
 const AMC_HOME_ACTIONS = [
   {
     key: 'plans',
-    title: 'AMC Plans',
-    subtitle: 'Cover your home with complete peace of mind',
+    title: 'My AMC Plan',
+    subtitle: 'Protect your home with premium coverage.',
+    actionLabel: 'Explore Plans',
     route: '/user/plans',
-    cardBg: 'linear-gradient(90deg, #ffffff 50%, #eff6ff 100%)',
-    borderColor: '#dbeafe',
-    iconBg: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-    iconBoxShadow: '0 3px 10px rgba(37, 99, 235, 0.22)',
+    theme: 'dark',
+    cardBg: 'linear-gradient(150deg, #0f2347 0%, #0a1730 100%)',
+    borderColor: 'rgba(37, 99, 235, 0.4)',
+    boxShadow: '0 8px 24px rgba(15, 35, 71, 0.28)',
+    iconBg: 'rgba(37, 99, 235, 0.25)',
+    iconBorder: '1.5px solid #3b82f6',
+    titleColor: '#ffffff',
+    subColor: 'rgba(226, 232, 240, 0.85)',
+    actionColor: '#ffffff',
+    circleBtnBg: '#2563eb',
+    circleBtnBorder: 'none',
+    circleBtnColor: '#ffffff',
     icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <path d="m9 12 2 2 4-4" />
-      </svg>
-    ),
-    watermark: (
-      <svg width="76" height="76" viewBox="0 0 24 24" fill="#2563eb" fillOpacity="0.06">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <path d="m9 12 2 2 4-4" />
+        <polyline points="9 11 11 13 15 9" />
       </svg>
     ),
   },
   {
     key: 'complaints',
     title: 'AMC Complaints',
-    subtitle: 'Repair any appliance or issue at your home',
+    subtitle: 'Raise any appliance or issue at your home.',
+    actionLabel: 'Raise Complaint',
     route: '/user/complains',
-    cardBg: 'linear-gradient(90deg, #ffffff 50%, #eff6ff 100%)',
-    borderColor: '#dbeafe',
-    iconBg: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-    iconBoxShadow: '0 3px 10px rgba(37, 99, 235, 0.22)',
+    theme: 'light',
+    cardBg: 'linear-gradient(150deg, #fffdf8 0%, #f6efe3 100%)',
+    borderColor: '#e8dcce',
+    boxShadow: '0 4px 16px rgba(180, 140, 90, 0.08)',
+    iconBg: '#f3e8d7',
+    iconBorder: '1.5px solid #e2d1bc',
+    titleColor: '#0f172a',
+    subColor: '#64748b',
+    actionColor: '#2563eb',
+    circleBtnBg: '#eff6ff',
+    circleBtnBorder: '1px solid #bfdbfe',
+    circleBtnColor: '#2563eb',
     icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-      </svg>
-    ),
-    watermark: (
-      <svg width="76" height="76" viewBox="0 0 24 24" fill="#2563eb" fillOpacity="0.05">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
       </svg>
     ),
   },
   {
-    key: 'consultation',
-    title: 'AMC Consultation',
-    subtitle: 'Free for logged-in users',
-    badge: 'FREE',
+    key: 'mechanic',
+    title: 'My Mechanic',
+    subtitle: 'Expert guidance for your home.',
+    badge: 'Coming Soon',
+    actionLabel: 'Coming Soon',
     route: '/user/consultation',
-    cardBg: 'linear-gradient(90deg, #ffffff 50%, #ecfdf5 100%)',
-    borderColor: '#d1fae5',
-    iconBg: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
-    iconBoxShadow: '0 3px 10px rgba(13, 148, 136, 0.22)',
+    theme: 'light',
+    cardBg: 'linear-gradient(150deg, #f0f7ff 0%, #e0efff 100%)',
+    borderColor: '#bfdbfe',
+    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)',
+    iconBg: '#ffffff',
+    iconBorder: '1.5px solid #bfdbfe',
+    titleColor: '#0f172a',
+    subColor: '#64748b',
+    actionColor: '#2563eb',
+    circleBtnBg: '#ffffff',
+    circleBtnBorder: '1px solid #bfdbfe',
+    circleBtnColor: '#2563eb',
     icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="9" cy="7" r="4" />
+        <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        <path d="M21 21v-2a4 4 0 0 0-3-3.85" />
       </svg>
     ),
-    watermark: (
-      <svg width="76" height="76" viewBox="0 0 24 24" fill="#0d9488" fillOpacity="0.06">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  },
+];
+
+const ALL_SERVICES_SLIDESHOW = [
+  {
+    id: 'ac_service',
+    name: 'AC',
+    category: 'AC Services',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="5" width="20" height="9" rx="2" />
+        <line x1="6" y1="10" x2="18" y2="10" />
+        <circle cx="18" cy="7.5" r="0.75" fill="#2563eb" />
+        <path d="M5 17c1 1 2 1 3 0" />
+        <path d="M10.5 17c1 1 2 1 3 0" />
+        <path d="M16 17c1 1 2 1 3 0" />
+      </svg>
+    ),
+  },
+  {
+    id: 'washing_machine',
+    name: 'Washing Machine',
+    category: 'Washing Machine Repair',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="2" width="16" height="20" rx="3" />
+        <circle cx="12" cy="13" r="4.5" />
+        <circle cx="12" cy="13" r="1.8" />
+        <line x1="7" y1="5.5" x2="11" y2="5.5" />
+        <circle cx="17" cy="5.5" r="1" fill="#2563eb" />
+      </svg>
+    ),
+  },
+  {
+    id: 'refrigerator',
+    name: 'Refrigerator',
+    category: 'Refrigerator Repair',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2.5" />
+        <line x1="5" y1="10" x2="19" y2="10" />
+        <line x1="8" y1="5.5" x2="8" y2="8" />
+        <line x1="8" y1="13" x2="8" y2="17" />
+      </svg>
+    ),
+  },
+  {
+    id: 'tv_av',
+    name: 'TV & AV',
+    category: 'TV & AV Services',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" />
+        <line x1="8" y1="21" x2="16" y2="21" />
+        <line x1="12" y1="17" x2="12" y2="21" />
+        <circle cx="12" cy="14.5" r="0.8" fill="#2563eb" />
+      </svg>
+    ),
+  },
+  {
+    id: 'electrician',
+    name: 'Electrician',
+    category: 'Electrical Services',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22v-5" />
+        <path d="M9 7V2" />
+        <path d="M15 7V2" />
+        <rect x="6" y="7" width="12" height="10" rx="3" />
+        <path d="M12.5 10l-1.5 2h2l-1.5 2" />
+      </svg>
+    ),
+  },
+  {
+    id: 'plumber',
+    name: 'Plumbing',
+    category: 'Plumbing Services',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 12h8" />
+        <path d="M9 7v5" />
+        <path d="M7 7h4" />
+        <path d="M12 12c1.5 0 3 .5 3 2v2a1 1 0 0 1-1 1h-2" />
+        <path d="M13 20.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5c0-1.5 2.5-4 2.5-4s2.5 2.5 2.5 4z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'carpenter',
+    name: 'Carpenter',
+    category: 'Carpentry Services',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'pest_control',
+    name: 'Pest Control',
+    category: 'Pest Control Services',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <polyline points="9 11 11 13 15 9" />
       </svg>
     ),
   },
@@ -428,78 +549,182 @@ export default function HomeScreen({ onNavigate }) {
 
       <View style={styles.amcSection}>
         <View style={styles.amcHeaderBlock}>
-          <View style={styles.kickerRow}>
-            <View style={styles.kickerLine} />
-            <Text style={styles.kickerText}>GET STARTED</Text>
+          <View style={styles.amcHeaderTitleRow}>
+            <View style={styles.amcHeaderAccentBar} />
+            <Text style={styles.amcSectionTitle}>Our AMC Services</Text>
           </View>
-          <Text style={styles.amcSectionTitle}>How can we help?</Text>
-          <Text style={styles.amcSectionSub}>Choose a service to get started</Text>
+          <Text style={styles.amcSectionSub}>Everything you need, under one roof</Text>
         </View>
 
-        <View style={styles.amcStack}>
+        <style>{`
+          .amc-cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+          }
+          @media (min-width: 768px) {
+            .amc-cards-container {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 14px;
+            }
+          }
+        `}</style>
+        <div className="amc-cards-container">
           {AMC_HOME_ACTIONS.map((item) => (
             <TouchableOpacity
               key={item.key}
               style={[
-                styles.amcCardNew,
+                styles.amcLuxuryCard,
                 {
                   backgroundImage: item.cardBg,
                   borderColor: item.borderColor,
+                  boxShadow: item.boxShadow,
                 },
               ]}
               onPress={() => handleNav(item.route, { state: {} })}
               activeOpacity={0.88}
             >
-              {/* Subtle background icon watermark */}
-              <View style={styles.amcWatermarkWrap} pointerEvents="none">
-                {item.watermark}
-              </View>
-
-              {/* Left Squircle Gradient Icon */}
-              <View
-                style={[
-                  styles.amcIconBox,
-                  {
-                    backgroundImage: item.iconBg,
-                    boxShadow: item.iconBoxShadow,
-                  },
-                ]}
-              >
-                {item.icon}
-              </View>
-
-              {/* Middle Title & Subtitle */}
-              <View style={styles.amcCardTextWrap}>
-                <View style={styles.amcTitleBadgeRow}>
-                  <Text style={styles.amcCardHeading}>{item.title}</Text>
-                  {item.badge ? (
-                    <View style={styles.amcFreeBadgeBlue}>
-                      <Text style={styles.amcFreeBadgeBlueText}>{item.badge}</Text>
-                    </View>
-                  ) : null}
-                </View>
-                <Text style={styles.amcCardDescription}>{item.subtitle}</Text>
-              </View>
-
-              {/* Right Circular Arrow Button */}
-              <View style={styles.amcArrowCircle}>
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#2563eb"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+              {/* Top Row: Circular Icon + Optional Badge */}
+              <View style={styles.amcCardTopRow}>
+                <View
+                  style={[
+                    styles.amcLuxuryIconCircle,
+                    {
+                      backgroundColor: item.iconBg,
+                      border: item.iconBorder,
+                    },
+                  ]}
                 >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
+                  {item.icon}
+                </View>
+                {item.badge ? (
+                  <View style={styles.amcComingSoonBadge}>
+                    <Text style={styles.amcComingSoonBadgeText}>{item.badge}</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {/* Middle: Title & Subtitle */}
+              <View style={styles.amcCardBody}>
+                <Text style={[styles.amcLuxuryHeading, { color: item.titleColor }]}>
+                  {item.title}
+                </Text>
+                <Text style={[styles.amcLuxurySub, { color: item.subColor }]}>
+                  {item.subtitle}
+                </Text>
+              </View>
+
+              {/* Bottom: Action Text & Circle Arrow Button */}
+              <View style={styles.amcCardFooterRow}>
+                <Text style={[styles.amcLuxuryActionText, { color: item.actionColor }]}>
+                  {item.actionLabel} →
+                </Text>
+                <View
+                  style={[
+                    styles.amcLuxuryCircleArrow,
+                    {
+                      backgroundColor: item.circleBtnBg,
+                      border: item.circleBtnBorder || 'none',
+                    },
+                  ]}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={item.circleBtnColor}
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </View>
               </View>
             </TouchableOpacity>
           ))}
-        </View>
+        </div>
+      </View>
+
+      {/* Home Services Section Header */}
+      <View style={styles.servicesHeaderBlock}>
+        <Text style={styles.servicesHeaderTitle}>Home Services</Text>
+        <Text style={styles.servicesHeaderSub}>Book professional help, anytime</Text>
+      </View>
+
+      {/* Auto-scrolling Quick Services Icons */}
+      <View style={styles.allServicesSection}>
+        <style>{`
+          @keyframes marqueeScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-33.333%); }
+          }
+          .services-marquee-track:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+        {Platform.OS === 'web' ? (
+          <div style={marqueeWebCss.container}>
+            <div style={marqueeWebCss.track} className="services-marquee-track">
+              {[...ALL_SERVICES_SLIDESHOW, ...ALL_SERVICES_SLIDESHOW, ...ALL_SERVICES_SLIDESHOW].map((serviceItem, idx) => (
+                <div
+                  key={`${serviceItem.id}-${idx}`}
+                  style={marqueeWebCss.card}
+                  onClick={() => {
+                    handleNav('/user/bookings/new', {
+                      state: {
+                        preSelectedCategory: serviceItem.category || serviceItem.name,
+                        bookingMode: 'complaint',
+                      },
+                    });
+                  }}
+                >
+                  <div style={marqueeWebCss.squircle}>
+                    {serviceItem.icon}
+                  </div>
+                  <div style={marqueeWebCss.labelWrap}>
+                    <span style={marqueeWebCss.title}>{serviceItem.name}</span>
+                    <span style={marqueeWebCss.arrow}>→</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.servicesScrollContainer}
+          >
+            {ALL_SERVICES_SLIDESHOW.map((serviceItem) => (
+              <TouchableOpacity
+                key={serviceItem.id}
+                style={styles.serviceSlideCardStatic}
+                onPress={() => {
+                  handleNav('/user/bookings/new', {
+                    state: {
+                      preSelectedCategory: serviceItem.category || serviceItem.name,
+                      bookingMode: 'complaint',
+                    },
+                  });
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={styles.serviceSquircleStatic}>
+                  {serviceItem.icon}
+                </View>
+                <View style={styles.serviceLabelRowStatic}>
+                  <Text style={styles.serviceSlideTitle}>{serviceItem.name}</Text>
+                  <Text style={styles.serviceArrowStatic}>→</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
       </View>
 
       <View style={styles.trustBanner}>
@@ -644,6 +869,75 @@ const styles = StyleSheet.create({
     height: '100%',
   },
 
+  servicesHeaderBlock: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 2,
+    marginTop: 18,
+    marginBottom: 4,
+  },
+  servicesHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0f172a',
+    letterSpacing: -0.3,
+  },
+  servicesHeaderSub: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  allServicesSection: {
+    marginTop: 4,
+    marginBottom: 6,
+    width: '100%',
+  },
+  servicesScrollContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+    gap: 14,
+  },
+  serviceSlideCardStatic: {
+    width: 76,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 6,
+  },
+  serviceSquircleStatic: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1.2,
+    borderColor: '#dbeafe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.06)',
+  },
+  serviceLabelRowStatic: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  serviceSlideTitle: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: '#1e293b',
+    textAlign: 'center',
+    lineHeight: 14,
+    fontFamily: "'Inter', sans-serif",
+  },
+  serviceArrowStatic: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+
   heroCardContainer: {
     position: 'relative',
     width: '100%',
@@ -689,132 +983,113 @@ const styles = StyleSheet.create({
 
   amcSection: {
     width: '100%',
-    gap: 9,
-    marginTop: 2,
-    marginBottom: 4,
+    gap: 12,
+    marginTop: 4,
+    marginBottom: 6,
   },
   amcHeaderBlock: {
-    gap: 2,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingHorizontal: 2,
   },
-  kickerRow: {
+  amcHeaderTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 1,
+    gap: 8,
   },
-  kickerLine: {
-    width: 14,
-    height: 2,
+  amcHeaderAccentBar: {
+    width: 22,
+    height: 3,
     backgroundColor: '#2563eb',
     borderRadius: 2,
   },
-  kickerText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#2563eb',
-    letterSpacing: 0.8,
-  },
   amcSectionTitle: {
     fontSize: 19,
-    fontWeight: '900',
+    fontWeight: '800',
     color: '#0f172a',
     letterSpacing: -0.3,
-    fontFamily: "'Outfit', 'Inter', sans-serif",
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   amcSectionSub: {
     fontSize: 12,
     color: '#64748b',
     fontWeight: '500',
   },
-  amcStack: {
-    flexDirection: 'column',
-    gap: 9,
+  amcLuxuryCard: {
     width: '100%',
-  },
-  amcCardNew: {
-    width: '100%',
-    borderRadius: 14,
+    minHeight: 140,
+    borderRadius: 20,
     borderWidth: 1.2,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11,
+    padding: 16,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
     position: 'relative',
-    overflow: 'hidden',
-    backgroundColor: '#ffffff',
-    boxShadow: '0 2px 10px rgba(15, 23, 42, 0.03)',
+    cursor: 'pointer',
+    transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease',
+    boxSizing: 'border-box',
   },
-  amcWatermarkWrap: {
-    position: 'absolute',
-    right: -8,
-    top: -8,
-    bottom: -8,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    opacity: 0.8,
-    zIndex: 0,
-  },
-  amcIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    zIndex: 1,
-  },
-  amcCardTextWrap: {
-    flex: 1,
-    minWidth: 0,
-    gap: 2,
-    zIndex: 1,
-  },
-  amcTitleBadgeRow: {
+  amcCardTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    flexWrap: 'nowrap',
+    justifyContent: 'space-between',
+    width: '100%',
   },
-  amcCardHeading: {
-    fontSize: 14,
+  amcLuxuryIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  amcComingSoonBadge: {
+    backgroundColor: '#1d4ed8',
+    borderRadius: 99,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  amcComingSoonBadgeText: {
+    color: '#ffffff',
+    fontSize: 10,
     fontWeight: '800',
-    color: '#0f172a',
-    fontFamily: "'Outfit', 'Inter', sans-serif",
+    letterSpacing: 0.2,
+  },
+  amcCardBody: {
+    marginVertical: 10,
+    gap: 4,
+  },
+  amcLuxuryHeading: {
+    fontSize: 16,
+    fontWeight: '800',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
     letterSpacing: -0.2,
   },
-  amcFreeBadgeBlue: {
-    backgroundColor: '#2563eb',
-    borderRadius: 99,
-    paddingHorizontal: 6,
-    paddingVertical: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  amcFreeBadgeBlueText: {
-    color: '#ffffff',
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  amcCardDescription: {
-    fontSize: 11.5,
-    color: '#64748b',
+  amcLuxurySub: {
+    fontSize: 12,
+    lineHeight: 17,
     fontWeight: '500',
-    lineHeight: 15,
   },
-  amcArrowCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#f0f7ff',
-    borderWidth: 1,
-    borderColor: '#e0effe',
+  amcCardFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 'auto',
+    paddingTop: 4,
+  },
+  amcLuxuryActionText: {
+    fontSize: 13,
+    fontWeight: '700',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  amcLuxuryCircleArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
-    zIndex: 1,
   },
 
   trustBanner: {
@@ -1334,19 +1609,17 @@ const marqueeWebCss = {
     overflow: 'hidden',
     position: 'relative',
     padding: '6px 0',
-    margin: '4px 0',
+    margin: '2px 0 6px',
     maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
     WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
-    pointerEvents: 'none',
   },
   track: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: '20px',
+    gap: '18px',
     width: 'max-content',
-    animation: 'marqueeScroll 24s linear infinite',
-    pointerEvents: 'none',
+    animation: 'marqueeScroll 26s linear infinite',
     userSelect: 'none',
   },
   card: {
@@ -1354,21 +1627,31 @@ const marqueeWebCss = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '8px',
-    width: '84px',
+    gap: '7px',
+    width: '76px',
     flexShrink: 0,
-    pointerEvents: 'none',
+    cursor: 'pointer',
+    transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   },
-  iconCircle: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '28px',
+  squircle: {
+    width: '64px',
+    height: '64px',
+    borderRadius: '20px',
+    background: 'linear-gradient(145deg, #f8faff 0%, #edf4fe 100%)',
+    border: '1.2px solid #d6e4ff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-    border: '1px solid rgba(0, 0, 0, 0.04)',
-    pointerEvents: 'none',
+    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.08), 0 1px 3px rgba(37, 99, 235, 0.04)',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+  },
+  labelWrap: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    width: '100%',
   },
   title: {
     fontSize: '11.5px',
@@ -1377,9 +1660,14 @@ const marqueeWebCss = {
     textAlign: 'center',
     lineHeight: '14px',
     fontFamily: "'Inter', sans-serif",
-    display: 'block',
-    width: '100%',
-    pointerEvents: 'none',
+    whiteSpace: 'nowrap',
+  },
+  arrow: {
+    fontSize: '11px',
+    fontWeight: 700,
+    color: '#2563eb',
+    lineHeight: '12px',
+    transition: 'transform 0.15s ease',
   },
 };
 

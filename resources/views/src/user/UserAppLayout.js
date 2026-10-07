@@ -22,6 +22,7 @@ export default function UserAppLayout() {
     path.includes('/rate');
 
   const showBottomNav = !isAuthPage && !isBookingFlow && !isBookingDetail && !isImmersive;
+  const isHomeTab = path === '/user/home' || path === '/user' || path === '/user/' || path.includes('/categories');
   const isAmcTab = path.includes('/my-amc') || path.includes('/wallet') || path.includes('/plans');
   const isBookingsTab = path.includes('/bookings') && !path.includes('/new') && !isBookingDetail;
   const isProfileTab = path.includes('/profile');
@@ -36,6 +37,24 @@ export default function UserAppLayout() {
         <View style={styles.bottomBar}>
           {/* Top Hairline Gloss Accent */}
           <View style={styles.topHairline} />
+
+          {/* TAB 0: Home */}
+          <TouchableOpacity
+            style={styles.tabItem}
+            onPress={() => navigate('/user/home')}
+            activeOpacity={0.78}
+          >
+            {isHomeTab && <View style={styles.homeActiveTopPip} />}
+            <View style={[styles.tabPill, isHomeTab && styles.activeHomeTabPill]}>
+              <VectorTabIcon
+                name="home"
+                active={isHomeTab}
+                activeColor="#2563eb"
+                inactiveColor="#64748b"
+              />
+            </View>
+            <Text style={[styles.tabLabel, isHomeTab && styles.activeHomeLabel]}>Home</Text>
+          </TouchableOpacity>
 
           {/* TAB 1: My AMC */}
           <TouchableOpacity
@@ -147,6 +166,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   },
+  activeHomeTabPill: {
+    backgroundColor: 'rgba(37, 99, 235, 0.12)',
+    boxShadow: '0 2px 10px rgba(37, 99, 235, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.25)',
+  },
   activeAmcTabPill: {
     backgroundColor: 'rgba(245, 158, 11, 0.14)',
     boxShadow: '0 2px 10px rgba(217, 119, 6, 0.16)',
@@ -164,6 +189,15 @@ const styles = StyleSheet.create({
     boxShadow: '0 2px 10px rgba(15, 23, 42, 0.10)',
     borderWidth: 1,
     borderColor: 'rgba(15, 23, 42, 0.18)',
+  },
+  homeActiveTopPip: {
+    position: 'absolute',
+    top: -8,
+    width: 20,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#2563eb',
+    boxShadow: '0 1px 6px rgba(37, 99, 235, 0.45)',
   },
   amcActiveTopPip: {
     position: 'absolute',
@@ -200,6 +234,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
     whiteSpace: 'nowrap',
     fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif",
+  },
+  activeHomeLabel: {
+    color: '#1d4ed8',
+    fontWeight: '800',
   },
   activeAmcLabel: {
     color: '#92400e',
