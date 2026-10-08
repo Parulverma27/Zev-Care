@@ -121,6 +121,7 @@ export const SERVICE_IMAGES = {
   heroBanner3: getImageUrl(require('../../assets/hero-banner-3.png')),
   footerBanner: getImageUrl(require('../../assets/services/footer-banner.jpg')),
   myAppliancesHero: getImageUrl(require('../../assets/my-appliances-hero.jpg')),
+  homeHeaderBg: getImageUrl(require('../../assets/home-header-bg.jpg')),
 
   // Login / Register Slideshow Images (login 1-4)
   loginSlide1: getImageUrl(require('../../assets/login-1.png')),

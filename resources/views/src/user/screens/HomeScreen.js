@@ -244,9 +244,28 @@ const ALL_SERVICES_SLIDESHOW = [
   },
 ];
 
+const SEARCH_PLACEHOLDERS = [
+  'Search for electrician...',
+  'Search for plumber...',
+  'Search for AC service...',
+  'Search for carpenter...',
+  'Search for dry cleaning...',
+  'Search for pest control...',
+  'Search for other services...',
+];
+
 export default function HomeScreen({ onNavigate }) {
   const { activeUser, updateProfile, banners } = useApp();
   const navigate = useNavigate();
+
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPlaceholderIdx((prev) => (prev + 1) % SEARCH_PLACEHOLDERS.length);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, []);
 
   const defaultAddr =
     (activeUser?.saved_addresses || []).find((a) => a.isDefault)?.address ||
@@ -354,6 +373,20 @@ export default function HomeScreen({ onNavigate }) {
     ? searchAllServices(searchQuery).slice(0, 8)
     : [];
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning,';
+    if (hour < 17) return 'Good afternoon,';
+    return 'Good evening,';
+  };
+
+  const displayName = React.useMemo(() => {
+    if (!activeUser || activeUser.isGuest || isAnonymous) return 'Parul';
+    const name = (activeUser.name || '').trim();
+    if (name) return name.split(' ')[0];
+    return 'Parul';
+  }, [activeUser, isAnonymous]);
+
   const handleNav = (path, paramObj) => {
     if (navigate) {
       navigate(path, paramObj);
@@ -396,12 +429,101 @@ export default function HomeScreen({ onNavigate }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-      <View style={styles.headerRow}>
-        <View style={styles.searchWrapper}>
-          <View style={styles.searchBox}>
+      {/* Luxury Hero Header (Exact match to reference design) */}
+      <View style={styles.luxuryHeroContainer}>
+        <View style={styles.luxuryHeroCard}>
+          <Image
+            source={{ uri: SERVICE_IMAGES.homeHeaderBg }}
+            style={styles.luxuryHeroBgImage}
+            resizeMode="cover"
+          />
+          <View style={styles.luxuryHeroGradientOverlay} />
+
+          {/* Top Brand & Status Row */}
+          <View style={styles.heroTopBar}>
+            {/* Left: Brand Identity in exact logo font */}
+            <TouchableOpacity
+              onPress={() => handleNav('/user/home')}
+              activeOpacity={0.85}
+              style={styles.heroBrandWrap}
+            >
+              <Text style={styles.heroBrandZevota}>Zevota</Text>
+              <Text style={styles.heroBrandCare}>CARE</Text>
+            </TouchableOpacity>
+
+            {/* Right: Greeting, Profile Avatar */}
+            <View style={styles.heroActionsRow}>
+              <View style={styles.heroGreetingBlock}>
+                <Text style={styles.heroGreetingSub}>{getGreeting()}</Text>
+                <Text style={styles.heroGreetingName}>{displayName}</Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.heroAvatarCircle}
+                onPress={() => handleNav('/user/profile')}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Go to profile"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Hero Headline & Subtitle */}
+          <View style={styles.heroTextContent}>
+            <Text style={styles.heroHeadline}>Your home,</Text>
+            <Text style={styles.heroHeadline}>
+              our <Text style={styles.heroHeadlineGold}>priority.</Text>
+            </Text>
+            <Text style={styles.heroSubHeadline}>
+              Trusted home services & AMC{'\n'}for a worry-free tomorrow.
+            </Text>
+          </View>
+        </View>
+
+        {/* Floating Pill Search Bar */}
+        <View style={styles.floatingSearchWrapper}>
+          <View style={styles.floatingSearchBox}>
             <span style={styles.searchIconSvg}><SvgSearch /></span>
+            {!searchQuery && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 42,
+                  right: 36,
+                  top: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  overflow: 'hidden',
+                  pointerEvents: 'none',
+                  zIndex: 2,
+                }}
+              >
+                <span
+                  key={placeholderIdx}
+                  className="search-ticker-item"
+                  style={{
+                    fontSize: '13.5px',
+                    fontWeight: 500,
+                    color: '#334155',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    display: 'block',
+                  }}
+                >
+                  {SEARCH_PLACEHOLDERS[placeholderIdx]}
+                </span>
+              </div>
+            )}
             <TextInput
-              style={styles.searchInput}
+              style={styles.floatingSearchInput}
               value={searchQuery}
               onChangeText={(text) => {
                 setSearchQuery(text);
@@ -410,8 +532,8 @@ export default function HomeScreen({ onNavigate }) {
               onFocus={() => {
                 if (searchQuery.trim().length > 0) setShowSuggestions(true);
               }}
-              placeholder="What do you need help with?"
-              placeholderTextColor="#94a3b8"
+              placeholder=""
+              placeholderTextColor="transparent"
             />
             {searchQuery.trim().length > 0 && (
               <TouchableOpacity
@@ -419,7 +541,7 @@ export default function HomeScreen({ onNavigate }) {
                   setSearchQuery('');
                   setShowSuggestions(false);
                 }}
-                style={{ padding: 6, marginRight: 4 }}
+                style={{ padding: 6, marginRight: 2, zIndex: 10 }}
               >
                 <AppIcon name="x" size={14} color="#94a3b8" />
               </TouchableOpacity>
@@ -558,94 +680,175 @@ export default function HomeScreen({ onNavigate }) {
 
         <style>{`
           .amc-cards-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             width: 100%;
+          }
+          .amc-card-col {
+            display: flex;
+            width: 100%;
+          }
+          .amc-card-plans {
+            grid-column: 1 / -1;
+          }
+          .amc-card-complaints {
+            grid-column: 1;
+          }
+          .amc-card-mechanic {
+            grid-column: 2;
           }
           @media (min-width: 768px) {
             .amc-cards-container {
-              display: grid;
               grid-template-columns: repeat(3, 1fr);
               gap: 14px;
+            }
+            .amc-card-plans {
+              grid-column: auto;
             }
           }
         `}</style>
         <div className="amc-cards-container">
           {AMC_HOME_ACTIONS.map((item) => (
-            <TouchableOpacity
-              key={item.key}
-              style={[
-                styles.amcLuxuryCard,
-                {
-                  backgroundImage: item.cardBg,
-                  borderColor: item.borderColor,
-                  boxShadow: item.boxShadow,
-                },
-              ]}
-              onPress={() => handleNav(item.route, { state: {} })}
-              activeOpacity={0.88}
-            >
-              {/* Top Row: Circular Icon + Optional Badge */}
-              <View style={styles.amcCardTopRow}>
-                <View
-                  style={[
-                    styles.amcLuxuryIconCircle,
-                    {
-                      backgroundColor: item.iconBg,
-                      border: item.iconBorder,
-                    },
-                  ]}
-                >
-                  {item.icon}
-                </View>
-                {item.badge ? (
-                  <View style={styles.amcComingSoonBadge}>
-                    <Text style={styles.amcComingSoonBadgeText}>{item.badge}</Text>
+            <div key={item.key} className={`amc-card-col amc-card-${item.key}`}>
+              <TouchableOpacity
+                style={[
+                  styles.amcLuxuryCard,
+                  item.key === 'plans' ? styles.amcLuxuryCardFeatured : styles.amcLuxuryCardCompact,
+                  {
+                    backgroundImage: item.cardBg,
+                    borderColor: item.borderColor,
+                    boxShadow: item.boxShadow,
+                  },
+                ]}
+                onPress={() => handleNav(item.route, { state: {} })}
+                activeOpacity={0.88}
+              >
+                {item.key === 'plans' ? (
+                  <View style={styles.amcPlansBannerRow}>
+                    <View style={styles.amcPlansBannerLeft}>
+                      <View
+                        style={[
+                          styles.amcLuxuryIconCircle,
+                          {
+                            backgroundColor: item.iconBg,
+                            border: item.iconBorder,
+                            marginBottom: 8,
+                          },
+                        ]}
+                      >
+                        {item.icon}
+                      </View>
+                      <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 16 }]}>
+                        {item.title}
+                      </Text>
+                      <Text style={[styles.amcLuxurySub, { color: item.subColor, marginTop: 2, fontSize: 12 }]}>
+                        {item.subtitle}
+                      </Text>
+                    </View>
+                    <View style={styles.amcPlansBannerRight}>
+                      <View
+                        style={[
+                          styles.amcLuxuryCircleArrow,
+                          {
+                            backgroundColor: item.circleBtnBg,
+                            border: item.circleBtnBorder || 'none',
+                            width: 34,
+                            height: 34,
+                            borderRadius: 17,
+                          },
+                        ]}
+                      >
+                        <svg
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke={item.circleBtnColor}
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                          <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                      </View>
+                      <Text style={[styles.amcLuxuryActionText, { color: item.actionColor, fontSize: 11.5, marginTop: 6, fontWeight: '700' }]}>
+                        {item.actionLabel} →
+                      </Text>
+                    </View>
                   </View>
-                ) : null}
-              </View>
+                ) : (
+                  <>
+                    {/* Top Row: Circular Icon + Optional Badge */}
+                    <View style={styles.amcCardTopRow}>
+                      <View
+                        style={[
+                          styles.amcLuxuryIconCircle,
+                          {
+                            backgroundColor: item.iconBg,
+                            border: item.iconBorder,
+                            width: 38,
+                            height: 38,
+                            borderRadius: 19,
+                          },
+                        ]}
+                      >
+                        {item.icon}
+                      </View>
+                      {item.badge ? (
+                        <View style={styles.amcComingSoonBadge}>
+                          <Text style={styles.amcComingSoonBadgeText}>{item.badge}</Text>
+                        </View>
+                      ) : null}
+                    </View>
 
-              {/* Middle: Title & Subtitle */}
-              <View style={styles.amcCardBody}>
-                <Text style={[styles.amcLuxuryHeading, { color: item.titleColor }]}>
-                  {item.title}
-                </Text>
-                <Text style={[styles.amcLuxurySub, { color: item.subColor }]}>
-                  {item.subtitle}
-                </Text>
-              </View>
+                    {/* Middle: Title & Subtitle */}
+                    <View style={styles.amcCardBody}>
+                      <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 14 }]}>
+                        {item.title}
+                      </Text>
+                      <Text style={[styles.amcLuxurySub, { color: item.subColor, fontSize: 11, lineHeight: 15 }]}>
+                        {item.subtitle}
+                      </Text>
+                    </View>
 
-              {/* Bottom: Action Text & Circle Arrow Button */}
-              <View style={styles.amcCardFooterRow}>
-                <Text style={[styles.amcLuxuryActionText, { color: item.actionColor }]}>
-                  {item.actionLabel} →
-                </Text>
-                <View
-                  style={[
-                    styles.amcLuxuryCircleArrow,
-                    {
-                      backgroundColor: item.circleBtnBg,
-                      border: item.circleBtnBorder || 'none',
-                    },
-                  ]}
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={item.circleBtnColor}
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                    <polyline points="12 5 19 12 12 19" />
-                  </svg>
-                </View>
-              </View>
-            </TouchableOpacity>
+                    {/* Bottom: Action Text & Circle Arrow Button */}
+                    <View style={styles.amcCardFooterRow}>
+                      <Text style={[styles.amcLuxuryActionText, { color: item.actionColor, fontSize: 11.5 }]}>
+                        {item.actionLabel} →
+                      </Text>
+                      <View
+                        style={[
+                          styles.amcLuxuryCircleArrow,
+                          {
+                            backgroundColor: item.circleBtnBg,
+                            border: item.circleBtnBorder || 'none',
+                            width: 26,
+                            height: 26,
+                            borderRadius: 13,
+                          },
+                        ]}
+                      >
+                        <svg
+                          width="11"
+                          height="11"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke={item.circleBtnColor}
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                          <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                      </View>
+                    </View>
+                  </>
+                )}
+              </TouchableOpacity>
+            </div>
           ))}
         </div>
       </View>
@@ -816,15 +1019,209 @@ export default function HomeScreen({ onNavigate }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#ffffff', width: '100%' },
-  content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 100, gap: 14, width: '100%', boxSizing: 'border-box' },
+  content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 100, gap: 12, width: '100%', boxSizing: 'border-box' },
 
-  headerRow: {
+  /* Luxury Frontpage Hero Section */
+  luxuryHeroContainer: {
+    marginHorizontal: -12,
+    position: 'relative',
+    marginTop: 0,
+    marginBottom: 18,
+    zIndex: 100,
+  },
+  luxuryHeroCard: {
+    width: '100%',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
+    overflow: 'hidden',
+    position: 'relative',
+    minHeight: 196,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 34,
+    backgroundColor: '#091836',
+    boxShadow: '0 12px 32px rgba(9, 24, 54, 0.28)',
+  },
+  luxuryHeroBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  luxuryHeroGradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    ...(Platform.OS === 'web'
+      ? {
+          background: 'linear-gradient(90deg, rgba(5, 16, 42, 0.94) 0%, rgba(5, 16, 42, 0.82) 42%, rgba(5, 16, 42, 0.38) 75%, rgba(5, 16, 42, 0.08) 100%)',
+        }
+      : { backgroundColor: 'rgba(5, 16, 42, 0.75)' }),
+  },
+  heroTopBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 2,
+    width: '100%',
+    zIndex: 10,
+    marginBottom: 16,
+    gap: 8,
+  },
+  heroBrandWrap: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  heroBrandZevota: {
+    fontSize: 25,
+    fontWeight: '800',
+    color: '#ffffff',
+    letterSpacing: -0.4,
+    lineHeight: 28,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  heroBrandCare: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#e2e8f0',
+    letterSpacing: 2.8,
+    marginTop: -1,
+    paddingLeft: 18,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  heroActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
-    zIndex: 1000,
+  },
+  heroGreetingBlock: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  heroGreetingSub: {
+    fontSize: 11,
+    color: '#94a3b8',
+    fontWeight: '500',
+    lineHeight: 14,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  heroGreetingName: {
+    fontSize: 14.5,
+    color: '#ffffff',
+    fontWeight: '700',
+    lineHeight: 17,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  heroAvatarCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  heroBellBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    cursor: 'pointer',
+  },
+  heroBellDot: {
+    position: 'absolute',
+    top: 4,
+    right: 5,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#f59e0b',
+    borderWidth: 1.2,
+    borderColor: '#0A192F',
+  },
+  heroTextContent: {
+    width: '100%',
+    zIndex: 10,
+    paddingLeft: 2,
+    marginBottom: 4,
+  },
+  heroHeadline: {
+    fontSize: 27,
+    fontWeight: '700',
+    color: '#ffffff',
+    lineHeight: 33,
+    letterSpacing: -0.4,
+    fontFamily: "'Playfair Display', Georgia, serif",
+  },
+  heroHeadlineGold: {
+    color: '#E5B869',
+    fontStyle: 'italic',
+    fontFamily: "'Playfair Display', Georgia, serif",
+  },
+  heroSubHeadline: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: '#cbd5e1',
+    fontWeight: '400',
+    marginTop: 8,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  floatingSearchWrapper: {
+    position: 'absolute',
+    bottom: -22,
+    left: 6,
+    right: 6,
+    zIndex: 999,
+  },
+  floatingSearchBox: {
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 999,
+    paddingLeft: 14,
+    paddingRight: 10,
+    height: 46,
+    borderWidth: 1,
+    borderColor: 'rgba(226, 232, 240, 0.9)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04)',
+  },
+  floatingSearchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    fontSize: 13.5,
+    color: '#0f172a',
+    outlineStyle: 'none',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    zIndex: 1,
+    backgroundColor: 'transparent',
+  },
+  searchDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: '#e2e8f0',
+    marginHorizontal: 6,
+  },
+  filterBtn: {
+    padding: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
   },
   headerLogoBtn: {
     width: 42,
@@ -1006,16 +1403,41 @@ const styles = StyleSheet.create({
   },
   amcLuxuryCard: {
     width: '100%',
-    minHeight: 140,
     borderRadius: 20,
     borderWidth: 1.2,
-    padding: 16,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
     position: 'relative',
     cursor: 'pointer',
     transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease',
     boxSizing: 'border-box',
+  },
+  amcLuxuryCardFeatured: {
+    minHeight: 104,
+    padding: 16,
+    justifyContent: 'center',
+  },
+  amcLuxuryCardCompact: {
+    minHeight: 142,
+    padding: 14,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
+  amcPlansBannerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 12,
+  },
+  amcPlansBannerLeft: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  amcPlansBannerRight: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    paddingLeft: 6,
   },
   amcCardTopRow: {
     flexDirection: 'row',
@@ -1664,9 +2086,29 @@ const exploreGridCss = {
 
 function SvgSearch() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
+function SvgFilter() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="9" y1="4" x2="9" y2="20" />
+      <line x1="15" y1="4" x2="15" y2="20" />
+      <line x1="6" y1="15" x2="12" y2="15" />
+      <line x1="12" y1="9" x2="18" y2="9" />
+    </svg>
+  );
+}
+
+function SvgBell() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
   );
 }

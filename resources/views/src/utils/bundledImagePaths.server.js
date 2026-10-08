@@ -103,6 +103,7 @@ export const SERVICE_IMAGES = {
   heroBanner: '/assets/home-hero-banner.png',
   homeHeroBanner: '/assets/home-hero-banner.png',
   footerBanner: '/assets/services/footer-banner.jpg',
+  homeHeaderBg: '/assets/home-header-bg.jpg',
 };
 
 export const CATEGORY_IMAGE_FALLBACKS = {
