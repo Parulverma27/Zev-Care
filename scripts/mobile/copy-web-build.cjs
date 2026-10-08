@@ -66,6 +66,24 @@ if (fs.existsSync(faviconSrc)) {
   fs.copyFileSync(faviconSrc, faviconDest);
 }
 
+const silverSilkSrc = path.join(viewsDir, 'assets', 'silver_silk_bg.jpg');
+if (fs.existsSync(silverSilkSrc)) {
+  fs.copyFileSync(silverSilkSrc, path.join(distDir, 'silver_silk_bg.jpg'));
+  fs.copyFileSync(silverSilkSrc, path.join(targetDir, 'silver_silk_bg.jpg'));
+}
+
+const goldSilkSrc = path.join(viewsDir, 'assets', 'gold_silk_bg.jpg');
+if (fs.existsSync(goldSilkSrc)) {
+  fs.copyFileSync(goldSilkSrc, path.join(distDir, 'gold_silk_bg.jpg'));
+  fs.copyFileSync(goldSilkSrc, path.join(targetDir, 'gold_silk_bg.jpg'));
+}
+
+const platinumSilkSrc = path.join(viewsDir, 'assets', 'platinum_silk_bg.jpg');
+if (fs.existsSync(platinumSilkSrc)) {
+  fs.copyFileSync(platinumSilkSrc, path.join(distDir, 'platinum_silk_bg.jpg'));
+  fs.copyFileSync(platinumSilkSrc, path.join(targetDir, 'platinum_silk_bg.jpg'));
+}
+
 const indexPath = path.join(targetDir, 'index.html');
 if (fs.existsSync(indexPath)) {
   let html = fs.readFileSync(indexPath, 'utf8');

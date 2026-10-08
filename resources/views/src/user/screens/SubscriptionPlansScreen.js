@@ -124,122 +124,152 @@ const COMMON_APPLIANCES = [
 
 /**
  * Returns dynamic styling palette for the active purchased card
- * matching the exact color theme of the active plan (Gold, Silver, or Platinum).
+ * matching the exact metallic liquid silk color theme of the active plan (Gold, Silver, or Platinum).
  */
 const getActiveCardPalette = (name) => {
   const n = String(name || '').toLowerCase();
   if (n.includes('gold')) {
     return {
-      cardBg: 'linear-gradient(145deg, #241904 0%, #171002 55%, #0f0a01 100%)',
-      borderColor: '#d4af37',
-      glow: '0 14px 42px rgba(212, 175, 55, 0.32), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
-      badgeBg: 'rgba(212, 175, 55, 0.25)',
-      badgeBorder: '#d4af37',
-      badgeText: '#fef08a',
-      chipBg: 'rgba(212, 175, 55, 0.12)',
-      chipBorder: 'rgba(212, 175, 55, 0.4)',
-      chipText: '#fef9c3',
-      balanceLabel: '#fbbf24',
+      isGold: true,
+      cardBg: "linear-gradient(135deg, rgba(255, 255, 255, 0.38) 0%, rgba(254, 240, 138, 0.22) 42%, rgba(180, 83, 9, 0.12) 100%), url('/gold_silk_bg.jpg') center / cover no-repeat",
+      cardBgSolid: '#d97706',
+      borderColor: '#eab308',
+      glow: '0 14px 42px rgba(217, 119, 6, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.85)',
+      badgeBg: 'rgba(14, 9, 3, 0.82)',
+      badgeBorder: 'rgba(250, 204, 21, 0.65)',
+      badgeText: '#fde047',
+      daysPillBg: '#ffffff',
+      daysPillText: '#78350f',
+      chipBg: 'rgba(14, 9, 3, 0.78)',
+      chipBorder: 'rgba(250, 204, 21, 0.45)',
+      chipText: '#ffffff',
+      balanceBoxBg: 'rgba(14, 9, 3, 0.82)',
+      balanceBoxBorder: 'rgba(250, 204, 21, 0.38)',
+      balanceLabel: '#fde047',
       balanceAmount: '#ffffff',
-      meterFill: '#d4af37',
-      meterTrack: 'rgba(212, 175, 55, 0.2)',
-      actionBtnBg: 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(180, 140, 20, 0.15) 100%)',
-      actionBtnBorder: '#d4af37',
-      actionIconBg: '#d4af37',
+      meterFill: '#facc15',
+      meterTrack: 'rgba(0, 0, 0, 0.55)',
+      meterLegendText: '#fef08a',
+      actionBtnBg: 'rgba(14, 9, 3, 0.82)',
+      actionBtnBorder: 'rgba(250, 204, 21, 0.45)',
+      actionIconBg: '#facc15',
       actionIconColor: '#451a03',
       actionBtnTitle: '#ffffff',
-      actionBtnSub: '#fef08a',
-      outlineBtnBg: 'rgba(255, 255, 255, 0.05)',
-      outlineBtnBorder: 'rgba(212, 175, 55, 0.35)',
-      outlineIconBg: 'rgba(212, 175, 55, 0.2)',
-      outlineIconColor: '#fbbf24',
+      actionBtnSub: '#fde047',
+      outlineBtnBg: 'rgba(14, 9, 3, 0.82)',
+      outlineBtnBorder: 'rgba(250, 204, 21, 0.38)',
+      outlineIconBg: 'rgba(250, 204, 21, 0.22)',
+      outlineIconColor: '#fde047',
       outlineBtnTitle: '#ffffff',
       outlineBtnSub: '#fde047',
-      copyIconColor: '#fef08a',
-      timelineTrack: 'rgba(212, 175, 55, 0.18)',
-      timelineFill: '#d4af37',
-      timelineHighlight: '#fbbf24',
-      daysPillBg: '#fef3c7',
-      daysPillText: '#78350f',
-      exploreBtnBg: 'rgba(212, 175, 55, 0.15)',
-      exploreBtnBorder: 'rgba(212, 175, 55, 0.4)',
-      exploreBtnText: '#fef08a',
+      copyIconColor: '#fde047',
+      timelineBg: 'rgba(14, 9, 3, 0.85)',
+      timelineBorder: 'rgba(250, 204, 21, 0.35)',
+      timelineTrack: 'rgba(255, 255, 255, 0.18)',
+      timelineFill: '#facc15',
+      timelineHighlight: '#fde047',
+      timelineLabel: '#fde047',
+      timelineVal: '#ffffff',
+      exploreBtnBg: 'rgba(14, 9, 3, 0.88)',
+      exploreBtnBorder: 'rgba(250, 204, 21, 0.55)',
+      exploreBtnText: '#fde047',
+      vignetteBg: 'linear-gradient(180deg, rgba(120, 53, 15, 0.08) 0%, rgba(69, 26, 3, 0.28) 55%, rgba(20, 8, 2, 0.48) 100%)',
     };
   }
   if (n.includes('platinum')) {
     return {
-      cardBg: 'linear-gradient(145deg, #131d2e 0%, #0d1522 55%, #080c14 100%)',
-      borderColor: '#60a5fa',
-      glow: '0 14px 42px rgba(96, 165, 250, 0.32), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
-      badgeBg: 'rgba(59, 130, 246, 0.25)',
-      badgeBorder: '#60a5fa',
-      badgeText: '#bfdbfe',
-      chipBg: 'rgba(59, 130, 246, 0.12)',
-      chipBorder: 'rgba(96, 165, 250, 0.4)',
-      chipText: '#e0f2fe',
+      isPlatinum: true,
+      cardBg: "linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(224, 242, 254, 0.16) 45%, rgba(15, 23, 42, 0.28) 100%), url('/platinum_silk_bg.jpg') center / cover no-repeat",
+      cardBgSolid: '#334155',
+      borderColor: '#94a3b8',
+      glow: '0 14px 42px rgba(51, 65, 85, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.85)',
+      badgeBg: 'rgba(10, 15, 26, 0.82)',
+      badgeBorder: 'rgba(147, 197, 253, 0.65)',
+      badgeText: '#93c5fd',
+      daysPillBg: '#ffffff',
+      daysPillText: '#0f172a',
+      chipBg: 'rgba(10, 15, 26, 0.78)',
+      chipBorder: 'rgba(147, 197, 253, 0.45)',
+      chipText: '#ffffff',
+      balanceBoxBg: 'rgba(10, 15, 26, 0.82)',
+      balanceBoxBorder: 'rgba(147, 197, 253, 0.38)',
       balanceLabel: '#93c5fd',
       balanceAmount: '#ffffff',
-      meterFill: '#3b82f6',
-      meterTrack: 'rgba(59, 130, 246, 0.2)',
-      actionBtnBg: 'linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%)',
-      actionBtnBorder: '#60a5fa',
-      actionIconBg: '#3b82f6',
-      actionIconColor: '#ffffff',
+      meterFill: '#60a5fa',
+      meterTrack: 'rgba(0, 0, 0, 0.55)',
+      meterLegendText: '#e0f2fe',
+      actionBtnBg: 'rgba(10, 15, 26, 0.82)',
+      actionBtnBorder: 'rgba(147, 197, 253, 0.45)',
+      actionIconBg: '#93c5fd',
+      actionIconColor: '#0f172a',
       actionBtnTitle: '#ffffff',
-      actionBtnSub: '#93c5fd',
-      outlineBtnBg: 'rgba(255, 255, 255, 0.05)',
-      outlineBtnBorder: 'rgba(96, 165, 250, 0.35)',
-      outlineIconBg: 'rgba(59, 130, 246, 0.2)',
-      outlineIconColor: '#60a5fa',
+      actionBtnSub: '#bfdbfe',
+      outlineBtnBg: 'rgba(10, 15, 26, 0.82)',
+      outlineBtnBorder: 'rgba(147, 197, 253, 0.38)',
+      outlineIconBg: 'rgba(147, 197, 253, 0.22)',
+      outlineIconColor: '#bfdbfe',
       outlineBtnTitle: '#ffffff',
-      outlineBtnSub: '#93c5fd',
-      copyIconColor: '#93c5fd',
-      timelineTrack: 'rgba(59, 130, 246, 0.18)',
-      timelineFill: '#3b82f6',
-      timelineHighlight: '#60a5fa',
-      daysPillBg: '#dbeafe',
-      daysPillText: '#1e3a8a',
-      exploreBtnBg: 'rgba(59, 130, 246, 0.15)',
-      exploreBtnBorder: 'rgba(96, 165, 250, 0.4)',
-      exploreBtnText: '#bfdbfe',
+      outlineBtnSub: '#bfdbfe',
+      copyIconColor: '#bfdbfe',
+      timelineBg: 'rgba(10, 15, 26, 0.85)',
+      timelineBorder: 'rgba(147, 197, 253, 0.35)',
+      timelineTrack: 'rgba(255, 255, 255, 0.18)',
+      timelineFill: '#60a5fa',
+      timelineHighlight: '#93c5fd',
+      timelineLabel: '#93c5fd',
+      timelineVal: '#ffffff',
+      exploreBtnBg: 'rgba(10, 15, 26, 0.88)',
+      exploreBtnBorder: 'rgba(147, 197, 253, 0.55)',
+      exploreBtnText: '#93c5fd',
+      vignetteBg: 'linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.3) 55%, rgba(10, 15, 30, 0.5) 100%)',
     };
   }
   // Silver
   return {
-    cardBg: 'linear-gradient(145deg, #1e2430 0%, #141922 55%, #0b0e14 100%)',
+    isSilver: true,
+    cardBg: "linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(220, 230, 242, 0.08) 45%, rgba(15, 23, 42, 0.25) 100%), url('/silver_silk_bg.jpg') center / cover no-repeat",
+    cardBgSolid: '#64748b',
     borderColor: '#94a3b8',
-    glow: '0 14px 42px rgba(148, 163, 184, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
-    badgeBg: 'rgba(148, 163, 184, 0.25)',
-    badgeBorder: '#94a3b8',
-    badgeText: '#f1f5f9',
-    chipBg: 'rgba(148, 163, 184, 0.12)',
-    chipBorder: 'rgba(148, 163, 184, 0.4)',
-    chipText: '#f8fafc',
+    glow: '0 14px 42px rgba(71, 85, 105, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.85)',
+    badgeBg: 'rgba(12, 18, 28, 0.82)',
+    badgeBorder: 'rgba(203, 213, 225, 0.65)',
+    badgeText: '#e2e8f0',
+    daysPillBg: '#ffffff',
+    daysPillText: '#0f172a',
+    chipBg: 'rgba(12, 18, 28, 0.78)',
+    chipBorder: 'rgba(203, 213, 225, 0.45)',
+    chipText: '#ffffff',
+    balanceBoxBg: 'rgba(12, 18, 28, 0.82)',
+    balanceBoxBorder: 'rgba(203, 213, 225, 0.38)',
     balanceLabel: '#cbd5e1',
     balanceAmount: '#ffffff',
-    meterFill: '#94a3b8',
-    meterTrack: 'rgba(148, 163, 184, 0.2)',
-    actionBtnBg: 'linear-gradient(135deg, rgba(148, 163, 184, 0.25) 0%, rgba(100, 116, 139, 0.15) 100%)',
-    actionBtnBorder: '#94a3b8',
-    actionIconBg: '#94a3b8',
+    meterFill: '#cbd5e1',
+    meterTrack: 'rgba(0, 0, 0, 0.55)',
+    meterLegendText: '#e2e8f0',
+    actionBtnBg: 'rgba(12, 18, 28, 0.82)',
+    actionBtnBorder: 'rgba(203, 213, 225, 0.45)',
+    actionIconBg: '#e2e8f0',
     actionIconColor: '#0f172a',
     actionBtnTitle: '#ffffff',
-    actionBtnSub: '#cbd5e1',
-    outlineBtnBg: 'rgba(255, 255, 255, 0.05)',
-    outlineBtnBorder: 'rgba(148, 163, 184, 0.35)',
-    outlineIconBg: 'rgba(148, 163, 184, 0.2)',
-    outlineIconColor: '#94a3b8',
+    actionBtnSub: '#e2e8f0',
+    outlineBtnBg: 'rgba(12, 18, 28, 0.82)',
+    outlineBtnBorder: 'rgba(203, 213, 225, 0.38)',
+    outlineIconBg: 'rgba(203, 213, 225, 0.22)',
+    outlineIconColor: '#e2e8f0',
     outlineBtnTitle: '#ffffff',
-    outlineBtnSub: '#cbd5e1',
+    outlineBtnSub: '#e2e8f0',
     copyIconColor: '#e2e8f0',
-    timelineTrack: 'rgba(148, 163, 184, 0.18)',
-    timelineFill: '#94a3b8',
-    timelineHighlight: '#e2e8f0',
-    daysPillBg: '#f1f5f9',
-    daysPillText: '#334155',
-    exploreBtnBg: 'rgba(148, 163, 184, 0.15)',
-    exploreBtnBorder: 'rgba(148, 163, 184, 0.4)',
+    timelineBg: 'rgba(12, 18, 28, 0.85)',
+    timelineBorder: 'rgba(203, 213, 225, 0.35)',
+    timelineTrack: 'rgba(255, 255, 255, 0.18)',
+    timelineFill: '#cbd5e1',
+    timelineHighlight: '#f1f5f9',
+    timelineLabel: '#cbd5e1',
+    timelineVal: '#ffffff',
+    exploreBtnBg: 'rgba(12, 18, 28, 0.88)',
+    exploreBtnBorder: 'rgba(203, 213, 225, 0.55)',
     exploreBtnText: '#e2e8f0',
+    vignetteBg: 'linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.3) 55%, rgba(10, 15, 30, 0.5) 100%)',
   };
 };
 
@@ -791,148 +821,237 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
         <View style={styles.purchasedCardWrapper}>
           <div
             style={{
-              background: activeCardPalette.cardBg,
+              backgroundColor: activeCardPalette.cardBgSolid,
               borderRadius: '22px',
               padding: '20px 18px',
-              border: `1.8px solid ${activeCardPalette.borderColor}`,
+              border: `2px solid ${activeCardPalette.borderColor}`,
               boxShadow: activeCardPalette.glow,
               position: 'relative',
+              overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
               gap: '16px',
             }}
           >
-            {/* Top Row: VIP Status Badge on Left, Days Left on Right */}
-            <View style={styles.purchasedTopRow}>
-              <View style={[styles.cardTierBadge, { backgroundColor: activeCardPalette.badgeBg, borderColor: activeCardPalette.badgeBorder }]}>
-                <Text style={[styles.cardTierBadgeText, { color: activeCardPalette.badgeText }]}>
-                  {contractDetails.tierBadge}
-                </Text>
+            {/* Silky Metallic Base Texture Layer (Crisp defined metallic silk texture with minimal 0.8px blur) */}
+            <div
+              style={{
+                position: 'absolute',
+                top: -4,
+                left: -4,
+                right: -4,
+                bottom: -4,
+                background: activeCardPalette.cardBg,
+                backgroundColor: activeCardPalette.cardBgSolid,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                filter: 'blur(0.8px)',
+                WebkitFilter: 'blur(0.8px)',
+                transform: 'scale(1.02)',
+                zIndex: 0,
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Metallic Specular Chrome/Gold Sheen (Intense High-Luster Light Sweep) */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: activeCardPalette.isGold
+                  ? 'linear-gradient(118deg, transparent 10%, rgba(255, 255, 255, 0.14) 28%, rgba(255, 255, 255, 0.58) 46%, rgba(255, 255, 255, 0.95) 51%, rgba(255, 245, 160, 0.5) 56%, transparent 78%)'
+                  : 'linear-gradient(118deg, transparent 12%, rgba(255, 255, 255, 0.12) 30%, rgba(255, 255, 255, 0.55) 47%, rgba(255, 255, 255, 0.92) 51%, rgba(255, 255, 255, 0.42) 56%, transparent 80%)',
+                mixBlendMode: 'screen',
+                pointerEvents: 'none',
+                zIndex: 1,
+              }}
+            />
+
+            {/* Specular Radial Light Reflection (Metallic Glint Hotspot) */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-25%',
+                left: '10%',
+                width: '80%',
+                height: '150%',
+                background: 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.16) 38%, transparent 72%)',
+                mixBlendMode: 'overlay',
+                pointerEvents: 'none',
+                zIndex: 1,
+              }}
+            />
+
+            {/* Theme-Aware Vignette / Readability Underlay */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: activeCardPalette.vignetteBg,
+                zIndex: 1,
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Content Layer (Pin-Sharp & High Contrast, zIndex: 2) */}
+            <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Top Row: VIP Status Badge on Left, Days Left on Right */}
+              <View style={styles.purchasedTopRow}>
+                <View style={[styles.cardTierBadge, { backgroundColor: activeCardPalette.badgeBg, borderColor: activeCardPalette.badgeBorder }]}>
+                  <Text style={[styles.cardTierBadgeText, { color: activeCardPalette.badgeText, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                    {contractDetails.tierBadge}
+                  </Text>
+                </View>
+
+                <View style={[styles.daysLeftBadge, { backgroundColor: activeCardPalette.daysPillBg, boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }]}>
+                  <IconClock size={12} color={activeCardPalette.daysPillText} />
+                  <Text style={[styles.daysLeftBadgeText, { color: activeCardPalette.daysPillText }]}>
+                    {usage.days.left} days left
+                  </Text>
+                </View>
               </View>
 
-              <View style={[styles.daysLeftBadge, { backgroundColor: activeCardPalette.daysPillBg }]}>
-                <IconClock size={12} color={activeCardPalette.daysPillText} />
-                <Text style={[styles.daysLeftBadgeText, { color: activeCardPalette.daysPillText }]}>
-                  {usage.days.left} days left
+              {/* Plan Name & Contract Number Row (Spacious & Clean, Zero Overlap) */}
+              <View style={styles.purchasedPlanRow}>
+                <Text style={[styles.cardPlanName, { textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)' }]}>
+                  {contractDetails.planName}
                 </Text>
+                <View style={[styles.contractNumChip, { backgroundColor: activeCardPalette.chipBg, borderColor: activeCardPalette.chipBorder, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }]}>
+                  <Text style={[styles.contractNumText, { color: activeCardPalette.chipText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                    #{contractDetails.contractNo}
+                  </Text>
+                  <TouchableOpacity onPress={handleCopyContractNo} style={{ padding: 2 }} activeOpacity={0.7}>
+                    {copiedContract ? (
+                      <IconCheck size={12} color="#4ade80" />
+                    ) : (
+                      <IconCopy size={12} color={activeCardPalette.copyIconColor} />
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
 
-            {/* Plan Name & Contract Number Row (Spacious & Clean, Zero Overlap) */}
-            <View style={styles.purchasedPlanRow}>
-              <Text style={styles.cardPlanName}>{contractDetails.planName}</Text>
-              <View style={[styles.contractNumChip, { backgroundColor: activeCardPalette.chipBg, borderColor: activeCardPalette.chipBorder }]}>
-                <Text style={[styles.contractNumText, { color: activeCardPalette.chipText }]}>
-                  #{contractDetails.contractNo}
+              {/* Available Balance Section */}
+              <View style={[styles.balanceBox, { backgroundColor: activeCardPalette.balanceBoxBg, borderColor: activeCardPalette.balanceBoxBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}>
+                <Text style={[styles.balanceLabel, { color: activeCardPalette.balanceLabel, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                  AVAILABLE AMC BALANCE
                 </Text>
-                <TouchableOpacity onPress={handleCopyContractNo} style={{ padding: 2 }} activeOpacity={0.7}>
-                  {copiedContract ? (
-                    <IconCheck size={12} color="#4ade80" />
-                  ) : (
-                    <IconCopy size={12} color={activeCardPalette.copyIconColor} />
-                  )}
+                <Text style={[styles.balanceAmount, { textShadow: '0 2px 6px rgba(0,0,0,0.7)' }]}>
+                  {formatMoney(usage.balance.remaining)}
+                </Text>
+                <View style={[styles.meterTrack, { backgroundColor: activeCardPalette.meterTrack }]}>
+                  <View style={[styles.meterFill, { width: `${usage.balance.pctLeft}%`, backgroundColor: activeCardPalette.meterFill }]} />
+                </View>
+                <View style={styles.meterLegendRow}>
+                  <Text style={[styles.meterLegend, { color: activeCardPalette.meterLegendText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                    {usage.balance.pctLeft}% left • Used {formatMoney(usage.balance.used)}
+                  </Text>
+                  <Text style={[styles.meterLegend, { color: activeCardPalette.meterLegendText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                    of {formatLakh(usage.balance.total)}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Card Action Buttons: Add Appliance & My AMC History */}
+              <View style={styles.cardActionsRow}>
+                <TouchableOpacity
+                  style={[styles.cardActionBtn, { background: activeCardPalette.actionBtnBg, borderColor: activeCardPalette.actionBtnBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}
+                  onPress={() => {
+                    setWizardTargetPlan(null);
+                    setViewMode('WIZARD');
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <View style={[styles.cardActionIconCircle, { backgroundColor: activeCardPalette.actionIconBg }]}>
+                    <IconPlus size={14} color={activeCardPalette.actionIconColor} />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={[styles.cardActionBtnTitle, { color: activeCardPalette.actionBtnTitle, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                      Add Appliance
+                    </Text>
+                    <Text style={[styles.cardActionBtnSub, { color: activeCardPalette.actionBtnSub, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                      Unlimited Appliances
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.cardActionBtn, { background: activeCardPalette.outlineBtnBg, borderColor: activeCardPalette.outlineBtnBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}
+                  onPress={() => setShowHistoryModal(true)}
+                  activeOpacity={0.85}
+                >
+                  <View style={[styles.cardActionIconCircle, { backgroundColor: activeCardPalette.outlineIconBg }]}>
+                    <IconScroll size={14} color={activeCardPalette.outlineIconColor} />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={[styles.cardActionBtnTitle, { color: activeCardPalette.outlineBtnTitle, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                      AMC History
+                    </Text>
+                    <Text style={[styles.cardActionBtnSub, { color: activeCardPalette.outlineBtnSub, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                      Claims & Ledger →
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
-            </View>
 
-            {/* Available Balance Section */}
-            <View style={styles.balanceBox}>
-              <Text style={[styles.balanceLabel, { color: activeCardPalette.balanceLabel }]}>
-                AVAILABLE AMC BALANCE
-              </Text>
-              <Text style={styles.balanceAmount}>{formatMoney(usage.balance.remaining)}</Text>
-              <View style={[styles.meterTrack, { backgroundColor: activeCardPalette.meterTrack }]}>
-                <View style={[styles.meterFill, { width: `${usage.balance.pctLeft}%`, backgroundColor: activeCardPalette.meterFill }]} />
+              {/* Validity Timeline */}
+              <View style={[styles.timelineCardStrip, { backgroundColor: activeCardPalette.timelineBg, borderColor: activeCardPalette.timelineBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}>
+                <View style={[styles.timelineMeterTrack, { backgroundColor: activeCardPalette.timelineTrack }]}>
+                  <View style={[styles.timelineMeterFill, { width: `${100 - usage.days.pctLeft}%`, backgroundColor: activeCardPalette.timelineFill }]} />
+                </View>
+                <View style={styles.timelineStatsRow}>
+                  <View style={styles.timelineStatCol}>
+                    <Text style={[styles.timelineStatLabel, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                      STARTED
+                    </Text>
+                    <Text style={[styles.timelineStatVal, { color: activeCardPalette.timelineVal, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                      {contractDetails.startDate}
+                    </Text>
+                  </View>
+                  <View style={[styles.timelineStatCol, { alignItems: 'center', flex: 1.25 }]}>
+                    <Text style={[styles.timelineStatLabel, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                      DAYS REMAINING
+                    </Text>
+                    <Text style={[styles.timelineStatVal, { color: activeCardPalette.timelineHighlight, fontWeight: '800', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }]}>
+                      {usage.days.left} Days
+                    </Text>
+                  </View>
+                  <View style={[styles.timelineStatCol, { alignItems: 'flex-end' }]}>
+                    <Text style={[styles.timelineStatLabel, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                      VALID TILL
+                    </Text>
+                    <Text style={[styles.timelineStatVal, { color: activeCardPalette.timelineVal, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                      {contractDetails.expiryDate}
+                    </Text>
+                  </View>
+                </View>
               </View>
-              <View style={styles.meterLegendRow}>
-                <Text style={styles.meterLegend}>
-                  {usage.balance.pctLeft}% left • Used {formatMoney(usage.balance.used)}
+
+              {/* Interactive Jump Link to Explore All Plans */}
+              <TouchableOpacity
+                style={[
+                  styles.cardExploreLinkBtn,
+                  {
+                    backgroundColor: activeCardPalette.exploreBtnBg,
+                    borderColor: activeCardPalette.exploreBtnBorder,
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                  },
+                ]}
+                onPress={scrollToExplorePlans}
+                activeOpacity={0.82}
+              >
+                <Text style={[styles.cardExploreLinkText, { color: activeCardPalette.exploreBtnText, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                  Explore All Plans & Upgrades ↓
                 </Text>
-                <Text style={styles.meterLegend}>of {formatLakh(usage.balance.total)}</Text>
-              </View>
-            </View>
-
-            {/* Card Action Buttons: Add Appliance & My AMC History */}
-            <View style={styles.cardActionsRow}>
-              <TouchableOpacity
-                style={[styles.cardActionBtn, { background: activeCardPalette.actionBtnBg, borderColor: activeCardPalette.actionBtnBorder }]}
-                onPress={() => {
-                  setWizardTargetPlan(null);
-                  setViewMode('WIZARD');
-                }}
-                activeOpacity={0.85}
-              >
-                <View style={[styles.cardActionIconCircle, { backgroundColor: activeCardPalette.actionIconBg }]}>
-                  <IconPlus size={14} color={activeCardPalette.actionIconColor} />
-                </View>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={[styles.cardActionBtnTitle, { color: activeCardPalette.actionBtnTitle }]}>
-                    Add Appliance
-                  </Text>
-                  <Text style={[styles.cardActionBtnSub, { color: activeCardPalette.actionBtnSub }]}>
-                    {coveredCount} registered • Unlimited
-                  </Text>
-                </View>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.cardActionBtn, { background: activeCardPalette.outlineBtnBg, borderColor: activeCardPalette.outlineBtnBorder }]}
-                onPress={() => setShowHistoryModal(true)}
-                activeOpacity={0.85}
-              >
-                <View style={[styles.cardActionIconCircle, { backgroundColor: activeCardPalette.outlineIconBg }]}>
-                  <IconScroll size={14} color={activeCardPalette.outlineIconColor} />
-                </View>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={[styles.cardActionBtnTitle, { color: activeCardPalette.outlineBtnTitle }]}>
-                    AMC History
-                  </Text>
-                  <Text style={[styles.cardActionBtnSub, { color: activeCardPalette.outlineBtnSub }]}>
-                    Claims & Ledger →
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            {/* Validity Timeline */}
-            <View style={styles.timelineCardStrip}>
-              <View style={[styles.timelineMeterTrack, { backgroundColor: activeCardPalette.timelineTrack }]}>
-                <View style={[styles.timelineMeterFill, { width: `${100 - usage.days.pctLeft}%`, backgroundColor: activeCardPalette.timelineFill }]} />
-              </View>
-              <View style={styles.timelineStatsRow}>
-                <View style={styles.timelineStatCol}>
-                  <Text style={styles.timelineStatLabel}>STARTED</Text>
-                  <Text style={styles.timelineStatVal}>{contractDetails.startDate}</Text>
-                </View>
-                <View style={[styles.timelineStatCol, { alignItems: 'center' }]}>
-                  <Text style={styles.timelineStatLabel}>DAYS REMAINING</Text>
-                  <Text style={[styles.timelineStatVal, { color: activeCardPalette.timelineHighlight, fontWeight: '800' }]}>
-                    {usage.days.left} Days
-                  </Text>
-                </View>
-                <View style={[styles.timelineStatCol, { alignItems: 'flex-end' }]}>
-                  <Text style={styles.timelineStatLabel}>VALID TILL</Text>
-                  <Text style={styles.timelineStatVal}>{contractDetails.expiryDate}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Interactive Jump Link to Explore All Plans */}
-            <TouchableOpacity
-              style={[
-                styles.cardExploreLinkBtn,
-                {
-                  backgroundColor: activeCardPalette.exploreBtnBg,
-                  borderColor: activeCardPalette.exploreBtnBorder,
-                },
-              ]}
-              onPress={scrollToExplorePlans}
-              activeOpacity={0.82}
-            >
-              <Text style={[styles.cardExploreLinkText, { color: activeCardPalette.exploreBtnText }]}>
-                Explore All Plans & Upgrades ↓
-              </Text>
-            </TouchableOpacity>
+            </div>
           </div>
         </View>
       )}
@@ -985,49 +1104,156 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                 isCurrent && { backgroundColor: '#fcfcfd' },
               ]}
             >
-              {/* Metallic Card Header */}
+              {/* Metallic Card Header with Polished Liquid Metallic Chrome Sheen */}
               <div
                 style={{
-                  background: theme.headerBg,
                   backgroundColor: theme.headerBgSolid,
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
                   borderTopLeftRadius: '18px',
                   borderTopRightRadius: '18px',
                   padding: '18px 18px',
                   margin: '-16px -16px 12px -16px',
                   borderBottom: `1.5px solid ${theme.borderGold}`,
                   position: 'relative',
+                  overflow: 'hidden',
+                  boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.85), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.35)',
                 }}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    {theme.icon}
-                    <Text style={[styles.planName, { color: theme.headerTextColor }]}>{plan.name}</Text>
-                  </View>
-                  <View style={[styles.tierTagBadge, { backgroundColor: theme.badgeBg, borderColor: theme.badgeBorder }]}>
-                    <Text style={[styles.tierTagText, { color: theme.badgeTextColor }]}>{theme.tierBadge}</Text>
-                  </View>
-                </View>
+                {/* Silky Metallic Base Texture Layer (Crisp defined metallic silk texture with minimal 0.8px blur) */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    left: -4,
+                    right: -4,
+                    bottom: -4,
+                    background: theme.headerBg,
+                    backgroundColor: theme.headerBgSolid,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    filter: 'blur(0.8px)',
+                    WebkitFilter: 'blur(0.8px)',
+                    transform: 'scale(1.02)',
+                    zIndex: 0,
+                    pointerEvents: 'none',
+                  }}
+                />
 
-                {/* Price and Duration wrapped cleanly */}
-                <View style={styles.planPriceRow}>
-                  <Text style={[styles.planPrice, { color: theme.headerTextColor }]}>
-                    ₹{plan.price.toLocaleString('en-IN')}
-                  </Text>
-                  <Text style={[styles.planPeriod, { color: theme.headerPeriodColor }]}>
-                    / {plan.validity_months || 12} Months Contract
-                  </Text>
-                </View>
+                {/* Metallic Specular Chrome/Gold Sheen (Intense High-Luster Light Sweep) */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: theme.isGold
+                      ? 'linear-gradient(118deg, transparent 20%, rgba(255, 255, 255, 0.1) 36%, rgba(255, 255, 255, 0.45) 54%, rgba(255, 255, 255, 0.8) 58%, rgba(255, 245, 160, 0.4) 64%, transparent 84%)'
+                      : 'linear-gradient(118deg, transparent 22%, rgba(255, 255, 255, 0.08) 38%, rgba(255, 255, 255, 0.42) 54%, rgba(255, 255, 255, 0.78) 58%, rgba(255, 255, 255, 0.35) 64%, transparent 86%)',
+                    mixBlendMode: 'screen',
+                    pointerEvents: 'none',
+                    zIndex: 1,
+                  }}
+                />
 
-                <Text style={[styles.planThemeTagline, { color: theme.headerTaglineColor }]}>
-                  {theme.tagline || plan.description}
-                </Text>
+                {/* Specular Radial Light Reflection (Positioned right to showcase metallic luster without washing out text) */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '-30%',
+                    right: '-5%',
+                    width: '65%',
+                    height: '160%',
+                    background: 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.12) 42%, transparent 72%)',
+                    mixBlendMode: 'overlay',
+                    pointerEvents: 'none',
+                    zIndex: 1,
+                  }}
+                />
+
+                {/* Directional Theme-Aware Dark Scrim Overlay to Anchor Text Contrast */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: theme.isGold
+                      ? 'linear-gradient(115deg, rgba(18, 10, 3, 0.65) 0%, rgba(35, 16, 4, 0.45) 52%, rgba(55, 22, 5, 0.15) 100%)'
+                      : theme.isPlatinum
+                      ? 'linear-gradient(115deg, rgba(8, 14, 26, 0.68) 0%, rgba(15, 23, 42, 0.48) 52%, rgba(15, 23, 42, 0.15) 100%)'
+                      : 'linear-gradient(115deg, rgba(10, 15, 26, 0.68) 0%, rgba(15, 23, 42, 0.48) 52%, rgba(15, 23, 42, 0.15) 100%)',
+                    zIndex: 1,
+                    pointerEvents: 'none',
+                  }}
+                />
+
+                {/* Content Layer (Pin-Sharp & High Contrast with Frosted Dark-Glass Backdrop Plate) */}
+                <div
+                  style={{
+                    position: 'relative',
+                    zIndex: 2,
+                    backgroundColor: theme.isGold
+                      ? 'rgba(14, 9, 3, 0.65)'
+                      : theme.isPlatinum
+                      ? 'rgba(8, 14, 26, 0.65)'
+                      : 'rgba(10, 16, 26, 0.65)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    borderRadius: '14px',
+                    padding: '12px 14px',
+                    border: theme.isGold
+                      ? '1.2px solid rgba(250, 204, 21, 0.35)'
+                      : theme.isPlatinum
+                      ? '1.2px solid rgba(147, 197, 253, 0.35)'
+                      : '1.2px solid rgba(255, 255, 255, 0.25)',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                      {theme.icon}
+                      <Text style={[styles.planName, { color: '#ffffff', textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.7)' }]}>{plan.name}</Text>
+                    </View>
+                    <View style={[styles.tierTagBadge, { backgroundColor: 'rgba(0, 0, 0, 0.7)', borderColor: theme.badgeBorder || 'rgba(255, 255, 255, 0.6)', flexShrink: 0 }]}>
+                      <Text style={[styles.tierTagText, { color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }]}>{theme.tierBadge}</Text>
+                    </View>
+                  </View>
+
+                  {/* Price and Duration wrapped cleanly */}
+                  <View style={styles.planPriceRow}>
+                    <Text style={[styles.planPrice, { color: '#ffffff', textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 4px 12px rgba(0,0,0,0.8)' }]}>
+                      ₹{plan.price.toLocaleString('en-IN')}
+                    </Text>
+                    <Text style={[styles.planPeriod, { color: theme.isGold ? '#fde047' : '#e2e8f0', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }]}>
+                      / {plan.validity_months || 12} Months Contract
+                    </Text>
+                  </View>
+
+                  <Text style={[styles.planThemeTagline, { color: theme.isGold ? '#fef08a' : '#cbd5e1', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }]}>
+                    {theme.tagline || plan.description}
+                  </Text>
+                </div>
               </div>
 
               {plan.is_recommended && (
-                <View style={[styles.recBadge, { backgroundColor: theme.btnBg, borderColor: theme.borderGold }]}>
-                  <Text style={[styles.recBadgeText, { color: theme.badgeTextColor }]}>★ MOST POPULAR • {theme.tierBadge}</Text>
+                <View
+                  style={[
+                    styles.recBadge,
+                    {
+                      backgroundColor: theme.recBadgeBg || (theme.isGold ? '#b45309' : '#0f172a'),
+                      borderColor: '#ffffff',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.22)',
+                    },
+                  ]}
+                >
+                  <Text style={[styles.recBadgeText, { color: theme.recBadgeTextColor || '#ffffff' }]}>
+                    ★ MOST POPULAR • {theme.tierBadge}
+                  </Text>
                 </View>
               )}
 
@@ -1035,14 +1261,14 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
               <View style={styles.amcSpecsBox}>
                 <View style={styles.amcSpecItem}>
                   <Text style={styles.amcSpecLabel}>ANNUAL COVERAGE</Text>
-                  <Text style={[styles.amcSpecVal, { color: theme.headerTextColor }]}>
+                  <Text style={[styles.amcSpecVal, { color: '#0f172a' }]}>
                     {theme.coverageLimitText || '₹1 Lakh'}
                   </Text>
                 </View>
                 <View style={styles.amcSpecDivider} />
                 <View style={styles.amcSpecItem}>
                   <Text style={styles.amcSpecLabel}>APPLIANCES</Text>
-                  <Text style={[styles.amcSpecVal, { color: '#0284c7' }]}>Unlimited (No Limit)</Text>
+                  <Text style={[styles.amcSpecVal, { color: '#0284c7' }]}>Unlimited</Text>
                 </View>
                 <View style={styles.amcSpecDivider} />
                 <View style={styles.amcSpecItem}>
@@ -1144,7 +1370,11 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                 <TouchableOpacity
                   style={[
                     styles.purchaseBtn,
-                    { backgroundColor: theme.btnBg, borderColor: theme.borderGold },
+                    {
+                      backgroundColor: theme.buttonBg || '#ffffff',
+                      borderColor: theme.borderGold || '#cbd5e1',
+                      borderWidth: 1.5,
+                    },
                   ]}
                   onPress={() => {
                     if (!hasAddedAppliances) {
@@ -1156,12 +1386,12 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                   }}
                   activeOpacity={0.88}
                 >
-                  <Text style={[styles.purchaseBtnText, { color: theme.btnTextColor }]}>
+                  <Text style={[styles.purchaseBtnText, { color: theme.buttonTextColor || '#0f172a' }]}>
                     {hasActiveAmc
                       ? `Upgrade to ${plan.name}`
                       : hasAddedAppliances
                         ? `Activate ${plan.name}`
-                        : `Purchase Plan`}
+                        : `Upgrade to ${plan.name}`}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -1778,23 +2008,28 @@ const styles = StyleSheet.create({
   timelineStatsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 2,
+    alignItems: 'flex-start',
+    paddingTop: 4,
+    gap: 6,
   },
   timelineStatCol: {
     flex: 1,
+    minWidth: 0,
   },
   timelineStatLabel: {
-    fontSize: 8.5,
+    fontSize: 9,
     color: '#94a3b8',
     fontWeight: '700',
     letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    whiteSpace: 'nowrap',
   },
   timelineStatVal: {
-    fontSize: 10.5,
+    fontSize: 11,
     color: '#e2e8f0',
-    fontWeight: '600',
-    marginTop: 1,
+    fontWeight: '700',
+    marginTop: 3,
+    whiteSpace: 'nowrap',
   },
 
   /* Card Jump Link to Explore Plans */
@@ -1906,16 +2141,44 @@ const styles = StyleSheet.create({
   amcSpecsBox: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#f1f5f9',
     borderRadius: 12,
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
-  amcSpecItem: { flex: 1, alignItems: 'center', gap: 2 },
-  amcSpecLabel: { fontSize: 9, fontWeight: '700', color: '#64748b', letterSpacing: 0.4 },
-  amcSpecVal: { fontSize: 11.5, fontWeight: '800', color: '#0f172a' },
-  amcSpecDivider: { width: 1, height: 26, backgroundColor: '#cbd5e1' },
+  amcSpecItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    minWidth: 0,
+  },
+  amcSpecLabel: {
+    fontSize: 8.5,
+    fontWeight: '700',
+    color: '#64748b',
+    letterSpacing: 0.3,
+    textAlign: 'center',
+    whiteSpace: 'nowrap',
+  },
+  amcSpecVal: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginTop: 3,
+    textAlign: 'center',
+    whiteSpace: 'nowrap',
+  },
+  amcSpecDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: '#cbd5e1',
+    marginHorizontal: 2,
+    flexShrink: 0,
+  },
 
   featureList: { gap: 8, paddingHorizontal: 4 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
