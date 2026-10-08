@@ -859,17 +859,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     marginTop: 18,
     marginBottom: 4,
+    gap: 8,
   },
   servicesHeaderTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#0f172a',
     letterSpacing: -0.3,
+    flexShrink: 0,
   },
   servicesHeaderSub: {
     fontSize: 12,
     fontWeight: '500',
     color: '#64748b',
+    textAlign: 'right',
+    flex: 1,
   },
   allServicesSection: {
     marginTop: 4,

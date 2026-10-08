@@ -131,6 +131,7 @@ export const COMPLAINT_CATEGORY_IMAGES = {
   plumber: comp('plumber-complaint.png'),
   cleaning: comp('cleaning-complaint.png'),
   electrician: comp('electrician-complaint.png'),
+  pestControl: comp('pest-control-complaint.png'),
 };
 
 export const COMPLAINT_CATEGORY_IMAGE_FALLBACKS = {
@@ -160,6 +161,16 @@ export const COMPLAINT_CATEGORY_IMAGE_FALLBACKS = {
   'Cleaning Services': COMPLAINT_CATEGORY_IMAGES.cleaning,
   'Sofa Cleaning': COMPLAINT_CATEGORY_IMAGES.cleaning,
   cleaning: COMPLAINT_CATEGORY_IMAGES.cleaning,
+
+  'Pest Control': COMPLAINT_CATEGORY_IMAGES.pestControl,
+  'Pest Control Services': COMPLAINT_CATEGORY_IMAGES.pestControl,
+  'pest-control': COMPLAINT_CATEGORY_IMAGES.pestControl,
+  pestcontrol: COMPLAINT_CATEGORY_IMAGES.pestControl,
+  'Pest & Insects': COMPLAINT_CATEGORY_IMAGES.pestControl,
+  pest: COMPLAINT_CATEGORY_IMAGES.pestControl,
+  cockroach: COMPLAINT_CATEGORY_IMAGES.pestControl,
+  termite: COMPLAINT_CATEGORY_IMAGES.pestControl,
+  bedbugs: COMPLAINT_CATEGORY_IMAGES.pestControl,
 };
 
 export function getComplaintCategoryImageUrl(categoryName) {
@@ -180,6 +191,15 @@ export function getComplaintCategoryImageUrl(categoryName) {
   }
   if (lower.includes('electr') || lower.includes('technician')) {
     return COMPLAINT_CATEGORY_IMAGES.electrician;
+  }
+  if (
+    lower.includes('pest') ||
+    lower.includes('cockroach') ||
+    lower.includes('termite') ||
+    lower.includes('bedbug') ||
+    lower.includes('insect')
+  ) {
+    return COMPLAINT_CATEGORY_IMAGES.pestControl;
   }
   return null;
 }

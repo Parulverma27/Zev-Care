@@ -100,8 +100,8 @@ export function resolveImageUri(url, fallback = '') {
 
 /**
  * Category image resolver.
- * When isComplaint is true, uses the dedicated complaint images for the 4 categories
- * (Carpenter, Plumber, Dry Cleaning / Sofa Cleaning, Electrician).
+ * When isComplaint is true, uses the dedicated complaint images for categories
+ * (Carpenter, Plumber, Dry Cleaning / Sofa Cleaning, Electrician, Pest Control).
  * When isComplaint is false (e.g. adding appliances, regular catalog), strictly uses standard catalog images.
  */
 export function resolveCategoryImageUri(categoryName, _url, isComplaint = false) {
