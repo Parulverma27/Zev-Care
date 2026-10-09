@@ -26,6 +26,7 @@ export default function ProviderDashboardScreen({ onNavigate }) {
     ASSIGNED_TO_ADMIN: 'INSPECTION SENT TO ADMIN',
     AWAITING_USER_APPROVAL: 'AWAITING APPROVAL',
     SERVICE_IN_PROGRESS: 'IN PROGRESS',
+    ESTIMATE_REJECTED: 'DECLINED (₹0)',
     BOOKING_COMPLETED: 'COMPLETED & SETTLED',
   };
 
@@ -107,6 +108,11 @@ export default function ProviderDashboardScreen({ onNavigate }) {
           </View>
 
           <Text style={styles.ajService}>{activeJob.service_name}</Text>
+          {Boolean(activeJob.isConsultation || activeJob.booking_mode === 'consultation') && (
+            <View style={styles.consultationTag}>
+              <Text style={styles.consultationTagText}>⚡ Free Diagnosis & Upfront Quote (₹0 Visit)</Text>
+            </View>
+          )}
           <View style={styles.iconInfoRow}>
             <ProviderIcon name="user" color="#64748b" size={13} />
             <Text style={styles.ajCustomer}>Customer: {activeJob.user_name} ({activeJob.user_phone})</Text>
@@ -255,4 +261,20 @@ const styles = StyleSheet.create({
 
   closeModalBtn: { paddingVertical: 8, alignItems: 'center', width: '100%' },
   closeModalBtnText: { color: '#64748b', fontWeight: '600', fontSize: 11 },
+  consultationTag: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  consultationTagText: {
+    color: '#1d4ed8',
+    fontSize: 10.5,
+    fontWeight: '800',
+  },
 });

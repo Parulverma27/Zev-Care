@@ -41,17 +41,48 @@ for (const entry of fs.readdirSync(distDir)) {
 
 copyRecursive(distDir, targetDir);
 
-// Stable (unhashed) catalog images for API / server catalog
+// Stable (unhashed) catalog images for API / server catalog and static serving
 const catalogSrc = path.join(viewsDir, 'assets', 'services', 'catalog');
-const catalogDest = path.join(targetDir, 'assets', 'services', 'catalog');
 if (fs.existsSync(catalogSrc)) {
-  copyRecursive(catalogSrc, catalogDest);
+  copyRecursive(catalogSrc, path.join(distDir, 'assets', 'services', 'catalog'));
+  copyRecursive(catalogSrc, path.join(targetDir, 'assets', 'services', 'catalog'));
 }
 
 const complaintsSrc = path.join(viewsDir, 'assets', 'services', 'complaints');
-const complaintsDest = path.join(targetDir, 'assets', 'services', 'complaints');
 if (fs.existsSync(complaintsSrc)) {
-  copyRecursive(complaintsSrc, complaintsDest);
+  copyRecursive(complaintsSrc, path.join(distDir, 'assets', 'services', 'complaints'));
+  copyRecursive(complaintsSrc, path.join(targetDir, 'assets', 'services', 'complaints'));
+}
+
+// Ensure hero banners and key static assets are directly available unhashed
+const bannerFiles = [
+  'hero-banner-1.png',
+  'hero-banner-2.png',
+  'hero-banner-3.png',
+  'home-hero-banner.png',
+  'home-header-bg.jpg',
+  'my-appliances-hero.jpg',
+  'login-1.png',
+  'login-2.png',
+  'login-3.png',
+  'login-4.png',
+];
+
+for (const f of bannerFiles) {
+  const src = path.join(viewsDir, 'assets', f);
+  if (fs.existsSync(src)) {
+    // Top-level /assets/
+    fs.mkdirSync(path.join(distDir, 'assets'), { recursive: true });
+    fs.mkdirSync(path.join(targetDir, 'assets'), { recursive: true });
+    fs.copyFileSync(src, path.join(distDir, 'assets', f));
+    fs.copyFileSync(src, path.join(targetDir, 'assets', f));
+
+    // Nested /assets/assets/ for bundle-style fallback
+    fs.mkdirSync(path.join(distDir, 'assets', 'assets'), { recursive: true });
+    fs.mkdirSync(path.join(targetDir, 'assets', 'assets'), { recursive: true });
+    fs.copyFileSync(src, path.join(distDir, 'assets', 'assets', f));
+    fs.copyFileSync(src, path.join(targetDir, 'assets', 'assets', f));
+  }
 }
 
 const serveJsonSrc = path.join(viewsDir, 'serve.json');

@@ -1,7 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { CATALOG_VERSION, flattenToLegacyCatalog } from '../config/serviceCatalogUtils';
-import { BANNERS_VERSION, DEFAULT_BANNERS, isStaleLocalImageUrl, resolveImageUri } from '../utils/imageUtils';
+import {
+  BANNERS_VERSION,
+  BANNERS_VERSION_KEY,
+  DEFAULT_BANNERS,
+  isStaleLocalImageUrl,
+  resolveImageUri
+} from '../utils/imageUtils';
 import { getHardcodedCatalogImage } from '../utils/bundledImages';
 import { normalizeSavedAddresses, upsertDefaultAddress } from '../utils/savedAddresses';
 import { getPlanTheme } from '../config/planTheme';
@@ -10,7 +16,6 @@ const AppContext = createContext();
 
 const API_BASE = 'http://127.0.0.1:3000/api';
 const CATALOG_VERSION_KEY = 'zevota_catalog_version';
-const BANNERS_VERSION_KEY = 'zevota_banners_version';
 const BOOKINGS_VERSION = 'v9-clean-aryan'; // bump to force-reset cached bookings
 const BOOKINGS_VERSION_KEY = 'zevota_bookings_version';
 const WALLET_SYNC_VERSION = 'v5-fix-aryan-phone-collision';
@@ -42,30 +47,36 @@ const paidBookingAmount = (b) =>
   );
 
 function loadBannersFromStorage() {
-  const version = localStorage.getItem(BANNERS_VERSION_KEY);
-  if (version !== BANNERS_VERSION) {
-    localStorage.removeItem('zevota_banners');
-    localStorage.setItem(BANNERS_VERSION_KEY, BANNERS_VERSION);
-    return DEFAULT_BANNERS;
-  }
-
   try {
+    const version = typeof localStorage !== 'undefined' ? localStorage.getItem(BANNERS_VERSION_KEY) : null;
+    if (version !== BANNERS_VERSION) {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('zevota_banners');
+        localStorage.setItem(BANNERS_VERSION_KEY, BANNERS_VERSION);
+      }
+      return DEFAULT_BANNERS;
+    }
+
     const saved = localStorage.getItem('zevota_banners');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // Only sanitize stale localhost URLs — preserve all custom image URLs (external URLs, data URLs, etc.)
-        return parsed.map((b) => ({
-          ...b,
-          image_url: isStaleLocalImageUrl(b.image_url)
-            ? DEFAULT_BANNERS[0].image_url
-            : (b.image_url || DEFAULT_BANNERS[0].image_url)
-        }));
+        return parsed.map((b) => {
+          const fallback = DEFAULT_BANNERS.find((d) => d.id === b.id)?.image_url || DEFAULT_BANNERS[0].image_url;
+          return {
+            ...b,
+            image_url: isStaleLocalImageUrl(b.image_url) ? fallback : (b.image_url || fallback),
+          };
+        });
       }
     }
   } catch (e) {}
 
-  localStorage.setItem(BANNERS_VERSION_KEY, BANNERS_VERSION);
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem(BANNERS_VERSION_KEY, BANNERS_VERSION);
+    } catch (_) {}
+  }
   return DEFAULT_BANNERS;
 }
 function loadLegacyCatalogFromStorage() {
@@ -1668,22 +1679,47 @@ export function AppProvider({ children }) {
               bill_sent: true,
               bill_generated: true,
               status: 'AWAITING_USER_APPROVAL',
+              inspection_report: billData.notes || billData.findings || b.inspection_report,
+              parts_description: billData.parts_description || b.parts_description,
             }
           : b
       )
     );
   };
 
-  const approveBill = (bookingId) => {
+  const approveBill = (bookingId, options = {}) => {
     const bk = bookings.find((b) => b.booking_id === bookingId);
     if (!bk || !activeUser) return { ok: false, error: 'Booking or user not found.' };
-    if (bk.bill_status === 'PAID') {
+
+    const otp = bk.completion_otp || String(Math.floor(1000 + Math.random() * 9000));
+
+    if (bk.bill_status === 'PAID' || bk.bill_status === 'PAY_ON_COMPLETION') {
       setBookings((prev) =>
         prev.map((b) =>
-          b.booking_id === bookingId ? { ...b, status: 'SERVICE_IN_PROGRESS' } : b
+          b.booking_id === bookingId
+            ? { ...b, status: 'SERVICE_IN_PROGRESS', completion_otp: otp }
+            : b
         )
       );
-      return { ok: true, alreadyPaid: true };
+      return { ok: true, alreadyPaid: true, otp };
+    }
+
+    if (options.paymentMethod === 'PAY_ON_COMPLETION' || options.payLater) {
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.booking_id === bookingId
+            ? {
+                ...b,
+                bill_status: 'PAY_ON_COMPLETION',
+                payment_mode: 'PAY_AFTER_SERVICE',
+                status: 'SERVICE_IN_PROGRESS',
+                completion_otp: otp,
+                quote_approved_at: new Date().toISOString(),
+              }
+            : b
+        )
+      );
+      return { ok: true, paymentMethod: 'PAY_ON_COMPLETION', otp };
     }
 
     const serviceCharge = Number(bk.service_charge || 0);
@@ -1755,20 +1791,36 @@ export function AppProvider({ children }) {
     setBookings((prev) =>
       prev.map((b) =>
         b.booking_id === bookingId
-          ? { ...b, bill_status: 'PAID', status: 'SERVICE_IN_PROGRESS', wallet_deducted: amount }
+          ? {
+              ...b,
+              bill_status: 'PAID',
+              payment_mode: 'WALLET',
+              status: 'SERVICE_IN_PROGRESS',
+              completion_otp: otp,
+              wallet_deducted: amount,
+              quote_approved_at: nowIso,
+            }
           : b
       )
     );
-    return { ok: true };
+    return { ok: true, paymentMethod: 'WALLET', otp };
   };
 
   const rejectBill = (bookingId) => {
     setBookings((prev) =>
-      prev.map((b) =>
-        b.booking_id === bookingId
-          ? { ...b, bill_status: 'REJECTED', status: 'ESTIMATE_REJECTED' }
-          : b
-      )
+      prev.map((b) => {
+        if (b.booking_id === bookingId) {
+          const isConsult = Boolean(b.isConsultation || b.booking_mode === 'consultation');
+          return {
+            ...b,
+            bill_status: 'REJECTED',
+            status: 'ESTIMATE_REJECTED',
+            total_bill: isConsult ? 0 : b.total_bill,
+            rejected_at: new Date().toISOString(),
+          };
+        }
+        return b;
+      })
     );
   };
 

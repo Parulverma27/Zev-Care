@@ -12,6 +12,7 @@ import UserProfileScreen from './screens/UserProfileScreen';
 import SavedAddressesScreen from './screens/SavedAddressesScreen';
 import LiveSupportScreen from './screens/LiveSupportScreen';
 import ServiceBrowseScreen from './screens/ServiceBrowseScreen';
+import ConsultationScreen from './screens/ConsultationScreen';
 
 export default function UserAppNavigator() {
   const [currentScreen, setCurrentScreen] = useState('HOME');
@@ -25,6 +26,7 @@ export default function UserAppNavigator() {
       else if (screen === '/user/bookings' || screen.endsWith('/bookings')) target = 'BOOKING_DETAIL';
       else if (screen === '/user/profile' || screen.endsWith('/profile')) target = 'PROFILE';
       else if (screen === '/user/complains' || screen.endsWith('/complains')) target = 'COMPLAINS';
+      else if (screen === '/user/consultation' || screen.endsWith('/consultation')) target = 'CONSULTATION';
     }
     setScreenParams(params);
     setCurrentScreen(target);

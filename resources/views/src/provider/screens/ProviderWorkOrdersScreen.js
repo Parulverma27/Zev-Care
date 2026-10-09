@@ -23,6 +23,7 @@ export default function ProviderWorkOrdersScreen() {
     ASSIGNED_TO_ADMIN: 'INSPECTION SENT TO ADMIN',
     AWAITING_USER_APPROVAL: 'AWAITING APPROVAL',
     SERVICE_IN_PROGRESS: 'IN PROGRESS',
+    ESTIMATE_REJECTED: 'DECLINED (₹0)',
     BOOKING_COMPLETED: 'COMPLETED & SETTLED',
   };
 
@@ -143,6 +144,12 @@ export default function ProviderWorkOrdersScreen() {
               {/* Service & Category */}
               <Text style={styles.serviceName}>{job.service_name}</Text>
               <Text style={styles.categoryTag}>{job.category_name} • {job.sub_category_name || 'General'}</Text>
+
+              {Boolean(job.isConsultation || job.booking_mode === 'consultation') && (
+                <View style={styles.consultationBadge}>
+                  <Text style={styles.consultationBadgeText}>⚡ ₹0 Free Diagnosis & Upfront Quote</Text>
+                </View>
+              )}
 
               {/* Customer & Address Details */}
               <View style={styles.infoSection}>
@@ -316,4 +323,19 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   consoleBtnText: { color: '#ffffff', fontWeight: '800', fontSize: 12 },
+  consultationBadge: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  consultationBadgeText: {
+    color: '#1d4ed8',
+    fontSize: 10.5,
+    fontWeight: '800',
+  },
 });

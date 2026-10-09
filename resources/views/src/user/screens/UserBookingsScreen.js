@@ -61,7 +61,15 @@ export default function UserBookingsScreen() {
                     {booking.isConsultation || booking.booking_mode === 'consultation' ? (
                       <Text style={styles.consultBadge}>FREE CONSULT</Text>
                     ) : null}
-                    <Text style={styles.cardStatus}>{formatStatus(booking.status)}</Text>
+                    <Text
+                      style={[
+                        styles.cardStatus,
+                        booking.status === 'AWAITING_USER_APPROVAL' && { backgroundColor: '#fef3c7', color: '#b45309' },
+                        booking.status === 'ESTIMATE_REJECTED' && { backgroundColor: '#f1f5f9', color: '#64748b' },
+                      ]}
+                    >
+                      {formatStatus(booking.status, booking)}
+                    </Text>
                   </View>
                 </View>
                 <Text style={styles.cardMeta}>
@@ -72,6 +80,23 @@ export default function UserBookingsScreen() {
                   <AppIcon name="clock" size={13} color="#475569" />
                   <Text style={styles.cardSchedule}>{booking.scheduled_date}</Text>
                 </View>
+
+                {booking.status === 'AWAITING_USER_APPROVAL' && (
+                  <View style={styles.quoteActionPill}>
+                    <Text style={styles.quoteActionPillText}>
+                      ⚡ Upfront Quote: ₹{(booking.total_bill ?? (Number(booking.parts_charge || 0) + Number(booking.labour_charge || 0))).toLocaleString()} • Review & Approve →
+                    </Text>
+                  </View>
+                )}
+
+                {Boolean(booking.status === 'SERVICE_IN_PROGRESS' && booking.completion_otp) && (
+                  <View style={styles.otpPill}>
+                    <Text style={styles.otpPillText}>
+                      🔑 Completion OTP: <Text style={{ fontWeight: '800' }}>{booking.completion_otp}</Text>
+                    </Text>
+                  </View>
+                )}
+
                 {needsRating && (
                   <TouchableOpacity
                     style={styles.rateBtn}
@@ -98,8 +123,18 @@ export default function UserBookingsScreen() {
   );
 }
 
-function formatStatus(status) {
+function formatStatus(status, booking) {
   if (!status) return 'Pending';
+  const isConsult = Boolean(booking?.isConsultation || booking?.booking_mode === 'consultation');
+  if (status === 'AWAITING_USER_APPROVAL') {
+    return isConsult ? 'Quote Ready' : 'Awaiting Approval';
+  }
+  if (status === 'ESTIMATE_REJECTED') {
+    return isConsult ? 'Concluded (₹0)' : 'Declined';
+  }
+  if (status === 'SERVICE_IN_PROGRESS') {
+    return isConsult ? 'Repair In Progress' : 'In Progress';
+  }
   return String(status).replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
@@ -182,4 +217,34 @@ const styles = StyleSheet.create({
   },
   rateBtnText: { color: '#fff', fontWeight: '700', fontSize: 12 },
   ratedHint: { marginTop: 4, fontSize: 12, fontWeight: '700', color: '#d97706' },
+
+  quoteActionPill: {
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginTop: 2,
+  },
+  quoteActionPillText: {
+    color: '#b45309',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
+  otpPill: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginTop: 2,
+  },
+  otpPillText: {
+    color: '#1d4ed8',
+    fontSize: 11,
+    fontWeight: '600',
+  },
 });

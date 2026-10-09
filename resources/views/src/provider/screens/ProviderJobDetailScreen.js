@@ -17,6 +17,7 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
     submitInspectionReport,
     uploadBookingMedia,
     updateProviderLocation,
+    generateBill,
   } = useApp();
   const [sharingGps, setSharingGps] = useState(false);
   const [gpsSharedSuccess, setGpsSharedSuccess] = useState(false);
@@ -29,9 +30,28 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
   const [otpError, setOtpError] = useState('');
   const [findings, setFindings] = useState('Armature coil burnt due to jar overload. Requires replacement jar coupler.');
   const [mediaUrl, setMediaUrl] = useState('https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?auto=format&fit=crop&q=80&w=600');
+  const [partsCost, setPartsCost] = useState('');
+  const [labourCost, setLabourCost] = useState('');
+  const [partsDescription, setPartsDescription] = useState('');
+  const [quoteError, setQuoteError] = useState('');
 
   const targetBookingId = routeBookingId || propsBookingId;
   const bk = bookings.find((b) => b.booking_id === targetBookingId);
+  const isConsultationBk = Boolean(bk?.isConsultation || bk?.booking_mode === 'consultation');
+
+  useEffect(() => {
+    if (bk) {
+      if (bk.inspection_report) {
+        setFindings(bk.inspection_report);
+      } else if (isConsultationBk) {
+        setFindings(`Diagnosed issue for ${bk.service_name || 'appliance'}: `);
+      }
+      if (bk.parts_charge != null && bk.parts_charge !== 0) setPartsCost(String(bk.parts_charge));
+      if (bk.labour_charge != null && bk.labour_charge !== 0) setLabourCost(String(bk.labour_charge));
+      if (bk.parts_description) setPartsDescription(String(bk.parts_description));
+      if (bk.issue_media_url) setMediaUrl(bk.issue_media_url);
+    }
+  }, [bk?.booking_id, isConsultationBk]);
 
   const pushGps = (lat, lng) => {
     if (typeof updateProviderLocation === 'function' && bk?.booking_id) {
@@ -146,11 +166,12 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
     PROVIDER_ASSIGNED: 'ASSIGNED TO YOU',
     PROVIDER_ACCEPTED: 'ACCEPTED BY YOU',
     PROVIDER_ON_THE_WAY: 'EN ROUTE TO PREMISES',
-    PROVIDER_ARRIVED: 'ARRIVED ON SITE',
+    PROVIDER_ARRIVED: isConsultationBk ? 'ARRIVED FOR DIAGNOSIS' : 'ARRIVED ON SITE',
     ISSUE_INSPECTED: 'INSPECTION COMPLETED',
     ASSIGNED_TO_ADMIN: 'INSPECTION SENT TO ADMIN',
-    AWAITING_USER_APPROVAL: 'AWAITING CUSTOMER APPROVAL',
-    SERVICE_IN_PROGRESS: 'WORK IN PROGRESS',
+    AWAITING_USER_APPROVAL: isConsultationBk ? 'QUOTE SENT TO CUSTOMER' : 'AWAITING CUSTOMER APPROVAL',
+    SERVICE_IN_PROGRESS: isConsultationBk ? 'REPAIR IN PROGRESS' : 'WORK IN PROGRESS',
+    ESTIMATE_REJECTED: 'DECLINED BY CUSTOMER (₹0)',
     BOOKING_COMPLETED: 'COMPLETED & SETTLED',
   };
 
@@ -174,6 +195,42 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
         updateBookingStatus(bk.booking_id, 'ASSIGNED_TO_ADMIN');
       }
     }
+    setInspectModal(false);
+  };
+
+  const handleConsultationQuoteSubmit = () => {
+    if (!bk?.booking_id) return;
+    if (!findings.trim()) {
+      setQuoteError('Please enter diagnostic findings and root cause explanation.');
+      return;
+    }
+    const parts = parseFloat(partsCost) || 0;
+    const labour = parseFloat(labourCost) || 0;
+    if (parts === 0 && labour === 0) {
+      setQuoteError('Please enter an estimated labor or spare parts charge for the repair.');
+      return;
+    }
+    setQuoteError('');
+
+    if (typeof generateBill === 'function') {
+      generateBill(bk.booking_id, {
+        service_charge: 0,
+        parts_charge: parts,
+        labour_charge: labour,
+        discount: 0,
+        total_bill: parts + labour,
+        notes: findings.trim(),
+        findings: findings.trim(),
+        parts_description: partsDescription.trim(),
+      });
+    } else {
+      updateBookingStatus(bk.booking_id, 'AWAITING_USER_APPROVAL');
+    }
+
+    if (mediaUrl && typeof uploadBookingMedia === 'function') {
+      uploadBookingMedia(bk.booking_id, 'inspection', mediaUrl);
+    }
+
     setInspectModal(false);
   };
 
@@ -216,6 +273,25 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
           <Text style={styles.subtitle}>ID: {bk?.booking_id} • Status: {statusLabels[currentStatus] || currentStatus}</Text>
         </View>
       </View>
+
+      {/* Consultation Diagnosis Highlight Banner */}
+      {isConsultationBk && (
+        <View style={styles.consultationBanner}>
+          <View style={styles.consultationTopRow}>
+            <View style={styles.consultationTag}>
+              <ProviderIcon name="flash" color="#1d4ed8" size={13} />
+              <Text style={styles.consultationTagText}>URBAN COMPANY CONSULTATION FLOW</Text>
+            </View>
+            <View style={styles.freeBadge}>
+              <Text style={styles.freeBadgeText}>₹0 FREE VISIT</Text>
+            </View>
+          </View>
+          <Text style={styles.consultationHeadline}>On-Site Diagnosis & Upfront Quote Generation</Text>
+          <Text style={styles.consultationBody}>
+            As a technician, assess the fault on-site and transmit an itemized quote (parts + labor). Repair begins only upon customer approval. If the customer declines, ₹0 is charged.
+          </Text>
+        </View>
+      )}
 
       {/* Customer Info Card */}
       <View style={styles.card}>
@@ -311,9 +387,20 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
         )}
 
         {currentStatus === 'PROVIDER_ARRIVED' && (
-          <TouchableOpacity style={styles.actionBtn} onPress={() => setInspectModal(true)}>
+          <TouchableOpacity
+            style={[styles.actionBtn, isConsultationBk && { backgroundColor: '#1d4ed8' }]}
+            onPress={() => setInspectModal(true)}
+            activeOpacity={0.85}
+          >
             <ProviderIcon name="flash" color="#ffffff" size={16} />
-            <Text style={styles.actionBtnText}>START SERVICES & FIELD REPORT</Text>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={styles.actionBtnText}>
+                {isConsultationBk ? 'START ON-SITE DIAGNOSIS & BUILD QUOTE' : 'START SERVICES & FIELD REPORT'}
+              </Text>
+              {isConsultationBk ? (
+                <Text style={styles.actionBtnSubtext}>Urban Company ₹0 Free Diagnostic Inspection</Text>
+              ) : null}
+            </View>
           </TouchableOpacity>
         )}
 
@@ -325,14 +412,82 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
         )}
 
         {currentStatus === 'AWAITING_USER_APPROVAL' && (
-          <View style={styles.waitBox}>
-            <ProviderIcon name="clock" color="#d97706" size={16} />
-            <Text style={styles.waitText}>Estimate Sent! Waiting for Customer to Approve Bill...</Text>
+          isConsultationBk ? (
+            <View style={styles.quoteWaitingCard}>
+              <View style={styles.quoteWaitingHeader}>
+                <ProviderIcon name="clock" color="#d97706" size={18} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.quoteWaitingTitle}>Quote Transmitted • Awaiting Customer Approval</Text>
+                  <Text style={styles.quoteWaitingSub}>
+                    Itemized repair quote sent to customer's app. Work will begin once approved.
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.quoteBreakdownCard}>
+                <View style={styles.quoteRow}>
+                  <Text style={styles.quoteRowLabel}>Diagnostic Visit Fee</Text>
+                  <Text style={[styles.quoteRowVal, { color: '#16a34a' }]}>₹0 (FREE)</Text>
+                </View>
+                {bk?.parts_description ? (
+                  <View style={styles.quoteRow}>
+                    <Text style={styles.quoteRowLabel}>Parts Required</Text>
+                    <Text style={[styles.quoteRowVal, { maxWidth: '55%', textAlign: 'right' }]}>{bk.parts_description}</Text>
+                  </View>
+                ) : null}
+                <View style={styles.quoteRow}>
+                  <Text style={styles.quoteRowLabel}>Spare Parts Charge</Text>
+                  <Text style={styles.quoteRowVal}>₹{bk?.parts_charge || 0}</Text>
+                </View>
+                <View style={styles.quoteRow}>
+                  <Text style={styles.quoteRowLabel}>Labor & Service Charge</Text>
+                  <Text style={styles.quoteRowVal}>₹{bk?.labour_charge || 0}</Text>
+                </View>
+                <View style={[styles.quoteRow, styles.quoteTotalRow]}>
+                  <Text style={styles.quoteTotalLabel}>Total Quote</Text>
+                  <Text style={styles.quoteTotalVal}>₹{bk?.total_bill || ((Number(bk?.parts_charge) || 0) + (Number(bk?.labour_charge) || 0))}</Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.reviseQuoteBtn}
+                onPress={() => setInspectModal(true)}
+                activeOpacity={0.8}
+              >
+                <ProviderIcon name="wrench" color="#2563eb" size={14} />
+                <Text style={styles.reviseQuoteBtnText}>Edit / Revise Quote Details</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.waitBox}>
+              <ProviderIcon name="clock" color="#d97706" size={16} />
+              <Text style={styles.waitText}>Estimate Sent! Waiting for Customer to Approve Bill...</Text>
+            </View>
+          )
+        )}
+
+        {currentStatus === 'ESTIMATE_REJECTED' && (
+          <View style={styles.declinedBox}>
+            <ProviderIcon name="clock" color="#64748b" size={18} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.declinedTitle}>Customer Declined Quote at ₹0 Visit Fee</Text>
+              <Text style={styles.declinedSub}>
+                Customer chose not to proceed with repair. Per policy, ₹0 was charged. Work order closed.
+              </Text>
+            </View>
           </View>
         )}
 
         {currentStatus === 'SERVICE_IN_PROGRESS' && (
           <View style={{ gap: 10 }}>
+            {isConsultationBk && (
+              <View style={styles.approvedQuoteBanner}>
+                <ProviderIcon name="checkCircle" color="#16a34a" size={16} />
+                <Text style={styles.approvedQuoteText}>
+                  ✓ Customer Approved Quote (₹{bk?.total_bill || 0})! Repair work is authorized.
+                </Text>
+              </View>
+            )}
             <View style={styles.mediaRow}>
               <TouchableOpacity
                 style={styles.uploadBtn}
@@ -365,28 +520,119 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
         )}
       </View>
 
-      {/* INSPECTION MODAL WITH IMAGE UPLOAD FIELD */}
+      {/* INSPECTION / QUOTE BUILDER MODAL */}
       <Modal visible={inspectModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Start Services & Issue Report</Text>
-            <Text style={styles.modalSub}>Work Order: {bk?.booking_id}</Text>
+            <Text style={styles.modalTitle}>
+              {isConsultationBk ? 'On-Site Diagnosis & Quote Builder' : 'Start Services & Issue Report'}
+            </Text>
+            <Text style={styles.modalSub}>
+              {isConsultationBk ? 'Urban Company Flow • Work Order: ' : 'Work Order: '}{bk?.booking_id}
+            </Text>
+
+            {isConsultationBk && (
+              <View style={styles.modalNoticeBanner}>
+                <Text style={styles.modalNoticeText}>
+                  💡 Free On-Site Inspection (₹0). Customer reviews and approves this quote on their app before repair begins.
+                </Text>
+              </View>
+            )}
+
+            {quoteError ? <Text style={styles.errorText}>{quoteError}</Text> : null}
 
             <ScrollView style={{ width: '100%', maxHeight: 420 }} contentContainerStyle={{ paddingHorizontal: 2, paddingBottom: 6 }} showsVerticalScrollIndicator={true}>
               <View style={styles.fieldGroup}>
-                <Text style={styles.inputLabel}>Explain Technical Findings & Required Work *</Text>
-                <TextInput style={[styles.textInput, { height: 60 }]} multiline value={findings} onChangeText={setFindings} />
+                <Text style={styles.inputLabel}>
+                  {isConsultationBk ? '1. Root Cause Diagnosis & Findings *' : 'Explain Technical Findings & Required Work *'}
+                </Text>
+                <TextInput
+                  style={[styles.textInput, { height: 60 }]}
+                  multiline
+                  placeholder="e.g. Capacitor burnt, gas leak in copper tubing, PCB burnt..."
+                  placeholderTextColor="#94a3b8"
+                  value={findings}
+                  onChangeText={setFindings}
+                />
               </View>
 
+              {isConsultationBk && (
+                <>
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.inputLabel}>2. Spare Parts Required (Optional)</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="e.g. 50 MFD Capacitor, Copper flare nut"
+                      placeholderTextColor="#94a3b8"
+                      value={partsDescription}
+                      onChangeText={setPartsDescription}
+                    />
+                  </View>
+
+                  <View style={styles.rowTwo}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.inputLabel}>Spare Parts (₹)</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        keyboardType="numeric"
+                        placeholder="0"
+                        placeholderTextColor="#94a3b8"
+                        value={partsCost}
+                        onChangeText={setPartsCost}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.inputLabel}>Labor / Work (₹)</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        keyboardType="numeric"
+                        placeholder="0"
+                        placeholderTextColor="#94a3b8"
+                        value={labourCost}
+                        onChangeText={setLabourCost}
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.quoteSummaryCard}>
+                    <View style={styles.quoteSummaryRow}>
+                      <Text style={styles.quoteSummaryLabel}>Diagnostic Visit Fee:</Text>
+                      <Text style={styles.quoteSummaryFree}>₹0 (FREE)</Text>
+                    </View>
+                    <View style={styles.quoteSummaryRow}>
+                      <Text style={styles.quoteSummaryLabel}>Spare Parts:</Text>
+                      <Text style={styles.quoteSummaryVal}>₹{parseFloat(partsCost) || 0}</Text>
+                    </View>
+                    <View style={styles.quoteSummaryRow}>
+                      <Text style={styles.quoteSummaryLabel}>Labor / Service:</Text>
+                      <Text style={styles.quoteSummaryVal}>₹{parseFloat(labourCost) || 0}</Text>
+                    </View>
+                    <View style={[styles.quoteSummaryRow, { borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingTop: 6, marginTop: 4 }]}>
+                      <Text style={styles.quoteSummaryTotalLabel}>Total Customer Estimate:</Text>
+                      <Text style={styles.quoteSummaryTotalVal}>
+                        ₹{(parseFloat(partsCost) || 0) + (parseFloat(labourCost) || 0)}
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              )}
+
               <ImageUploadField
-                label="Diagnostic Media / Video Attachment"
+                label={isConsultationBk ? '3. Photo / Video of Defective Part (Optional)' : 'Diagnostic Media / Video Attachment'}
                 value={mediaUrl}
                 onChange={setMediaUrl}
               />
 
-              <TouchableOpacity style={styles.primaryBtn} onPress={handleInspectionSubmit}>
-                <ProviderIcon name="send" color="#ffffff" size={15} />
-                <Text style={styles.primaryBtnText}>Submit & Assign to Admin</Text>
+              <TouchableOpacity
+                style={[styles.primaryBtn, isConsultationBk && { backgroundColor: '#1d4ed8' }]}
+                onPress={isConsultationBk ? handleConsultationQuoteSubmit : handleInspectionSubmit}
+              >
+                <ProviderIcon name={isConsultationBk ? 'checkCircle' : 'send'} color="#ffffff" size={15} />
+                <Text style={styles.primaryBtnText}>
+                  {isConsultationBk
+                    ? `TRANSMIT QUOTE (₹${(parseFloat(partsCost) || 0) + (parseFloat(labourCost) || 0)})`
+                    : 'Submit & Assign to Admin'}
+                </Text>
                 <ProviderIcon name="arrowRight" color="#ffffff" size={14} />
               </TouchableOpacity>
 
@@ -533,4 +779,45 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: '#ffffff', fontWeight: '800', fontSize: 12 },
   closeModalBtn: { paddingVertical: 8, alignItems: 'center', width: '100%' },
   closeModalBtnText: { color: '#64748b', fontWeight: '600', fontSize: 11 },
+
+  consultationBanner: { backgroundColor: '#eff6ff', borderRadius: 16, padding: 14, borderWidth: 1.5, borderColor: '#93c5fd', gap: 6, width: '100%', boxSizing: 'border-box' },
+  consultationTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  consultationTag: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#dbeafe', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  consultationTagText: { color: '#1e40af', fontSize: 10.5, fontWeight: '800', letterSpacing: 0.5 },
+  freeBadge: { backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  freeBadgeText: { color: '#065f46', fontSize: 10.5, fontWeight: '800' },
+  consultationHeadline: { fontSize: 13.5, fontWeight: '800', color: '#1e3a8a' },
+  consultationBody: { fontSize: 11.5, color: '#1e40af', lineHeight: 16 },
+
+  quoteWaitingCard: { backgroundColor: '#fffbeb', borderRadius: 14, padding: 14, borderWidth: 1.5, borderColor: '#fde68a', gap: 10, width: '100%', boxSizing: 'border-box' },
+  quoteWaitingHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  quoteWaitingTitle: { fontSize: 13, fontWeight: '800', color: '#92400e' },
+  quoteWaitingSub: { fontSize: 11, color: '#b45309', lineHeight: 15, marginTop: 2 },
+  quoteBreakdownCard: { backgroundColor: '#ffffff', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#fef3c7', gap: 6 },
+  quoteRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  quoteRowLabel: { fontSize: 11.5, color: '#64748b', fontWeight: '500' },
+  quoteRowVal: { fontSize: 12, color: '#0f172a', fontWeight: '700' },
+  quoteTotalRow: { borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 6, marginTop: 4 },
+  quoteTotalLabel: { fontSize: 12.5, color: '#0f172a', fontWeight: '800' },
+  quoteTotalVal: { fontSize: 14, color: '#2563eb', fontWeight: '800' },
+  reviseQuoteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#bfdbfe', paddingVertical: 9, borderRadius: 8 },
+  reviseQuoteBtnText: { fontSize: 12, fontWeight: '700', color: '#2563eb' },
+
+  declinedBox: { backgroundColor: '#f1f5f9', flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#cbd5e1', width: '100%', boxSizing: 'border-box' },
+  declinedTitle: { fontSize: 13, fontWeight: '800', color: '#475569' },
+  declinedSub: { fontSize: 11, color: '#64748b', lineHeight: 15, marginTop: 2 },
+
+  approvedQuoteBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#ecfdf5', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#a7f3d0' },
+  approvedQuoteText: { fontSize: 11.5, fontWeight: '700', color: '#065f46', flex: 1 },
+
+  actionBtnSubtext: { color: '#bfdbfe', fontSize: 10.5, fontWeight: '600', marginTop: 2 },
+  modalNoticeBanner: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', borderRadius: 8, padding: 8, marginBottom: 8 },
+  modalNoticeText: { fontSize: 11, color: '#1e40af', lineHeight: 15, fontWeight: '600' },
+  quoteSummaryCard: { backgroundColor: '#f8fafc', borderRadius: 8, padding: 10, borderWidth: 1, borderColor: '#e2e8f0', gap: 4, marginVertical: 6 },
+  quoteSummaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  quoteSummaryLabel: { fontSize: 11, color: '#64748b', fontWeight: '500' },
+  quoteSummaryFree: { fontSize: 11, color: '#16a34a', fontWeight: '800' },
+  quoteSummaryVal: { fontSize: 11.5, color: '#0f172a', fontWeight: '700' },
+  quoteSummaryTotalLabel: { fontSize: 12, color: '#0f172a', fontWeight: '800' },
+  quoteSummaryTotalVal: { fontSize: 13.5, color: '#2563eb', fontWeight: '800' },
 });

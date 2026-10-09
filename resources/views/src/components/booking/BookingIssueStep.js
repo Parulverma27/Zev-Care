@@ -20,6 +20,7 @@ export default function BookingIssueStep({
   issueDescription = '',
   onChangeIssueDescription,
   isComplaint = false,
+  isConsultation = false,
 }) {
   const [panelValue, setPanelValue] = useState(() => setPrimaryPanelValue(issueMedia));
   const photos = issueMedia?.photos || [];
@@ -46,20 +47,29 @@ export default function BookingIssueStep({
         </View>
       </View>
 
-      {isComplaint && (
+      {isConsultation ? (
+        <View style={styles.consultationBanner}>
+          <Text style={styles.consultationBannerTag}>₹0 FREE ON-SITE INSPECTION</Text>
+          <Text style={styles.consultationBannerSub}>
+            Select the symptom or issue you need diagnosed by an expert technician at your doorstep.
+          </Text>
+        </View>
+      ) : isComplaint ? (
         <View style={styles.complaintBanner}>
           <Text style={styles.complaintBannerTag}>⚡ PRIORITY COMPLAINT</Text>
           <Text style={styles.complaintBannerSub}>
             Select the problem below for expedited technician diagnosis & dispatch.
           </Text>
         </View>
-      )}
+      ) : null}
 
       <Text style={styles.title}>
-        {isComplaint ? "What's the problem?" : "What's the issue?"}
+        {isConsultation ? 'What needs to be diagnosed?' : isComplaint ? "What's the problem?" : "What's the issue?"}
       </Text>
       <Text style={styles.subtitle}>
-        {isComplaint
+        {isConsultation
+          ? `Tell us what symptoms you have noticed with your ${displayName}.`
+          : isComplaint
           ? `Tell us what's wrong with your ${displayName}.`
           : `Tell us what's happening with your ${displayName}.`}
       </Text>
@@ -132,7 +142,7 @@ export default function BookingIssueStep({
           />
 
           <TouchableOpacity style={styles.primaryBtn} onPress={onContinue} activeOpacity={0.9}>
-            <Text style={styles.primaryBtnText}>Continue</Text>
+            <Text style={styles.primaryBtnText}>{isConsultation ? 'Select Date & Time ›' : 'Continue'}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -169,6 +179,26 @@ const styles = StyleSheet.create({
   complaintBannerSub: {
     fontSize: 12,
     color: '#92400e',
+    fontWeight: '500',
+    lineHeight: 16,
+  },
+  consultationBanner: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1.2,
+    borderColor: '#bfdbfe',
+    gap: 3,
+  },
+  consultationBannerTag: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#1d4ed8',
+    letterSpacing: 0.5,
+  },
+  consultationBannerSub: {
+    fontSize: 12,
+    color: '#1e40af',
     fontWeight: '500',
     lineHeight: 16,
   },

@@ -110,9 +110,9 @@ const AMC_HOME_ACTIONS = [
   {
     key: 'mechanic',
     title: 'My Mechanic',
-    subtitle: 'Expert guidance for your home.',
-    badge: 'Coming Soon',
-    actionLabel: 'Coming Soon',
+    subtitle: 'Free on-site diagnosis & inspection.',
+    badge: '₹0 FREE',
+    actionLabel: 'Book Free',
     route: '/user/consultation',
     theme: 'light',
     cardBg: 'linear-gradient(150deg, #f0f7ff 0%, #e0efff 100%)',
@@ -618,7 +618,13 @@ export default function HomeScreen({ onNavigate }) {
                 }}
               >
                 {activeBannersList.map((banner, idx) => {
-                  const bannerUri = resolveImageUri(banner?.image_url, SERVICE_IMAGES.homeHeroBanner);
+                  const bannerFallback =
+                    banner?.id === 2 || banner?.id === 5
+                      ? (SERVICE_IMAGES.heroBanner2 || '/assets/hero-banner-2.png')
+                      : banner?.id === 3 || banner?.id === 6
+                      ? (SERVICE_IMAGES.heroBanner3 || '/assets/hero-banner-3.png')
+                      : (SERVICE_IMAGES.heroBanner1 || '/assets/hero-banner-1.png');
+                  const bannerUri = resolveImageUri(banner?.image_url, bannerFallback);
                   return (
                     <div
                       key={banner.id || idx}
@@ -632,6 +638,12 @@ export default function HomeScreen({ onNavigate }) {
                         alt={banner.title || 'Hero Banner'}
                         style={heroBannerWebCss.slideImage}
                         draggable={false}
+                        onError={(e) => {
+                          if (e?.currentTarget && !e.currentTarget.dataset.errored) {
+                            e.currentTarget.dataset.errored = 'true';
+                            e.currentTarget.src = bannerFallback;
+                          }
+                        }}
                       />
                     </div>
                   );

@@ -38,6 +38,7 @@ export default function BookingScheduleStep({
   onContinue,
   serviceLabel = 'Service',
   applianceSummary = '',
+  isConsultation = false,
 }) {
   const dates = useMemo(() => buildDateOptions(7), []);
 
@@ -52,8 +53,10 @@ export default function BookingScheduleStep({
         </View>
       </View>
 
-      <Text style={styles.title}>Schedule your service</Text>
-      <Text style={styles.subtitle}>Pick a preferred date and time slot.</Text>
+      <Text style={styles.title}>{isConsultation ? 'Schedule free inspection' : 'Schedule your service'}</Text>
+      <Text style={styles.subtitle}>
+        {isConsultation ? 'Choose when you want the expert to visit your doorstep.' : 'Pick a preferred date and time slot.'}
+      </Text>
 
       <View style={styles.serviceCard}>
         <Text style={styles.serviceTitle}>{serviceLabel}</Text>

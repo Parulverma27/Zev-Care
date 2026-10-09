@@ -15,6 +15,7 @@ export default function BookingLocationStep({
   gpsError,
   onBack,
   onContinue,
+  isConsultation = false,
 }) {
   const canContinue = locationValidation?.isSupported;
 
@@ -29,8 +30,10 @@ export default function BookingLocationStep({
         </View>
       </View>
 
-      <Text style={styles.title}>Service location</Text>
-      <Text style={styles.subtitle}>Choose a saved address or enter a new one.</Text>
+      <Text style={styles.title}>{isConsultation ? 'Doorstep inspection location' : 'Service location'}</Text>
+      <Text style={styles.subtitle}>
+        {isConsultation ? 'Choose where you want the technician to visit.' : 'Choose a saved address or enter a new one.'}
+      </Text>
 
       {addresses.length > 0 && (
         <View style={styles.list}>

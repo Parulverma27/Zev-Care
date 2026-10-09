@@ -353,6 +353,11 @@ export default function AdminBookingsScreen() {
 
                 <View style={{ flex: 1.4 }}>
                   <Text style={styles.tdBold}>{b.service_name}</Text>
+                  {Boolean(b.isConsultation || b.booking_mode === 'consultation') && (
+                    <View style={{ backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1, alignSelf: 'flex-start', marginVertical: 2 }}>
+                      <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#1d4ed8' }}>₹0 FREE CONSULTATION</Text>
+                    </View>
+                  )}
                   {Boolean(b.applianceName) && (
                     <Text style={{ fontSize: 10.5, color: '#64748b' }}>Appliance: {b.applianceName}</Text>
                   )}
@@ -657,7 +662,12 @@ export default function AdminBookingsScreen() {
               </View>
             </View>
 
-            <Text style={styles.inputLabel}>Service & Inspection Charge (₹)</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+              <Text style={styles.inputLabel}>Service & Inspection Charge (₹)</Text>
+              {Boolean(selectedBooking?.isConsultation || selectedBooking?.booking_mode === 'consultation') && (
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a' }}>₹0 Policy (Free Diagnostic Visit)</Text>
+              )}
+            </View>
             <TextInput style={styles.textInput} keyboardType="number-pad" value={serviceCharge} onChangeText={setServiceCharge} placeholder="0" placeholderTextColor="#94a3b8" />
 
             <Text style={styles.inputLabel}>Spare Parts Charge (₹)</Text>

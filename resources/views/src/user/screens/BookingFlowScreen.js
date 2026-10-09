@@ -146,7 +146,23 @@ export default function BookingFlowScreen({ onNavigate }) {
       setService(preSelectedService);
       setSkippedCategoryStep(true);
 
-      if (isApplianceLinkedService(preSelectedService)) {
+      if (isConsultation) {
+        const typeId = isApplianceLinkedService(preSelectedService)
+          ? getApplianceTypeIdForService(preSelectedService)
+          : null;
+        setApplianceTypeId(typeId);
+        setSelectedAppliance({
+          id: `consultation-${Date.now()}`,
+          name: preSelectedService,
+          applianceTypeId: typeId,
+          type: preSelectedService,
+          isConsultation: true,
+          isCoveredByAmc: true,
+        });
+        setApplianceRegistrationFee(0);
+        clearIssueState();
+        setStep('ISSUE');
+      } else if (isApplianceLinkedService(preSelectedService)) {
         const typeId = getApplianceTypeIdForService(preSelectedService);
         resetApplianceDraftForType(typeId);
         setStep('APPLIANCE_SELECT');
@@ -226,6 +242,11 @@ export default function BookingFlowScreen({ onNavigate }) {
       else if (onNavigate) onNavigate('/user/complains');
       return;
     }
+    if (isConsultation) {
+      if (navigate) navigate('/user/consultation', { replace: true });
+      else if (onNavigate) onNavigate('/user/consultation');
+      return;
+    }
     if (window?.history?.state && window.history.state.idx > 0) {
       if (navigate) navigate(-1);
       else if (onNavigate) onNavigate(-1);
@@ -272,6 +293,24 @@ export default function BookingFlowScreen({ onNavigate }) {
 
   const afterServicePicked = (serviceName) => {
     setService(serviceName);
+    if (isConsultation) {
+      const typeId = isApplianceLinkedService(serviceName)
+        ? getApplianceTypeIdForService(serviceName)
+        : null;
+      setApplianceTypeId(typeId);
+      setSelectedAppliance({
+        id: `consultation-${Date.now()}`,
+        name: serviceName,
+        applianceTypeId: typeId,
+        type: serviceName,
+        isConsultation: true,
+        isCoveredByAmc: true,
+      });
+      setApplianceRegistrationFee(0);
+      clearIssueState();
+      setStep('ISSUE');
+      return;
+    }
     if (isApplianceLinkedService(serviceName)) {
       const typeId = getApplianceTypeIdForService(serviceName);
       resetApplianceDraftForType(typeId);
@@ -337,7 +376,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
     if (step === 'APPLIANCE_SELECT') {
-      if (skippedCategoryStep || isComplaint) {
+      if (skippedCategoryStep || isComplaint || isConsultation) {
         goBack();
       } else if (category && categoryHasGroups(category)) {
         setStep('SUB_GROUP');
@@ -349,6 +388,18 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
     if (step === 'ISSUE') {
+      if (isConsultation) {
+        if (skippedCategoryStep) {
+          goBack();
+        } else if (category && categoryHasGroups(category)) {
+          setStep('SERVICE_TYPE');
+        } else if (category) {
+          setStep('SERVICE_TYPE');
+        } else {
+          goBack();
+        }
+        return;
+      }
       if (isApplianceLinkedService(service)) {
         setStep('APPLIANCE_SELECT');
       } else if (category && categoryHasGroups(category)) {
@@ -372,6 +423,10 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
     if (step === 'SCHEDULE') {
+      if (isConsultation) {
+        setStep('ISSUE');
+        return;
+      }
       setStep('DETAILS_SUMMARY');
       return;
     }
@@ -385,12 +440,12 @@ export default function BookingFlowScreen({ onNavigate }) {
     }
     if (step === 'SERVICE_TYPE') {
       if (categoryHasGroups(category)) setStep('SUB_GROUP');
-      else if (skippedCategoryStep || isComplaint) goBack();
+      else if (skippedCategoryStep || isComplaint || isConsultation) goBack();
       else setStep(1);
       return;
     }
     if (step === 'SUB_GROUP') {
-      if (skippedCategoryStep || isComplaint) goBack();
+      if (skippedCategoryStep || isComplaint || isConsultation) goBack();
       else setStep(1);
       return;
     }
@@ -426,7 +481,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
     setOtherError('');
-    setStep('DETAILS_SUMMARY');
+    setStep(isConsultation ? 'SCHEDULE' : 'DETAILS_SUMMARY');
   };
 
   const handleFetchGps = () => {
@@ -467,11 +522,11 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
     if (submitting) return;
-    if (applianceTypeId && !selectedAppliance) {
+    if (applianceTypeId && !selectedAppliance && !isConsultation) {
       setFormError('Please select an appliance.');
       return;
     }
-    if (applianceTypeId && !issueId) {
+    if (applianceTypeId && !issueId && !isConsultation) {
       setFormError('Please select an issue.');
       return;
     }
@@ -695,12 +750,13 @@ export default function BookingFlowScreen({ onNavigate }) {
             selectedIssueId={issueId}
             onSelect={handleIssueSelect}
             onBack={handleBack}
-            onContinue={() => setStep('DETAILS_SUMMARY')}
+            onContinue={() => setStep(isConsultation ? 'SCHEDULE' : 'DETAILS_SUMMARY')}
             issueMedia={issueMedia}
             onChangeIssueMedia={setIssueMedia}
             issueDescription={issueDescription}
             onChangeIssueDescription={setIssueDescription}
             isComplaint={isComplaint}
+            isConsultation={isConsultation}
           />
         </View>
       );
@@ -773,6 +829,11 @@ export default function BookingFlowScreen({ onNavigate }) {
                 <Text style={styles.coveredAmcTitle}>✓ Covered Under AMC Plan</Text>
                 <Text style={styles.coveredAmcSub}>This appliance is protected under your AMC. ₹0 Breakdown inspection & labor included.</Text>
               </View>
+            ) : isConsultation ? (
+              <View style={styles.consultationAmcBanner}>
+                <Text style={styles.consultationAmcTitle}>✓ Free Doorstep Diagnosis (@ ₹0)</Text>
+                <Text style={styles.consultationAmcSub}>Complimentary inspection visit is active for this appliance. No plan fees apply.</Text>
+              </View>
             ) : !isConsultation ? (
               <View style={styles.outOfPlanFeeBanner}>
                 <View style={styles.outOfPlanFeeRow}>
@@ -787,7 +848,9 @@ export default function BookingFlowScreen({ onNavigate }) {
           )}
           <View style={styles.billNote}>
             <Text style={styles.billNoteText}>
-              No payment now. A technician will inspect first, and the bill will be shared with you after that.
+              {isConsultation
+                ? 'Zero visitation charge. Certified technician will inspect on-site and share an itemized repair quote. You can approve or decline at ₹0.'
+                : 'No payment now. A technician will inspect first, and the bill will be shared with you after that.'}
             </Text>
           </View>
           <TouchableOpacity style={styles.primaryBtn} onPress={() => setStep('SCHEDULE')}>
@@ -811,8 +874,9 @@ export default function BookingFlowScreen({ onNavigate }) {
             onChangeTime={setScheduledTime}
             onBack={handleBack}
             onContinue={() => setStep('LOCATION')}
-            serviceLabel={`${service || category} Service`}
+            serviceLabel={isConsultation ? `${service || category} Free Consultation` : `${service || category} Service`}
             applianceSummary={applianceSummaryLine}
+            isConsultation={isConsultation}
           />
         </View>
       );
@@ -842,6 +906,7 @@ export default function BookingFlowScreen({ onNavigate }) {
             onFetchGps={handleFetchGps}
             locatingGps={locatingGps}
             gpsError={gpsError}
+            isConsultation={isConsultation}
             onBack={handleBack}
             onContinue={() => setStep('REVIEW')}
           />
@@ -861,7 +926,7 @@ export default function BookingFlowScreen({ onNavigate }) {
               <BookingProgress activeIndex={4} />
             </View>
           </View>
-          <Text style={styles.h1}>{isConsultation ? 'Review consultation' : 'Review booking'}</Text>
+          <Text style={styles.h1}>{isConsultation ? 'Review Free Consultation' : 'Review booking'}</Text>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Service</Text>
             <Text style={styles.summaryValue}>{service || category}</Text>
@@ -870,8 +935,10 @@ export default function BookingFlowScreen({ onNavigate }) {
                 <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Appliance</Text>
                 <Text style={styles.summaryValue}>{selectedAppliance.name}</Text>
                 {!!applianceSummaryLine && <Text style={styles.summaryMeta}>{applianceSummaryLine}</Text>}
-                <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Coverage Status</Text>
-                {selectedAppliance.isCoveredByAmc ? (
+                <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Coverage / Visit Fee</Text>
+                {isConsultation ? (
+                  <Text style={[styles.summaryValue, { color: '#16a34a' }]}>✓ Complimentary On-Site Diagnosis (₹0 Visit Fee)</Text>
+                ) : selectedAppliance.isCoveredByAmc ? (
                   <Text style={[styles.summaryValue, { color: '#15803d' }]}>✓ Covered under AMC (₹0 Labor & Inspection)</Text>
                 ) : (
                   <Text style={[styles.summaryValue, { color: '#c2410c' }]}>Out-of-Plan (₹{APPLIANCE_REGISTRATION_FEE} Booking Fee Applies)</Text>
@@ -880,34 +947,66 @@ export default function BookingFlowScreen({ onNavigate }) {
             )}
             {!!issueLabel && (
               <>
-                <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Issue</Text>
+                <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Issue / Symptoms</Text>
                 <Text style={styles.summaryValue}>{issueLabel}</Text>
               </>
             )}
             {!!issueDescription && <Text style={styles.summaryMeta}>{issueDescription}</Text>}
-            <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Date</Text>
+            <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Scheduled Date</Text>
             <Text style={styles.summaryValue}>{scheduledDateLabel || scheduledDate}</Text>
-            <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Time</Text>
+            <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Time Slot</Text>
             <Text style={styles.summaryValue}>{scheduledTime}</Text>
-            <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Location</Text>
+            <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Doorstep Location</Text>
             <Text style={styles.summaryMeta}>{address}</Text>
           </View>
-          {!!selectedAppliance && !selectedAppliance.isCoveredByAmc && !isConsultation && (
-            <View style={styles.outOfPlanFeeBanner}>
-              <View style={styles.outOfPlanFeeRow}>
-                <Text style={styles.outOfPlanFeeTitle}>Out-of-Plan Appliance Fee</Text>
-                <Text style={styles.outOfPlanFeeAmount}>₹{APPLIANCE_REGISTRATION_FEE}</Text>
+          {isConsultation ? (
+            <View style={styles.consultationFeeCard}>
+              <View style={styles.consultationFeeHeader}>
+                <Text style={styles.consultationFeeTitle}>Urban Company ₹0 Free Visit Guarantee</Text>
+                <View style={styles.freeChip}>
+                  <Text style={styles.freeChipText}>₹0 FREE</Text>
+                </View>
               </View>
-              <Text style={styles.outOfPlanFeeSub}>
-                Added because this appliance was not registered during AMC plan purchase.
+              <View style={styles.feeBreakdownRow}>
+                <Text style={styles.feeBreakdownLabel}>Doorstep Inspection & Diagnostic Visit</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.feeStrike}>₹199</Text>
+                  <Text style={styles.feeFree}>₹0</Text>
+                </View>
+              </View>
+              <View style={styles.feeBreakdownRow}>
+                <Text style={styles.feeBreakdownLabel}>Parts & Labor Repair Quote</Text>
+                <Text style={styles.feeQuoteText}>Provided on-site</Text>
+              </View>
+              <View style={styles.feeDivider} />
+              <View style={styles.feeBreakdownRow}>
+                <Text style={styles.feeTotalLabel}>Amount Payable Today</Text>
+                <Text style={styles.feeTotalValue}>₹0</Text>
+              </View>
+              <Text style={styles.consultationSummaryNote}>
+                Zero payment required now. The technician will inspect the issue at your doorstep and provide a clear quote. If you choose not to proceed with the repair, you pay absolutely ₹0.
               </Text>
             </View>
+          ) : (
+            <>
+              {!!selectedAppliance && !selectedAppliance.isCoveredByAmc && (
+                <View style={styles.outOfPlanFeeBanner}>
+                  <View style={styles.outOfPlanFeeRow}>
+                    <Text style={styles.outOfPlanFeeTitle}>Out-of-Plan Appliance Fee</Text>
+                    <Text style={styles.outOfPlanFeeAmount}>₹{APPLIANCE_REGISTRATION_FEE}</Text>
+                  </View>
+                  <Text style={styles.outOfPlanFeeSub}>
+                    Added because this appliance was not registered during AMC plan purchase.
+                  </Text>
+                </View>
+              )}
+              <View style={styles.billNote}>
+                <Text style={styles.billNoteText}>
+                  No payment now. A technician will inspect first, and the bill will be shared with you after that.
+                </Text>
+              </View>
+            </>
           )}
-          <View style={styles.billNote}>
-            <Text style={styles.billNoteText}>
-              No payment now. A technician will inspect first, and the bill will be shared with you after that.
-            </Text>
-          </View>
           {!!formError && <Text style={styles.error}>{formError}</Text>}
           <TouchableOpacity
             style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
@@ -917,10 +1016,10 @@ export default function BookingFlowScreen({ onNavigate }) {
             <Text style={styles.primaryBtnText}>
               {submitting
                 ? isConsultation
-                  ? 'Confirming consultation…'
+                  ? 'Confirming Free Consultation…'
                   : 'Confirming booking…'
                 : isConsultation
-                  ? 'Confirm free consultation'
+                  ? 'Confirm Free Consultation (₹0)'
                   : 'Confirm Booking'}
             </Text>
           </TouchableOpacity>
@@ -1508,5 +1607,104 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     color: '#7c2d12',
     lineHeight: 16,
+  },
+  consultationAmcBanner: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 14,
+    padding: 14,
+    gap: 3,
+  },
+  consultationAmcTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#1d4ed8',
+  },
+  consultationAmcSub: {
+    fontSize: 12,
+    color: '#1e40af',
+    lineHeight: 17,
+  },
+  consultationFeeCard: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#bfdbfe',
+    borderRadius: 16,
+    padding: 16,
+    gap: 10,
+    boxShadow: '0 4px 14px rgba(37,99,235,0.06)',
+  },
+  consultationFeeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
+  consultationFeeTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+    flex: 1,
+  },
+  freeChip: {
+    backgroundColor: '#dcfce7',
+    borderWidth: 1,
+    borderColor: '#86efac',
+    borderRadius: 99,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  freeChipText: {
+    color: '#15803d',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  feeBreakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  feeBreakdownLabel: {
+    fontSize: 13,
+    color: '#475569',
+    fontWeight: '500',
+  },
+  feeStrike: {
+    fontSize: 13,
+    color: '#94a3b8',
+    textDecorationLine: 'line-through',
+  },
+  feeFree: {
+    fontSize: 14,
+    color: '#16a34a',
+    fontWeight: '800',
+  },
+  feeQuoteText: {
+    fontSize: 12,
+    color: '#2563eb',
+    fontWeight: '700',
+  },
+  feeDivider: {
+    height: 1,
+    backgroundColor: '#e2e8f0',
+    marginVertical: 2,
+  },
+  feeTotalLabel: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  feeTotalValue: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#16a34a',
+  },
+  consultationSummaryNote: {
+    fontSize: 11.5,
+    color: '#64748b',
+    lineHeight: 16,
+    marginTop: 2,
   },
 });

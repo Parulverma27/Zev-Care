@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import AdminDashboardScreen from './screens/AdminDashboardScreen';
 import AdminBookingsScreen from './screens/AdminBookingsScreen';
+import AdminConsultationsScreen from './screens/AdminConsultationsScreen';
 import AdminUsersScreen from './screens/AdminUsersScreen';
 import { AdminProvidersScreen, AdminServicesScreen } from './screens/AdminProvidersScreen';
 import { AdminFinanceScreen, AdminDisputesScreen } from './screens/AdminFinanceScreen';
@@ -11,6 +12,7 @@ import { AdminSubscriptionPlansScreen } from './screens/AdminSubscriptionPlansSc
 import {
   DashboardIcon,
   BookingsIcon,
+  ConsultationsIcon,
   UsersIcon,
   ProvidersIcon,
   CategoriesIcon,
@@ -27,6 +29,7 @@ export default function AdminPanelNavigator() {
   const menuItems = [
     { key: 'DASHBOARD', icon: DashboardIcon, label: 'Dashboard & Analytics' },
     { key: 'BOOKINGS', icon: BookingsIcon, label: 'Work Orders & Dispatch' },
+    { key: 'CONSULTATIONS', icon: ConsultationsIcon, label: 'Mechanic Consultations' },
     { key: 'USERS', icon: UsersIcon, label: 'Users & Video Audit' },
     { key: 'PROVIDERS', icon: ProvidersIcon, label: 'Field Partners' },
     { key: 'SERVICES', icon: CategoriesIcon, label: 'Category Catalog' },
@@ -43,6 +46,8 @@ export default function AdminPanelNavigator() {
         return <AdminDashboardScreen onNavigate={setActiveTab} />;
       case 'BOOKINGS':
         return <AdminBookingsScreen />;
+      case 'CONSULTATIONS':
+        return <AdminConsultationsScreen />;
       case 'USERS':
         return <AdminUsersScreen />;
       case 'PROVIDERS':

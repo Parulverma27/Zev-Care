@@ -28,6 +28,7 @@ import UserProfileScreen from '../user/screens/UserProfileScreen';
 import SavedAddressesScreen from '../user/screens/SavedAddressesScreen';
 import LiveSupportScreen from '../user/screens/LiveSupportScreen';
 import ServiceBrowseScreen from '../user/screens/ServiceBrowseScreen';
+import ConsultationScreen from '../user/screens/ConsultationScreen';
 import TermsAndConditionsScreen from '../user/screens/TermsAndConditionsScreen';
 
 import ProviderAuthScreen from '../provider/screens/ProviderAuthScreen';
@@ -39,6 +40,7 @@ import ProviderProfileScreen from '../provider/screens/ProviderProfileScreen';
 import AdminLoginScreen from '../admin/screens/AdminLoginScreen';
 import AdminDashboardScreen from '../admin/screens/AdminDashboardScreen';
 import AdminBookingsScreen from '../admin/screens/AdminBookingsScreen';
+import AdminConsultationsScreen from '../admin/screens/AdminConsultationsScreen';
 import AdminRatingsScreen from '../admin/screens/AdminRatingsScreen';
 import AdminUserServicesScreen from '../admin/screens/AdminUserServicesScreen';
 import AdminUsersScreen from '../admin/screens/AdminUsersScreen';
@@ -112,6 +114,7 @@ export default function AppRouter() {
           <Route path="service-areas" element={<AdminProtected><AdminServiceAreasScreen /></AdminProtected>} />
           <Route path="bookings" element={<AdminProtected><AdminBookingsScreen /></AdminProtected>} />
           <Route path="bookings/:bookingId" element={<AdminProtected><AdminBookingsScreen /></AdminProtected>} />
+          <Route path="consultations" element={<AdminProtected><AdminConsultationsScreen /></AdminProtected>} />
           <Route path="ratings" element={<AdminProtected><AdminRatingsScreen /></AdminProtected>} />
           <Route path="user-services" element={<AdminProtected><AdminUserServicesScreen /></AdminProtected>} />
           <Route path="finance" element={<AdminProtected><AdminFinanceScreen /></AdminProtected>} />

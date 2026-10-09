@@ -14,6 +14,8 @@ export default function BookingDetailScreen() {
   const { bookingId } = useParams();
   const [approving, setApproving] = useState(false);
   const [billError, setBillError] = useState('');
+  const [selectedPaymentMode, setSelectedPaymentMode] = useState('PAY_ON_COMPLETION');
+  const [showDeclineConfirmModal, setShowDeclineConfirmModal] = useState(false);
 
   const userBookings = getUserBookings(activeUser);
   const bk = userBookings.find((b) => b.booking_id === bookingId);
@@ -189,7 +191,9 @@ export default function BookingDetailScreen() {
     setBillError('');
     setApproving(true);
     setTimeout(() => {
-      const result = approveBill(bk.booking_id);
+      const result = approveBill(bk.booking_id, {
+        paymentMethod: isConsultationBk ? selectedPaymentMode : 'WALLET',
+      });
       setApproving(false);
       if (result && result.ok === false) {
         setBillError(result.error || 'Could not approve bill.');
@@ -198,14 +202,26 @@ export default function BookingDetailScreen() {
   };
 
   const handleRejectBillAction = () => {
+    if (isConsultationBk) {
+      setShowDeclineConfirmModal(true);
+    } else if (typeof rejectBill === 'function') {
+      rejectBill(bk.booking_id);
+    }
+  };
+
+  const handleConfirmDecline = () => {
+    setShowDeclineConfirmModal(false);
     if (typeof rejectBill === 'function') {
       rejectBill(bk.booking_id);
     }
   };
 
+  const isConsultationBk = Boolean(bk?.isConsultation || bk?.booking_mode === 'consultation');
+
   const getStatusBadge = () => {
     if (bk.status === 'BOOKING_COMPLETED') return { text: 'COMPLETED', bg: '#dcfce7', color: '#15803d' };
-    if (bk.status === 'AWAITING_USER_APPROVAL') return { text: 'ACTION REQUIRED', bg: '#fef3c7', color: '#b45309' };
+    if (bk.status === 'ESTIMATE_REJECTED') return { text: isConsultationBk ? 'CONCLUDED (₹0)' : 'DECLINED', bg: '#f1f5f9', color: '#475569' };
+    if (bk.status === 'AWAITING_USER_APPROVAL') return { text: isConsultationBk ? 'QUOTE READY' : 'ACTION REQUIRED', bg: '#fef3c7', color: '#b45309' };
     return { text: 'IN PROGRESS', bg: '#dbeafe', color: '#1d4ed8' };
   };
 
@@ -335,12 +351,30 @@ export default function BookingDetailScreen() {
               </svg>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.estimateTitle}>Estimate Bill Sent for Approval</Text>
-              <Text style={styles.estimateSub}>Technician inspected premises & generated work cost estimate.</Text>
+              <Text style={styles.estimateTitle}>
+                {isConsultationBk ? 'On-Site Diagnosis & Upfront Quote' : 'Estimate Bill Sent for Approval'}
+              </Text>
+              <Text style={styles.estimateSub}>
+                {isConsultationBk
+                  ? 'Technician diagnosed root cause. Review upfront repair quote before work starts.'
+                  : 'Technician inspected premises & generated work cost estimate.'}
+              </Text>
             </View>
           </View>
 
-          {Boolean(activeUser?.subscription_plan && activeUser?.subscription_status === 'ACTIVE') && (
+          {isConsultationBk ? (
+            <View style={{ backgroundColor: '#f0fdf4', borderWidth: 1.2, borderColor: '#86efac', borderRadius: 12, padding: 10, marginHorizontal: 16, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={{ fontSize: 18 }}>✓</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#166534' }}>
+                  Free Diagnosis Policy Honored (₹0)
+                </Text>
+                <Text style={{ fontSize: 10.5, color: '#15803d', lineHeight: 14 }}>
+                  Inspection visit is completely free. Approve quote below only if you want the technician to perform the repair now.
+                </Text>
+              </View>
+            </View>
+          ) : Boolean(activeUser?.subscription_plan && activeUser?.subscription_status === 'ACTIVE') ? (
             <View style={{ backgroundColor: '#0a192f', borderWidth: 1.2, borderColor: '#d4af37', borderRadius: 12, padding: 10, marginHorizontal: 16, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Text style={{ fontSize: 18 }}>🛡️</Text>
               <View style={{ flex: 1 }}>
@@ -352,15 +386,59 @@ export default function BookingDetailScreen() {
                 </Text>
               </View>
             </View>
+          ) : null}
+
+          {/* Diagnostic Findings & Root Cause Analysis */}
+          {bk?.inspection_report ? (
+            <View style={styles.diagnosisBox}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                <Text style={{ fontSize: 13 }}>🔍</Text>
+                <Text style={styles.diagnosisTitle}>On-Site Diagnostic Findings</Text>
+              </View>
+              <Text style={styles.diagnosisText}>{bk.inspection_report}</Text>
+            </View>
+          ) : null}
+
+          {/* Defective Part Media Attachment (if captured by technician) */}
+          {bk?.issue_media_url ? (
+            <View style={styles.defectMediaBox}>
+              <Text style={styles.defectMediaLabel}>Technician Diagnostic Photo:</Text>
+              <View style={styles.defectImgContainer}>
+                <Image
+                  source={{ uri: resolveImageUri(bk.issue_media_url) }}
+                  style={styles.defectImg}
+                  resizeMode="cover"
+                />
+              </View>
+            </View>
+          ) : null}
+
+          {/* 30-Day Urban Company Warranty Guarantee */}
+          {isConsultationBk && (
+            <View style={styles.warrantyBox}>
+              <Text style={{ fontSize: 15 }}>🛡️</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.warrantyTitle}>30-Day Service & Parts Warranty</Text>
+                <Text style={styles.warrantySub}>
+                  All replacement components and technician labor are backed by our 30-day rework guarantee.
+                </Text>
+              </View>
+            </View>
           )}
 
           <View style={styles.billBreakdownTable}>
             <View style={styles.billRow}>
-              <Text style={styles.billLabel}>Service Visit & Inspection Fee</Text>
-              <Text style={styles.billVal}>₹{(bk?.service_charge ?? 0).toLocaleString()}</Text>
+              <Text style={styles.billLabel}>
+                {isConsultationBk ? 'On-Site Diagnostic Visit' : 'Service Visit & Inspection Fee'}
+              </Text>
+              <Text style={[styles.billVal, isConsultationBk && { color: '#16a34a', fontWeight: '800' }]}>
+                {isConsultationBk ? '₹0 (FREE)' : `₹${(bk?.service_charge ?? 0).toLocaleString()}`}
+              </Text>
             </View>
             <View style={styles.billRow}>
-              <Text style={styles.billLabel}>Replacement Spare Parts</Text>
+              <Text style={styles.billLabel}>
+                Replacement Spare Parts{bk?.parts_description ? ` (${bk.parts_description})` : ''}
+              </Text>
               <Text style={styles.billVal}>₹{(bk?.parts_charge ?? 0).toLocaleString()}</Text>
             </View>
             <View style={styles.billRow}>
@@ -380,15 +458,65 @@ export default function BookingDetailScreen() {
             </View>
           </View>
 
+          {/* Payment Method Selector (for Consultations) */}
+          {isConsultationBk && (
+            <View style={styles.paySelectorContainer}>
+              <Text style={styles.paySelectorTitle}>Choose How to Pay</Text>
+
+              <TouchableOpacity
+                style={[
+                  styles.payChoiceCard,
+                  selectedPaymentMode === 'PAY_ON_COMPLETION' && styles.payChoiceCardActive,
+                ]}
+                onPress={() => setSelectedPaymentMode('PAY_ON_COMPLETION')}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.radioCircle, selectedPaymentMode === 'PAY_ON_COMPLETION' && styles.radioCircleActive]}>
+                  {selectedPaymentMode === 'PAY_ON_COMPLETION' && <View style={styles.radioDot} />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={styles.payChoiceLabel}>Pay After Service (Recommended)</Text>
+                    <View style={styles.cashBadge}><Text style={styles.cashBadgeText}>Cash / UPI</Text></View>
+                  </View>
+                  <Text style={styles.payChoiceSub}>
+                    Pay technician directly once the repair is tested and you are 100% satisfied.
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.payChoiceCard,
+                  selectedPaymentMode === 'WALLET' && styles.payChoiceCardActive,
+                ]}
+                onPress={() => setSelectedPaymentMode('WALLET')}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.radioCircle, selectedPaymentMode === 'WALLET' && styles.radioCircleActive]}>
+                  {selectedPaymentMode === 'WALLET' && <View style={styles.radioDot} />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.payChoiceLabel}>Pay from Wallet Balance</Text>
+                  <Text style={styles.payChoiceSub}>
+                    Wallet Balance: ₹{(activeUser?.wallet_balance || 0).toLocaleString('en-IN')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <TouchableOpacity
-            style={[styles.approveBillBtn, Boolean(activeUser?.subscription_plan) && { backgroundColor: '#0a192f', borderWidth: 1.5, borderColor: '#d4af37' }]}
+            style={[styles.approveBillBtn, Boolean(activeUser?.subscription_plan) && !isConsultationBk && { backgroundColor: '#0a192f', borderWidth: 1.5, borderColor: '#d4af37' }]}
             onPress={handleApproveBillAction}
             disabled={approving}
             activeOpacity={0.85}
           >
-            <Text style={[styles.approveBillBtnText, Boolean(activeUser?.subscription_plan) && { color: '#fbbf24' }]}>
+            <Text style={[styles.approveBillBtnText, Boolean(activeUser?.subscription_plan) && !isConsultationBk && { color: '#fbbf24' }]}>
               {approving
                 ? 'Processing Approval...'
+                : isConsultationBk
+                ? `Approve Quote & Start Repair Work (₹${(bk?.total_bill ?? 0).toLocaleString()})`
                 : Boolean(activeUser?.subscription_plan && activeUser?.subscription_status === 'ACTIVE')
                 ? `Approve & Confirm Service (${activeUser.subscription_plan})`
                 : 'Approve & Pay Bill from Wallet'}
@@ -400,9 +528,59 @@ export default function BookingDetailScreen() {
             disabled={approving}
             activeOpacity={0.85}
           >
-            <Text style={styles.rejectBillBtnText}>Reject Estimate</Text>
+            <Text style={styles.rejectBillBtnText}>
+              {isConsultationBk ? 'Decline Quote (₹0 Charged)' : 'Reject Estimate'}
+            </Text>
           </TouchableOpacity>
           {!!billError && <Text style={styles.billErrorText}>{billError}</Text>}
+        </View>
+      )}
+
+      {/* DECLINE CONFIRMATION MODAL */}
+      {showDeclineConfirmModal && (
+        <View style={styles.declineModalOverlay}>
+          <View style={styles.declineModalCard}>
+            <Text style={{ fontSize: 24, textAlign: 'center', marginBottom: 4 }}>📋</Text>
+            <Text style={styles.declineModalTitle}>Decline Repair Quote?</Text>
+            <Text style={styles.declineModalMessage}>
+              Your on-site diagnostic visit is completely free.
+              {'\n\n'}
+              If you decline this repair quote, no visitation fee will be charged (₹0 Charged). The technician will pack up and conclude the consultation with ₹0 due.
+            </Text>
+            <View style={styles.declineModalBtnRow}>
+              <TouchableOpacity
+                style={styles.declineModalCancelBtn}
+                onPress={() => setShowDeclineConfirmModal(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.declineModalCancelText}>Keep Quote</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.declineModalConfirmBtn}
+                onPress={handleConfirmDecline}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.declineModalConfirmText}>Confirm Decline (₹0)</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* DECLINED CONSULTATION NOTICE */}
+      {bk?.status === 'ESTIMATE_REJECTED' && (
+        <View style={{ backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#e2e8f0', gap: 6, marginHorizontal: 0 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ fontSize: 16 }}>📋</Text>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: '#0f172a' }}>
+              {isConsultationBk ? 'Consultation Concluded (₹0 Charged)' : 'Estimate Declined'}
+            </Text>
+          </View>
+          <Text style={{ fontSize: 12, color: '#64748b', lineHeight: 16 }}>
+            {isConsultationBk
+              ? 'You chose not to proceed with the repair. In accordance with our free consultation guarantee, no visitation or inspection fees were charged to your account.'
+              : 'The estimate was rejected. If you need any assistance, reach out via live support console.'}
+          </Text>
         </View>
       )}
 
@@ -418,6 +596,16 @@ export default function BookingDetailScreen() {
               <Text style={styles.otpCode}>{bk?.completion_otp || '—'}</Text>
             </View>
           </View>
+          {bk?.payment_mode === 'PAY_AFTER_SERVICE' && bk?.status === 'SERVICE_IN_PROGRESS' && (
+            <View style={{ marginTop: 10, backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#bbf7d0', borderRadius: 8, padding: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 11, color: '#166534', fontWeight: '600' }}>
+                💵 Payable on completion to technician:
+              </Text>
+              <Text style={{ fontSize: 13, color: '#15803d', fontWeight: '800' }}>
+                ₹{(bk?.total_bill || 0).toLocaleString()}
+              </Text>
+            </View>
+          )}
         </View>
       )}
 
@@ -1178,6 +1366,204 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyActionText: { color: '#ffffff', fontSize: 14, fontWeight: '700' },
+
+  diagnosisBox: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginHorizontal: 16,
+    marginBottom: 10,
+  },
+  diagnosisTitle: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#1e3a8a',
+  },
+  diagnosisText: {
+    fontSize: 11.5,
+    color: '#334155',
+    lineHeight: 16,
+  },
+
+  defectMediaBox: {
+    marginHorizontal: 16,
+    marginBottom: 10,
+  },
+  defectMediaLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  defectImgContainer: {
+    height: 110,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  defectImg: {
+    width: '100%',
+    height: '100%',
+  },
+
+  warrantyBox: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 10,
+    padding: 10,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  warrantyTitle: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#1d4ed8',
+  },
+  warrantySub: {
+    fontSize: 10.5,
+    color: '#2563eb',
+    lineHeight: 14,
+  },
+
+  paySelectorContainer: {
+    marginHorizontal: 16,
+    marginVertical: 10,
+    gap: 8,
+  },
+  paySelectorTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  payChoiceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+  },
+  payChoiceCardActive: {
+    borderColor: '#2563eb',
+    backgroundColor: '#eff6ff',
+  },
+  radioCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: '#94a3b8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioCircleActive: {
+    borderColor: '#2563eb',
+  },
+  radioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#2563eb',
+  },
+  payChoiceLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  payChoiceSub: {
+    fontSize: 10.5,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  cashBadge: {
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  cashBadgeText: {
+    color: '#15803d',
+    fontSize: 9.5,
+    fontWeight: '800',
+  },
+
+  declineModalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    zIndex: 9999,
+  },
+  declineModalCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    padding: 20,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  declineModalTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0f172a',
+    textAlign: 'center',
+  },
+  declineModalMessage: {
+    fontSize: 12.5,
+    color: '#475569',
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  declineModalBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  declineModalCancelBtn: {
+    flex: 1,
+    paddingVertical: 11,
+    borderRadius: 10,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  declineModalCancelText: {
+    color: '#334155',
+    fontWeight: '700',
+    fontSize: 12.5,
+  },
+  declineModalConfirmBtn: {
+    flex: 1.3,
+    paddingVertical: 11,
+    borderRadius: 10,
+    backgroundColor: '#dc2626',
+    alignItems: 'center',
+  },
+  declineModalConfirmText: {
+    color: '#ffffff',
+    fontWeight: '800',
+    fontSize: 12.5,
+  },
 });
 
 const ratingStyles = StyleSheet.create({

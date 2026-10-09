@@ -66,7 +66,8 @@ export const DEFAULT_BANNERS = [
 
 export { CATEGORY_IMAGE_FALLBACKS, SERVICE_ITEM_IMAGE_KEYS as SERVICE_ITEM_IMAGE_FALLBACKS };
 
-export const BANNERS_VERSION = '8';
+export const BANNERS_VERSION_KEY = 'zevota_banners_version';
+export const BANNERS_VERSION = '11';
 
 export function isStaleLocalImageUrl(url) {
   if (!url || typeof url !== 'string') return true;
