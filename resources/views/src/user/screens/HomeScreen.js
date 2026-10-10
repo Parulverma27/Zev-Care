@@ -57,6 +57,108 @@ const TRUST_FEATURES = [
   },
 ];
 
+function Luxury3DShieldIcon({ size = 26 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <defs>
+        <linearGradient id="shieldRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#93c5fd" />
+          <stop offset="50%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#1d4ed8" />
+        </linearGradient>
+        <linearGradient id="shieldBodyGrad" x1="20%" y1="0%" x2="80%" y2="100%">
+          <stop offset="0%" stopColor="#1e40af" />
+          <stop offset="50%" stopColor="#1e3a8a" />
+          <stop offset="100%" stopColor="#0f172a" />
+        </linearGradient>
+        <linearGradient id="shieldGleamGrad" x1="0%" y1="0%" x2="100%" y2="80%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.5" />
+          <stop offset="60%" stopColor="#ffffff" stopOpacity="0.0" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M16 3L6 7.5V15C6 21.2 10.3 26.9 16 28.5C21.7 26.9 26 21.2 26 15V7.5L16 3Z"
+        fill="url(#shieldRimGrad)"
+      />
+      <path
+        d="M16 4.8L7.6 8.6V15C7.6 20.3 11.2 25.2 16 26.7C20.8 25.2 24.4 20.3 24.4 15V8.6L16 4.8Z"
+        fill="url(#shieldBodyGrad)"
+      />
+      <path
+        d="M16 4.8L7.6 8.6V15C7.6 17.5 8.6 20 10.2 22L20.5 7.5L16 4.8Z"
+        fill="url(#shieldGleamGrad)"
+      />
+      <path
+        d="M12 15.2L14.8 18L20.8 11.5"
+        stroke="#ffffff"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function Luxury3DWrenchIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <defs>
+        <linearGradient id="wrenchChromeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#f8fafc" />
+          <stop offset="35%" stopColor="#cbd5e1" />
+          <stop offset="70%" stopColor="#64748b" />
+          <stop offset="100%" stopColor="#475569" />
+        </linearGradient>
+        <linearGradient id="wrenchBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3b82f6" />
+          <stop offset="60%" stopColor="#1d4ed8" />
+          <stop offset="100%" stopColor="#1e3a8a" />
+        </linearGradient>
+      </defs>
+      <g transform="rotate(-45 16 16)">
+        <path
+          d="M13 3C11 3 9.5 4.5 9.5 6.5C9.5 7.6 10 8.6 10.8 9.2L12.5 12H19.5L21.2 9.2C22 8.6 22.5 7.6 22.5 6.5C22.5 4.5 21 3 19 3H17V6.5C17 7 16.5 7.5 16 7.5C15.5 7.5 15 7 15 6.5V3H13Z"
+          fill="url(#wrenchChromeGrad)"
+        />
+        <rect x="13.5" y="11" width="5" height="13" rx="1.5" fill="url(#wrenchBlueGrad)" />
+        <rect x="15" y="12" width="2" height="11" rx="0.5" fill="#93c5fa" opacity="0.7" />
+        <circle cx="16" cy="26" r="3.8" fill="url(#wrenchChromeGrad)" />
+        <circle cx="16" cy="26" r="1.8" fill="#fef3e2" />
+      </g>
+    </svg>
+  );
+}
+
+function Luxury3DMechanicIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <defs>
+        <linearGradient id="techCapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#1d4ed8" />
+        </linearGradient>
+        <linearGradient id="techBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#2563eb" />
+          <stop offset="100%" stopColor="#0f172a" />
+        </linearGradient>
+        <linearGradient id="techGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#fef08a" />
+          <stop offset="100%" stopColor="#eab308" />
+        </linearGradient>
+      </defs>
+      <g>
+        <path d="M9 11.5C9 7.5 12 5 16 5C20 5 23 7.5 23 11.5H9Z" fill="url(#techCapGrad)" />
+        <path d="M8 11.5C8 11.5 11 12.8 16 12.8C21 12.8 24 11.5 24 11.5C24.5 12 23.5 13.2 21.5 13.8C19 14.5 13 14.5 10.5 13.8C8.5 13.2 7.5 12 8 11.5Z" fill="#1e3a8a" />
+        <circle cx="16" cy="8.5" r="1.5" fill="url(#techGoldGrad)" />
+        <circle cx="16" cy="14" r="3.8" fill="#fed7aa" />
+        <path d="M7 27C7 21.8 11 20 16 20C21 20 25 21.8 25 27H7Z" fill="url(#techBodyGrad)" />
+        <path d="M14 20L16 23.5L18 20" stroke="#93c5fd" strokeWidth="1.2" strokeLinecap="round" />
+        <circle cx="19.5" cy="23.5" r="1.3" fill="url(#techGoldGrad)" />
+      </g>
+    </svg>
+  );
+}
+
 const AMC_HOME_ACTIONS = [
   {
     key: 'plans',
@@ -65,23 +167,18 @@ const AMC_HOME_ACTIONS = [
     actionLabel: 'Explore Plans',
     route: '/user/plans',
     theme: 'dark',
-    cardBg: 'linear-gradient(150deg, #0f2347 0%, #0a1730 100%)',
-    borderColor: 'rgba(37, 99, 235, 0.4)',
-    boxShadow: '0 8px 24px rgba(15, 35, 71, 0.28)',
-    iconBg: 'rgba(37, 99, 235, 0.25)',
-    iconBorder: '1.5px solid #3b82f6',
+    cardBg: 'linear-gradient(135deg, #07132a 0%, #0d1e3d 50%, #081732 100%)',
+    borderColor: 'rgba(59, 130, 246, 0.35)',
+    boxShadow: '0 8px 24px rgba(7, 19, 43, 0.28)',
+    iconBg: 'rgba(255, 255, 255, 0.1)',
+    iconBorder: '1.5px solid rgba(96, 165, 250, 0.45)',
     titleColor: '#ffffff',
-    subColor: 'rgba(226, 232, 240, 0.85)',
+    subColor: 'rgba(226, 232, 240, 0.88)',
     actionColor: '#ffffff',
     circleBtnBg: '#2563eb',
     circleBtnBorder: 'none',
     circleBtnColor: '#ffffff',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <polyline points="9 11 11 13 15 9" />
-      </svg>
-    ),
+    icon: <Luxury3DShieldIcon size={24} />,
   },
   {
     key: 'complaints',
@@ -90,22 +187,18 @@ const AMC_HOME_ACTIONS = [
     actionLabel: 'Raise Complaint',
     route: '/user/complains',
     theme: 'light',
-    cardBg: 'linear-gradient(150deg, #fffdf8 0%, #f6efe3 100%)',
-    borderColor: '#e8dcce',
+    cardBg: 'linear-gradient(145deg, #ffffff 0%, #fffdf9 100%)',
+    borderColor: '#fae8d4',
     boxShadow: '0 4px 16px rgba(180, 140, 90, 0.08)',
-    iconBg: '#f3e8d7',
-    iconBorder: '1.5px solid #e2d1bc',
+    iconBg: '#fff7ed',
+    iconBorder: '1.5px solid #fed7aa',
     titleColor: '#0f172a',
     subColor: '#64748b',
     actionColor: '#2563eb',
     circleBtnBg: '#eff6ff',
     circleBtnBorder: '1px solid #bfdbfe',
     circleBtnColor: '#2563eb',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-      </svg>
-    ),
+    icon: <Luxury3DWrenchIcon size={24} />,
   },
   {
     key: 'mechanic',
@@ -115,10 +208,10 @@ const AMC_HOME_ACTIONS = [
     actionLabel: 'Book Free',
     route: '/user/consultation',
     theme: 'light',
-    cardBg: 'linear-gradient(150deg, #f0f7ff 0%, #e0efff 100%)',
-    borderColor: '#bfdbfe',
+    cardBg: 'linear-gradient(145deg, #ffffff 0%, #f6faff 100%)',
+    borderColor: '#dbeafe',
     boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)',
-    iconBg: '#ffffff',
+    iconBg: '#eff6ff',
     iconBorder: '1.5px solid #bfdbfe',
     titleColor: '#0f172a',
     subColor: '#64748b',
@@ -126,14 +219,7 @@ const AMC_HOME_ACTIONS = [
     circleBtnBg: '#ffffff',
     circleBtnBorder: '1px solid #bfdbfe',
     circleBtnColor: '#2563eb',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="9" cy="7" r="4" />
-        <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        <path d="M21 21v-2a4 4 0 0 0-3-3.85" />
-      </svg>
-    ),
+    icon: <Luxury3DMechanicIcon size={24} />,
   },
 ];
 
@@ -381,10 +467,10 @@ export default function HomeScreen({ onNavigate }) {
   };
 
   const displayName = React.useMemo(() => {
-    if (!activeUser || activeUser.isGuest || isAnonymous) return 'Parul';
+    if (!activeUser || activeUser.isGuest || isAnonymous) return 'Gungun';
     const name = (activeUser.name || '').trim();
     if (name) return name.split(' ')[0];
-    return 'Parul';
+    return 'Gungun';
   }, [activeUser, isAnonymous]);
 
   const handleNav = (path, paramObj) => {
@@ -535,7 +621,7 @@ export default function HomeScreen({ onNavigate }) {
               placeholder=""
               placeholderTextColor="transparent"
             />
-            {searchQuery.trim().length > 0 && (
+            {searchQuery.trim().length > 0 ? (
               <TouchableOpacity
                 onPress={() => {
                   setSearchQuery('');
@@ -544,6 +630,22 @@ export default function HomeScreen({ onNavigate }) {
                 style={{ padding: 6, marginRight: 2, zIndex: 10 }}
               >
                 <AppIcon name="x" size={14} color="#94a3b8" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.heroFilterBtn}
+                onPress={() => handleNav('/user/categories')}
+                activeOpacity={0.8}
+                accessibilityLabel="Filter services"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#54647c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="7" x2="20" y2="7" />
+                  <circle cx="9" cy="7" r="2.2" fill="#f1f5f9" stroke="#54647c" strokeWidth="2" />
+                  <line x1="4" y1="12" x2="20" y2="12" />
+                  <circle cx="16" cy="12" r="2.2" fill="#f1f5f9" stroke="#54647c" strokeWidth="2" />
+                  <line x1="4" y1="17" x2="20" y2="17" />
+                  <circle cx="11" cy="17" r="2.2" fill="#f1f5f9" stroke="#54647c" strokeWidth="2" />
+                </svg>
               </TouchableOpacity>
             )}
           </View>
@@ -786,7 +888,7 @@ export default function HomeScreen({ onNavigate }) {
                         </svg>
                       </View>
                       <Text style={[styles.amcLuxuryActionText, { color: item.actionColor, fontSize: 11.5, marginTop: 6, fontWeight: '700' }]}>
-                        {item.actionLabel} →
+                        Explore{'\n'}Plans →
                       </Text>
                     </View>
                   </View>
@@ -826,29 +928,16 @@ export default function HomeScreen({ onNavigate }) {
                     </View>
 
                     {/* Bottom: Action Text & Circle Arrow Button */}
-                    <View style={styles.amcCardFooterRow}>
-                      <Text style={[styles.amcLuxuryActionText, { color: item.actionColor, fontSize: 11.5 }]}>
-                        {item.actionLabel} →
-                      </Text>
-                      <View
-                        style={[
-                          styles.amcLuxuryCircleArrow,
-                          {
-                            backgroundColor: item.circleBtnBg,
-                            border: item.circleBtnBorder || 'none',
-                            width: 26,
-                            height: 26,
-                            borderRadius: 13,
-                          },
-                        ]}
-                      >
+                    <View style={styles.amcCardFooterPill}>
+                      <Text style={styles.amcCardFooterPillText}>{item.actionLabel}</Text>
+                      <View style={styles.amcCardFooterPillArrow}>
                         <svg
-                          width="11"
-                          height="11"
+                          width="10"
+                          height="10"
                           viewBox="0 0 24 24"
                           fill="none"
-                          stroke={item.circleBtnColor}
-                          strokeWidth="2.5"
+                          stroke="#2563eb"
+                          strokeWidth="2.6"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         >
@@ -1031,28 +1120,28 @@ export default function HomeScreen({ onNavigate }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#ffffff', width: '100%' },
-  content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 100, gap: 12, width: '100%', boxSizing: 'border-box' },
+  content: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 100, gap: 12, width: '100%', boxSizing: 'border-box' },
 
   /* Luxury Frontpage Hero Section */
   luxuryHeroContainer: {
-    marginHorizontal: -12,
+    marginHorizontal: -16,
     position: 'relative',
     marginTop: 0,
-    marginBottom: 18,
+    marginBottom: 22,
     zIndex: 100,
   },
   luxuryHeroCard: {
     width: '100%',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    borderBottomLeftRadius: 22,
-    borderBottomRightRadius: 22,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 26,
+    borderBottomRightRadius: 26,
     overflow: 'hidden',
     position: 'relative',
-    minHeight: 196,
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 34,
+    minHeight: 200,
+    paddingTop: 18,
+    paddingHorizontal: 18,
+    paddingBottom: 36,
     backgroundColor: '#091836',
     boxShadow: '0 12px 32px rgba(9, 24, 54, 0.28)',
   },
@@ -1064,6 +1153,12 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
+    ...(Platform.OS === 'web'
+      ? {
+          objectFit: 'cover',
+          objectPosition: 'right center',
+        }
+      : {}),
   },
   luxuryHeroGradientOverlay: {
     position: 'absolute',
@@ -1075,7 +1170,7 @@ const styles = StyleSheet.create({
     height: '100%',
     ...(Platform.OS === 'web'
       ? {
-          background: 'linear-gradient(90deg, rgba(5, 16, 42, 0.94) 0%, rgba(5, 16, 42, 0.82) 42%, rgba(5, 16, 42, 0.38) 75%, rgba(5, 16, 42, 0.08) 100%)',
+          background: 'linear-gradient(90deg, rgba(6, 17, 43, 0.96) 0%, rgba(6, 17, 43, 0.86) 44%, rgba(6, 17, 43, 0.38) 72%, rgba(6, 17, 43, 0.08) 100%)',
         }
       : { backgroundColor: 'rgba(5, 16, 42, 0.75)' }),
   },
@@ -1095,20 +1190,20 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   heroBrandZevota: {
-    fontSize: 25,
+    fontSize: 27,
     fontWeight: '800',
     color: '#ffffff',
-    letterSpacing: -0.4,
-    lineHeight: 28,
+    letterSpacing: -0.5,
+    lineHeight: 29,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroBrandCare: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#e2e8f0',
-    letterSpacing: 2.8,
-    marginTop: -1,
-    paddingLeft: 18,
+    fontWeight: '800',
+    color: '#ffffff',
+    letterSpacing: 4.5,
+    marginTop: 0,
+    paddingLeft: 2,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroActionsRow: {
@@ -1172,17 +1267,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   heroHeadline: {
-    fontSize: 27,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     color: '#ffffff',
-    lineHeight: 33,
+    lineHeight: 34,
     letterSpacing: -0.4,
-    fontFamily: "'Playfair Display', Georgia, serif",
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroHeadlineGold: {
-    color: '#E5B869',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#f6c453',
     fontStyle: 'italic',
-    fontFamily: "'Playfair Display', Georgia, serif",
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroSubHeadline: {
     fontSize: 12.5,
@@ -1195,9 +1292,20 @@ const styles = StyleSheet.create({
   floatingSearchWrapper: {
     position: 'absolute',
     bottom: -22,
-    left: 6,
-    right: 6,
+    left: 16,
+    right: 16,
     zIndex: 999,
+  },
+  heroFilterBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    flexShrink: 0,
+    zIndex: 10,
   },
   floatingSearchBox: {
     position: 'relative',
@@ -1490,6 +1598,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
     fontWeight: '500',
+  },
+    amcCardFooterPill: {
+    backgroundColor: '#ffffff',
+    borderRadius: 999,
+    height: 33,
+    paddingLeft: 11,
+    paddingRight: 4,
+    borderWidth: 1.2,
+    borderColor: '#e2e8f0',
+    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    boxSizing: 'border-box',
+    marginTop: 'auto',
+  },
+  amcCardFooterPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2563eb',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+    ...(Platform.OS === 'web' ? { whiteSpace: 'nowrap' } : {}),
+  },
+  amcCardFooterPillArrow: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   amcCardFooterRow: {
     flexDirection: 'row',

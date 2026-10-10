@@ -1216,7 +1216,7 @@ export default function BookingFlowScreen({ onNavigate }) {
                 onPress={() => selectSubGroupAndNext(group.name)}
               >
                 <Image
-                  source={{ uri: resolveCategoryImageUri(group.name, group.image_url, isComplaint) }}
+                  source={{ uri: resolveCategoryImageUri(group.name, group.image_url, isComplaint || isConsultation) }}
                   style={styles.catImg}
                 />
                 <View style={{ flex: 1 }}>
@@ -1259,7 +1259,7 @@ export default function BookingFlowScreen({ onNavigate }) {
               onPress={() => selectCategoryAndNext(cat.name)}
             >
               <Image
-                source={{ uri: resolveCategoryImageUri(cat.name, cat.image_url, isComplaint) }}
+                source={{ uri: resolveCategoryImageUri(cat.name, cat.image_url, isComplaint || isConsultation) }}
                 style={styles.catImg}
               />
               <View style={{ flex: 1 }}>

@@ -122,6 +122,12 @@ export const SERVICE_IMAGES = {
   footerBanner: getImageUrl(require('../../assets/services/footer-banner.jpg')),
   myAppliancesHero: getImageUrl(require('../../assets/my-appliances-hero.jpg')),
   homeHeaderBg: getImageUrl(require('../../assets/home-header-bg.jpg')),
+  amcPlanBg: getImageUrl(require('../../assets/amc-plan-card-bg.jpg')),
+  amcComplaintsBg: getImageUrl(require('../../assets/amc-complaints-bg.jpg')),
+  amcMechanicBg: getImageUrl(require('../../assets/amc-mechanic-bg.jpg')),
+  amcShield3d: getImageUrl(require('../../assets/amc-shield-3d.jpg')),
+  amcWrench3d: getImageUrl(require('../../assets/amc-wrench-3d.jpg')),
+  amcMechanic3d: getImageUrl(require('../../assets/amc-mechanic-3d.jpg')),
 
   // Login / Register Slideshow Images (login 1-4)
   loginSlide1: getImageUrl(require('../../assets/login-1.png')),

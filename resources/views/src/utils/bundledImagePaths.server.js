@@ -104,6 +104,12 @@ export const SERVICE_IMAGES = {
   homeHeroBanner: '/assets/home-hero-banner.png',
   footerBanner: '/assets/services/footer-banner.jpg',
   homeHeaderBg: '/assets/home-header-bg.jpg',
+  amcPlanBg: '/assets/amc-plan-card-bg.jpg',
+  amcComplaintsBg: '/assets/amc-complaints-bg.jpg',
+  amcMechanicBg: '/assets/amc-mechanic-bg.jpg',
+  amcShield3d: '/assets/amc-shield-3d.jpg',
+  amcWrench3d: '/assets/amc-wrench-3d.jpg',
+  amcMechanic3d: '/assets/amc-mechanic-3d.jpg',
 };
 
 export const CATEGORY_IMAGE_FALLBACKS = {
