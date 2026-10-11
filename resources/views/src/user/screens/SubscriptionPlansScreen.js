@@ -766,6 +766,12 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
     return (
       <View style={styles.wizardContainer}>
         <ApplianceAddWizard
+          existingAppliances={
+            wizardTargetPlan
+              ? (planAppliancesMap[wizardTargetPlan.id]?.length ? planAppliancesMap[wizardTargetPlan.id] : coveredAppliances)
+              : coveredAppliances
+          }
+          planName={wizardTargetPlan?.name || (planName !== 'None' ? planName : 'AMC')}
           onCancel={() => {
             setViewMode('DASHBOARD');
             setWizardTargetPlan(null);
@@ -2694,6 +2700,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
     width: '100%',
-    minHeight: '100vh',
+    height: '100%',
+    overflow: 'hidden',
   },
 });

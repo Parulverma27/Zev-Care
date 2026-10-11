@@ -84,6 +84,7 @@ export function countServicesInSubCategory(categoryName, subCategoryName, liveSe
 
 export function getInitialStepForCategory(categoryName) {
   if (!categoryName) return 1;
+  if (isPestControlCategory(categoryName)) return 'SERVICE_TYPE';
   return categoryHasGroups(categoryName) ? 'SUB_GROUP' : 'SERVICE_TYPE';
 }
 
@@ -190,3 +191,27 @@ export function searchAllServices(query = '', liveServices = null) {
 
   return results;
 }
+
+/**
+ * Zero-friction category helper:
+ * For Plumber (Plumbing) and Pest Control, video verification and questions
+ * are skipped and replaced with direct confirmation modal & Blinkit-style cart.
+ */
+export function isZeroFrictionCategory(categoryNameOrId) {
+  if (!categoryNameOrId) return false;
+  const normalized = String(categoryNameOrId).toLowerCase().trim();
+  return normalized.includes('plumb') || normalized.includes('pest');
+}
+
+export function isPestControlCategory(categoryNameOrId) {
+  if (!categoryNameOrId) return false;
+  const normalized = String(categoryNameOrId).toLowerCase().trim();
+  return normalized.includes('pest');
+}
+
+export function isPlumberCategory(categoryNameOrId) {
+  if (!categoryNameOrId) return false;
+  const normalized = String(categoryNameOrId).toLowerCase().trim();
+  return normalized.includes('plumb');
+}
+

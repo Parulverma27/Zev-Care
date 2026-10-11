@@ -17,12 +17,16 @@ import {
   getInitialStepForCategory,
   getServiceTypes,
   getSubGroups,
+  isZeroFrictionCategory,
+  isPestControlCategory,
 } from '../../config/serviceCatalogUtils';
 import { resolveCategoryImageUri, resolveServiceItemImageUri } from '../../utils/imageUtils';
 import MediaCapturePanel from '../../components/MediaCapturePanel';
 import ApplianceAddWizard, {
   buildSavedApplianceRecords,
 } from '../../components/appliances/ApplianceAddWizard';
+import FastAddConfirmationModal from '../../components/booking/FastAddConfirmationModal';
+import BlinkitCartBar from '../../components/booking/BlinkitCartBar';
 import { AppIcon } from '../../components/AppIcons';
 import BookingApplianceSelectStep from '../../components/booking/BookingApplianceSelectStep';
 import BookingIssueStep from '../../components/booking/BookingIssueStep';
@@ -79,6 +83,10 @@ export default function BookingFlowScreen({ onNavigate }) {
   const [customIssueText, setCustomIssueText] = useState('');
   const [catalogOtherMedia, setCatalogOtherMedia] = useState(null);
   const [showOtherInput, setShowOtherInput] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+  const [fastAddModalItem, setFastAddModalItem] = useState(null);
+  const [showFastAddModal, setShowFastAddModal] = useState(false);
+  const [fastAddQty, setFastAddQty] = useState(1);
 
   // Appliance booking draft
   const [applianceTypeId, setApplianceTypeId] = useState(null);
@@ -330,6 +338,7 @@ export default function BookingFlowScreen({ onNavigate }) {
     setCategory(catName);
     setSubCategory('');
     setService('');
+    setCartItems([]);
     setSkippedCategoryStep(false);
     setStep(getInitialStepForCategory(catName));
   };
@@ -352,6 +361,14 @@ export default function BookingFlowScreen({ onNavigate }) {
       setOtherError('');
       return;
     }
+
+    if (isZeroFrictionCategory(category)) {
+      setFastAddModalItem(item);
+      setFastAddQty(1);
+      setShowFastAddModal(true);
+      return;
+    }
+
     if (isGuest && !isApplianceLinkedService(item.name)) {
       promptGuestRegistration(`You haven't registered yet. Please register your account to book ${item.name} service.`);
       return;
@@ -359,6 +376,33 @@ export default function BookingFlowScreen({ onNavigate }) {
     setShowOtherInput(false);
     if (!categoryHasGroups(category)) setSubCategory(item.name);
     afterServicePicked(item.name);
+  };
+
+  const handleConfirmFastAdd = () => {
+    if (!fastAddModalItem) return;
+    const newItems = Array.from({ length: fastAddQty }, () => fastAddModalItem);
+    setCartItems((prev) => [...prev, ...newItems]);
+    setShowFastAddModal(false);
+    setFastAddModalItem(null);
+  };
+
+  const proceedWithZeroFrictionCart = () => {
+    if (cartItems.length === 0) return;
+    const primaryService = cartItems[0].name;
+    const allNames = cartItems.map((c) => c.name).join(', ');
+    setService(primaryService);
+    if (!categoryHasGroups(category)) setSubCategory(category);
+    setSelectedAppliance({
+      id: `zf-${Date.now()}`,
+      name: `${category} Services (${cartItems.length} items)`,
+      type: allNames,
+      isCoveredByAmc: true,
+      verification_status: 'VERIFIED',
+    });
+    setApplianceRegistrationFee(0);
+    setIssueLabel(`Doorstep service for: ${allNames}`);
+    setIssueDescription(`Requested ${cartItems.length} service item(s): ${allNames}.`);
+    setStep('SCHEDULE');
   };
 
   const handleBack = () => {
@@ -1106,25 +1150,36 @@ export default function BookingFlowScreen({ onNavigate }) {
             />
           </View>
           <div style={serviceGridCss.wrapper}>
-            {gridItems.map((item) => (
-              <TouchableOpacity
-                key={item.name}
-                style={styles.svcGridCard}
-                onPress={() => selectServiceTypeAndNext(item)}
-                activeOpacity={0.88}
-              >
-                <View style={styles.svcGridImgWrap}>
-                  <Image
-                    source={{ uri: resolveServiceItemImageUri(item, category) }}
-                    style={styles.svcGridImg}
-                    resizeMode="cover"
-                  />
-                </View>
-                <Text style={styles.svcGridTitle} numberOfLines={2}>
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {gridItems.map((item) => {
+              const isZeroFriction = isZeroFrictionCategory(category);
+              const addedCount = cartItems.filter((c) => c.name === item.name).length;
+              return (
+                <TouchableOpacity
+                  key={item.name}
+                  style={[styles.svcGridCard, addedCount > 0 && styles.svcGridCardAdded]}
+                  onPress={() => selectServiceTypeAndNext(item)}
+                  activeOpacity={0.88}
+                >
+                  <View style={styles.svcGridImgWrap}>
+                    <Image
+                      source={{ uri: resolveServiceItemImageUri(item, category) }}
+                      style={styles.svcGridImg}
+                      resizeMode="cover"
+                    />
+                  </View>
+                  <Text style={styles.svcGridTitle} numberOfLines={2}>
+                    {item.name}
+                  </Text>
+                  {isZeroFriction && (
+                    <View style={[styles.zfBadgePill, addedCount > 0 && styles.zfBadgePillAdded]}>
+                      <Text style={[styles.zfBadgePillText, addedCount > 0 && styles.zfBadgePillTextAdded]}>
+                        {addedCount > 0 ? `✓ Added (${addedCount})` : '+ Add'}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </div>
           <TouchableOpacity
             style={[styles.otherRow, showOtherInput && styles.otherRowActive]}
@@ -1191,6 +1246,16 @@ export default function BookingFlowScreen({ onNavigate }) {
             </View>
           )}
           <LiveSupportOptionCard onPress={goLiveSupport} />
+
+          {/* Blinkit-Style Cart Bar for Plumber and Pest Control */}
+          {isZeroFrictionCategory(category) && cartItems.length > 0 && (
+            <BlinkitCartBar
+              count={cartItems.length}
+              items={cartItems}
+              actionLabel="Proceed ›"
+              onProceed={proceedWithZeroFrictionCart}
+            />
+          )}
         </ScrollView>
       );
     }
@@ -1282,6 +1347,19 @@ export default function BookingFlowScreen({ onNavigate }) {
     <View style={styles.rootWrapper}>
       {renderStepContent()}
       {renderGuestModal()}
+      <FastAddConfirmationModal
+        visible={showFastAddModal}
+        item={fastAddModalItem}
+        categoryName={category}
+        quantity={fastAddQty}
+        onIncrement={() => setFastAddQty((q) => q + 1)}
+        onDecrement={() => setFastAddQty((q) => Math.max(1, q - 1))}
+        onConfirm={handleConfirmFastAdd}
+        onCancel={() => {
+          setShowFastAddModal(false);
+          setFastAddModalItem(null);
+        }}
+      />
     </View>
   );
 }
@@ -1345,6 +1423,34 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     alignItems: 'center',
     minWidth: 0,
+  },
+  svcGridCardAdded: {
+    backgroundColor: '#f0fdf4',
+    borderRadius: 14,
+    padding: 4,
+  },
+  zfBadgePill: {
+    marginTop: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  zfBadgePillText: {
+    color: '#1d4ed8',
+    fontSize: 10.5,
+    fontWeight: '800',
+  },
+  zfBadgePillAdded: {
+    backgroundColor: '#dcfce7',
+    borderColor: '#86efac',
+  },
+  zfBadgePillTextAdded: {
+    color: '#15803d',
   },
   svcGridImgWrap: {
     width: '100%',
