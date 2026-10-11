@@ -85,9 +85,9 @@ export default function ServiceBrowseScreen({ onNavigate }) {
           </svg>
         </TouchableOpacity>
 
-        <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={styles.headerTextCol}>
           <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={1}>
+            <Text style={styles.title}>
               {isConsultation ? 'Book Free Consultation' : 'AMC Complaints & Repair'}
             </Text>
             {isConsultation && (
@@ -96,7 +96,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
               </View>
             )}
           </View>
-          <Text style={styles.subtitle} numberOfLines={1}>
+          <Text style={styles.subtitle}>
             {isConsultation
               ? 'Expert on-site inspection & diagnosis across all services'
               : 'Report any appliance breakdown or maintenance issue'}
@@ -209,8 +209,9 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 110, gap: 14, width: '100%', boxSizing: 'border-box' },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 12,
+    paddingTop: 2,
   },
   backBtn: {
     width: 38,
@@ -225,6 +226,12 @@ const styles = StyleSheet.create({
     cursor: 'pointer',
     zIndex: 10,
     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+    marginTop: 2,
+  },
+  headerTextCol: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
   },
   titleRow: {
     flexDirection: 'row',
@@ -238,27 +245,29 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     fontFamily: "'Outfit', 'Inter', sans-serif",
     letterSpacing: -0.2,
+    lineHeight: 24,
   },
   freeBadgePill: {
-    backgroundColor: '#dcfce7',
+    backgroundColor: '#ecfdf5',
     borderWidth: 1,
-    borderColor: '#86efac',
+    borderColor: '#a7f3d0',
     borderRadius: 99,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 2.5,
+    alignSelf: 'center',
   },
   freeBadgePillText: {
-    color: '#15803d',
+    color: '#059669',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.3,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 12.5,
     color: '#64748b',
     fontWeight: '500',
-    marginTop: 2,
-    lineHeight: 16,
+    marginTop: 3,
+    lineHeight: 18,
   },
   trustCard: {
     backgroundColor: '#ffffff',

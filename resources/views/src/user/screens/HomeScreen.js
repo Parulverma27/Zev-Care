@@ -61,40 +61,56 @@ function Luxury3DShieldIcon({ size = 26 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
       <defs>
-        <linearGradient id="shieldRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="shieldRimGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#93c5fd" />
-          <stop offset="50%" stopColor="#3b82f6" />
+          <stop offset="40%" stopColor="#3b82f6" />
           <stop offset="100%" stopColor="#1d4ed8" />
         </linearGradient>
-        <linearGradient id="shieldBodyGrad" x1="20%" y1="0%" x2="80%" y2="100%">
-          <stop offset="0%" stopColor="#1e40af" />
-          <stop offset="50%" stopColor="#1e3a8a" />
+        <linearGradient id="shieldFacetLeft_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="50%" stopColor="#2563eb" />
+          <stop offset="100%" stopColor="#1d4ed8" />
+        </linearGradient>
+        <linearGradient id="shieldFacetRight_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#1d4ed8" />
+          <stop offset="60%" stopColor="#1e3a8a" />
           <stop offset="100%" stopColor="#0f172a" />
         </linearGradient>
-        <linearGradient id="shieldGleamGrad" x1="0%" y1="0%" x2="100%" y2="80%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.5" />
-          <stop offset="60%" stopColor="#ffffff" stopOpacity="0.0" />
+        <linearGradient id="shieldSheen_v2" x1="0%" y1="0%" x2="70%" y2="70%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.65" />
+          <stop offset="45%" stopColor="#ffffff" stopOpacity="0.1" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
+        <filter id="shieldShadow_v2" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="1.2" stdDeviation="1.2" floodColor="#0f172a" floodOpacity="0.35" />
+        </filter>
       </defs>
-      <path
-        d="M16 3L6 7.5V15C6 21.2 10.3 26.9 16 28.5C21.7 26.9 26 21.2 26 15V7.5L16 3Z"
-        fill="url(#shieldRimGrad)"
-      />
-      <path
-        d="M16 4.8L7.6 8.6V15C7.6 20.3 11.2 25.2 16 26.7C20.8 25.2 24.4 20.3 24.4 15V8.6L16 4.8Z"
-        fill="url(#shieldBodyGrad)"
-      />
-      <path
-        d="M16 4.8L7.6 8.6V15C7.6 17.5 8.6 20 10.2 22L20.5 7.5L16 4.8Z"
-        fill="url(#shieldGleamGrad)"
-      />
-      <path
-        d="M12 15.2L14.8 18L20.8 11.5"
-        stroke="#ffffff"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <g filter="url(#shieldShadow_v2)">
+        <path
+          d="M16 2.5L6.5 6.8V14.8C6.5 21.2 10.6 27.2 16 29C21.4 27.2 25.5 21.2 25.5 14.8V6.8L16 2.5Z"
+          fill="url(#shieldRimGrad_v2)"
+        />
+        <path
+          d="M16 4.2L8 7.8V14.8C8 20.3 11.4 25.4 16 27V4.2Z"
+          fill="url(#shieldFacetLeft_v2)"
+        />
+        <path
+          d="M16 4.2L24 7.8V14.8C24 20.3 20.6 25.4 16 27V4.2Z"
+          fill="url(#shieldFacetRight_v2)"
+        />
+        <path
+          d="M16 4.2L8 7.8V14.8C8 17.5 9 20.2 10.8 22.4L20 8.5L16 4.2Z"
+          fill="url(#shieldSheen_v2)"
+        />
+        <line x1="16" y1="4.2" x2="16" y2="27" stroke="#60a5fa" strokeWidth="0.8" opacity="0.6" />
+        <path
+          d="M11.5 15.2L14.6 18.3L20.8 11.8"
+          stroke="#ffffff"
+          strokeWidth="2.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
     </svg>
   );
 }
@@ -103,27 +119,45 @@ function Luxury3DWrenchIcon({ size = 24 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
       <defs>
-        <linearGradient id="wrenchChromeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#f8fafc" />
-          <stop offset="35%" stopColor="#cbd5e1" />
-          <stop offset="70%" stopColor="#64748b" />
+        <linearGradient id="wrenchChromeGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="30%" stopColor="#f1f5f9" />
+          <stop offset="65%" stopColor="#94a3b8" />
           <stop offset="100%" stopColor="#475569" />
         </linearGradient>
-        <linearGradient id="wrenchBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#3b82f6" />
-          <stop offset="60%" stopColor="#1d4ed8" />
-          <stop offset="100%" stopColor="#1e3a8a" />
+        <linearGradient id="wrenchAmberGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#fb923c" />
+          <stop offset="40%" stopColor="#f97316" />
+          <stop offset="100%" stopColor="#ea580c" />
         </linearGradient>
+        <linearGradient id="wrenchDarkJaw_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#334155" />
+          <stop offset="100%" stopColor="#0f172a" />
+        </linearGradient>
+        <filter id="wrenchShadow_v2" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="1.2" stdDeviation="1" floodColor="#9a3412" floodOpacity="0.22" />
+        </filter>
       </defs>
-      <g transform="rotate(-45 16 16)">
+      <g filter="url(#wrenchShadow_v2)" transform="rotate(-45 16 16)">
         <path
-          d="M13 3C11 3 9.5 4.5 9.5 6.5C9.5 7.6 10 8.6 10.8 9.2L12.5 12H19.5L21.2 9.2C22 8.6 22.5 7.6 22.5 6.5C22.5 4.5 21 3 19 3H17V6.5C17 7 16.5 7.5 16 7.5C15.5 7.5 15 7 15 6.5V3H13Z"
-          fill="url(#wrenchChromeGrad)"
+          d="M16 26C13.8 26 12 24.2 12 22C12 20.3 13 18.9 14.4 18.2V11C12.8 10.1 11.8 8.2 11.8 6C11.8 4.2 12.6 2.8 13.6 1.8C14.1 2.5 15 3.5 16 3.5C17 3.5 17.9 2.5 18.4 1.8C19.4 2.8 20.2 4.2 20.2 6C20.2 8.2 19.2 10.1 17.6 11V18.2C19 18.9 20 20.3 20 22C20 24.2 18.2 26 16 26Z"
+          fill="url(#wrenchChromeGrad_v2)"
         />
-        <rect x="13.5" y="11" width="5" height="13" rx="1.5" fill="url(#wrenchBlueGrad)" />
-        <rect x="15" y="12" width="2" height="11" rx="0.5" fill="#93c5fa" opacity="0.7" />
-        <circle cx="16" cy="26" r="3.8" fill="url(#wrenchChromeGrad)" />
-        <circle cx="16" cy="26" r="1.8" fill="#fef3e2" />
+        <path
+          d="M13.8 2.5C14.5 4 15.2 4.8 16 4.8C16.8 4.8 17.5 4 18.2 2.5C18.8 3.5 19.2 4.7 19.2 6C19.2 7.8 17.8 9.2 16 9.2C14.2 9.2 12.8 7.8 12.8 6C12.8 4.7 13.2 3.5 13.8 2.5Z"
+          fill="url(#wrenchDarkJaw_v2)"
+        />
+        <path
+          d="M12.8 6C12.8 4.7 13.2 3.5 13.8 2.5C13.5 2.8 13.2 3.4 13.2 4.2C13.2 5.5 13.8 6.5 14.5 7.2L13.8 7.8C13.2 7.3 12.8 6.7 12.8 6Z"
+          fill="#ffffff"
+          opacity="0.8"
+        />
+        <rect x="14.2" y="11.5" width="3.6" height="6.8" rx="1.8" fill="url(#wrenchAmberGrad_v2)" />
+        <line x1="15" y1="13.2" x2="17" y2="13.2" stroke="#ffedd5" strokeWidth="0.8" strokeLinecap="round" />
+        <line x1="15" y1="15" x2="17" y2="15" stroke="#ffedd5" strokeWidth="0.8" strokeLinecap="round" />
+        <line x1="15" y1="16.8" x2="17" y2="16.8" stroke="#ffedd5" strokeWidth="0.8" strokeLinecap="round" />
+        <circle cx="16" cy="22" r="2.2" fill="#fff7ed" />
+        <circle cx="16" cy="22" r="1.6" fill="url(#wrenchChromeGrad_v2)" opacity="0.45" />
       </g>
     </svg>
   );
@@ -133,27 +167,66 @@ function Luxury3DMechanicIcon({ size = 24 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
       <defs>
-        <linearGradient id="techCapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#3b82f6" />
+        <linearGradient id="mechHelmetGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#60a5fa" />
+          <stop offset="45%" stopColor="#2563eb" />
           <stop offset="100%" stopColor="#1d4ed8" />
         </linearGradient>
-        <linearGradient id="techBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#2563eb" />
+        <linearGradient id="mechBrimGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#1e40af" />
           <stop offset="100%" stopColor="#0f172a" />
         </linearGradient>
-        <linearGradient id="techGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fef08a" />
-          <stop offset="100%" stopColor="#eab308" />
+        <linearGradient id="mechFaceGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#fed7aa" />
+          <stop offset="100%" stopColor="#fba968" />
         </linearGradient>
+        <linearGradient id="mechSuitGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3b82f6" />
+          <stop offset="50%" stopColor="#1e40af" />
+          <stop offset="100%" stopColor="#0f172a" />
+        </linearGradient>
+        <linearGradient id="mechGoldGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#fef08a" />
+          <stop offset="60%" stopColor="#eab308" />
+          <stop offset="100%" stopColor="#ca8a04" />
+        </linearGradient>
+        <filter id="mechShadow_v2" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="1.2" stdDeviation="1.2" floodColor="#1e3a8a" floodOpacity="0.25" />
+        </filter>
       </defs>
-      <g>
-        <path d="M9 11.5C9 7.5 12 5 16 5C20 5 23 7.5 23 11.5H9Z" fill="url(#techCapGrad)" />
-        <path d="M8 11.5C8 11.5 11 12.8 16 12.8C21 12.8 24 11.5 24 11.5C24.5 12 23.5 13.2 21.5 13.8C19 14.5 13 14.5 10.5 13.8C8.5 13.2 7.5 12 8 11.5Z" fill="#1e3a8a" />
-        <circle cx="16" cy="8.5" r="1.5" fill="url(#techGoldGrad)" />
-        <circle cx="16" cy="14" r="3.8" fill="#fed7aa" />
-        <path d="M7 27C7 21.8 11 20 16 20C21 20 25 21.8 25 27H7Z" fill="url(#techBodyGrad)" />
-        <path d="M14 20L16 23.5L18 20" stroke="#93c5fd" strokeWidth="1.2" strokeLinecap="round" />
-        <circle cx="19.5" cy="23.5" r="1.3" fill="url(#techGoldGrad)" />
+      <g filter="url(#mechShadow_v2)">
+        <path
+          d="M6.5 28C6.5 23 10.5 20.8 16 20.8C21.5 20.8 25.5 23 25.5 28H6.5Z"
+          fill="url(#mechSuitGrad_v2)"
+        />
+        <path
+          d="M13 20.8L16 25L19 20.8"
+          stroke="#93c5fd"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="20.5" cy="24.5" r="2" fill="url(#mechGoldGrad_v2)" />
+        <path
+          d="M20.5 23.3L20.9 24.1L21.7 24.2L21.1 24.7L21.3 25.5L20.5 25.1L19.7 25.5L19.9 24.7L19.3 24.2L20.1 24.1L20.5 23.3Z"
+          fill="#78350f"
+        />
+        <circle cx="16" cy="14.8" r="4.8" fill="url(#mechFaceGrad_v2)" />
+        <path
+          d="M9.8 13C9.8 8.4 12.5 5.2 16 5.2C19.5 5.2 22.2 8.4 22.2 13H9.8Z"
+          fill="url(#mechHelmetGrad_v2)"
+        />
+        <path
+          d="M14.5 5.5C14.5 5.5 15.5 5.2 16 5.2C16.5 5.2 17.5 5.5 17.5 5.5V12.8H14.5V5.5Z"
+          fill="#93c5fd"
+          opacity="0.6"
+        />
+        <path
+          d="M8.5 13C8.5 12.2 10.5 12.2 16 12.2C21.5 12.2 23.5 12.2 23.5 13C23.5 14.2 20.5 14.8 16 14.8C11.5 14.8 8.5 14.2 8.5 13Z"
+          fill="url(#mechBrimGrad_v2)"
+        />
+        <circle cx="16" cy="8.8" r="1.8" fill="url(#mechGoldGrad_v2)" />
+        <circle cx="16" cy="8.8" r="0.9" fill="#78350f" />
       </g>
     </svg>
   );
@@ -162,63 +235,76 @@ function Luxury3DMechanicIcon({ size = 24 }) {
 const AMC_HOME_ACTIONS = [
   {
     key: 'plans',
+    badge: 'EXCLUSIVE PASS',
     title: 'My AMC Plan',
-    subtitle: 'Protect your home with premium coverage.',
+    subtitle: 'Protect your home with premium annual coverage.',
     actionLabel: 'Explore Plans',
     route: '/user/plans',
-    theme: 'dark',
-    cardBg: 'linear-gradient(135deg, #07132a 0%, #0d1e3d 50%, #081732 100%)',
-    borderColor: 'rgba(59, 130, 246, 0.35)',
-    boxShadow: '0 8px 24px rgba(7, 19, 43, 0.28)',
-    iconBg: 'rgba(255, 255, 255, 0.1)',
-    iconBorder: '1.5px solid rgba(96, 165, 250, 0.45)',
-    titleColor: '#ffffff',
-    subColor: 'rgba(226, 232, 240, 0.88)',
-    actionColor: '#ffffff',
-    circleBtnBg: '#2563eb',
-    circleBtnBorder: 'none',
-    circleBtnColor: '#ffffff',
-    icon: <Luxury3DShieldIcon size={24} />,
+    theme: 'light',
+    cardBg: 'linear-gradient(135deg, #ffffff 0%, #f8faff 45%, #eff6ff 100%)',
+    borderColor: 'rgba(59, 130, 246, 0.28)',
+    boxShadow: '0 8px 25px -4px rgba(37, 99, 235, 0.10), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    iconBg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+    iconBorder: '1.5px solid rgba(59, 130, 246, 0.35)',
+    titleColor: '#0f172a',
+    subColor: '#475569',
+    badgeBg: '#eff6ff',
+    badgeBorder: '#bfdbfe',
+    badgeColor: '#1d4ed8',
+    pillBtnBg: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+    pillBtnColor: '#ffffff',
+    pillArrowBg: 'rgba(255, 255, 255, 0.22)',
+    pillArrowColor: '#ffffff',
+    icon: <Luxury3DShieldIcon size={26} />,
   },
   {
     key: 'complaints',
+    badge: 'PRIORITY',
     title: 'AMC Complaints',
-    subtitle: 'Raise any appliance or issue at your home.',
+    subtitle: 'Raise any appliance or home issue.',
     actionLabel: 'Raise Complaint',
     route: '/user/complains',
     theme: 'light',
-    cardBg: 'linear-gradient(145deg, #ffffff 0%, #fffdf9 100%)',
-    borderColor: '#fae8d4',
-    boxShadow: '0 4px 16px rgba(180, 140, 90, 0.08)',
-    iconBg: '#fff7ed',
-    iconBorder: '1.5px solid #fed7aa',
+    cardBg: 'linear-gradient(145deg, #ffffff 0%, #fffdf9 45%, #fff7ed 100%)',
+    borderColor: 'rgba(249, 115, 22, 0.24)',
+    boxShadow: '0 8px 24px -4px rgba(234, 88, 12, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    iconBg: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
+    iconBorder: '1.5px solid rgba(249, 115, 22, 0.35)',
     titleColor: '#0f172a',
     subColor: '#64748b',
-    actionColor: '#2563eb',
-    circleBtnBg: '#eff6ff',
-    circleBtnBorder: '1px solid #bfdbfe',
-    circleBtnColor: '#2563eb',
+    badgeBg: '#fff7ed',
+    badgeBorder: '#fed7aa',
+    badgeColor: '#c2410c',
+    pillBtnBg: '#ffffff',
+    pillBtnBorder: '#fed7aa',
+    pillBtnColor: '#ea580c',
+    pillArrowBg: '#fff7ed',
+    pillArrowColor: '#ea580c',
     icon: <Luxury3DWrenchIcon size={24} />,
   },
   {
     key: 'mechanic',
+    badge: '₹0 FREE',
     title: 'My Mechanic',
     subtitle: 'Free on-site diagnosis & inspection.',
-    badge: '₹0 FREE',
     actionLabel: 'Book Free',
     route: '/user/consultation',
     theme: 'light',
-    cardBg: 'linear-gradient(145deg, #ffffff 0%, #f6faff 100%)',
-    borderColor: '#dbeafe',
-    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)',
-    iconBg: '#eff6ff',
-    iconBorder: '1.5px solid #bfdbfe',
+    cardBg: 'linear-gradient(145deg, #ffffff 0%, #f8faff 45%, #eff6ff 100%)',
+    borderColor: 'rgba(37, 99, 235, 0.24)',
+    boxShadow: '0 8px 24px -4px rgba(37, 99, 235, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    iconBg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+    iconBorder: '1.5px solid rgba(37, 99, 235, 0.35)',
     titleColor: '#0f172a',
     subColor: '#64748b',
-    actionColor: '#2563eb',
-    circleBtnBg: '#ffffff',
-    circleBtnBorder: '1px solid #bfdbfe',
-    circleBtnColor: '#2563eb',
+    badgeBg: '#eff6ff',
+    badgeBorder: '#bfdbfe',
+    badgeColor: '#1d4ed8',
+    pillBtnBg: '#ffffff',
+    pillBtnBorder: '#bfdbfe',
+    pillBtnColor: '#2563eb',
+    pillArrowBg: '#eff6ff',
+    pillArrowColor: '#2563eb',
     icon: <Luxury3DMechanicIcon size={24} />,
   },
 ];
@@ -795,13 +881,17 @@ export default function HomeScreen({ onNavigate }) {
         <style>{`
           .amc-cards-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
             width: 100%;
+            box-sizing: border-box;
           }
           .amc-card-col {
             display: flex;
+            flex-direction: column;
             width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
           }
           .amc-card-plans {
             grid-column: 1 / -1;
@@ -811,15 +901,6 @@ export default function HomeScreen({ onNavigate }) {
           }
           .amc-card-mechanic {
             grid-column: 2;
-          }
-          @media (min-width: 768px) {
-            .amc-cards-container {
-              grid-template-columns: repeat(3, 1fr);
-              gap: 14px;
-            }
-            .amc-card-plans {
-              grid-column: auto;
-            }
           }
         `}</style>
         <div className="amc-cards-container">
@@ -839,104 +920,147 @@ export default function HomeScreen({ onNavigate }) {
                 activeOpacity={0.88}
               >
                 {item.key === 'plans' ? (
-                  <View style={styles.amcPlansBannerRow}>
-                    <View style={styles.amcPlansBannerLeft}>
-                      <View
-                        style={[
-                          styles.amcLuxuryIconCircle,
-                          {
-                            backgroundColor: item.iconBg,
-                            border: item.iconBorder,
-                            marginBottom: 8,
-                          },
-                        ]}
-                      >
-                        {item.icon}
-                      </View>
-                      <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 16 }]}>
-                        {item.title}
-                      </Text>
-                      <Text style={[styles.amcLuxurySub, { color: item.subColor, marginTop: 2, fontSize: 12 }]}>
-                        {item.subtitle}
-                      </Text>
-                    </View>
-                    <View style={styles.amcPlansBannerRight}>
-                      <View
-                        style={[
-                          styles.amcLuxuryCircleArrow,
-                          {
-                            backgroundColor: item.circleBtnBg,
-                            border: item.circleBtnBorder || 'none',
-                            width: 34,
-                            height: 34,
-                            borderRadius: 17,
-                          },
-                        ]}
-                      >
-                        <svg
-                          width="13"
-                          height="13"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke={item.circleBtnColor}
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                  <View style={styles.amcPlansBannerContent}>
+                    {/* Top Row: Icon + Title on left, Badge on top right */}
+                    <View style={styles.amcPlansHeaderRow}>
+                      <View style={styles.amcPlansHeaderLeft}>
+                        <View
+                          style={[
+                            styles.amcLuxuryIconCircle,
+                            {
+                              background: item.iconBg,
+                              border: item.iconBorder,
+                              width: 42,
+                              height: 42,
+                              borderRadius: 21,
+                            },
+                          ]}
                         >
-                          <line x1="5" y1="12" x2="19" y2="12" />
-                          <polyline points="12 5 19 12 12 19" />
-                        </svg>
+                          {item.icon}
+                        </View>
+                        <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 16.5 }]}>
+                          {item.title}
+                        </Text>
                       </View>
-                      <Text style={[styles.amcLuxuryActionText, { color: item.actionColor, fontSize: 11.5, marginTop: 6, fontWeight: '700' }]}>
-                        Explore{'\n'}Plans →
-                      </Text>
+                      {item.badge ? (
+                        <View
+                          style={[
+                            styles.amcBadgePill,
+                            {
+                              backgroundColor: item.badgeBg,
+                              borderColor: item.badgeBorder,
+                              borderWidth: 1,
+                            },
+                          ]}
+                        >
+                          <Text style={[styles.amcBadgePillText, { color: item.badgeColor }]}>{item.badge}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+
+                    {/* Middle: Spacious Subtitle across the card */}
+                    <Text style={[styles.amcLuxurySub, { color: item.subColor, marginTop: 8, marginBottom: 12, fontSize: 12, lineHeight: 16.5 }]}>
+                      {item.subtitle}
+                    </Text>
+
+                    {/* Bottom: Right-aligned Action Pill Button */}
+                    <View style={styles.amcPlansFooterRow}>
+                      <View
+                        style={[
+                          styles.amcPlansActionPill,
+                          {
+                            backgroundImage: item.pillBtnBg,
+                            backgroundColor: '#2563eb',
+                          },
+                        ]}
+                      >
+                        <Text style={[styles.amcPlansActionPillText, { color: item.pillBtnColor }]}>
+                          {item.actionLabel}
+                        </Text>
+                        <View style={[styles.amcCardActionPillArrow, { backgroundColor: item.pillArrowBg, width: 22, height: 22, borderRadius: 11, marginLeft: 8 }]}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={item.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                          </svg>
+                        </View>
+                      </View>
                     </View>
                   </View>
                 ) : (
-                  <>
-                    {/* Top Row: Circular Icon + Optional Badge */}
+                  <View style={styles.amcCompactCardInner}>
+                    {/* Top Row: Circular Icon + Symmetrical Badge */}
                     <View style={styles.amcCardTopRow}>
                       <View
                         style={[
                           styles.amcLuxuryIconCircle,
                           {
-                            backgroundColor: item.iconBg,
+                            background: item.iconBg,
                             border: item.iconBorder,
-                            width: 38,
-                            height: 38,
-                            borderRadius: 19,
+                            width: 42,
+                            height: 42,
+                            borderRadius: 21,
                           },
                         ]}
                       >
                         {item.icon}
                       </View>
                       {item.badge ? (
-                        <View style={styles.amcComingSoonBadge}>
-                          <Text style={styles.amcComingSoonBadgeText}>{item.badge}</Text>
+                        <View
+                          style={[
+                            styles.amcBadgePill,
+                            {
+                              backgroundColor: item.badgeBg,
+                              borderColor: item.badgeBorder,
+                              borderWidth: 1,
+                            },
+                          ]}
+                        >
+                          <Text style={[styles.amcBadgePillText, { color: item.badgeColor }]}>{item.badge}</Text>
                         </View>
                       ) : null}
                     </View>
 
-                    {/* Middle: Title & Subtitle */}
+                    {/* Middle: Title & Subtitle with fixed min-height for symmetrical alignment */}
                     <View style={styles.amcCardBody}>
-                      <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 14 }]}>
+                      <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 14.5 }]}>
                         {item.title}
                       </Text>
-                      <Text style={[styles.amcLuxurySub, { color: item.subColor, fontSize: 11, lineHeight: 15 }]}>
+                      <Text style={[styles.amcLuxurySub, { color: item.subColor, fontSize: 11.5, lineHeight: 16, minHeight: 32 }]}>
                         {item.subtitle}
                       </Text>
                     </View>
 
-                    {/* Bottom: Action Text & Circle Arrow Button */}
-                    <View style={styles.amcCardFooterPill}>
-                      <Text style={styles.amcCardFooterPillText}>{item.actionLabel}</Text>
-                      <View style={styles.amcCardFooterPillArrow}>
+                    {/* Bottom: Unified Pill Action Button */}
+                    <View
+                      style={[
+                        styles.amcCardActionPill,
+                        {
+                          backgroundColor: item.pillBtnBg,
+                          borderColor: item.pillBtnBorder,
+                          borderWidth: 1.2,
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.amcCardActionPillText, { color: item.pillBtnColor, fontSize: 11.5 }]}>
+                        {item.actionLabel}
+                      </Text>
+                      <View
+                        style={[
+                          styles.amcCardActionPillArrow,
+                          {
+                            backgroundColor: item.pillArrowBg,
+                            width: 22,
+                            height: 22,
+                            borderRadius: 11,
+                          },
+                        ]}
+                      >
                         <svg
                           width="10"
                           height="10"
                           viewBox="0 0 24 24"
                           fill="none"
-                          stroke="#2563eb"
+                          stroke={item.pillArrowColor}
                           strokeWidth="2.6"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -946,7 +1070,7 @@ export default function HomeScreen({ onNavigate }) {
                         </svg>
                       </View>
                     </View>
-                  </>
+                  </View>
                 )}
               </TouchableOpacity>
             </div>
@@ -1529,6 +1653,7 @@ const styles = StyleSheet.create({
     cursor: 'pointer',
     transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease',
     boxSizing: 'border-box',
+    overflow: 'hidden',
   },
   amcLuxuryCardFeatured: {
     minHeight: 104,
@@ -1536,28 +1661,63 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   amcLuxuryCardCompact: {
-    minHeight: 142,
+    minHeight: 162,
+    height: '100%',
+    width: '100%',
+    minWidth: 0,
+    flex: 1,
     padding: 14,
     flexDirection: 'column',
     justifyContent: 'space-between',
+    boxSizing: 'border-box',
   },
-  amcPlansBannerRow: {
+  amcCompactCardInner: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    width: '100%',
+    minWidth: 0,
+    boxSizing: 'border-box',
+  },
+  amcPlansBannerContent: {
+    flexDirection: 'column',
+    width: '100%',
+  },
+  amcPlansHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    gap: 12,
   },
-  amcPlansBannerLeft: {
+  amcPlansHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
+    paddingRight: 8,
   },
-  amcPlansBannerRight: {
+  amcPlansFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    width: '100%',
+  },
+  amcPlansActionPill: {
+    borderRadius: 999,
+    height: 36,
+    paddingLeft: 14,
+    paddingRight: 6,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
-    paddingLeft: 6,
+    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.22)',
+    boxSizing: 'border-box',
+  },
+  amcPlansActionPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+    ...(Platform.OS === 'web' ? { whiteSpace: 'nowrap' } : {}),
   },
   amcCardTopRow: {
     flexDirection: 'row',
@@ -1571,85 +1731,67 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
   },
-  amcComingSoonBadge: {
-    backgroundColor: '#1d4ed8',
-    borderRadius: 99,
+  amcBadgePill: {
+    borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  amcComingSoonBadgeText: {
-    color: '#ffffff',
+  amcBadgePillText: {
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   amcCardBody: {
     marginVertical: 10,
     gap: 4,
   },
   amcLuxuryHeading: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
     letterSpacing: -0.2,
   },
   amcLuxurySub: {
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 11.5,
+    lineHeight: 16,
     fontWeight: '500',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
-    amcCardFooterPill: {
-    backgroundColor: '#ffffff',
+  amcCardActionPill: {
     borderRadius: 999,
-    height: 33,
-    paddingLeft: 11,
-    paddingRight: 4,
-    borderWidth: 1.2,
-    borderColor: '#e2e8f0',
+    height: 34,
+    paddingLeft: 12,
+    paddingRight: 5,
     boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
+    minWidth: 0,
     boxSizing: 'border-box',
     marginTop: 'auto',
   },
-  amcCardFooterPillText: {
-    fontSize: 11,
+  amcCardActionPillText: {
+    fontSize: 11.5,
     fontWeight: '700',
-    color: '#2563eb',
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
-    ...(Platform.OS === 'web' ? { whiteSpace: 'nowrap' } : {}),
+    flex: 1,
+    minWidth: 0,
+    ...(Platform.OS === 'web' ? { whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' } : {}),
   },
-  amcCardFooterPillArrow: {
+  amcCardActionPillArrow: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#eff6ff',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-  },
-  amcCardFooterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 'auto',
-    paddingTop: 4,
-  },
-  amcLuxuryActionText: {
-    fontSize: 13,
-    fontWeight: '700',
-    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
-  },
-  amcLuxuryCircleArrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 
   trustBanner: {
