@@ -1,16 +1,59 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { searchAllServices } from '../../config/serviceCatalogUtils';
 import HomeExploreServices from './HomeExploreServices';
 
 export default function ServiceBrowseScreen({ onNavigate }) {
-  const { categories, services } = useApp();
+  const { categories, services, activeUser } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const isConsultation = (location.pathname || '').includes('consultation');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const isAnonymous = Boolean(
+    !activeUser ||
+    activeUser.isAnonymous ||
+    (activeUser.isGuest && !activeUser.phone) ||
+    (!activeUser.phone && !activeUser.guestId)
+  );
+
+  const isGuest = Boolean(
+    activeUser?.isGuest ||
+    activeUser?.id === 0 ||
+    activeUser?.name === 'Guest User' ||
+    isAnonymous
+  );
+
+  const planName = activeUser?.subscription_plan || 'None';
+  const hasActiveAmc = !isGuest && activeUser?.subscription_status === 'ACTIVE' && planName !== 'None' && planName !== 'None / Inactive';
+
+  const [showGateModal, setShowGateModal] = useState(false);
+  const [gateContext, setGateContext] = useState({ title: '', message: '', isGuestGate: false });
+
+  const checkCanBookComplaint = () => {
+    if (isConsultation) return true; // My Mechanic is free for everyone
+    if (isGuest) {
+      setGateContext({
+        title: 'Sign In / Register Required',
+        message: 'AMC complaints with ₹0 breakdown labor and priority repairs are reserved for AMC members. Please sign in or register to get protected.',
+        isGuestGate: true,
+      });
+      setShowGateModal(true);
+      return false;
+    }
+    if (!hasActiveAmc) {
+      setGateContext({
+        title: 'AMC Plan Required',
+        message: 'AMC breakdown complaints, ₹0 labor repairs, and scheduled maintenance visits are exclusive to active AMC plan members. Subscribe to a plan or use My Mechanic for ₹0 free diagnosis.',
+        isGuestGate: false,
+      });
+      setShowGateModal(true);
+      return false;
+    }
+    return true;
+  };
 
   const goHome = () => {
     if (onNavigate) {
@@ -31,6 +74,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
   };
 
   const openBookingForCategory = (cat) => {
+    if (!checkCanBookComplaint()) return;
     const payload = {
       state: {
         preSelectedCategory: cat?.name,
@@ -42,6 +86,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
   };
 
   const openBookingForService = (item) => {
+    if (!checkCanBookComplaint()) return;
     const payload = {
       state: {
         preSelectedCategory: item.category_name,
@@ -142,6 +187,43 @@ export default function ServiceBrowseScreen({ onNavigate }) {
         </View>
       ) : null}
 
+      {/* Warning banner when visiting Complaints without active AMC Plan */}
+      {!isConsultation && !hasActiveAmc && (
+        <View style={styles.planWarningBanner}>
+          <View style={styles.planWarningLeft}>
+            <View style={styles.planWarningIcon}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.planWarningTitle}>Active AMC Plan Required to Raise Complaints</Text>
+              <Text style={styles.planWarningSub}>
+                Complaint tickets with ₹0 breakdown labor and free technician visits are reserved for AMC members. Non-subscribers can book free inspections via My Mechanic.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.planWarningBtnRow}>
+            <TouchableOpacity
+              style={styles.planWarningBuyBtn}
+              onPress={() => (navigate ? navigate('/user/plans') : onNavigate?.('/user/plans'))}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.planWarningBuyText}>View AMC Plans →</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.planWarningMechanicBtn}
+              onPress={() => (navigate ? navigate('/user/consultation') : onNavigate?.('/user/consultation'))}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.planWarningMechanicText}>Switch to My Mechanic (₹0 FREE)</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* Search Bar */}
       <View style={styles.searchBox}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -200,6 +282,88 @@ export default function ServiceBrowseScreen({ onNavigate }) {
           isComplaint={true}
         />
       </View>
+
+      {/* Gatekeeper Modal */}
+      <Modal
+        visible={showGateModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowGateModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.gateModalCard}>
+            <TouchableOpacity
+              style={styles.gateCloseBtn}
+              onPress={() => setShowGateModal(false)}
+              accessibilityLabel="Close modal"
+            >
+              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
+            </TouchableOpacity>
+
+            <View style={styles.gateIconCircle}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </View>
+
+            <Text style={styles.gateModalTitle}>{gateContext.title}</Text>
+            <Text style={styles.gateModalSub}>{gateContext.message}</Text>
+
+            {gateContext.isGuestGate ? (
+              <>
+                <TouchableOpacity
+                  style={styles.gatePrimaryBtn}
+                  onPress={() => {
+                    setShowGateModal(false);
+                    if (navigate) navigate('/user/register');
+                    else if (onNavigate) onNavigate('/user/register');
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.gatePrimaryBtnText}>Register Account →</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.gateOutlineBtn}
+                  onPress={() => {
+                    setShowGateModal(false);
+                    if (navigate) navigate('/user/login');
+                    else if (onNavigate) onNavigate('/user/login');
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.gateOutlineBtnText}>Sign In</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={styles.gatePrimaryBtn}
+                  onPress={() => {
+                    setShowGateModal(false);
+                    if (navigate) navigate('/user/plans');
+                    else if (onNavigate) onNavigate('/user/plans');
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.gatePrimaryBtnText}>Explore AMC Plans →</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.gateOutlineBtn}
+                  onPress={() => {
+                    setShowGateModal(false);
+                    if (navigate) navigate('/user/consultation');
+                    else if (onNavigate) onNavigate('/user/consultation');
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.gateOutlineBtnText}>Book My Mechanic (₹0 Diagnosis)</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -411,6 +575,153 @@ const styles = StyleSheet.create({
   },
   sectionDivider: {
     marginTop: 6,
+  },
+  planWarningBanner: {
+    backgroundColor: '#fffbeb',
+    borderWidth: 1.2,
+    borderColor: '#fde68a',
+    borderRadius: 14,
+    padding: 14,
+    gap: 12,
+  },
+  planWarningLeft: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  planWarningIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fef3c7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginTop: 2,
+  },
+  planWarningTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#92400e',
+    lineHeight: 18,
+  },
+  planWarningSub: {
+    fontSize: 12,
+    color: '#b45309',
+    lineHeight: 16,
+    marginTop: 2,
+  },
+  planWarningBtnRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  planWarningBuyBtn: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  planWarningBuyText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  planWarningMechanicBtn: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  planWarningMechanicText: {
+    color: '#b45309',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    zIndex: 99999,
+  },
+  gateModalCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 380,
+    alignItems: 'center',
+    gap: 14,
+    position: 'relative',
+    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15)',
+  },
+  gateCloseBtn: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  gateIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gateModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  gateModalSub: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  gatePrimaryBtn: {
+    backgroundColor: '#2563eb',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+  },
+  gatePrimaryBtnText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 13.5,
+  },
+  gateOutlineBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#FFFFFF',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gateOutlineBtnText: {
+    color: '#0F172A',
+    fontWeight: '600',
+    fontSize: 13,
   },
 });
 

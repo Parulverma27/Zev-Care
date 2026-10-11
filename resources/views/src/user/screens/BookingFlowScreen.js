@@ -127,20 +127,25 @@ export default function BookingFlowScreen({ onNavigate }) {
     isAnonymous
   );
 
+  const planName = activeUser?.subscription_plan || 'None';
+  const hasActiveAmc = !isGuest && activeUser?.subscription_status === 'ACTIVE' && planName !== 'None' && planName !== 'None / Inactive';
+
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [guestModalContext, setGuestModalContext] = useState({
     title: '',
     message: '',
   });
 
-  const promptGuestRegistration = (customMsg) => {
+  const promptGuestRegistration = (customMsg, customTitle) => {
     setGuestModalContext({
-      title: isAnonymous ? 'Register First' : 'Complete Your Profile First',
+      title: customTitle || (isAnonymous ? 'Register First' : (!hasActiveAmc && !isGuest ? 'AMC Plan Required' : 'Complete Your Profile First')),
       message:
         customMsg ||
         (isAnonymous
           ? `Please register your account first to add ${displayName || 'appliances'} and continue with your service booking.`
-          : `Please complete your profile to add ${displayName || 'appliances'} and continue with your service booking.`),
+          : (!hasActiveAmc && !isGuest
+            ? 'An active AMC Plan is required to cover appliances and raise ₹0 labor breakdown complaints. Please subscribe to an AMC plan.'
+            : `Please complete your profile to add ${displayName || 'appliances'} and continue with your service booking.`)),
     });
     setShowGuestModal(true);
   };
@@ -155,6 +160,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       setSkippedCategoryStep(true);
 
       if (isConsultation) {
+        // "My Mechanic" ₹0 free on-site diagnosis & inspection - allowed for everyone!
         const typeId = isApplianceLinkedService(preSelectedService)
           ? getApplianceTypeIdForService(preSelectedService)
           : null;
@@ -171,6 +177,14 @@ export default function BookingFlowScreen({ onNavigate }) {
         clearIssueState();
         setStep('ISSUE');
       } else if (isApplianceLinkedService(preSelectedService)) {
+        if (!hasActiveAmc) {
+          if (isGuest) {
+            promptGuestRegistration('AMC complaints with ₹0 breakdown labor require an active account with AMC coverage. Please sign in or register to get protected.');
+          } else {
+            promptGuestRegistration('An active AMC plan is required to raise complaints on appliances. Please explore AMC plans to cover your home.');
+          }
+          return;
+        }
         const typeId = getApplianceTypeIdForService(preSelectedService);
         resetApplianceDraftForType(typeId);
         setStep('APPLIANCE_SELECT');
@@ -181,6 +195,8 @@ export default function BookingFlowScreen({ onNavigate }) {
         setIssueLabel(`Require assistance for ${preSelectedService}`);
         if (isGuest) {
           promptGuestRegistration(`You haven't registered yet. Please register your account to book ${preSelectedService} service.`);
+        } else if (isComplaint && !hasActiveAmc) {
+          promptGuestRegistration(`An active AMC plan is required to raise complaints. Please subscribe to an AMC plan.`);
         } else {
           setStep('OTHER_DETAIL');
         }
@@ -683,38 +699,56 @@ export default function BookingFlowScreen({ onNavigate }) {
           </Text>
 
           <View style={styles.guestModalBtnCol}>
-            <TouchableOpacity
-              style={styles.guestModalRegisterBtn}
-              activeOpacity={0.88}
-              onPress={() => {
-                setShowGuestModal(false);
-                if (navigate) navigate('/user/register');
-                else if (onNavigate) onNavigate('/user/register');
-              }}
-            >
-              <Text style={styles.guestModalRegisterBtnText}>
-                {isAnonymous ? 'Register First →' : 'Complete Your Profile →'}
-              </Text>
-            </TouchableOpacity>
+            {!isGuest && !hasActiveAmc ? (
+              <TouchableOpacity
+                style={styles.guestModalRegisterBtn}
+                activeOpacity={0.88}
+                onPress={() => {
+                  setShowGuestModal(false);
+                  if (navigate) navigate('/user/plans');
+                  else if (onNavigate) onNavigate('/user/plans');
+                }}
+              >
+                <Text style={styles.guestModalRegisterBtnText}>
+                  Explore AMC Plans →
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.guestModalRegisterBtn}
+                activeOpacity={0.88}
+                onPress={() => {
+                  setShowGuestModal(false);
+                  if (navigate) navigate('/user/register');
+                  else if (onNavigate) onNavigate('/user/register');
+                }}
+              >
+                <Text style={styles.guestModalRegisterBtnText}>
+                  {isAnonymous ? 'Register First →' : 'Complete Your Profile →'}
+                </Text>
+              </TouchableOpacity>
+            )}
 
-            <TouchableOpacity
-              style={styles.guestModalLoginBtn}
-              activeOpacity={0.88}
-              onPress={() => {
-                setShowGuestModal(false);
-                if (navigate) navigate('/user/login');
-                else if (onNavigate) onNavigate('/user/login');
-              }}
-            >
-              <Text style={styles.guestModalLoginBtnText}>Already have an account? Log In</Text>
-            </TouchableOpacity>
+            {isGuest && (
+              <TouchableOpacity
+                style={styles.guestModalLoginBtn}
+                activeOpacity={0.88}
+                onPress={() => {
+                  setShowGuestModal(false);
+                  if (navigate) navigate('/user/login');
+                  else if (onNavigate) onNavigate('/user/login');
+                }}
+              >
+                <Text style={styles.guestModalLoginBtnText}>Already have an account? Log In</Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={styles.guestModalSkipBtn}
               activeOpacity={0.8}
               onPress={() => setShowGuestModal(false)}
             >
-              <Text style={styles.guestModalSkipBtnText}>Stay in Guest Mode</Text>
+              <Text style={styles.guestModalSkipBtnText}>{isGuest ? 'Stay in Guest Mode' : 'Close'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -769,11 +803,19 @@ export default function BookingFlowScreen({ onNavigate }) {
                 promptGuestRegistration();
                 return;
               }
+              if (!isConsultation && !hasActiveAmc) {
+                promptGuestRegistration('An active AMC plan is required to raise complaints on appliances. Please subscribe to an AMC plan to protect your home.');
+                return;
+              }
               confirmExistingAppliance();
             }}
             onAddNew={() => {
               if (isGuest) {
                 promptGuestRegistration();
+                return;
+              }
+              if (!isConsultation && !hasActiveAmc) {
+                promptGuestRegistration('An active AMC plan is required to add and cover appliances for complaints. Please subscribe to an AMC plan.');
                 return;
               }
               setStep('APPLIANCE_ADD');

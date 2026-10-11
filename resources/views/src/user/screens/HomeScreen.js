@@ -526,6 +526,14 @@ export default function HomeScreen({ onNavigate }) {
   );
 
   const [showGuestModal, setShowGuestModal] = useState(false);
+  const [showPlanRequiredModal, setShowPlanRequiredModal] = useState(false);
+  const [guestModalContext, setGuestModalContext] = useState({
+    title: '',
+    message: '',
+  });
+
+  const planName = activeUser?.subscription_plan || 'None';
+  const hasActiveAmc = !isGuest && activeUser?.subscription_status === 'ACTIVE' && planName !== 'None' && planName !== 'None / Inactive';
 
   useEffect(() => {
     if (isGuest) {
@@ -553,10 +561,10 @@ export default function HomeScreen({ onNavigate }) {
   };
 
   const displayName = React.useMemo(() => {
-    if (!activeUser || activeUser.isGuest || isAnonymous) return 'Gungun';
+    if (!activeUser || activeUser.isGuest || isAnonymous) return 'Guest';
     const name = (activeUser.name || '').trim();
     if (name) return name.split(' ')[0];
-    return 'Gungun';
+    return 'Member';
   }, [activeUser, isAnonymous]);
 
   const handleNav = (path, paramObj) => {
@@ -565,6 +573,35 @@ export default function HomeScreen({ onNavigate }) {
     } else if (onNavigate) {
       onNavigate(path, paramObj);
     }
+  };
+
+  const handleAmcAction = (item) => {
+    if (item.key === 'plans') {
+      handleNav('/user/plans');
+      return;
+    }
+    if (item.key === 'mechanic') {
+      // Free on-site inspection & diagnosis (₹0 FREE) - available for all users
+      handleNav('/user/consultation');
+      return;
+    }
+    if (item.key === 'complaints') {
+      if (isGuest) {
+        setGuestModalContext({
+          title: 'Sign In / Register Required',
+          message: 'AMC complaints with ₹0 breakdown labor and priority repairs are exclusively reserved for AMC members. Please sign in or register to get protected.',
+        });
+        setShowGuestModal(true);
+        return;
+      }
+      if (!hasActiveAmc) {
+        setShowPlanRequiredModal(true);
+        return;
+      }
+      handleNav('/user/complains');
+      return;
+    }
+    handleNav(item.route);
   };
 
   const selectLocation = (loc, extraCoords = {}) => {
@@ -916,7 +953,7 @@ export default function HomeScreen({ onNavigate }) {
                     boxShadow: item.boxShadow,
                   },
                 ]}
-                onPress={() => handleNav(item.route, { state: {} })}
+                onPress={() => handleAmcAction(item)}
                 activeOpacity={0.88}
               >
                 {item.key === 'plans' ? (
@@ -1203,12 +1240,13 @@ export default function HomeScreen({ onNavigate }) {
             </View>
 
             <Text style={styles.guestModalTitle}>
-              {isAnonymous ? 'Register First' : 'Complete Your Profile First'}
+              {guestModalContext.title || (isAnonymous ? 'Register First' : 'Complete Your Profile First')}
             </Text>
             <Text style={styles.guestModalSub}>
-              {isAnonymous
-                ? 'Please register your account first to set your delivery address and book services.'
-                : 'Please complete your profile to set and save your delivery address and book services.'}
+              {guestModalContext.message ||
+                (isAnonymous
+                  ? 'Please register your account first to set your delivery address and book services.'
+                  : 'Please complete your profile to set and save your delivery address and book services.')}
             </Text>
 
             <TouchableOpacity
@@ -1233,6 +1271,61 @@ export default function HomeScreen({ onNavigate }) {
               activeOpacity={0.85}
             >
               <Text style={styles.guestOutlineBtnText}>Already have an account? Log In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* AMC Plan Required Modal for Authenticated Users Without Active Plan */}
+      <Modal
+        visible={showPlanRequiredModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowPlanRequiredModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.guestModalCard}>
+            <TouchableOpacity
+              style={styles.guestCloseBtn}
+              onPress={() => setShowPlanRequiredModal(false)}
+              accessibilityLabel="Close modal"
+            >
+              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
+            </TouchableOpacity>
+
+            <View style={[styles.guestIconCircle, { backgroundColor: '#EFF6FF' }]}>
+              <Luxury3DShieldIcon size={28} />
+            </View>
+
+            <Text style={styles.guestModalTitle}>
+              AMC Plan Required
+            </Text>
+            <Text style={styles.guestModalSub}>
+              AMC complaints with ₹0 breakdown labor, free repairs, and priority technician visits are exclusive to active AMC plan members. Protect your home appliances today!
+            </Text>
+
+            <TouchableOpacity
+              style={styles.guestPrimaryBtn}
+              onPress={() => {
+                setShowPlanRequiredModal(false);
+                handleNav('/user/plans');
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.guestPrimaryBtnText}>
+                Explore AMC Plans →
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.guestOutlineBtn}
+              onPress={() => {
+                setShowPlanRequiredModal(false);
+                handleNav('/user/consultation');
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.guestOutlineBtnText}>Book My Mechanic (₹0 Diagnosis)</Text>
             </TouchableOpacity>
           </View>
         </View>
