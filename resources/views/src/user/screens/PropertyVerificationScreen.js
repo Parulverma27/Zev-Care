@@ -10,6 +10,7 @@ import DynamicApplianceFields, {
   resolveBrandName,
 } from '../../components/appliances/DynamicApplianceFields';
 import { getApplianceById } from '../../config/applianceCatalog';
+import { doesApplianceRequireVideo } from '../../config/serviceCatalogUtils';
 
 function getRealApplianceImageUrl(appliance) {
   if (!appliance) return SERVICE_IMAGES.ac;
@@ -72,6 +73,7 @@ function getRealApplianceImageUrl(appliance) {
 
 const renderApplianceMediaPreview = (appliance, style) => {
   if (!appliance) return null;
+  if (!doesApplianceRequireVideo(appliance)) return null;
 
   // Check for user uploaded media
   const rawUri = appliance.uploadedMediaUri || appliance.media?.url || appliance.img;
@@ -99,6 +101,11 @@ const renderApplianceMediaPreview = (appliance, style) => {
           loop 
           autoPlay 
           playsInline
+          onError={(e) => {
+            if (e?.currentTarget) {
+              e.currentTarget.style.display = 'none';
+            }
+          }}
         />
         <View style={{ position: 'absolute', width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="#0052e0" stroke="#0052e0" strokeWidth="2">
@@ -456,8 +463,12 @@ export default function PropertyVerificationScreen({ onNavigate }) {
 
       recorder.onstop = () => {
         const blob = new Blob(recordedChunksRef.current, { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        setCapturedMedia({ type: 'video', uri: url, fileName: 'Video_Walkthrough.webm' });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64Uri = reader.result;
+          setCapturedMedia({ type: 'video', uri: base64Uri, fileName: 'Video_Walkthrough.webm' });
+        };
+        reader.readAsDataURL(blob);
         stopCamera();
         setIsRecording(false);
         setRecordingSeconds(0);

@@ -200,7 +200,21 @@ export function searchAllServices(query = '', liveServices = null) {
 export function isZeroFrictionCategory(categoryNameOrId) {
   if (!categoryNameOrId) return false;
   const normalized = String(categoryNameOrId).toLowerCase().trim();
-  return normalized.includes('plumb') || normalized.includes('pest');
+  return (
+    normalized.includes('plumb') ||
+    normalized.includes('pest') ||
+    normalized.includes('bath') ||
+    normalized.includes('shower') ||
+    normalized.includes('tap') ||
+    normalized.includes('sink') ||
+    normalized.includes('basin') ||
+    normalized.includes('drain') ||
+    normalized.includes('leak') ||
+    normalized.includes('toilet') ||
+    normalized.includes('cockroach') ||
+    normalized.includes('termite') ||
+    normalized.includes('bedbug')
+  );
 }
 
 export function isPestControlCategory(categoryNameOrId) {
@@ -213,5 +227,41 @@ export function isPlumberCategory(categoryNameOrId) {
   if (!categoryNameOrId) return false;
   const normalized = String(categoryNameOrId).toLowerCase().trim();
   return normalized.includes('plumb');
+}
+
+/**
+ * Returns false if an appliance / service belongs to a category or item
+ * where video verification is not required (e.g. plumbing, pest control, auto-verified items).
+ */
+export function doesApplianceRequireVideo(appliance) {
+  if (!appliance) return false;
+  if (
+    appliance.media?.isAutoVerified ||
+    appliance.media?.uri === 'auto-verified://zero-friction' ||
+    appliance.uploadedMediaUri === 'auto-verified://zero-friction'
+  ) {
+    return false;
+  }
+  const text = `${appliance.category || ''} ${appliance.serviceName || ''} ${appliance.name || ''} ${appliance.displayName || ''} ${appliance.applianceTypeId || ''} ${appliance.notes || ''}`.toLowerCase();
+  if (
+    text.includes('plumb') ||
+    text.includes('pest') ||
+    text.includes('bath') ||
+    text.includes('shower') ||
+    text.includes('tap') ||
+    text.includes('sink') ||
+    text.includes('basin') ||
+    text.includes('drain') ||
+    text.includes('leak') ||
+    text.includes('water tank') ||
+    text.includes('tank') ||
+    text.includes('toilet') ||
+    text.includes('cockroach') ||
+    text.includes('termite') ||
+    text.includes('bedbug')
+  ) {
+    return false;
+  }
+  return true;
 }
 

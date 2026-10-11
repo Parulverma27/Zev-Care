@@ -26,17 +26,23 @@ export default function FastAddConfirmationModal({
     >
       <View style={styles.overlay}>
         <View style={styles.modalCard}>
-          {/* Top category chip & close button */}
+          {/* Absolute close button inside modal card so it never overflows */}
+          <TouchableOpacity onPress={onCancel} style={styles.closeBtn} activeOpacity={0.7} accessibilityLabel="Close">
+            <Text style={styles.closeBtnText}>✕</Text>
+          </TouchableOpacity>
+
+          {/* Top category chip */}
           <View style={styles.headerRow}>
             <View style={styles.categoryChip}>
-              <span style={styles.sparkleIcon}>⚡</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#0284c7" style={{ marginRight: 4 }}>
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
               <Text style={styles.categoryChipText}>
-                {categoryName ? `${categoryName.toUpperCase()} • QUICK ADD` : 'QUICK ADD'}
+                {item.isBundle
+                  ? `${categoryName ? categoryName.toUpperCase() : 'CATEGORY'} BUNDLE`
+                  : categoryName ? `${categoryName.toUpperCase()} • QUICK ADD` : 'QUICK ADD'}
               </Text>
             </View>
-            <TouchableOpacity onPress={onCancel} style={styles.closeBtn} activeOpacity={0.7}>
-              <Text style={styles.closeBtnText}>✕</Text>
-            </TouchableOpacity>
           </View>
 
           {/* Item details card */}
@@ -56,9 +62,27 @@ export default function FastAddConfirmationModal({
             </View>
           </View>
 
+          {/* If bundle: show list of included services */}
+          {item.isBundle && Array.isArray(item.items) && item.items.length > 0 && (
+            <View style={styles.bundleItemsBox}>
+              <Text style={styles.bundleItemsHeading}>
+                Included in this 1-time addition:
+              </Text>
+              <View style={styles.bundleChipsGrid}>
+                {item.items.map((svc, idx) => (
+                  <View key={idx} style={styles.bundleServiceChip}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <Text style={styles.bundleServiceChipText}>{svc.name}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
-          {/* Quantity selector (optional if counters enabled) */}
-          {onIncrement && onDecrement && (
+          {/* Quantity selector (only for single items if counters enabled) */}
+          {!item.isBundle && onIncrement && onDecrement && (
             <View style={styles.qtyRow}>
               <Text style={styles.qtyLabel}>Quantity</Text>
               <View style={styles.qtyControls}>
@@ -79,14 +103,30 @@ export default function FastAddConfirmationModal({
           )}
 
           {/* Action buttons */}
-          <View style={styles.actionsRow}>
-            <TouchableOpacity onPress={onCancel} style={styles.cancelBtn} activeOpacity={0.8}>
-              <Text style={styles.cancelBtnText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onConfirm} style={styles.confirmBtn} activeOpacity={0.85}>
-              <Text style={styles.confirmBtnText}>Confirm & Add</Text>
-            </TouchableOpacity>
-          </View>
+          {item.isBundle ? (
+            <View style={styles.bundleActionsStack}>
+              <TouchableOpacity onPress={onConfirm} style={styles.bundleConfirmBtn} activeOpacity={0.88}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <Text style={styles.bundleConfirmBtnText}>
+                  Confirm & Add All ({item.items.length} Services)
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onCancel} style={styles.bundleCancelBtn} activeOpacity={0.8}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.actionsRow}>
+              <TouchableOpacity onPress={onCancel} style={styles.cancelBtn} activeOpacity={0.8}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onConfirm} style={styles.confirmBtn} activeOpacity={0.85}>
+                <Text style={styles.confirmBtnText}>Confirm & Add</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </Modal>
@@ -96,7 +136,7 @@ export default function FastAddConfirmationModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.55)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -107,7 +147,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 420,
+    boxSizing: 'border-box',
+    position: 'relative',
     boxShadow: '0 20px 40px -8px rgba(15, 23, 42, 0.25)',
     borderWidth: 1,
     borderColor: '#e2e8f0',
@@ -116,7 +158,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingRight: 36,
   },
   categoryChip: {
     flexDirection: 'row',
@@ -139,6 +181,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   closeBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    zIndex: 10,
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -268,5 +314,76 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#ffffff',
     letterSpacing: 0.2,
+  },
+  bundleItemsBox: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 10,
+    gap: 8,
+  },
+  bundleItemsHeading: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  bundleChipsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  bundleServiceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  bundleServiceChipText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  bundleActionsStack: {
+    gap: 8,
+    marginTop: 4,
+    width: '100%',
+  },
+  bundleConfirmBtn: {
+    backgroundColor: '#2563eb',
+    borderRadius: 14,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+    cursor: 'pointer',
+    width: '100%',
+  },
+  bundleConfirmBtnText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#ffffff',
+    letterSpacing: 0.2,
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  bundleCancelBtn: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    width: '100%',
   },
 });

@@ -113,9 +113,12 @@ export default function MediaCapturePanel({
       recorder.onstop = () => {
         const blob = new Blob(recordedChunksRef.current, { type: mimeType });
         revokeObjectUrl();
-        const url = URL.createObjectURL(blob);
-        objectUrlRef.current = url;
-        onChange?.({ type: 'video', uri: url, fileName: 'Appliance_Live_Video.webm' });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64Uri = reader.result;
+          onChange?.({ type: 'video', uri: base64Uri, fileName: 'Appliance_Live_Video.webm' });
+        };
+        reader.readAsDataURL(blob);
         stopCamera();
         setIsRecording(false);
         setRecordingSeconds(0);

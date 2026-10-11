@@ -109,6 +109,7 @@ if (fs.existsSync(goldSilkSrc)) {
   fs.copyFileSync(goldSilkSrc, path.join(targetDir, 'gold_silk_bg.jpg'));
 }
 
+
 const platinumSilkSrc = path.join(viewsDir, 'assets', 'platinum_silk_bg.jpg');
 if (fs.existsSync(platinumSilkSrc)) {
   fs.copyFileSync(platinumSilkSrc, path.join(distDir, 'platinum_silk_bg.jpg'));

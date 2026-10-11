@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,11 @@ import { SERVICE_CATALOG, SERVICE_IMAGES } from '../../config/serviceCatalog';
 import { MIN_QUANTITY, MAX_QUANTITY, MEDIA_REQUIREMENTS } from '../../config/applianceConstants';
 import { getApplianceById } from '../../config/applianceCatalog';
 import { getApplianceTypeIdForService } from '../../config/serviceApplianceMapping';
-import { isZeroFrictionCategory, isPestControlCategory } from '../../config/serviceCatalogUtils';
+import {
+  isZeroFrictionCategory,
+  isPestControlCategory,
+  doesApplianceRequireVideo,
+} from '../../config/serviceCatalogUtils';
 import FastAddConfirmationModal from '../booking/FastAddConfirmationModal';
 import BlinkitCartBar from '../booking/BlinkitCartBar';
 import { useApp } from '../../context/AppContext';
@@ -129,6 +133,13 @@ function formatAgeOrYear(val) {
 
 function getApplianceVideoUri(appliance) {
   if (!appliance) return null;
+  if (appliance.media?.type === 'video' || appliance.media_type === 'video') {
+    const directVideo = appliance.media?.url || appliance.media?.uri || appliance.uploadedMediaUri || appliance.video;
+    if (typeof directVideo === 'string' && directVideo.trim() && !directVideo.startsWith('auto-verified://')) {
+      return directVideo.trim();
+    }
+  }
+
   const candidates = [
     appliance.uploadedMediaUri,
     appliance.media?.url,
@@ -140,14 +151,16 @@ function getApplianceVideoUri(appliance) {
   ];
   for (const uri of candidates) {
     if (typeof uri === 'string' && uri.trim()) {
+      const clean = uri.trim();
+      if (clean.startsWith('auto-verified://')) continue;
       if (
-        uri.startsWith('data:video/') ||
-        uri.startsWith('blob:') ||
-        uri.endsWith('.webm') ||
-        uri.endsWith('.mp4') ||
-        (appliance.media?.type === 'video' && (uri.startsWith('blob:') || uri.startsWith('data:video/')))
+        clean.startsWith('data:video/') ||
+        clean.startsWith('blob:') ||
+        clean.includes('.webm') ||
+        clean.includes('.mp4') ||
+        clean.includes('video')
       ) {
-        return uri;
+        return clean;
       }
     }
   }
@@ -158,7 +171,12 @@ function resolveApplianceImage(appliance) {
   if (!appliance) return SERVICE_IMAGES?.homeAppliances || null;
   const direct = appliance.serviceImage || appliance.image || appliance.image_url || appliance.img;
   if (direct && typeof direct === 'string' && !direct.includes('127.0.0.1:3000')) {
-    if (!direct.startsWith('data:video') && !direct.endsWith('.webm') && !direct.endsWith('.mp4')) {
+    if (
+      !direct.startsWith('blob:') &&
+      !direct.startsWith('data:video') &&
+      !direct.endsWith('.webm') &&
+      !direct.endsWith('.mp4')
+    ) {
       return direct;
     }
   }
@@ -217,6 +235,66 @@ function createServiceUnitDraft(serviceItem, index, applianceDef) {
     media: null,
   };
 }
+
+function InspectVideoPlayer({ videoUri, fallbackImg }) {
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    setLoadError(false);
+  }, [videoUri]);
+
+  if (!videoUri || loadError || (typeof videoUri === 'string' && videoUri.startsWith('auto-verified://'))) {
+    return (
+      <View style={styles.inspectImgBox}>
+        {fallbackImg ? (
+          <Image
+            source={{ uri: fallbackImg }}
+            style={styles.inspectImg}
+            resizeMode="contain"
+          />
+        ) : null}
+        <View style={styles.inspectFallbackBadge}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <Text style={styles.inspectFallbackBadgeText}>
+            Walkthrough Video Verified • AMC Active
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.inspectVideoBox}>
+      <video
+        key={videoUri}
+        src={videoUri}
+        controls
+        autoPlay
+        muted
+        playsInline
+        loop
+        onError={() => setLoadError(true)}
+        style={{
+          width: '100%',
+          height: 220,
+          borderRadius: 14,
+          backgroundColor: '#000000',
+          objectFit: 'cover',
+          display: 'block',
+        }}
+      />
+      <View style={styles.inspectVideoMetaStrip}>
+        <View style={styles.inspectLiveDot} />
+        <Text style={styles.inspectVideoMetaText}>
+          Original Video Walkthrough • Verified
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 export default function ApplianceAddWizard({
   onComplete,
   onCancel,
@@ -226,7 +304,7 @@ export default function ApplianceAddWizard({
   planName = null,
 }) {
   const appContext = useApp ? useApp() : {};
-  const { activeUser, getAppliancesForUser, userAppliances } = appContext;
+  const { activeUser, getAppliancesForUser, userAppliances, updateUserAppliance } = appContext;
 
   const displayedPlanAppliances = useMemo(() => {
     if (Array.isArray(existingAppliances) && existingAppliances.length > 0) {
@@ -264,6 +342,7 @@ export default function ApplianceAddWizard({
   const [showFastAddModal, setShowFastAddModal] = useState(false);
   const [accumulatedFastUnits, setAccumulatedFastUnits] = useState([]);
   const [inspectingAppliance, setInspectingAppliance] = useState(null);
+  const [isRetakingVideo, setIsRetakingVideo] = useState(false);
 
   const currentUnit = units[currentIndex] || null;
 
@@ -376,6 +455,44 @@ export default function ApplianceAddWizard({
 
   const handleConfirmFastAdd = () => {
     if (!fastAddItem) return;
+
+    if (fastAddItem.isBundle && Array.isArray(fastAddItem.items)) {
+      const bundleUnits = fastAddItem.items.map((svc, idx) => {
+        const applianceTypeId = getApplianceTypeIdForService(svc.name);
+        const applianceDef = applianceTypeId ? getApplianceById(applianceTypeId) : null;
+        const serviceObj = {
+          name: svc.name,
+          image_url: svc.image_url || null,
+          description: svc.description || '',
+          isOther: false,
+          applianceTypeId: applianceTypeId || 'other',
+          applianceDef,
+        };
+        return {
+          ...createServiceUnitDraft(serviceObj, idx, applianceDef),
+          displayName: svc.name,
+          serviceName: svc.name,
+          location: 'Home',
+          condition: 'Working',
+          notes: `${selectedCategory?.name || 'Quick Add'} category protection`,
+          media: {
+            uri: 'auto-verified://zero-friction',
+            type: 'video',
+            isAutoVerified: true,
+          },
+        };
+      });
+
+      // Avoid duplicate services
+      const notYetAdded = bundleUnits.filter(
+        (bu) => !accumulatedFastUnits.some((au) => au.serviceName === bu.serviceName)
+      );
+      setAccumulatedFastUnits((prev) => [...prev, ...notYetAdded]);
+      setShowFastAddModal(false);
+      setFastAddItem(null);
+      return;
+    }
+
     const applianceTypeId = getApplianceTypeIdForService(fastAddItem.name);
     const applianceDef = applianceTypeId ? getApplianceById(applianceTypeId) : null;
     const serviceObj = {
@@ -404,6 +521,22 @@ export default function ApplianceAddWizard({
     setAccumulatedFastUnits((prev) => [...prev, ...newUnits]);
     setShowFastAddModal(false);
     setFastAddItem(null);
+  };
+
+  const handleAddEntireCategory = () => {
+    if (!selectedCategory) return;
+    const itemsToAdd = (serviceItems || []).filter((s) => !s.isOther);
+    if (!itemsToAdd.length) return;
+
+    setFastAddItem({
+      name: `Complete ${selectedCategory.name} Protection`,
+      description: `All ${itemsToAdd.length} services covered under your plan with ₹0 breakdown labor.`,
+      isBundle: true,
+      items: itemsToAdd,
+      image_url: selectedCategory.image_url || null,
+    });
+    setFastAddQty(1);
+    setShowFastAddModal(true);
   };
 
   const handleQuantityContinue = () => {
@@ -577,40 +710,29 @@ export default function ApplianceAddWizard({
       rowGap: 16,
       columnGap: 12,
     };
-    const isZeroFriction = isZeroFrictionCategory(selectedCategory?.name || selectedCategory?.id);
     if (Platform.OS === 'web') {
       return (
         <div style={serviceGridStyle}>
-          {list.map((svc) => {
-            const addedCount = accumulatedFastUnits.filter((u) => u.serviceName === svc.name).length;
-            return (
-              <ServiceItemCard
-                key={svc.name}
-                item={svc}
-                addedCount={addedCount}
-                isZeroFriction={isZeroFriction}
-                onPress={() => handlePickService(svc)}
-              />
-            );
-          })}
+          {list.map((svc) => (
+            <ServiceItemCard
+              key={svc.name}
+              item={svc}
+              onPress={() => handlePickService(svc)}
+            />
+          ))}
         </div>
       );
     }
     return (
       <View style={styles.nativeGrid}>
-        {list.map((svc) => {
-          const addedCount = accumulatedFastUnits.filter((u) => u.serviceName === svc.name).length;
-          return (
-            <ServiceItemCard
-              key={svc.name}
-              item={svc}
-              addedCount={addedCount}
-              isZeroFriction={isZeroFriction}
-              onPress={() => handlePickService(svc)}
-              style={{ width: `${100 / columns - 2}%`, marginBottom: 12 }}
-            />
-          );
-        })}
+        {list.map((svc) => (
+          <ServiceItemCard
+            key={svc.name}
+            item={svc}
+            onPress={() => handlePickService(svc)}
+            style={{ width: `${100 / columns - 2}%`, marginBottom: 12 }}
+          />
+        ))}
       </View>
     );
   };
@@ -704,7 +826,11 @@ export default function ApplianceAddWizard({
                 <View style={styles.coveredList}>
                   {displayedPlanAppliances.map((appliance, idx) => {
                     const appName = appliance.displayName || appliance.name || appliance.category || 'Appliance';
-                    const appCategory = appliance.category || appliance.serviceName || '';
+                    const requiresVideo = doesApplianceRequireVideo(appliance);
+                    const rawCategory = appliance.category || appliance.serviceName || '';
+                    const appCategory = (rawCategory && rawCategory !== 'Item' && rawCategory !== appName)
+                      ? rawCategory
+                      : (!requiresVideo ? (selectedCategory?.name || '') : '');
                     const appBrand = appliance.brand || appliance.customBrand || '';
                     const appLocation = appliance.location || '';
                     const appCondition = appliance.condition || 'Working';
@@ -731,23 +857,41 @@ export default function ApplianceAddWizard({
                           </View>
                         </View>
 
-                        {/* Body: High-def product image tile & structured vector icon specs */}
+                        {/* Body: High-def product image tile (only for appliances requiring video/media) & structured specs */}
                         <View style={styles.cardBodyRow}>
-                          <View style={styles.coveredMediaTile}>
-                            <Image
-                              source={{ uri: imgUrl }}
-                              style={styles.coveredApplianceImg}
-                              resizeMode="contain"
-                            />
-                            {videoUri ? (
-                              <View style={styles.videoRibbonBadge}>
-                                <svg width="9" height="9" viewBox="0 0 24 24" fill="#ffffff">
-                                  <polygon points="5 3 19 12 5 21 5 3" />
-                                </svg>
-                                <Text style={styles.videoRibbonText}>VIDEO</Text>
-                              </View>
-                            ) : null}
-                          </View>
+                          {requiresVideo && (
+                            <View style={styles.coveredMediaTile}>
+                              {videoUri && Platform.OS === 'web' ? (
+                                <video
+                                  src={videoUri}
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    display: 'block',
+                                  }}
+                                  muted
+                                  loop
+                                  autoPlay
+                                  playsInline
+                                />
+                              ) : (
+                                <Image
+                                  source={{ uri: imgUrl }}
+                                  style={styles.coveredApplianceImg}
+                                  resizeMode="contain"
+                                />
+                              )}
+                              {videoUri ? (
+                                <View style={styles.videoRibbonBadge}>
+                                  <svg width="9" height="9" viewBox="0 0 24 24" fill="#ffffff">
+                                    <polygon points="5 3 19 12 5 21 5 3" />
+                                  </svg>
+                                  <Text style={styles.videoRibbonText}>VIDEO</Text>
+                                </View>
+                              ) : null}
+                            </View>
+                          )}
 
                           <View style={styles.cardSpecsCol}>
                             <View style={styles.specChipsWrap}>
@@ -858,6 +1002,76 @@ export default function ApplianceAddWizard({
                 </TouchableOpacity>
               )}
             </View>
+
+            {/* ONE-TIME ADD COMPLETE CATEGORY HERO BANNER */}
+            {isZeroFrictionCategory(selectedCategory?.name || selectedCategory?.id) && (() => {
+              const standardServices = (serviceItems || []).filter((s) => !s.isOther);
+              const allAdded = standardServices.length > 0 && standardServices.every((s) =>
+                accumulatedFastUnits.some((u) => u.serviceName === s.name)
+              );
+
+              return (
+                <View style={styles.categoryBundleHero}>
+                  <View style={styles.bundleHeroHeader}>
+                    <View style={styles.bundleBadge}>
+                      <IconShield size={12} color="#2563eb" />
+                      <Text style={styles.bundleBadgeText}>1-TIME CATEGORY ADD</Text>
+                    </View>
+                    <View style={styles.bundleSavingsPill}>
+                      <Text style={styles.bundleSavingsText}>
+                        {standardServices.length} Services Included
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.bundleBodyRow}>
+                    <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                      <Text style={styles.bundleHeroTitle}>
+                        Complete {selectedCategory.name} Protection
+                      </Text>
+                      <Text style={styles.bundleHeroDesc}>
+                        Protect your home against {standardServices.map((s) => s.name).join(', ')} in a single confirmation.
+                      </Text>
+                      <View style={styles.bundleFeaturesRow}>
+                        <View style={styles.bundleFeatureItem}>
+                          <IconCheckCircle size={11} color="#15803d" />
+                          <Text style={styles.bundleFeatureText}>₹0 Video Walkthrough Required</Text>
+                        </View>
+                        <View style={styles.bundleFeatureItem}>
+                          <IconCheckCircle size={11} color="#15803d" />
+                          <Text style={styles.bundleFeatureText}>₹0 Breakdown Labor Included</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.bundleAddBtn, allAdded && styles.bundleAddBtnDone]}
+                    onPress={handleAddEntireCategory}
+                    disabled={allAdded}
+                    activeOpacity={0.85}
+                  >
+                    {allAdded ? (
+                      <>
+                        <IconCheckCircle size={15} color="#ffffff" />
+                        <Text style={styles.bundleAddBtnText}>✓ All Services Added to Plan</Text>
+                      </>
+                    ) : (
+                      <>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19" />
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        <Text style={styles.bundleAddBtnText}>
+                          Add Entire Category (All {standardServices.length} Services)
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              );
+            })()}
+
             {renderServiceGrid(filteredServices)}
           </>
         )}
@@ -1200,7 +1414,10 @@ export default function ApplianceAddWizard({
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => setInspectingAppliance(null)}
+                onPress={() => {
+                  setInspectingAppliance(null);
+                  setIsRetakingVideo(false);
+                }}
                 style={styles.modalCloseCircle}
               >
                 <Text style={{ fontSize: 16, color: '#64748b', fontWeight: '700' }}>✕</Text>
@@ -1208,97 +1425,148 @@ export default function ApplianceAddWizard({
             </View>
 
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-              {/* Media Block: Play Video if exists, else crisp photo */}
+              {/* Media Block: Play Video if exists, else crisp photo or zero-friction badge */}
               {(() => {
-                const videoUri = getApplianceVideoUri(inspectingAppliance);
-                if (videoUri) {
+                const requiresVideo = doesApplianceRequireVideo(inspectingAppliance);
+                if (!requiresVideo) {
                   return (
-                    <View style={styles.inspectVideoBox}>
-                      <video
-                        src={videoUri}
-                        controls
-                        autoPlay
-                        playsInline
-                        style={{
-                          width: '100%',
-                          maxHeight: 260,
-                          borderRadius: 14,
-                          backgroundColor: '#000000',
-                          outline: 'none',
-                        }}
-                      />
-                      <View style={styles.inspectVideoMetaStrip}>
-                        <View style={styles.inspectLiveDot} />
-                        <Text style={styles.inspectVideoMetaText}>
-                          Live Video Walkthrough Attached • Verified
+                    <View style={styles.inspectZeroFrictionBanner}>
+                      <View style={styles.inspectZeroFrictionIconWrap}>
+                        <IconShield size={22} color="#2563eb" />
+                      </View>
+                      <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+                        <Text style={styles.inspectZeroFrictionTitle}>
+                          Direct AMC Plan Protection
+                        </Text>
+                        <Text style={styles.inspectZeroFrictionSub}>
+                          Standard catalog service • Video walkthrough not required • ₹0 Breakdown labor
                         </Text>
                       </View>
                     </View>
                   );
                 }
+                if (isRetakingVideo) {
+                  return (
+                    <View style={{ marginBottom: 16 }}>
+                      <MediaCapturePanel
+                        value={null}
+                        allowGallery={false}
+                        maxVideoSeconds={MEDIA_REQUIREMENTS.maxVideoSeconds}
+                        emptyTitle="Record Walkthrough Video"
+                        emptyDescription="Record a new live video walkthrough to attach to this appliance."
+                        onChange={(media) => {
+                          if (media?.uri) {
+                            const updated = {
+                              uploadedMediaUri: media.uri,
+                              video: media.uri,
+                              videoUrl: media.uri,
+                              video_uri: media.uri,
+                              img: media.uri,
+                              media: { type: 'video', url: media.uri, fileName: 'Appliance_Live_Video.webm' },
+                            };
+                            updateUserAppliance?.(inspectingAppliance.id, updated);
+                            setInspectingAppliance((prev) => ({ ...prev, ...updated }));
+                            setIsRetakingVideo(false);
+                          }
+                        }}
+                      />
+                      <TouchableOpacity
+                        style={styles.cancelRetakeBtn}
+                        onPress={() => setIsRetakingVideo(false)}
+                      >
+                        <Text style={styles.cancelRetakeBtnText}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                }
+
+                const videoUri = getApplianceVideoUri(inspectingAppliance);
                 const img = resolveApplianceImage(inspectingAppliance);
                 return (
-                  <View style={styles.inspectImgBox}>
-                    <Image
-                      source={{ uri: img }}
-                      style={styles.inspectImg}
-                      resizeMode="contain"
-                    />
-                    <Text style={styles.inspectImgNote}>
-                      Registered under AMC protection • ₹0 Breakdown Labor
-                    </Text>
+                  <View style={{ marginBottom: 16 }}>
+                    {videoUri ? (
+                      <InspectVideoPlayer videoUri={videoUri} fallbackImg={img} />
+                    ) : (
+                      <View style={styles.inspectImgBox}>
+                        <Image
+                          source={{ uri: img }}
+                          style={styles.inspectImg}
+                          resizeMode="contain"
+                        />
+                        <View style={styles.inspectFallbackBadge}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          <Text style={styles.inspectFallbackBadgeText}>
+                            Walkthrough Video Verified • AMC Active
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      style={styles.retakeVideoBtn}
+                      onPress={() => setIsRetakingVideo(true)}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M23 7l-7 5 7 5V7z" />
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                      </svg>
+                      <Text style={styles.retakeVideoBtnText}>
+                        {videoUri ? 'Retake Walkthrough Video' : 'Record Live Walkthrough Video'}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 );
               })()}
 
-              {/* Specification Grid */}
+              {/* Specification List - Full Width Horizontal Rows */}
               <View style={styles.inspectSpecGrid}>
                 <View style={styles.inspectSpecTile}>
-                  <Text style={styles.inspectSpecLabel}>CATEGORY / SERVICE</Text>
+                  <Text style={styles.inspectSpecLabel}>Category / Service</Text>
                   <Text style={styles.inspectSpecVal}>
                     {inspectingAppliance?.category || inspectingAppliance?.serviceName || 'Appliance'}
                   </Text>
                 </View>
                 <View style={styles.inspectSpecTile}>
-                  <Text style={styles.inspectSpecLabel}>BRAND / MAKE</Text>
+                  <Text style={styles.inspectSpecLabel}>Brand / Make</Text>
                   <Text style={styles.inspectSpecVal}>
                     {inspectingAppliance?.brand || inspectingAppliance?.customBrand || 'Standard'}
                   </Text>
                 </View>
                 <View style={styles.inspectSpecTile}>
-                  <Text style={styles.inspectSpecLabel}>HOME LOCATION</Text>
+                  <Text style={styles.inspectSpecLabel}>Home Location</Text>
                   <Text style={styles.inspectSpecVal}>
                     {inspectingAppliance?.location || 'Home'}
                   </Text>
                 </View>
                 <View style={styles.inspectSpecTile}>
-                  <Text style={styles.inspectSpecLabel}>OPERATING CONDITION</Text>
+                  <Text style={styles.inspectSpecLabel}>Operating Condition</Text>
                   <Text style={[styles.inspectSpecVal, { color: '#15803d' }]}>
                     {inspectingAppliance?.condition || 'Working'}
                   </Text>
                 </View>
                 {inspectingAppliance?.capacity ? (
                   <View style={styles.inspectSpecTile}>
-                    <Text style={styles.inspectSpecLabel}>CAPACITY / SPECS</Text>
+                    <Text style={styles.inspectSpecLabel}>Capacity / Specs</Text>
                     <Text style={styles.inspectSpecVal}>{inspectingAppliance.capacity}</Text>
                   </View>
                 ) : null}
                 {inspectingAppliance?.year || inspectingAppliance?.age_range ? (
                   <View style={styles.inspectSpecTile}>
-                    <Text style={styles.inspectSpecLabel}>PURCHASE YEAR / AGE</Text>
+                    <Text style={styles.inspectSpecLabel}>Purchase Year / Age</Text>
                     <Text style={styles.inspectSpecVal}>
                       {formatAgeOrYear(inspectingAppliance.year || inspectingAppliance.age_range)}
                     </Text>
                   </View>
                 ) : null}
                 <View style={styles.inspectSpecTile}>
-                  <Text style={styles.inspectSpecLabel}>BREAKDOWN LABOR</Text>
+                  <Text style={styles.inspectSpecLabel}>Breakdown Labor</Text>
                   <Text style={[styles.inspectSpecVal, { color: '#2563eb' }]}>
                     ₹0 Free Included
                   </Text>
                 </View>
                 <View style={styles.inspectSpecTile}>
-                  <Text style={styles.inspectSpecLabel}>COVERAGE TIER</Text>
+                  <Text style={styles.inspectSpecLabel}>Coverage Tier</Text>
                   <Text style={styles.inspectSpecVal}>
                     {planName || 'Active AMC Protection'}
                   </Text>
@@ -1368,7 +1636,7 @@ function CategoryCard({ item, onPress, style }) {
   );
 }
 
-function ServiceItemCard({ item, onPress, style, addedCount = 0, isZeroFriction = false }) {
+function ServiceItemCard({ item, onPress, style }) {
   const isOther = item.isOther || item.name === 'Other';
   return (
     <TouchableOpacity
@@ -1392,13 +1660,6 @@ function ServiceItemCard({ item, onPress, style, addedCount = 0, isZeroFriction 
         )}
       </View>
       <Text style={svcStyles.name} numberOfLines={2}>{item.name}</Text>
-      {isZeroFriction && (
-        <View style={[svcStyles.addBadgePill, addedCount > 0 && svcStyles.addedBadgePill]}>
-          <Text style={[svcStyles.addBadgePillText, addedCount > 0 && svcStyles.addedBadgePillText]}>
-            {addedCount > 0 ? `✓ Added (${addedCount})` : '+ Add'}
-          </Text>
-        </View>
-      )}
     </TouchableOpacity>
   );
 }
@@ -1428,6 +1689,9 @@ export function buildSavedApplianceRecords(units, selectedService, user) {
       model: unit.model || '',
       img: unit.media?.uri || selectedService?.image_url || null,
       uploadedMediaUri: unit.media?.uri || null,
+      video: unit.media?.uri || null,
+      videoUrl: unit.media?.uri || null,
+      video_uri: unit.media?.uri || null,
       media: unit.media
         ? { type: unit.media.type, url: unit.media.uri, fileName: unit.media.fileName }
         : null,
@@ -1535,29 +1799,6 @@ const svcStyles = StyleSheet.create({
     lineHeight: 16,
     marginTop: 2,
     fontFamily: "'Outfit', 'Inter', sans-serif",
-  },
-  addBadgePill: {
-    marginTop: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    backgroundColor: '#eff6ff',
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addBadgePillText: {
-    color: '#1d4ed8',
-    fontSize: 10.5,
-    fontWeight: '800',
-  },
-  addedBadgePill: {
-    backgroundColor: '#dcfce7',
-    borderColor: '#86efac',
-  },
-  addedBadgePillText: {
-    color: '#15803d',
   },
 });
 
@@ -1874,7 +2115,7 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 12,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#0f172a',
     borderWidth: 1,
     borderColor: '#e2e8f0',
     alignItems: 'center',
@@ -1882,24 +2123,24 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     flexShrink: 0,
-    padding: 4,
+    padding: 0,
   },
   coveredApplianceImg: {
     width: '100%',
     height: '100%',
+    padding: 4,
   },
   videoRibbonBadge: {
     position: 'absolute',
-    bottom: 2,
-    left: 2,
-    right: 2,
-    backgroundColor: 'rgba(37, 99, 235, 0.9)',
-    borderRadius: 4,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(37, 99, 235, 0.95)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 3,
-    paddingVertical: 2,
+    paddingVertical: 2.5,
   },
   videoRibbonText: {
     color: '#ffffff',
@@ -1990,6 +2231,110 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     fontWeight: '700',
     color: '#15803d',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  /* Category Package Hero Banner */
+  categoryBundleHero: {
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#bfdbfe',
+    padding: 16,
+    marginBottom: 16,
+    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)',
+    gap: 12,
+  },
+  bundleHeroHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  bundleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  bundleBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#1d4ed8',
+    letterSpacing: 0.5,
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  bundleSavingsPill: {
+    backgroundColor: '#f0fdf4',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  bundleSavingsText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#15803d',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  bundleBodyRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  bundleHeroTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  bundleHeroDesc: {
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 16,
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  bundleFeaturesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 4,
+    flexWrap: 'wrap',
+  },
+  bundleFeatureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  bundleFeatureText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#15803d',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  bundleAddBtn: {
+    backgroundColor: '#2563eb',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+    cursor: 'pointer',
+  },
+  bundleAddBtnDone: {
+    backgroundColor: '#16a34a',
+    boxShadow: '0 4px 12px rgba(22, 163, 74, 0.25)',
+  },
+  bundleAddBtnText: {
+    color: '#ffffff',
+    fontSize: 13.5,
+    fontWeight: '800',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   emptyCoveredBox: {
@@ -2083,6 +2428,39 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
+  inspectZeroFrictionBanner: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1.2,
+    borderColor: '#bfdbfe',
+    borderRadius: 14,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  inspectZeroFrictionIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 6px rgba(37, 99, 235, 0.15)',
+    flexShrink: 0,
+  },
+  inspectZeroFrictionTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#1d4ed8',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  inspectZeroFrictionSub: {
+    fontSize: 11.5,
+    color: '#3b82f6',
+    lineHeight: 16,
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
   inspectImgBox: {
     height: 140,
     borderRadius: 14,
@@ -2104,32 +2482,56 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 6,
   },
-  inspectSpecGrid: {
+  inspectFallbackBadge: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  inspectFallbackBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#15803d',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  inspectSpecGrid: {
+    width: '100%',
+    gap: 8,
     marginBottom: 16,
   },
   inspectSpecTile: {
-    width: '48%',
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#f8fafc',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    padding: 10,
-    gap: 3,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    gap: 12,
   },
   inspectSpecLabel: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#94a3b8',
-    letterSpacing: 0.4,
+    color: '#64748b',
+    letterSpacing: 0.2,
+    fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   inspectSpecVal: {
     fontSize: 13,
     fontWeight: '700',
     color: '#0f172a',
+    textAlign: 'right',
     fontFamily: "'Outfit', 'Inter', sans-serif",
+    flexShrink: 1,
   },
   inspectNotesBox: {
     backgroundColor: '#fffbeb',
@@ -2163,6 +2565,38 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '700',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  retakeVideoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1.2,
+    borderColor: '#bfdbfe',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  retakeVideoBtnText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#1d4ed8',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  cancelRetakeBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    marginTop: 6,
+  },
+  cancelRetakeBtnText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: '#64748b',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
 });
