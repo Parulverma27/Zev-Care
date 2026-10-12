@@ -28,6 +28,7 @@ import {
 import FastAddConfirmationModal from '../booking/FastAddConfirmationModal';
 import BlinkitCartBar from '../booking/BlinkitCartBar';
 import { useApp } from '../../context/AppContext';
+import { AppIcon } from '../AppIcons';
 
 /**
  * Multi-step add-service wizard.
@@ -295,6 +296,99 @@ function InspectVideoPlayer({ videoUri, fallbackImg }) {
   );
 }
 
+export function resolveInitialApplianceService({
+  lockedApplianceTypeId = null,
+  preselectedService = null,
+  initialService = null,
+  initialCategory = null,
+} = {}) {
+  const targetServiceName = (preselectedService || initialService || '').trim();
+  const targetTypeId = lockedApplianceTypeId || (targetServiceName ? getApplianceTypeIdForService(targetServiceName) : null);
+
+  if (!targetServiceName && !targetTypeId) {
+    return null;
+  }
+
+  let matchedCategory = null;
+  let matchedSubgroup = null;
+  let matchedItem = null;
+
+  // Search inside SERVICE_CATALOG
+  for (const cat of SERVICE_CATALOG) {
+    if (cat.groups) {
+      for (const grp of cat.groups) {
+        for (const itm of (grp.items || [])) {
+          if (itm.isOther) continue;
+          const itmTypeId = getApplianceTypeIdForService(itm.name);
+          const nameMatches = targetServiceName && (
+            itm.name.toLowerCase() === targetServiceName.toLowerCase() ||
+            (targetServiceName.length > 2 && itm.name.toLowerCase().includes(targetServiceName.toLowerCase())) ||
+            (itm.name.length > 2 && targetServiceName.toLowerCase().includes(itm.name.toLowerCase()))
+          );
+          const typeMatches = targetTypeId && itmTypeId === targetTypeId;
+
+          if (nameMatches || typeMatches) {
+            matchedCategory = cat;
+            matchedSubgroup = grp;
+            matchedItem = itm;
+            break;
+          }
+        }
+        if (matchedItem) break;
+      }
+    } else if (cat.items) {
+      for (const itm of cat.items) {
+        if (itm.isOther) continue;
+        const itmTypeId = getApplianceTypeIdForService(itm.name);
+        const nameMatches = targetServiceName && (
+          itm.name.toLowerCase() === targetServiceName.toLowerCase() ||
+          (targetServiceName.length > 2 && itm.name.toLowerCase().includes(targetServiceName.toLowerCase())) ||
+          (itm.name.length > 2 && targetServiceName.toLowerCase().includes(itm.name.toLowerCase()))
+        );
+        const typeMatches = targetTypeId && itmTypeId === targetTypeId;
+
+        if (nameMatches || typeMatches) {
+          matchedCategory = cat;
+          matchedSubgroup = null;
+          matchedItem = itm;
+          break;
+        }
+      }
+    }
+
+    if (matchedItem) break;
+  }
+
+  const applianceDef = targetTypeId ? getApplianceById(targetTypeId) : null;
+  const resolvedTypeId = targetTypeId || (matchedItem ? getApplianceTypeIdForService(matchedItem.name) : null) || 'other';
+  const resolvedDef = applianceDef || (resolvedTypeId && resolvedTypeId !== 'other' ? getApplianceById(resolvedTypeId) : null);
+  const resolvedName = matchedItem?.name || resolvedDef?.name || targetServiceName || 'Appliance';
+
+  if (!matchedCategory && initialCategory) {
+    matchedCategory = SERVICE_CATALOG.find((c) =>
+      c.name.toLowerCase() === initialCategory.toLowerCase() ||
+      c.id.toLowerCase() === initialCategory.toLowerCase()
+    ) || null;
+  }
+
+  const serviceObj = {
+    name: resolvedName,
+    image_url: matchedItem?.image_url || resolvedDef?.image || null,
+    description: matchedItem?.description || resolvedDef?.description || '',
+    isOther: !!matchedItem?.isOther,
+    applianceTypeId: resolvedTypeId,
+    applianceDef: resolvedDef,
+  };
+
+  return {
+    category: matchedCategory,
+    subgroup: matchedSubgroup,
+    service: serviceObj,
+    applianceDef: resolvedDef,
+    applianceTypeId: resolvedTypeId,
+  };
+}
+
 export default function ApplianceAddWizard({
   onComplete,
   onCancel,
@@ -302,9 +396,21 @@ export default function ApplianceAddWizard({
   maxQuantity = MAX_QUANTITY,
   existingAppliances = null,
   planName = null,
+  lockedApplianceTypeId = null,
+  initialCategory = null,
+  initialService = null,
+  preselectedService = null,
 }) {
   const appContext = useApp ? useApp() : {};
   const { activeUser, getAppliancesForUser, userAppliances, updateUserAppliance } = appContext;
+
+  const initialResolved = useMemo(() => {
+    return resolveInitialApplianceService({
+      lockedApplianceTypeId,
+      preselectedService: preselectedService || initialService,
+      initialCategory,
+    });
+  }, [lockedApplianceTypeId, preselectedService, initialService, initialCategory]);
 
   const displayedPlanAppliances = useMemo(() => {
     if (Array.isArray(existingAppliances) && existingAppliances.length > 0) {
@@ -325,13 +431,17 @@ export default function ApplianceAddWizard({
   const qtyCap = Math.min(MAX_QUANTITY, Math.max(MIN_QUANTITY, Number(maxQuantity) || MAX_QUANTITY));
 
   // --- wizard state ---
-  const [step, setStep] = useState('category');
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedSubgroup, setSelectedSubgroup] = useState(null);
-  const [selectedService, setSelectedService] = useState(null);
+  const [step, setStep] = useState(() => (initialResolved ? 'details' : 'category'));
+  const [selectedCategory, setSelectedCategory] = useState(() => initialResolved?.category || null);
+  const [selectedSubgroup, setSelectedSubgroup] = useState(() => initialResolved?.subgroup || null);
+  const [selectedService, setSelectedService] = useState(() => initialResolved?.service || null);
   const [quantity, setQuantity] = useState(1);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [units, setUnits] = useState([]);
+  const [units, setUnits] = useState(() =>
+    initialResolved
+      ? [createServiceUnitDraft(initialResolved.service, 0, initialResolved.applianceDef)]
+      : []
+  );
   const [fieldErrors, setFieldErrors] = useState({});
   const [mediaError, setMediaError] = useState('');
   const [showDiscard, setShowDiscard] = useState(false);
@@ -343,6 +453,27 @@ export default function ApplianceAddWizard({
   const [accumulatedFastUnits, setAccumulatedFastUnits] = useState([]);
   const [inspectingAppliance, setInspectingAppliance] = useState(null);
   const [isRetakingVideo, setIsRetakingVideo] = useState(false);
+
+  const isGuest = Boolean(
+    !activeUser ||
+    activeUser.isGuest ||
+    activeUser.id === 0 ||
+    activeUser.name === 'Guest User' ||
+    activeUser.isAnonymous
+  );
+  const [showGuestModal, setShowGuestModal] = useState(false);
+
+  useEffect(() => {
+    if (initialResolved) {
+      setSelectedCategory(initialResolved.category);
+      setSelectedSubgroup(initialResolved.subgroup);
+      setSelectedService(initialResolved.service);
+      setQuantity(1);
+      setCurrentIndex(0);
+      setUnits([createServiceUnitDraft(initialResolved.service, 0, initialResolved.applianceDef)]);
+      setStep('details');
+    }
+  }, [initialResolved]);
 
   const currentUnit = units[currentIndex] || null;
 
@@ -391,6 +522,10 @@ export default function ApplianceAddWizard({
 
   // --- handlers ---
   const handlePickCategory = (cat) => {
+    if (isGuest) {
+      setShowGuestModal(true);
+      return;
+    }
     setSelectedCategory(cat);
     setSelectedSubgroup(null);
     setSearchQuery('');
@@ -422,6 +557,10 @@ export default function ApplianceAddWizard({
   }, [selectedService]);
 
   const handlePickService = (item) => {
+    if (isGuest) {
+      setShowGuestModal(true);
+      return;
+    }
     const isZeroFriction = isZeroFrictionCategory(selectedCategory?.name || selectedCategory?.id);
     if (isZeroFriction) {
       setFastAddItem(item);
@@ -454,6 +593,10 @@ export default function ApplianceAddWizard({
   };
 
   const handleConfirmFastAdd = () => {
+    if (isGuest) {
+      setShowGuestModal(true);
+      return;
+    }
     if (!fastAddItem) return;
 
     if (fastAddItem.isBundle && Array.isArray(fastAddItem.items)) {
@@ -524,6 +667,10 @@ export default function ApplianceAddWizard({
   };
 
   const handleAddEntireCategory = () => {
+    if (isGuest) {
+      setShowGuestModal(true);
+      return;
+    }
     if (!selectedCategory) return;
     const itemsToAdd = (serviceItems || []).filter((s) => !s.isOther);
     if (!itemsToAdd.length) return;
@@ -585,6 +732,10 @@ export default function ApplianceAddWizard({
   };
 
   const handleConfirmFinalSave = () => {
+    if (isGuest) {
+      setShowGuestModal(true);
+      return;
+    }
     setShowSaveConfirmModal(false);
     onComplete?.(units, selectedService);
   };
@@ -613,6 +764,10 @@ export default function ApplianceAddWizard({
       return;
     }
     if (step === 'details') {
+      if (initialResolved || lockedApplianceTypeId) {
+        requestLeave();
+        return;
+      }
       if (currentIndex === 0) {
         setStep('quantity');
         return;
@@ -1599,10 +1754,64 @@ export default function ApplianceAddWizard({
           items={accumulatedFastUnits}
           actionLabel="Add to Plan ›"
           onProceed={() => {
+            if (isGuest) {
+              setShowGuestModal(true);
+              return;
+            }
             onComplete?.(accumulatedFastUnits, null);
           }}
         />
       )}
+
+      {/* Guest Lock Modal */}
+      <Modal
+        visible={showGuestModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowGuestModal(false)}
+      >
+        <View style={wizardGuestStyles.overlay}>
+          <View style={wizardGuestStyles.card}>
+            <TouchableOpacity
+              style={wizardGuestStyles.closeBtn}
+              onPress={() => setShowGuestModal(false)}
+            >
+              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
+            </TouchableOpacity>
+
+            <View style={wizardGuestStyles.iconCircle}>
+              <AppIcon name="lock" size={26} color="#B45309" strokeWidth={2.2} />
+            </View>
+
+            <Text style={wizardGuestStyles.title}>Register First</Text>
+            <Text style={wizardGuestStyles.sub}>
+              Please register or sign in to your account to add appliances or services to your home coverage.
+            </Text>
+
+            <TouchableOpacity
+              style={wizardGuestStyles.primaryBtn}
+              onPress={() => {
+                setShowGuestModal(false);
+                if (typeof window !== 'undefined') window.location.href = '/user/register';
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={wizardGuestStyles.primaryBtnText}>Register Now →</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={wizardGuestStyles.secondaryBtn}
+              onPress={() => {
+                setShowGuestModal(false);
+                if (typeof window !== 'undefined') window.location.href = '/user/login';
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={wizardGuestStyles.secondaryBtnText}>Already have an account? Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -2598,5 +2807,97 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#64748b',
     fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+});
+
+const wizardGuestStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    zIndex: 99999,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 380,
+    alignItems: 'center',
+    position: 'relative',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fef3c7',
+    borderWidth: 1.5,
+    borderColor: '#fde68a',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  title: {
+    fontSize: 19,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 8,
+    textAlign: 'center',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  sub: {
+    fontSize: 13.5,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+    paddingHorizontal: 8,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  primaryBtn: {
+    backgroundColor: '#2563eb',
+    borderRadius: 14,
+    paddingVertical: 13,
+    paddingHorizontal: 20,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  primaryBtnText: {
+    color: '#ffffff',
+    fontSize: 14.5,
+    fontWeight: '700',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  secondaryBtn: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.2,
+    borderColor: '#cbd5e1',
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    width: '100%',
+    alignItems: 'center',
+  },
+  secondaryBtnText: {
+    color: '#334155',
+    fontSize: 13.5,
+    fontWeight: '600',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
 });

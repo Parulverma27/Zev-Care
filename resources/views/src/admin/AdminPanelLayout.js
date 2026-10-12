@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext';
 import {
   DashboardIcon,
   BookingsIcon,
+  ConsultationsIcon,
   UsersIcon,
   ProvidersIcon,
   CategoriesIcon,
@@ -16,8 +17,6 @@ import {
   RatingsIcon,
   UserServicesIcon,
   LogoutIcon,
-  UserAppIcon,
-  ProviderAppIcon,
   BellIcon,
   SearchIcon,
 } from './components/AdminIcons';
@@ -30,6 +29,7 @@ export default function AdminPanelLayout() {
   const menuItems = [
     { path: '/admin/dashboard', icon: DashboardIcon, label: 'Dashboard & Analytics' },
     { path: '/admin/bookings', icon: BookingsIcon, label: 'Work Orders & Dispatch' },
+    { path: '/admin/consultations', icon: ConsultationsIcon, label: 'Free Mechanic Consultations' },
     { path: '/admin/ratings', icon: RatingsIcon, label: 'Ratings & Reviews' },
     { path: '/admin/user-services', icon: UserServicesIcon, label: 'User Service Payments' },
     { path: '/admin/users', icon: UsersIcon, label: 'Users & Video Audit' },
@@ -69,16 +69,6 @@ export default function AdminPanelLayout() {
               </TouchableOpacity>
               <Text style={styles.sidebarTitle}>Admin Control Center</Text>
               <Text style={styles.sidebarSub}>Operations & Financials</Text>
-              <View style={styles.appSwitchRow}>
-                <TouchableOpacity style={styles.switchPill} onPress={() => navigate('/user/home')} activeOpacity={0.85}>
-                  <UserAppIcon color="#334155" size={12} />
-                  <Text style={styles.switchPillText}>User App</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.switchPill} onPress={() => navigate('/provider/dashboard')} activeOpacity={0.85}>
-                  <ProviderAppIcon color="#334155" size={12} />
-                  <Text style={styles.switchPillText}>Provider</Text>
-                </TouchableOpacity>
-              </View>
             </View>
 
             <ScrollView style={styles.menuList} showsVerticalScrollIndicator={false}>
@@ -172,20 +162,6 @@ const styles = StyleSheet.create({
   logoBtn: { marginBottom: 4 },
   sidebarTitle: { color: '#0f172a', fontWeight: '800', fontSize: 15 },
   sidebarSub: { color: '#64748b', fontSize: 11 },
-
-  appSwitchRow: { flexDirection: 'row', gap: 6, marginTop: 6 },
-  switchPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    gap: 5,
-  },
-  switchPillText: { color: '#334155', fontSize: 11, fontWeight: '600' },
 
   menuList: { padding: 10, gap: 4 },
   menuItem: {

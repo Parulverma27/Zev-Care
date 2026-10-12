@@ -969,6 +969,10 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                 <TouchableOpacity
                   style={[styles.cardActionBtn, { background: activeCardPalette.actionBtnBg, borderColor: activeCardPalette.actionBtnBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}
                   onPress={() => {
+                    if (isGuest) {
+                      setShowGuestModal(true);
+                      return;
+                    }
                     setWizardTargetPlan(null);
                     setViewMode('WIZARD');
                   }}
@@ -1343,6 +1347,10 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                     <TouchableOpacity
                       style={styles.editAppliancesBtn}
                       onPress={() => {
+                        if (isGuest) {
+                          setShowGuestModal(true);
+                          return;
+                        }
                         setWizardTargetPlan(plan);
                         setViewMode('WIZARD');
                       }}
@@ -1355,6 +1363,10 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                   <TouchableOpacity
                     style={styles.addAppliancesPromptBtn}
                     onPress={() => {
+                      if (isGuest) {
+                        setShowGuestModal(true);
+                        return;
+                      }
                       setWizardTargetPlan(plan);
                       setViewMode('WIZARD');
                     }}
@@ -1383,6 +1395,10 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                     },
                   ]}
                   onPress={() => {
+                    if (isGuest) {
+                      setShowGuestModal(true);
+                      return;
+                    }
                     if (!hasAddedAppliances) {
                       setWizardTargetPlan(plan);
                       setViewMode('WIZARD');

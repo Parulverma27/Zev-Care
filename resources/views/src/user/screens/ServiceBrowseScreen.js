@@ -33,16 +33,18 @@ export default function ServiceBrowseScreen({ onNavigate }) {
   const [gateContext, setGateContext] = useState({ title: '', message: '', isGuestGate: false });
 
   const checkCanBookComplaint = () => {
-    if (isConsultation) return true; // My Mechanic is free for everyone
     if (isGuest) {
       setGateContext({
         title: 'Sign In / Register Required',
-        message: 'AMC complaints with ₹0 breakdown labor and priority repairs are reserved for AMC members. Please sign in or register to get protected.',
+        message: isConsultation
+          ? 'Please sign in or register to book your complimentary My Mechanic consultation.'
+          : 'AMC complaints with ₹0 breakdown labor and priority repairs are reserved for AMC members. Please sign in or register to get protected.',
         isGuestGate: true,
       });
       setShowGateModal(true);
       return false;
     }
+    if (isConsultation) return true; // My Mechanic is free for logged-in users
     if (!hasActiveAmc) {
       setGateContext({
         title: 'AMC Plan Required',

@@ -54,6 +54,18 @@ if (fs.existsSync(complaintsSrc)) {
   copyRecursive(complaintsSrc, path.join(targetDir, 'assets', 'services', 'complaints'));
 }
 
+const videosSrc = path.join(viewsDir, 'assets', 'videos');
+if (fs.existsSync(videosSrc)) {
+  copyRecursive(videosSrc, path.join(distDir, 'assets', 'videos'));
+  copyRecursive(videosSrc, path.join(targetDir, 'assets', 'videos'));
+}
+
+const sampleVideoFile = path.join(viewsDir, 'assets', 'videos', 'sample-inspection-video.mp4');
+if (fs.existsSync(sampleVideoFile)) {
+  fs.copyFileSync(sampleVideoFile, path.join(distDir, 'sample-video.mp4'));
+  fs.copyFileSync(sampleVideoFile, path.join(targetDir, 'sample-video.mp4'));
+}
+
 // Ensure hero banners and key static assets are directly available unhashed
 const bannerFiles = [
   'hero-banner-1.png',

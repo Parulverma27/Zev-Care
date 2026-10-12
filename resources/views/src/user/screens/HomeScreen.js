@@ -115,119 +115,61 @@ function Luxury3DShieldIcon({ size = 26 }) {
   );
 }
 
-function Luxury3DWrenchIcon({ size = 24 }) {
+function Luxury3DWrenchIcon({ size = 19 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <defs>
-        <linearGradient id="wrenchChromeGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="30%" stopColor="#f1f5f9" />
-          <stop offset="65%" stopColor="#94a3b8" />
-          <stop offset="100%" stopColor="#475569" />
-        </linearGradient>
-        <linearGradient id="wrenchAmberGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="wrenchLuxGrad_v3" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#fb923c" />
-          <stop offset="40%" stopColor="#f97316" />
+          <stop offset="50%" stopColor="#f97316" />
           <stop offset="100%" stopColor="#ea580c" />
         </linearGradient>
-        <linearGradient id="wrenchDarkJaw_v2" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#334155" />
-          <stop offset="100%" stopColor="#0f172a" />
-        </linearGradient>
-        <filter id="wrenchShadow_v2" x="-10%" y="-10%" width="120%" height="120%">
-          <feDropShadow dx="0" dy="1.2" stdDeviation="1" floodColor="#9a3412" floodOpacity="0.22" />
-        </filter>
       </defs>
-      <g filter="url(#wrenchShadow_v2)" transform="rotate(-45 16 16)">
-        <path
-          d="M16 26C13.8 26 12 24.2 12 22C12 20.3 13 18.9 14.4 18.2V11C12.8 10.1 11.8 8.2 11.8 6C11.8 4.2 12.6 2.8 13.6 1.8C14.1 2.5 15 3.5 16 3.5C17 3.5 17.9 2.5 18.4 1.8C19.4 2.8 20.2 4.2 20.2 6C20.2 8.2 19.2 10.1 17.6 11V18.2C19 18.9 20 20.3 20 22C20 24.2 18.2 26 16 26Z"
-          fill="url(#wrenchChromeGrad_v2)"
-        />
-        <path
-          d="M13.8 2.5C14.5 4 15.2 4.8 16 4.8C16.8 4.8 17.5 4 18.2 2.5C18.8 3.5 19.2 4.7 19.2 6C19.2 7.8 17.8 9.2 16 9.2C14.2 9.2 12.8 7.8 12.8 6C12.8 4.7 13.2 3.5 13.8 2.5Z"
-          fill="url(#wrenchDarkJaw_v2)"
-        />
-        <path
-          d="M12.8 6C12.8 4.7 13.2 3.5 13.8 2.5C13.5 2.8 13.2 3.4 13.2 4.2C13.2 5.5 13.8 6.5 14.5 7.2L13.8 7.8C13.2 7.3 12.8 6.7 12.8 6Z"
-          fill="#ffffff"
-          opacity="0.8"
-        />
-        <rect x="14.2" y="11.5" width="3.6" height="6.8" rx="1.8" fill="url(#wrenchAmberGrad_v2)" />
-        <line x1="15" y1="13.2" x2="17" y2="13.2" stroke="#ffedd5" strokeWidth="0.8" strokeLinecap="round" />
-        <line x1="15" y1="15" x2="17" y2="15" stroke="#ffedd5" strokeWidth="0.8" strokeLinecap="round" />
-        <line x1="15" y1="16.8" x2="17" y2="16.8" stroke="#ffedd5" strokeWidth="0.8" strokeLinecap="round" />
-        <circle cx="16" cy="22" r="2.2" fill="#fff7ed" />
-        <circle cx="16" cy="22" r="1.6" fill="url(#wrenchChromeGrad_v2)" opacity="0.45" />
-      </g>
+      <path
+        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+        stroke="url(#wrenchLuxGrad_v3)"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="rgba(249, 115, 22, 0.15)"
+      />
     </svg>
   );
 }
 
-function Luxury3DMechanicIcon({ size = 24 }) {
+function Luxury3DMechanicIcon({ size = 19 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <defs>
-        <linearGradient id="mechHelmetGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="mechLuxGrad_v3" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#60a5fa" />
-          <stop offset="45%" stopColor="#2563eb" />
+          <stop offset="50%" stopColor="#3b82f6" />
           <stop offset="100%" stopColor="#1d4ed8" />
         </linearGradient>
-        <linearGradient id="mechBrimGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1e40af" />
-          <stop offset="100%" stopColor="#0f172a" />
-        </linearGradient>
-        <linearGradient id="mechFaceGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fed7aa" />
-          <stop offset="100%" stopColor="#fba968" />
-        </linearGradient>
-        <linearGradient id="mechSuitGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#3b82f6" />
-          <stop offset="50%" stopColor="#1e40af" />
-          <stop offset="100%" stopColor="#0f172a" />
-        </linearGradient>
-        <linearGradient id="mechGoldGrad_v2" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fef08a" />
-          <stop offset="60%" stopColor="#eab308" />
-          <stop offset="100%" stopColor="#ca8a04" />
-        </linearGradient>
-        <filter id="mechShadow_v2" x="-10%" y="-10%" width="120%" height="120%">
-          <feDropShadow dx="0" dy="1.2" stdDeviation="1.2" floodColor="#1e3a8a" floodOpacity="0.25" />
-        </filter>
       </defs>
-      <g filter="url(#mechShadow_v2)">
-        <path
-          d="M6.5 28C6.5 23 10.5 20.8 16 20.8C21.5 20.8 25.5 23 25.5 28H6.5Z"
-          fill="url(#mechSuitGrad_v2)"
-        />
-        <path
-          d="M13 20.8L16 25L19 20.8"
-          stroke="#93c5fd"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <circle cx="20.5" cy="24.5" r="2" fill="url(#mechGoldGrad_v2)" />
-        <path
-          d="M20.5 23.3L20.9 24.1L21.7 24.2L21.1 24.7L21.3 25.5L20.5 25.1L19.7 25.5L19.9 24.7L19.3 24.2L20.1 24.1L20.5 23.3Z"
-          fill="#78350f"
-        />
-        <circle cx="16" cy="14.8" r="4.8" fill="url(#mechFaceGrad_v2)" />
-        <path
-          d="M9.8 13C9.8 8.4 12.5 5.2 16 5.2C19.5 5.2 22.2 8.4 22.2 13H9.8Z"
-          fill="url(#mechHelmetGrad_v2)"
-        />
-        <path
-          d="M14.5 5.5C14.5 5.5 15.5 5.2 16 5.2C16.5 5.2 17.5 5.5 17.5 5.5V12.8H14.5V5.5Z"
-          fill="#93c5fd"
-          opacity="0.6"
-        />
-        <path
-          d="M8.5 13C8.5 12.2 10.5 12.2 16 12.2C21.5 12.2 23.5 12.2 23.5 13C23.5 14.2 20.5 14.8 16 14.8C11.5 14.8 8.5 14.2 8.5 13Z"
-          fill="url(#mechBrimGrad_v2)"
-        />
-        <circle cx="16" cy="8.8" r="1.8" fill="url(#mechGoldGrad_v2)" />
-        <circle cx="16" cy="8.8" r="0.9" fill="#78350f" />
-      </g>
+      <path
+        d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"
+        stroke="url(#mechLuxGrad_v3)"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="rgba(37, 99, 235, 0.15)"
+      />
+      <path
+        d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"
+        stroke="url(#mechLuxGrad_v3)"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 15v-3a8 8 0 0 1 16 0v3"
+        stroke="url(#mechLuxGrad_v3)"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="rgba(37, 99, 235, 0.12)"
+      />
     </svg>
   );
 }
@@ -280,7 +222,7 @@ const AMC_HOME_ACTIONS = [
     pillBtnColor: '#ea580c',
     pillArrowBg: '#fff7ed',
     pillArrowColor: '#ea580c',
-    icon: <Luxury3DWrenchIcon size={24} />,
+    icon: <Luxury3DWrenchIcon size={19} />,
   },
   {
     key: 'mechanic',
@@ -305,7 +247,7 @@ const AMC_HOME_ACTIONS = [
     pillBtnColor: '#2563eb',
     pillArrowBg: '#eff6ff',
     pillArrowColor: '#2563eb',
-    icon: <Luxury3DMechanicIcon size={24} />,
+    icon: <Luxury3DMechanicIcon size={20} />,
   },
 ];
 
@@ -581,7 +523,14 @@ export default function HomeScreen({ onNavigate }) {
       return;
     }
     if (item.key === 'mechanic') {
-      // Free on-site inspection & diagnosis (₹0 FREE) - available for all users
+      if (isGuest) {
+        setGuestModalContext({
+          title: 'Sign In / Register Required',
+          message: 'Please sign in or register to book your complimentary My Mechanic consultation.',
+        });
+        setShowGuestModal(true);
+        return;
+      }
       handleNav('/user/consultation');
       return;
     }
@@ -782,6 +731,14 @@ export default function HomeScreen({ onNavigate }) {
                   onPress={() => {
                     setSearchQuery('');
                     setShowSuggestions(false);
+                    if (isGuest) {
+                      setGuestModalContext({
+                        title: 'Sign In / Register Required',
+                        message: 'Please register your account first to explore and book services.',
+                      });
+                      setShowGuestModal(true);
+                      return;
+                    }
                     const navPayload = {
                       state: {
                         preSelectedCategory: item.category_name,
@@ -814,6 +771,14 @@ export default function HomeScreen({ onNavigate }) {
           style={styles.heroCard}
           onPress={() => {
             if (!isSwiping) {
+              if (isGuest) {
+                setGuestModalContext({
+                  title: 'Sign In / Register Required',
+                  message: 'Please register your account first to explore and book services.',
+                });
+                setShowGuestModal(true);
+                return;
+              }
               handleNav(activeHeroBanner?.redirect_url || '/user/bookings/new', { state: {} });
             }
           }}
@@ -1033,9 +998,9 @@ export default function HomeScreen({ onNavigate }) {
                           {
                             background: item.iconBg,
                             border: item.iconBorder,
-                            width: 42,
-                            height: 42,
-                            borderRadius: 21,
+                            width: 36,
+                            height: 36,
+                            borderRadius: 18,
                           },
                         ]}
                       >
@@ -1181,7 +1146,17 @@ export default function HomeScreen({ onNavigate }) {
             <TouchableOpacity
               key={item.label}
               style={styles.trustItem}
-              onPress={() => handleNav(item.route, { state: {} })}
+              onPress={() => {
+                if (isGuest && (item.route.includes('book') || item.route.includes('support'))) {
+                  setGuestModalContext({
+                    title: 'Sign In / Register Required',
+                    message: 'Please register your account first to access this feature.',
+                  });
+                  setShowGuestModal(true);
+                  return;
+                }
+                handleNav(item.route, { state: {} });
+              }}
               activeOpacity={0.75}
             >
               <View style={styles.trustIconWrap}>{item.icon}</View>
@@ -1759,7 +1734,8 @@ const styles = StyleSheet.create({
     width: '100%',
     minWidth: 0,
     flex: 1,
-    padding: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
     flexDirection: 'column',
     justifyContent: 'space-between',
     boxSizing: 'border-box',
@@ -1817,11 +1793,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
+    gap: 12,
   },
   amcLuxuryIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -1829,15 +1806,16 @@ const styles = StyleSheet.create({
   },
   amcBadgePill: {
     borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   amcBadgePillText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
-    letterSpacing: 0.3,
+    letterSpacing: 0.4,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   amcCardBody: {

@@ -5,6 +5,7 @@ import { getPlanTheme } from '../../config/planTheme';
 import { normalizeSavedAddresses } from '../../utils/savedAddresses';
 import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
 import { hasGeneratedBill } from '../../utils/billing';
+import AdminVideoPlayer from './AdminVideoPlayer';
 
 const SECTIONS = [
   { key: 'overview', label: 'Overview' },
@@ -899,36 +900,13 @@ export default function UserProfileModal({ visible, user, onClose }) {
                   <Text style={styles.sectionTitle}>Property walkthrough video</Text>
                   {user?.property_video_url ? (
                     <>
-                      <View style={styles.videoPlayerBox}>
-                        {isPlaying && Platform.OS === 'web' ? (
-                          <video
-                            src={user.property_video_url}
-                            controls
-                            autoPlay
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        ) : (
-                          <TouchableOpacity
-                            style={{ width: '100%', height: '100%' }}
-                            onPress={() => setIsPlaying(true)}
-                            activeOpacity={0.95}
-                          >
-                            <View
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                gap: 12,
-                              }}
-                            >
-                              <View style={styles.playCircle}>
-                                <Text style={styles.playIcon}>▶</Text>
-                              </View>
-                              <Text style={styles.videoLabel}>Tap to play property walkthrough</Text>
-                            </View>
-                          </TouchableOpacity>
-                        )}
+                      <View style={{ marginBottom: 16 }}>
+                        <AdminVideoPlayer
+                          src={user.property_video_url}
+                          label="Property Walkthrough Video"
+                          fallbackSrc="/sample-video.mp4"
+                          autoPlay={false}
+                        />
                       </View>
                       <View style={styles.modalActions}>
                         <TouchableOpacity
@@ -982,17 +960,11 @@ export default function UserProfileModal({ visible, user, onClose }) {
                 resizeMode="contain"
               />
             ) : Platform.OS === 'web' && previewAppliance?.media ? (
-              <video
+              <AdminVideoPlayer
                 src={previewAppliance.media.url}
-                controls
-                autoPlay
-                style={{
-                  width: '100%',
-                  height: 320,
-                  borderRadius: 12,
-                  objectFit: 'contain',
-                  backgroundColor: '#0f172a',
-                }}
+                label="Appliance Video"
+                fallbackSrc="/sample-video.mp4"
+                autoPlay={true}
               />
             ) : null}
             <TouchableOpacity

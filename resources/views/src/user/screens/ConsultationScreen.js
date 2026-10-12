@@ -118,6 +118,15 @@ export default function ConsultationScreen({ onNavigate }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  const isGuest = Boolean(
+    !activeUser ||
+    activeUser.isGuest ||
+    activeUser.id === 0 ||
+    activeUser.name === 'Guest User' ||
+    activeUser.isAnonymous
+  );
+  const [showGuestModal, setShowGuestModal] = useState(false);
+
   const activeTrade = CONSULTATION_TRADES.find((t) => t.id === selectedTradeId) || CONSULTATION_TRADES[0];
 
   // Generate 4 calendar day options
@@ -150,6 +159,10 @@ export default function ConsultationScreen({ onNavigate }) {
   };
 
   const handleBookConsultation = async () => {
+    if (isGuest) {
+      setShowGuestModal(true);
+      return;
+    }
     setErrorMsg('');
     if (!address.trim()) {
       setErrorMsg('Please specify a home address for the technician visit.');
@@ -462,9 +475,153 @@ export default function ConsultationScreen({ onNavigate }) {
           <polyline points="12 5 19 12 12 19" />
         </svg>
       </TouchableOpacity>
+
+      {/* Guest Lock Modal */}
+      <Modal
+        visible={showGuestModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowGuestModal(false)}
+      >
+        <View style={consultGuestStyles.overlay}>
+          <View style={consultGuestStyles.card}>
+            <TouchableOpacity
+              style={consultGuestStyles.closeBtn}
+              onPress={() => setShowGuestModal(false)}
+            >
+              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
+            </TouchableOpacity>
+
+            <View style={consultGuestStyles.iconCircle}>
+              <AppIcon name="lock" size={26} color="#B45309" strokeWidth={2.2} />
+            </View>
+
+            <Text style={consultGuestStyles.title}>Register First</Text>
+            <Text style={consultGuestStyles.sub}>
+              Please register or sign in to your account to book your free My Mechanic consultation.
+            </Text>
+
+            <TouchableOpacity
+              style={consultGuestStyles.primaryBtn}
+              onPress={() => {
+                setShowGuestModal(false);
+                if (navigate) navigate('/user/register');
+                else if (onNavigate) onNavigate('/user/register');
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={consultGuestStyles.primaryBtnText}>Register Now →</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={consultGuestStyles.secondaryBtn}
+              onPress={() => {
+                setShowGuestModal(false);
+                if (navigate) navigate('/user/login');
+                else if (onNavigate) onNavigate('/user/login');
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={consultGuestStyles.secondaryBtnText}>Already have an account? Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
+
+const consultGuestStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    zIndex: 99999,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 380,
+    alignItems: 'center',
+    position: 'relative',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fef3c7',
+    borderWidth: 1.5,
+    borderColor: '#fde68a',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  title: {
+    fontSize: 19,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 8,
+    textAlign: 'center',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  sub: {
+    fontSize: 13.5,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+    paddingHorizontal: 8,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  primaryBtn: {
+    backgroundColor: '#2563eb',
+    borderRadius: 14,
+    paddingVertical: 13,
+    paddingHorizontal: 20,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  primaryBtnText: {
+    color: '#ffffff',
+    fontSize: 14.5,
+    fontWeight: '700',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  secondaryBtn: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.2,
+    borderColor: '#cbd5e1',
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    width: '100%',
+    alignItems: 'center',
+  },
+  secondaryBtnText: {
+    color: '#334155',
+    fontSize: 13.5,
+    fontWeight: '600',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+});
 
 const styles = StyleSheet.create({
   container: {

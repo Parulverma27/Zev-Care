@@ -151,6 +151,17 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   useEffect(() => {
+    if (isGuest) {
+      promptGuestRegistration(
+        isConsultation
+          ? 'Please register or log in to book a free My Mechanic consultation.'
+          : `Please register or log in to book ${preSelectedService || preSelectedCategory || 'home services'}.`
+      );
+      if (preSelectedCategory) setCategory(preSelectedCategory);
+      if (preSelectedService) setService(preSelectedService);
+      return;
+    }
+
     if (preSelectedService) {
       const catName = preSelectedCategory || '';
       const subCatName = preSelectedSubCategory || '';
@@ -160,7 +171,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       setSkippedCategoryStep(true);
 
       if (isConsultation) {
-        // "My Mechanic" ₹0 free on-site diagnosis & inspection - allowed for everyone!
+        // "My Mechanic" ₹0 free on-site diagnosis & inspection - allowed for logged in users
         const typeId = isApplianceLinkedService(preSelectedService)
           ? getApplianceTypeIdForService(preSelectedService)
           : null;
@@ -178,11 +189,7 @@ export default function BookingFlowScreen({ onNavigate }) {
         setStep('ISSUE');
       } else if (isApplianceLinkedService(preSelectedService)) {
         if (!hasActiveAmc) {
-          if (isGuest) {
-            promptGuestRegistration('AMC complaints with ₹0 breakdown labor require an active account with AMC coverage. Please sign in or register to get protected.');
-          } else {
-            promptGuestRegistration('An active AMC plan is required to raise complaints on appliances. Please explore AMC plans to cover your home.');
-          }
+          promptGuestRegistration('An active AMC plan is required to raise complaints on appliances. Please explore AMC plans to cover your home.');
           return;
         }
         const typeId = getApplianceTypeIdForService(preSelectedService);
@@ -193,9 +200,7 @@ export default function BookingFlowScreen({ onNavigate }) {
         setCustomIssueText('');
         setCatalogOtherMedia(null);
         setIssueLabel(`Require assistance for ${preSelectedService}`);
-        if (isGuest) {
-          promptGuestRegistration(`You haven't registered yet. Please register your account to book ${preSelectedService} service.`);
-        } else if (isComplaint && !hasActiveAmc) {
+        if (isComplaint && !hasActiveAmc) {
           promptGuestRegistration(`An active AMC plan is required to raise complaints. Please subscribe to an AMC plan.`);
         } else {
           setStep('OTHER_DETAIL');
@@ -214,7 +219,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       if (navigate) navigate('/user/complains', { replace: true });
       else if (onNavigate) onNavigate('/user/complains');
     }
-  }, [preSelectedCategory, preSelectedSubCategory, preSelectedService]);
+  }, [preSelectedCategory, preSelectedSubCategory, preSelectedService, isGuest]);
 
   const userAppliances = useMemo(
     () => (getAppliancesForUser ? getAppliancesForUser(activeUser) : []),
@@ -351,6 +356,10 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   const selectCategoryAndNext = (catName) => {
+    if (isGuest) {
+      promptGuestRegistration(`You haven't registered yet. Please register your account to book ${catName || 'home services'}.`);
+      return;
+    }
     setCategory(catName);
     setSubCategory('');
     setService('');
@@ -360,6 +369,10 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   const selectSubGroupAndNext = (groupName) => {
+    if (isGuest) {
+      promptGuestRegistration(`You haven't registered yet. Please register your account to book ${groupName || 'home services'}.`);
+      return;
+    }
     setSubCategory(groupName);
     setService('');
     setSearchQuery('');
@@ -368,11 +381,12 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   const selectServiceTypeAndNext = (item) => {
+    if (isGuest) {
+      promptGuestRegistration(`You haven't registered yet. Please register your account to book ${item?.name || category || 'services'}.`);
+      return;
+    }
+
     if (item.isOther || item.name === 'Other') {
-      if (isGuest) {
-        promptGuestRegistration(`You haven't registered yet. Please register your account to book ${category || 'services'}.`);
-        return;
-      }
       setShowOtherInput((prev) => !prev);
       setOtherError('');
       return;
@@ -385,16 +399,16 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
 
-    if (isGuest && !isApplianceLinkedService(item.name)) {
-      promptGuestRegistration(`You haven't registered yet. Please register your account to book ${item.name} service.`);
-      return;
-    }
     setShowOtherInput(false);
     if (!categoryHasGroups(category)) setSubCategory(item.name);
     afterServicePicked(item.name);
   };
 
   const handleConfirmFastAdd = () => {
+    if (isGuest) {
+      promptGuestRegistration('You haven\'t registered yet. Please register your account to add services.');
+      return;
+    }
     if (!fastAddModalItem) return;
     const newItems = Array.from({ length: fastAddQty }, () => fastAddModalItem);
     setCartItems((prev) => [...prev, ...newItems]);
@@ -403,6 +417,10 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   const proceedWithZeroFrictionCart = () => {
+    if (isGuest) {
+      promptGuestRegistration('You haven\'t registered yet. Please register your account to continue booking.');
+      return;
+    }
     if (cartItems.length === 0) return;
     const primaryService = cartItems[0].name;
     const allNames = cartItems.map((c) => c.name).join(', ');
@@ -781,6 +799,9 @@ export default function BookingFlowScreen({ onNavigate }) {
           <ApplianceAddWizard
             mode="booking"
             lockedApplianceTypeId={applianceTypeId}
+            preselectedService={service || displayName}
+            initialService={service || displayName}
+            initialCategory={category}
             maxQuantity={1}
             onCancel={() => setStep('APPLIANCE_SELECT')}
             onComplete={handleWizardComplete}

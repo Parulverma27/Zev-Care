@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import UserProfileModal from '../components/UserProfileModal';
 import ProviderProfileModal from '../components/ProviderProfileModal';
+import AdminVideoPlayer from '../components/AdminVideoPlayer';
 import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
 import { exportToCSV } from '../../utils/exportUtils';
 import { hasGeneratedBill, isBillPaid } from '../../utils/billing';
@@ -1013,13 +1014,18 @@ export default function AdminBookingsScreen() {
                 getAllBookingMediaItems(mediaBooking).map((item, index) => (
                   <View key={index} style={{ gap: 6, backgroundColor: '#0f172a', padding: 8, borderRadius: 12, overflow: 'hidden' }}>
                     {item.type === 'video' ? (
-                      <video src={item.uri} controls style={{ width: '100%', maxHeight: 300, borderRadius: 8, objectFit: 'contain' }} />
+                      <AdminVideoPlayer
+                        src={item.uri}
+                        label="Original Customer Video"
+                      />
                     ) : (
-                      <Image source={{ uri: item.uri }} style={{ width: '100%', height: 260, borderRadius: 8 }} resizeMode="contain" />
+                      <>
+                        <Image source={{ uri: item.uri }} style={{ width: '100%', height: 260, borderRadius: 8 }} resizeMode="contain" />
+                        <Text style={{ color: '#94a3b8', fontSize: 10.5, textAlign: 'center' }}>
+                          Captured Photo {index + 1}
+                        </Text>
+                      </>
                     )}
-                    <Text style={{ color: '#94a3b8', fontSize: 10.5, textAlign: 'center' }}>
-                      {item.type === 'video' ? 'Recorded Video' : `Captured Photo ${index + 1}`}
-                    </Text>
                   </View>
                 ))
               ) : (
