@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { searchAllServices } from '../../config/serviceCatalogUtils';
 import HomeExploreServices from './HomeExploreServices';
+import LiveSupportOptionCard from '../../components/booking/LiveSupportOptionCard';
 
 export default function ServiceBrowseScreen({ onNavigate }) {
   const { categories, services, activeUser } = useApp();
@@ -283,6 +284,15 @@ export default function ServiceBrowseScreen({ onNavigate }) {
           onSelectCategory={openBookingForCategory}
           isComplaint={true}
         />
+        <View style={{ marginTop: 22, marginBottom: 12 }}>
+          <LiveSupportOptionCard
+            onPress={() => {
+              if (navigate) navigate('/user/support');
+              else if (onNavigate) onNavigate('/user/support');
+            }}
+            subtitle="Need assistance with an appliance issue or AMC claim? Chat with our team"
+          />
+        </View>
       </View>
 
       {/* Gatekeeper Modal */}

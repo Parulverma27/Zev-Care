@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import BookingProgress from './BookingProgress';
+import LiveSupportOptionCard from './LiveSupportOptionCard';
 
 export default function BookingLocationStep({
   addresses = [],
@@ -16,6 +17,7 @@ export default function BookingLocationStep({
   onBack,
   onContinue,
   isConsultation = false,
+  onLiveSupport,
 }) {
   const canContinue = locationValidation?.isSupported;
 
@@ -80,6 +82,11 @@ export default function BookingLocationStep({
         <Text style={styles.primaryBtnText}>Continue</Text>
       </TouchableOpacity>
 
+      {onLiveSupport && (
+        <View style={{ marginTop: 10 }}>
+          <LiveSupportOptionCard onPress={onLiveSupport} />
+        </View>
+      )}
     </ScrollView>
   );
 }

@@ -105,11 +105,9 @@ export function resolveImageUri(url, fallback = '') {
  * (Carpenter, Plumber, Dry Cleaning / Sofa Cleaning, Electrician, Pest Control).
  * When isComplaint is false (e.g. adding appliances, regular catalog), strictly uses standard catalog images.
  */
-export function resolveCategoryImageUri(categoryName, _url, isComplaint = false) {
-  if (isComplaint) {
-    const complaintImg = getComplaintCategoryImageUrl(categoryName);
-    if (complaintImg) return complaintImg;
-  }
+export function resolveCategoryImageUri(categoryName, _url, isComplaint = true) {
+  const complaintImg = getComplaintCategoryImageUrl(categoryName);
+  if (complaintImg) return complaintImg;
   return CATEGORY_IMAGE_FALLBACKS[categoryName] || getHardcodedCatalogImage(categoryName);
 }
 

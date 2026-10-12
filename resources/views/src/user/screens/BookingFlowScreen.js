@@ -842,6 +842,7 @@ export default function BookingFlowScreen({ onNavigate }) {
               setStep('APPLIANCE_ADD');
             }}
             onBack={handleBack}
+            onLiveSupport={goLiveSupport}
           />
         </View>
       );
@@ -864,6 +865,7 @@ export default function BookingFlowScreen({ onNavigate }) {
             onChangeIssueDescription={setIssueDescription}
             isComplaint={isComplaint}
             isConsultation={isConsultation}
+            onLiveSupport={goLiveSupport}
           />
         </View>
       );
@@ -960,6 +962,9 @@ export default function BookingFlowScreen({ onNavigate }) {
                 : 'No payment now. A technician will inspect first, and the bill will be shared with you after that.'}
             </Text>
           </View>
+          <View style={{ marginVertical: 12 }}>
+            <LiveSupportOptionCard onPress={goLiveSupport} />
+          </View>
           <TouchableOpacity style={styles.primaryBtn} onPress={() => setStep('SCHEDULE')}>
             <Text style={styles.primaryBtnText}>Choose Date & Time</Text>
           </TouchableOpacity>
@@ -984,6 +989,7 @@ export default function BookingFlowScreen({ onNavigate }) {
             serviceLabel={isConsultation ? `${service || category} Free Consultation` : `${service || category} Service`}
             applianceSummary={applianceSummaryLine}
             isConsultation={isConsultation}
+            onLiveSupport={goLiveSupport}
           />
         </View>
       );
@@ -1016,6 +1022,7 @@ export default function BookingFlowScreen({ onNavigate }) {
             isConsultation={isConsultation}
             onBack={handleBack}
             onContinue={() => setStep('REVIEW')}
+            onLiveSupport={goLiveSupport}
           />
         </View>
       );
@@ -1115,6 +1122,9 @@ export default function BookingFlowScreen({ onNavigate }) {
             </>
           )}
           {!!formError && <Text style={styles.error}>{formError}</Text>}
+          <View style={{ marginVertical: 14 }}>
+            <LiveSupportOptionCard onPress={goLiveSupport} />
+          </View>
           <TouchableOpacity
             style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
             disabled={submitting}
@@ -1156,6 +1166,9 @@ export default function BookingFlowScreen({ onNavigate }) {
             emptyDescription="A short live video helps technicians understand your requirement."
             onChange={setCatalogOtherMedia}
           />
+          <View style={{ marginVertical: 12 }}>
+            <LiveSupportOptionCard onPress={goLiveSupport} />
+          </View>
           <TouchableOpacity
             style={styles.primaryBtn}
             onPress={() => {
@@ -1344,7 +1357,7 @@ export default function BookingFlowScreen({ onNavigate }) {
                 onPress={() => selectSubGroupAndNext(group.name)}
               >
                 <Image
-                  source={{ uri: resolveCategoryImageUri(group.name, group.image_url, isComplaint || isConsultation) }}
+                  source={{ uri: resolveCategoryImageUri(group.name, group.image_url, true) }}
                   style={styles.catImg}
                 />
                 <View style={{ flex: 1 }}>
@@ -1387,7 +1400,7 @@ export default function BookingFlowScreen({ onNavigate }) {
               onPress={() => selectCategoryAndNext(cat.name)}
             >
               <Image
-                source={{ uri: resolveCategoryImageUri(cat.name, cat.image_url, isComplaint || isConsultation) }}
+                source={{ uri: resolveCategoryImageUri(cat.name, cat.image_url, true) }}
                 style={styles.catImg}
               />
               <View style={{ flex: 1 }}>

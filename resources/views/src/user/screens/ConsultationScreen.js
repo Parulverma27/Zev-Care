@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcons';
+import LiveSupportOptionCard from '../../components/booking/LiveSupportOptionCard';
 
 const CONSULTATION_TRADES = [
   {
@@ -459,6 +460,16 @@ export default function ConsultationScreen({ onNavigate }) {
       </View>
 
       {errorMsg ? <Text style={styles.errorBanner}>{errorMsg}</Text> : null}
+
+      <View style={{ marginVertical: 4 }}>
+        <LiveSupportOptionCard
+          onPress={() => {
+            if (navigate) navigate('/user/support');
+            else if (onNavigate) onNavigate('/user/support');
+          }}
+          subtitle="Need immediate advice before booking your inspection? Chat with us"
+        />
+      </View>
 
       {/* Submit Button */}
       <TouchableOpacity

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Platform } from 'react-native';
 import MediaCapturePanel from '../MediaCapturePanel';
 import BookingProgress from './BookingProgress';
+import LiveSupportOptionCard from './LiveSupportOptionCard';
 import {
   applyPanelValueToIssueMedia,
   removeMediaItem,
@@ -21,6 +22,7 @@ export default function BookingIssueStep({
   onChangeIssueDescription,
   isComplaint = false,
   isConsultation = false,
+  onLiveSupport,
 }) {
   const [panelValue, setPanelValue] = useState(() => setPrimaryPanelValue(issueMedia));
   const photos = issueMedia?.photos || [];
@@ -144,6 +146,12 @@ export default function BookingIssueStep({
           <TouchableOpacity style={styles.primaryBtn} onPress={onContinue} activeOpacity={0.9}>
             <Text style={styles.primaryBtnText}>{isConsultation ? 'Select Date & Time ›' : 'Continue'}</Text>
           </TouchableOpacity>
+        </View>
+      )}
+
+      {onLiveSupport && (
+        <View style={{ marginTop: 10 }}>
+          <LiveSupportOptionCard onPress={onLiveSupport} />
         </View>
       )}
     </ScrollView>

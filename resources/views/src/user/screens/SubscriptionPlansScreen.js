@@ -6,6 +6,7 @@ import api from '../../services/ApiService';
 import { AppIcon } from '../../components/AppIcons';
 import { getPlanTheme } from '../../config/planTheme';
 import ApplianceAddWizard, { buildSavedApplianceRecords } from '../../components/appliances/ApplianceAddWizard';
+import LiveSupportOptionCard from '../../components/booking/LiveSupportOptionCard';
 
 /* --- Vector Icons --- */
 const IconClock = ({ size = 13, color = '#fbbf24' }) => (
@@ -1420,6 +1421,17 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
             </View>
           );
         })}
+      </View>
+
+      {/* Live Support Help Card for AMC Plans */}
+      <View style={{ marginHorizontal: 16, marginTop: 14, marginBottom: 20 }}>
+        <LiveSupportOptionCard
+          onPress={() => {
+            if (navigate) navigate('/user/support');
+            else if (onNavigate) onNavigate('/user/support');
+          }}
+          subtitle="Have questions about AMC plan benefits or appliance coverage? Chat with us"
+        />
       </View>
 
       {/* ===================================================================== */}

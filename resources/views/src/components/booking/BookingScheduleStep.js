@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import BookingProgress from './BookingProgress';
+import LiveSupportOptionCard from './LiveSupportOptionCard';
 
 export const DEFAULT_TIME_SLOTS = [
   '10:00 AM - 12:00 PM',
@@ -39,6 +40,7 @@ export default function BookingScheduleStep({
   serviceLabel = 'Service',
   applianceSummary = '',
   isConsultation = false,
+  onLiveSupport,
 }) {
   const dates = useMemo(() => buildDateOptions(7), []);
 
@@ -103,6 +105,12 @@ export default function BookingScheduleStep({
       >
         <Text style={styles.primaryBtnText}>Continue</Text>
       </TouchableOpacity>
+
+      {onLiveSupport && (
+        <View style={{ marginTop: 10 }}>
+          <LiveSupportOptionCard onPress={onLiveSupport} />
+        </View>
+      )}
     </ScrollView>
   );
 }

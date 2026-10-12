@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import BookingApplianceCard from './BookingApplianceCard';
 import BookingProgress from './BookingProgress';
+import LiveSupportOptionCard from './LiveSupportOptionCard';
 import { APPLIANCE_REGISTRATION_FEE } from '../../config/applianceConstants';
 
 export default function BookingApplianceSelectStep({
@@ -12,6 +13,7 @@ export default function BookingApplianceSelectStep({
   onContinue,
   onAddNew,
   onBack,
+  onLiveSupport,
 }) {
   const empty = !appliances.length;
 
@@ -76,6 +78,12 @@ export default function BookingApplianceSelectStep({
         <TouchableOpacity style={styles.primaryBtn} onPress={onContinue} activeOpacity={0.9}>
           <Text style={styles.primaryBtnText}>Continue</Text>
         </TouchableOpacity>
+      )}
+
+      {onLiveSupport && (
+        <View style={{ marginTop: 10 }}>
+          <LiveSupportOptionCard onPress={onLiveSupport} />
+        </View>
       )}
     </ScrollView>
   );
