@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
+import { AppIcon } from '../../components/AppIcons';
 
 const STAR_LABELS = {
   1: 'Poor',
@@ -161,8 +162,9 @@ export default function RateProviderScreen() {
           <Text style={styles.providerName}>{providerName}</Text>
           <View style={styles.providerMetaRow}>
             <Text style={styles.providerStar}>★ {providerRating}</Text>
-            <View style={styles.verified}>
-              <Text style={styles.verifiedText}>✓ Verified Professional</Text>
+            <View style={[styles.verified, { flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+              <AppIcon name="check" size={11} color="#059669" />
+              <Text style={styles.verifiedText}>Verified Professional</Text>
             </View>
           </View>
           <Text style={styles.jobsText}>{jobs} services completed</Text>
@@ -223,8 +225,8 @@ export default function RateProviderScreen() {
           </View>
         ))}
         {photos.length < 3 && (
-          <TouchableOpacity style={styles.addPhoto} onPress={pickPhotos}>
-            <Text style={styles.addPhotoIcon}>📷</Text>
+          <TouchableOpacity style={styles.addPhoto} onPress={pickPhotos} activeOpacity={0.75}>
+            <AppIcon name="camera" size={24} color="#64748b" />
             <Text style={styles.addPhotoText}>Add Photo</Text>
           </TouchableOpacity>
         )}
@@ -344,9 +346,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: '#cbd5e1',
+    backgroundColor: '#f8fafc',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 6,
   },
   addPhotoIcon: { fontSize: 20 },
   addPhotoText: { fontSize: 11, fontWeight: '600', color: '#64748b' },

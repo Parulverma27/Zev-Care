@@ -13,6 +13,7 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
   const {
     bookings,
     users,
+    userAppliances,
     updateBookingStatus,
     submitInspectionReport,
     uploadBookingMedia,
@@ -138,6 +139,93 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
     customerUser?.saved_addresses?.find((a) => a.isDefault)?.address ||
     customerUser?.saved_addresses?.[0]?.address ||
     '';
+
+  const linkedAppliance = (() => {
+    if (!bk) return null;
+    return (
+      (userAppliances || []).find(
+        (a) =>
+          (bk.applianceId != null && (a.id === bk.applianceId || String(a.id) === String(bk.applianceId))) ||
+          (bk.user_id != null &&
+            (a.userId === bk.user_id || a.user_id === bk.user_id) &&
+            a.displayName?.toLowerCase() === bk.service_name?.toLowerCase())
+      ) || null
+    );
+  })();
+
+  const isVideoUri = (uri, type) => {
+    if (type === 'video') return true;
+    if (!uri || typeof uri !== 'string') return false;
+    const clean = uri.trim().toLowerCase();
+    if (clean.startsWith('auto-verified://')) return false;
+    return (
+      clean.startsWith('data:video/') ||
+      clean.includes('.webm') ||
+      clean.includes('.mp4') ||
+      clean.includes('.mov') ||
+      clean.includes('.mkv') ||
+      clean.includes('video') ||
+      (clean.startsWith('blob:') && type !== 'photo')
+    );
+  };
+
+  const customerMediaList = (() => {
+    if (!bk) return [];
+    const list = [];
+    const seenUris = new Set();
+
+    // 1. Issue videos uploaded with complaint
+    if (Array.isArray(bk.issueMedia?.videos)) {
+      bk.issueMedia.videos.forEach((v) => {
+        if (v?.uri && !seenUris.has(v.uri)) {
+          seenUris.add(v.uri);
+          list.push({ uri: v.uri, type: 'video', label: 'Customer Video Walkthrough' });
+        }
+      });
+    }
+
+    // 2. Issue photos uploaded with complaint
+    if (Array.isArray(bk.issueMedia?.photos)) {
+      bk.issueMedia.photos.forEach((p) => {
+        if (p?.uri && !seenUris.has(p.uri)) {
+          seenUris.add(p.uri);
+          list.push({ uri: p.uri, type: 'photo', label: 'Customer Photo' });
+        }
+      });
+    }
+
+    // 3. Fallback direct issue_media_url / mediaUrl
+    const directUrl = bk.issue_media_url || bk.mediaUrl;
+    if (directUrl && !seenUris.has(directUrl)) {
+      seenUris.add(directUrl);
+      const isVid = isVideoUri(directUrl);
+      list.unshift({
+        uri: directUrl,
+        type: isVid ? 'video' : 'photo',
+        label: isVid ? 'Customer Defect Video' : 'Customer Defect Photo',
+      });
+    }
+
+    // 4. Linked registered appliance video walkthrough if customer booked an appliance complaint
+    if (linkedAppliance) {
+      const appVid =
+        linkedAppliance.video ||
+        linkedAppliance.videoUrl ||
+        linkedAppliance.video_uri ||
+        linkedAppliance.uploadedMediaUri ||
+        (linkedAppliance.media?.type === 'video' ? linkedAppliance.media?.url : null);
+      if (appVid && typeof appVid === 'string' && !appVid.startsWith('auto-verified://') && !seenUris.has(appVid)) {
+        seenUris.add(appVid);
+        list.push({
+          uri: appVid,
+          type: 'video',
+          label: `Appliance Walkthrough (${linkedAppliance.displayName || linkedAppliance.name || 'Appliance'})`,
+        });
+      }
+    }
+
+    return list;
+  })();
 
   const customerCoords = (() => {
     const lat = Number(bk?.latitude ?? customerUser?.latitude);
@@ -291,16 +379,67 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
 
       {/* Issue Details Card */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Issue & Media Attachment</Text>
+        <Text style={styles.cardTitle}>
+          {customerMediaList.length > 0 ? 'Issue & Media Attachment' : 'Issue Details'}
+        </Text>
         <Text style={styles.issueName}>{bk?.service_name} ({bk?.category_name})</Text>
         <View style={styles.infoRow}>
           <ProviderIcon name="wrench" color="#64748b" size={13} />
-          <Text style={styles.issueDesc}>{bk?.issue_description}</Text>
+          <Text style={styles.issueDesc}>{bk?.issue_description || bk?.issue || 'Reported breakdown'}</Text>
         </View>
 
-        {bk?.issue_media_url && (
-          <View style={styles.mediaBox}>
-            <Image source={{ uri: resolveImageUri(bk.issue_media_url) }} style={styles.mediaImg} resizeMode="cover" />
+        {customerMediaList.length > 0 && (
+          <View style={{ marginTop: 10, gap: 10 }}>
+            {customerMediaList.map((media, idx) => (
+              <View key={`media-${idx}`} style={styles.mediaContainer}>
+                <View style={styles.mediaHeaderRow}>
+                  <View style={[styles.mediaTypeBadge, media.type === 'video' ? styles.videoBadge : styles.photoBadge]}>
+                    <ProviderIcon
+                      name={media.type === 'video' ? 'video' : 'camera'}
+                      color="#ffffff"
+                      size={11}
+                    />
+                    <Text style={[styles.mediaTypeBadgeText, media.type === 'video' ? styles.videoBadgeText : styles.photoBadgeText]}>
+                      {media.type === 'video' ? 'VIDEO ATTACHED' : 'PHOTO ATTACHED'}
+                    </Text>
+                  </View>
+                  <Text style={styles.mediaLabelText} numberOfLines={1}>
+                    {media.label}
+                  </Text>
+                </View>
+
+                {media.type === 'video' ? (
+                  <View style={styles.videoPlayerBox}>
+                    {Platform.OS === 'web' ? (
+                      <video
+                        src={media.uri}
+                        controls
+                        playsInline
+                        preload="metadata"
+                        style={{
+                          width: '100%',
+                          maxHeight: 220,
+                          backgroundColor: '#000000',
+                          borderRadius: 10,
+                          display: 'block',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    ) : (
+                      <Text style={{ color: '#ffffff', padding: 20, textAlign: 'center' }}>Video: {media.label}</Text>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.photoBox}>
+                    <Image
+                      source={{ uri: resolveImageUri(media.uri) }}
+                      style={styles.photoImg}
+                      resizeMode="contain"
+                    />
+                  </View>
+                )}
+              </View>
+            ))}
           </View>
         )}
       </View>
@@ -331,13 +470,14 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={{ backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', paddingVertical: 10, borderRadius: 10, alignItems: 'center' }}
+              style={{ backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
               onPress={handleShareGpsLocation}
               disabled={sharingGps}
               activeOpacity={0.8}
             >
+              <ProviderIcon name={gpsSharedSuccess ? 'checkCircle' : 'broadcast'} color="#2563eb" size={13} />
               <Text style={{ color: '#2563eb', fontWeight: '700', fontSize: 12 }}>
-                {sharingGps ? 'Broadcasting GPS Location...' : gpsSharedSuccess ? '✓ Live GPS Location Shared with Customer' : '📡 Broadcast Live Location (GPS)'}
+                {sharingGps ? 'Broadcasting GPS Location...' : gpsSharedSuccess ? 'Live GPS Location Shared with Customer' : 'Broadcast Live Location (GPS)'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -451,7 +591,7 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
               <View style={styles.approvedQuoteBanner}>
                 <ProviderIcon name="checkCircle" color="#16a34a" size={16} />
                 <Text style={styles.approvedQuoteText}>
-                  ✓ Customer Approved Quote (₹{bk?.total_bill || 0})! Repair work is authorized.
+                  Customer Approved Quote (₹{bk?.total_bill || 0})! Repair work is authorized.
                 </Text>
               </View>
             )}
@@ -499,9 +639,12 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
             </Text>
 
             <View style={styles.modalNoticeBanner}>
-              <Text style={styles.modalNoticeText}>
-                💡 {isConsultationBk ? 'Free On-Site Inspection (₹0). ' : ''}Record your technical findings and required spare parts. Admin will review your report, decide the charges, and transmit the official quote to the customer.
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
+                <ProviderIcon name="info" color="#1e40af" size={14} />
+                <Text style={[styles.modalNoticeText, { flex: 1 }]}>
+                  {isConsultationBk ? 'Free On-Site Inspection (₹0). ' : ''}Record your technical findings and required spare parts. Admin will review your report, decide the charges, and transmit the official quote to the customer.
+                </Text>
+              </View>
             </View>
 
             {quoteError ? <Text style={styles.errorText}>{quoteError}</Text> : null}
@@ -654,6 +797,81 @@ const styles = StyleSheet.create({
   issueDesc: { fontSize: 11, color: '#475569', fontStyle: 'italic', lineHeight: 15, flex: 1 },
   mediaBox: { height: 100, borderRadius: 8, overflow: 'hidden', marginTop: 4, width: '100%' },
   mediaImg: { width: '100%', height: '100%' },
+  mediaContainer: {
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#334155',
+    marginTop: 6,
+  },
+  mediaHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    backgroundColor: '#1e293b',
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  mediaTypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  videoBadge: {
+    backgroundColor: '#ef4444',
+  },
+  photoBadge: {
+    backgroundColor: '#2563eb',
+  },
+  mediaTypeBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#ffffff',
+    letterSpacing: 0.5,
+  },
+  mediaLabelText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#cbd5e1',
+    flex: 1,
+  },
+  videoPlayerBox: {
+    width: '100%',
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoBox: {
+    width: '100%',
+    height: 180,
+    backgroundColor: '#020617',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoImg: {
+    width: '100%',
+    height: '100%',
+  },
+  noMediaBox: {
+    marginTop: 8,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  noMediaText: {
+    fontSize: 11.5,
+    color: '#64748b',
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
 
   actionConsole: { backgroundColor: '#ffffff', borderRadius: 20, padding: 16, borderWidth: 1.5, borderColor: '#bfdbfe', gap: 12, width: '100%', boxSizing: 'border-box', shadowColor: '#2563eb', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 3 },
   consoleTitle: { fontSize: 13.5, fontWeight: '800', color: '#0f172a', lineHeight: 18, marginBottom: 2 },

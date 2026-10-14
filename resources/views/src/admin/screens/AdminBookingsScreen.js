@@ -224,7 +224,9 @@ export default function AdminBookingsScreen() {
       <View style={{ backgroundColor: '#eff6ff', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#bfdbfe', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 260 }}>
           <View style={{ backgroundColor: '#dbeafe', width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 16 }}>⚡</Text>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#2563eb" stroke="none">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ color: '#1e3a8a', fontWeight: '800', fontSize: 13 }}>Looking for My Mechanic Free Consultations?</Text>
@@ -619,10 +621,14 @@ export default function AdminBookingsScreen() {
               </View>
             </View>
 
-            <Text style={styles.inputLabel}>Attached Issue Video / Photo</Text>
-            <View style={styles.modalMediaBox}>
-              <Image source={{ uri: selectedBooking?.issue_media_url || 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?auto=format&fit=crop&q=80&w=600' }} style={styles.modalMediaImg} />
-            </View>
+            {Boolean(selectedBooking?.issue_media_url) && (
+              <>
+                <Text style={styles.inputLabel}>Attached Issue Video / Photo</Text>
+                <View style={styles.modalMediaBox}>
+                  <Image source={{ uri: selectedBooking.issue_media_url }} style={styles.modalMediaImg} />
+                </View>
+              </>
+            )}
 
             <TouchableOpacity style={styles.sendBillBtn} onPress={() => { setReportModal(false); openBillModalWithReport(selectedBooking); }}>
               <Text style={styles.sendBillBtnText}>{hasGeneratedBill(selectedBooking) ? 'Edit Bill' : 'Proceed to Create Bill'}</Text>
@@ -679,7 +685,9 @@ export default function AdminBookingsScreen() {
                 <Text style={styles.boldText}>Diagnosis:</Text> {selectedBooking?.inspection_report || 'No inspection report submitted yet.'}
               </Text>
               <View style={styles.modalReportRow}>
-                <Image source={{ uri: selectedBooking?.issue_media_url || 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?auto=format&fit=crop&q=80&w=600' }} style={styles.modalReportImg} />
+                {Boolean(selectedBooking?.issue_media_url) && (
+                  <Image source={{ uri: selectedBooking.issue_media_url }} style={styles.modalReportImg} />
+                )}
                 <View style={{ flex: 1 }}>
                   <Text style={styles.modalReportItem}>Provider Parts Cost: <Text style={styles.boldGreen}>{selectedBooking?.parts_charge ? `₹${selectedBooking.parts_charge}` : '—'}</Text></Text>
                   <Text style={styles.modalReportItem}>Provider Labour Cost: <Text style={styles.boldGreen}>{selectedBooking?.labour_charge ? `₹${selectedBooking.labour_charge}` : '—'}</Text></Text>
@@ -839,18 +847,6 @@ export default function AdminBookingsScreen() {
                 </View>
               </View>
 
-              {/* Payout & Revenue Distribution Box */}
-              <View style={{ backgroundColor: '#eff6ff', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#bfdbfe', gap: 6 }}>
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#1e40af', textTransform: 'uppercase' }}>Financial Payout Breakdown</Text>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 11.5, color: '#334155' }}>Partner Payout Share (80%):</Text>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#1d4ed8' }}>₹{Number(selectedBooking?.payout_amount || Math.round((selectedBooking?.total_bill || 0) * 0.8)).toLocaleString()}</Text>
-                </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 11.5, color: '#334155' }}>Zevota Platform Revenue (20%):</Text>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#047857' }}>₹{Number((selectedBooking?.total_bill || 0) - (selectedBooking?.payout_amount || Math.round((selectedBooking?.total_bill || 0) * 0.8))).toLocaleString()}</Text>
-                </View>
-              </View>
 
               {/* Actions */}
               <View style={{ gap: 10, marginTop: 4, marginBottom: 8 }}>

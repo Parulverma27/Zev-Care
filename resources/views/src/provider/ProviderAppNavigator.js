@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import ProviderDashboardScreen from './screens/ProviderDashboardScreen';
 import ProviderJobDetailScreen from './screens/ProviderJobDetailScreen';
+import ProviderIcon from './ProviderIcons';
 import { useApp } from '../context/AppContext';
 
 export default function ProviderAppNavigator() {
@@ -35,7 +36,7 @@ export default function ProviderAppNavigator() {
           style={[styles.tabItem, currentScreen === 'DASHBOARD' && styles.activeTab]}
           onPress={() => handleNavigate('DASHBOARD')}
         >
-          <Text style={styles.tabIcon}>⚡</Text>
+          <ProviderIcon name="flash" color={currentScreen === 'DASHBOARD' ? '#ffffff' : '#a7f3d0'} size={18} />
           <Text style={[styles.tabLabel, currentScreen === 'DASHBOARD' && styles.activeLabel]}>
             Today's Jobs
           </Text>
@@ -51,7 +52,7 @@ export default function ProviderAppNavigator() {
             handleNavigate('JOB_DETAIL', { bookingId: firstBooking?.booking_id });
           }}
         >
-          <Text style={styles.tabIcon}>🔧</Text>
+          <ProviderIcon name="wrench" color={currentScreen === 'JOB_DETAIL' ? '#ffffff' : '#a7f3d0'} size={18} />
           <Text style={[styles.tabLabel, currentScreen === 'JOB_DETAIL' && styles.activeLabel]}>
             Work Orders
           </Text>

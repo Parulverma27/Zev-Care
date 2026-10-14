@@ -7,6 +7,8 @@ import { AppIcon } from '../../components/AppIcons';
 import { getPlanTheme } from '../../config/planTheme';
 import ApplianceAddWizard, { buildSavedApplianceRecords } from '../../components/appliances/ApplianceAddWizard';
 import LiveSupportOptionCard from '../../components/booking/LiveSupportOptionCard';
+import PlanReviewScreen from '../../components/plans/PlanReviewScreen';
+import PlanPurchaseSuccess from '../../components/plans/PlanPurchaseSuccess';
 
 /* --- Vector Icons --- */
 const IconClock = ({ size = 13, color = '#fbbf24' }) => (
@@ -301,6 +303,9 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
   // View state: 'DASHBOARD' | 'WIZARD'
   const [viewMode, setViewMode] = useState('DASHBOARD');
   const [wizardTargetPlan, setWizardTargetPlan] = useState(null);
+  // Plan currently being reviewed before purchase (PLAN_REVIEW view)
+  const [reviewPlan, setReviewPlan] = useState(null);
+  const [purchaseSuccessInfo, setPurchaseSuccessInfo] = useState(null);
 
   // Modal states
   const [applianceModalPlan, setApplianceModalPlan] = useState(null); // which plan we are editing appliances for
@@ -654,11 +659,13 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
           if (verifyRes.data.success) {
             purchaseSubscription(plan, verifyRes.data.transaction_id, chosenAppliances);
             setApplianceModalPlan(null);
-            showAlert(
-              'AMC Activated Successfully!',
-              `Welcome to Zevota Care VIP! Your ${plan.name} is now ACTIVE with ${chosenAppliances.length} covered appliances. Contract #${verifyRes.data.amc_contract_number || 'AMC-2026-ACTIVE'} has been issued.`,
-              'success'
-            );
+            setReviewPlan(null);
+            setPurchaseSuccessInfo({
+              planName: plan.name,
+              contractNo: verifyRes.data.amc_contract_number || 'AMC-2026-ACTIVE',
+              applianceCount: chosenAppliances.length,
+            });
+            setViewMode('PURCHASE_SUCCESS');
           } else {
             showAlert('Activation Failed', 'Payment verification failed.', 'error');
           }
@@ -699,11 +706,13 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
             if (verifyRes.data.success) {
               purchaseSubscription(plan, verifyRes.data.transaction_id, chosenAppliances);
               setApplianceModalPlan(null);
-              showAlert(
-                'AMC Activated Successfully!',
-                `Payment verified! Your ${plan.name} is now active with ${chosenAppliances.length} covered appliances under Contract #${verifyRes.data.amc_contract_number || 'AMC-ACTIVE'}.`,
-                'success'
-              );
+              setReviewPlan(null);
+              setPurchaseSuccessInfo({
+                planName: plan.name,
+                contractNo: verifyRes.data.amc_contract_number || 'AMC-2026-ACTIVE',
+                applianceCount: chosenAppliances.length,
+              });
+              setViewMode('PURCHASE_SUCCESS');
             } else {
               showAlert('Verification Failed', 'Payment verification failed.', 'error');
             }
@@ -754,8 +763,10 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
         ...prev,
         [wizardTargetPlan.id]: [...(prev[wizardTargetPlan.id] || []), ...records],
       }));
-      setActionSuccessMsg(`${records.length} appliance(s) selected for ${wizardTargetPlan.name}!`);
+      setReviewPlan(wizardTargetPlan);
       setWizardTargetPlan(null);
+      setViewMode('PLAN_REVIEW');
+      return;
     } else {
       if (addUserAppliance) {
         records.forEach((rec) => addUserAppliance(rec));
@@ -773,15 +784,62 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
         <ApplianceAddWizard
           existingAppliances={
             wizardTargetPlan
-              ? (planAppliancesMap[wizardTargetPlan.id]?.length ? planAppliancesMap[wizardTargetPlan.id] : coveredAppliances)
+              ? (planAppliancesMap[wizardTargetPlan.id] || [])
               : coveredAppliances
           }
           planName={wizardTargetPlan?.name || (planName !== 'None' ? planName : 'AMC')}
           onCancel={() => {
-            setViewMode('DASHBOARD');
+            const target = wizardTargetPlan;
             setWizardTargetPlan(null);
+            if (target && (planAppliancesMap[target.id] || []).length > 0) {
+              setReviewPlan(target);
+              setViewMode('PLAN_REVIEW');
+            } else {
+              setViewMode('DASHBOARD');
+            }
           }}
           onComplete={handleWizardComplete}
+        />
+      </View>
+    );
+  }
+
+  if (viewMode === 'PLAN_REVIEW' && reviewPlan) {
+    return (
+      <View style={styles.wizardContainer}>
+        <PlanReviewScreen
+          plan={reviewPlan}
+          appliances={getSelectedAppliancesForPlan(reviewPlan)}
+          onAddMore={() => {
+            setWizardTargetPlan(reviewPlan);
+            setViewMode('WIZARD');
+          }}
+          onRemove={(idx) => handleRemoveApplianceFromPlan(reviewPlan, idx)}
+          onPurchase={() => handleInitiatePurchase(reviewPlan)}
+          onBack={() => {
+            setReviewPlan(null);
+            setViewMode('DASHBOARD');
+          }}
+        />
+      </View>
+    );
+  }
+
+  if (viewMode === 'PURCHASE_SUCCESS' && purchaseSuccessInfo) {
+    return (
+      <View style={styles.wizardContainer}>
+        <PlanPurchaseSuccess
+          planName={purchaseSuccessInfo.planName}
+          contractNo={purchaseSuccessInfo.contractNo}
+          applianceCount={purchaseSuccessInfo.applianceCount}
+          onGoHome={() => {
+            if (navigate) navigate('/user/home');
+            else if (onNavigate) onNavigate('/user/home');
+          }}
+          onViewPlan={() => {
+            setViewMode('DASHBOARD');
+            setPurchaseSuccessInfo(null);
+          }}
         />
       </View>
     );
@@ -1408,17 +1466,18 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                       setWizardTargetPlan(plan);
                       setViewMode('WIZARD');
                     } else {
-                      handleInitiatePurchase(plan);
+                      setReviewPlan(plan);
+                      setViewMode('PLAN_REVIEW');
                     }
                   }}
                   activeOpacity={0.88}
                 >
                   <Text style={[styles.purchaseBtnText, { color: theme.buttonTextColor || '#0f172a' }]}>
-                    {hasActiveAmc
-                      ? `Upgrade to ${plan.name}`
-                      : hasAddedAppliances
-                        ? `Activate ${plan.name}`
-                        : `Upgrade to ${plan.name}`}
+                    {hasAddedAppliances
+                      ? `Review & Purchase (${selectedForThisPlan.length} added) →`
+                      : hasActiveAmc
+                        ? `Add Appliances to Upgrade to ${plan.name}`
+                        : 'Add Appliances to Start →'}
                   </Text>
                 </TouchableOpacity>
               )}

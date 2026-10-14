@@ -1895,7 +1895,7 @@ export function AppProvider({ children }) {
 
   const calculateApplianceExtraCharge = (applianceCount = 1) => {
     const extraUnits = Math.max(0, Number(applianceCount || 1) - 1);
-    return extraUnits * 499;
+    return extraUnits * 500;
   };
 
   const addUserAppliance = (applianceData) => {

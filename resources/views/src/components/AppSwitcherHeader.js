@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useApp } from '../context/AppContext';
 import ZevotaLogo from './ZevotaLogo';
+import { AppIcon } from './AppIcons';
 
 export default function AppSwitcherHeader() {
   const { activeApp, setActiveApp, activeUser, activeProvider } = useApp();
@@ -17,8 +18,9 @@ export default function AppSwitcherHeader() {
           style={[styles.switchButton, activeApp === 'USER' && styles.activeUserButton]}
           onPress={() => setActiveApp('USER')}
         >
+          <AppIcon name="user" size={13} color={activeApp === 'USER' ? '#ffffff' : '#334155'} />
           <Text style={[styles.switchText, activeApp === 'USER' && styles.activeText]}>
-            👤 User App
+            User App
           </Text>
         </TouchableOpacity>
 
@@ -26,8 +28,9 @@ export default function AppSwitcherHeader() {
           style={[styles.switchButton, activeApp === 'PROVIDER' && styles.activeProviderButton]}
           onPress={() => setActiveApp('PROVIDER')}
         >
+          <AppIcon name="wrench" size={13} color={activeApp === 'PROVIDER' ? '#ffffff' : '#334155'} />
           <Text style={[styles.switchText, activeApp === 'PROVIDER' && styles.activeText]}>
-            🔧 Provider App
+            Provider App
           </Text>
         </TouchableOpacity>
 
@@ -35,8 +38,9 @@ export default function AppSwitcherHeader() {
           style={[styles.switchButton, activeApp === 'ADMIN' && styles.activeAdminButton]}
           onPress={() => setActiveApp('ADMIN')}
         >
+          <AppIcon name="shield" size={13} color={activeApp === 'ADMIN' ? '#ffffff' : '#334155'} />
           <Text style={[styles.switchText, activeApp === 'ADMIN' && styles.activeText]}>
-            ⚙️ Admin Panel
+            Admin Panel
           </Text>
         </TouchableOpacity>
       </View>
@@ -46,13 +50,13 @@ export default function AppSwitcherHeader() {
           <Text style={styles.profileBadgeText}>
             User: <Text style={styles.bold}>{activeUser?.name || 'Guest'}</Text> | AMC:{' '}
             <Text style={activeUser?.subscription_plan ? styles.goldBold : styles.blueBold}>
-              {activeUser?.subscription_plan ? `⭐ ${activeUser.subscription_plan}` : 'No Active Plan'}
+              {activeUser?.subscription_plan ? `${activeUser.subscription_plan} Plan` : 'No Active Plan'}
             </Text>
           </Text>
         )}
         {activeApp === 'PROVIDER' && (
           <Text style={styles.profileBadgeText}>
-            Partner: <Text style={styles.bold}>{activeProvider?.name || '—'}</Text>{activeProvider?.rating ? ` (${activeProvider.rating}⭐)` : ''}
+            Partner: <Text style={styles.bold}>{activeProvider?.name || '—'}</Text>{activeProvider?.rating ? ` (${activeProvider.rating}★)` : ''}
           </Text>
         )}
         {activeApp === 'ADMIN' && (
@@ -96,6 +100,9 @@ const styles = StyleSheet.create({
     borderColor: '#cbd5e1',
   },
   switchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 7,

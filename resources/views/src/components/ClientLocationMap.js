@@ -13,9 +13,6 @@ export default function ClientLocationMap({
   customerPhone = '',
 }) {
   const [loading, setLoading] = useState(true);
-  const [mapError, setMapError] = useState(false);
-  const mapRef = useRef(null);
-  const googleMapObj = useRef(null);
 
   const coords =
     customerCoords &&
@@ -31,37 +28,12 @@ export default function ClientLocationMap({
       : null;
 
   useEffect(() => {
-    if (!coords || Platform.OS !== 'web') {
+    setLoading(true);
+    const timer = setTimeout(() => {
       setLoading(false);
-      return;
-    }
-    let mounted = true;
-    loadGoogleMapsScript()
-      .then((maps) => {
-        if (!mounted || !mapRef.current) return;
-        setLoading(false);
-        googleMapObj.current = new maps.Map(mapRef.current, {
-          center: coords,
-          zoom: 15,
-          disableDefaultUI: true,
-          zoomControl: true,
-        });
-        new maps.Marker({
-          position: coords,
-          map: googleMapObj.current,
-          title: customerName,
-        });
-      })
-      .catch(() => {
-        if (mounted) {
-          setLoading(false);
-          setMapError(true);
-        }
-      });
-    return () => {
-      mounted = false;
-    };
-  }, [coords?.lat, coords?.lng, customerName]);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [embedUrl]);
 
   const openExternal = () => {
     const url = coords
@@ -90,20 +62,22 @@ export default function ClientLocationMap({
       </View>
 
       <View style={styles.mapBox}>
-        {loading && !mapError && coords ? (
-          <View style={styles.loadingBox}>
-            <ActivityIndicator color="#2563eb" />
-            <Text style={styles.loadingTxt}>Loading map…</Text>
+        {embedUrl && Platform.OS === 'web' ? (
+          <View style={{ width: '100%', height: '100%', position: 'relative' }}>
+            {loading && (
+              <View style={[styles.loadingBox, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 2, backgroundColor: '#f8fafc' }]}>
+                <ActivityIndicator color="#2563eb" />
+                <Text style={styles.loadingTxt}>Loading map…</Text>
+              </View>
+            )}
+            <iframe
+              title="Customer location"
+              src={embedUrl}
+              style={{ width: '100%', height: '100%', border: 0, borderRadius: 12, display: 'block' }}
+              loading="lazy"
+              onLoad={() => setLoading(false)}
+            />
           </View>
-        ) : coords && !mapError && Platform.OS === 'web' ? (
-          <div ref={mapRef} style={{ width: '100%', height: '100%', borderRadius: 12 }} />
-        ) : embedUrl && Platform.OS === 'web' ? (
-          <iframe
-            title="Customer location"
-            src={embedUrl}
-            style={{ width: '100%', height: '100%', border: 0, borderRadius: 12 }}
-            loading="lazy"
-          />
         ) : (
           <View style={styles.loadingBox}>
             <Text style={styles.loadingTxt}>Map unavailable — use Navigate for directions.</Text>

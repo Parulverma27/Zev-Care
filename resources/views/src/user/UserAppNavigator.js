@@ -13,6 +13,7 @@ import SavedAddressesScreen from './screens/SavedAddressesScreen';
 import LiveSupportScreen from './screens/LiveSupportScreen';
 import ServiceBrowseScreen from './screens/ServiceBrowseScreen';
 import ConsultationScreen from './screens/ConsultationScreen';
+import { AppIcon } from '../components/AppIcons';
 
 export default function UserAppNavigator() {
   const [currentScreen, setCurrentScreen] = useState('HOME');
@@ -78,7 +79,7 @@ export default function UserAppNavigator() {
             style={[styles.tabItem, currentScreen === 'WALLET' && styles.activeTab]}
             onPress={() => handleNavigate('WALLET')}
           >
-            <Text style={styles.tabIcon}>🛡️</Text>
+            <AppIcon name="shield" size={18} color={currentScreen === 'WALLET' ? '#2563eb' : '#64748b'} />
             <Text style={[styles.tabLabel, currentScreen === 'WALLET' && styles.activeLabel]}>My AMC</Text>
           </TouchableOpacity>
 
@@ -86,7 +87,7 @@ export default function UserAppNavigator() {
             style={[styles.tabItem, currentScreen === 'BOOKING_DETAIL' && styles.activeTab]}
             onPress={() => handleNavigate('BOOKING_DETAIL', { bookingId: 'BK-2026-000125' })}
           >
-            <Text style={styles.tabIcon}>📋</Text>
+            <AppIcon name="file-text" size={18} color={currentScreen === 'BOOKING_DETAIL' ? '#2563eb' : '#64748b'} />
             <Text style={[styles.tabLabel, currentScreen === 'BOOKING_DETAIL' && styles.activeLabel]}>Bookings</Text>
           </TouchableOpacity>
 
@@ -94,7 +95,7 @@ export default function UserAppNavigator() {
             style={[styles.tabItem, currentScreen === 'PROFILE' && styles.activeTab]}
             onPress={() => handleNavigate('PROFILE')}
           >
-            <Text style={styles.tabIcon}>👤</Text>
+            <AppIcon name="user" size={18} color={currentScreen === 'PROFILE' ? '#2563eb' : '#64748b'} />
             <Text style={[styles.tabLabel, currentScreen === 'PROFILE' && styles.activeLabel]}>Profile</Text>
           </TouchableOpacity>
         </View>

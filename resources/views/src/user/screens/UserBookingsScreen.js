@@ -83,16 +83,18 @@ export default function UserBookingsScreen() {
 
                 {booking.status === 'AWAITING_USER_APPROVAL' && (
                   <View style={styles.quoteActionPill}>
+                    <AppIcon name="zap" size={12} color="#b45309" />
                     <Text style={styles.quoteActionPillText}>
-                      ⚡ Upfront Quote: ₹{(booking.total_bill ?? (Number(booking.parts_charge || 0) + Number(booking.labour_charge || 0))).toLocaleString()} • Review & Approve →
+                      Upfront Quote: ₹{(booking.total_bill ?? (Number(booking.parts_charge || 0) + Number(booking.labour_charge || 0))).toLocaleString()} • Review & Approve →
                     </Text>
                   </View>
                 )}
 
                 {Boolean(booking.status === 'SERVICE_IN_PROGRESS' && booking.completion_otp) && (
                   <View style={styles.otpPill}>
+                    <AppIcon name="lock" size={12} color="#1d4ed8" />
                     <Text style={styles.otpPillText}>
-                      🔑 Completion OTP: <Text style={{ fontWeight: '800' }}>{booking.completion_otp}</Text>
+                      Completion OTP: <Text style={{ fontWeight: '800' }}>{booking.completion_otp}</Text>
                     </Text>
                   </View>
                 )}
@@ -219,6 +221,9 @@ const styles = StyleSheet.create({
   ratedHint: { marginTop: 4, fontSize: 12, fontWeight: '700', color: '#d97706' },
 
   quoteActionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: '#fffbeb',
     borderWidth: 1,
     borderColor: '#fde68a',
@@ -234,6 +239,9 @@ const styles = StyleSheet.create({
   },
 
   otpPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: '#eff6ff',
     borderWidth: 1,
     borderColor: '#bfdbfe',

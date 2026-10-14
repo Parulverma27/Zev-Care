@@ -240,7 +240,7 @@ export default function AdminConsultationsScreen() {
       <ScrollView style={styles.tableScroll} showsVerticalScrollIndicator={false}>
         {filteredList.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={{ fontSize: 24 }}>🔍</Text>
+            <AppIcon name="search" size={32} color="#94a3b8" />
             <Text style={styles.emptyStateTitle}>No Consultation Orders Found</Text>
             <Text style={styles.emptyStateSub}>Try adjusting your trade filters or search keywords.</Text>
           </View>

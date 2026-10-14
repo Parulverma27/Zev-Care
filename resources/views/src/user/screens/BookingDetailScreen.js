@@ -285,11 +285,11 @@ export default function BookingDetailScreen() {
               ) : null}
               <Text style={styles.provEta}>
                 {trackingStatus === 'ON_THE_WAY'
-                  ? '⏱ En route to your premises'
+                  ? 'En route to your premises'
                   : trackingStatus === 'ARRIVED'
-                    ? '📍 Arrived at your location'
+                    ? 'Arrived at your location'
                     : trackingStatus === 'COMPLETED'
-                      ? '✓ Job completed'
+                      ? 'Job completed'
                       : 'Technician assigned to your work order'}
               </Text>
             </View>
@@ -376,7 +376,7 @@ export default function BookingDetailScreen() {
             </View>
           ) : Boolean(activeUser?.subscription_plan && activeUser?.subscription_status === 'ACTIVE') ? (
             <View style={{ backgroundColor: '#0a192f', borderWidth: 1.2, borderColor: '#d4af37', borderRadius: 12, padding: 10, marginHorizontal: 16, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 18 }}>🛡️</Text>
+              <AppIcon name="shield" size={18} color="#fbbf24" />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#fbbf24' }}>
                   Covered under {activeUser.subscription_plan}
@@ -392,7 +392,7 @@ export default function BookingDetailScreen() {
           {bk?.inspection_report ? (
             <View style={styles.diagnosisBox}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                <Text style={{ fontSize: 13 }}>🔍</Text>
+                <AppIcon name="search" size={14} color="#2563eb" />
                 <Text style={styles.diagnosisTitle}>On-Site Diagnostic Findings</Text>
               </View>
               <Text style={styles.diagnosisText}>{bk.inspection_report}</Text>
@@ -416,7 +416,7 @@ export default function BookingDetailScreen() {
           {/* 30-Day Urban Company Warranty Guarantee */}
           {isConsultationBk && (
             <View style={styles.warrantyBox}>
-              <Text style={{ fontSize: 15 }}>🛡️</Text>
+              <AppIcon name="shield" size={16} color="#2563eb" />
               <View style={{ flex: 1 }}>
                 <Text style={styles.warrantyTitle}>30-Day Service & Parts Warranty</Text>
                 <Text style={styles.warrantySub}>
@@ -684,7 +684,7 @@ export default function BookingDetailScreen() {
             <View style={{ gap: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <View style={ratingStyles.iconCircle}>
-                  <Text style={{ fontSize: 18 }}>⭐</Text>
+                  <AppIcon name="star" size={18} color="#d97706" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={ratingStyles.cardTitle}>Rate your service</Text>
