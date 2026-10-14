@@ -62,12 +62,14 @@ export default function AdminBookingsScreen() {
   const [discount, setDiscount] = useState('0');
   const [billFormError, setBillFormError] = useState('');
 
-  const activeBookings = bookings;
+  // Strictly filter out "My Mechanic" / Free Consultations so Booking Operations only manages standard work orders
+  const isConsultationBk = (b) => Boolean(b?.isConsultation || b?.booking_mode === 'consultation');
+  const activeBookings = (bookings || []).filter((b) => !isConsultationBk(b));
 
   // Deep-link: /admin/bookings/:bookingId opens that work order
   useEffect(() => {
     if (!routeBookingId) return;
-    const match = (bookings || []).find((b) => b.booking_id === routeBookingId);
+    const match = activeBookings.find((b) => b.booking_id === routeBookingId);
     if (!match) return;
     setSelectedBooking(match);
     if (match.status === 'ASSIGNED_TO_ADMIN' || match.inspection_report) {
@@ -75,7 +77,7 @@ export default function AdminBookingsScreen() {
     } else {
       setReviewModal(true);
     }
-  }, [routeBookingId, bookings]);
+  }, [routeBookingId, activeBookings]);
 
   const closeBookingModals = () => {
     setReviewModal(false);
@@ -213,8 +215,30 @@ export default function AdminBookingsScreen() {
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 13 }}>Export Bookings (Excel/CSV)</Text>
+            <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 13 }}>Export Work Orders (CSV)</Text>
           </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Separation Banner */}
+      <View style={{ backgroundColor: '#eff6ff', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#bfdbfe', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 260 }}>
+          <View style={{ backgroundColor: '#dbeafe', width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 16 }}>⚡</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: '#1e3a8a', fontWeight: '800', fontSize: 13 }}>Looking for My Mechanic Free Consultations?</Text>
+            <Text style={{ color: '#1d4ed8', fontSize: 11.5 }}>
+              All ₹0 diagnostic visits and on-site inspection quotes are tracked separately in the dedicated My Mechanic console.
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={{ backgroundColor: '#2563eb', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 }}
+          onPress={() => navigate('/admin/consultations')}
+          activeOpacity={0.8}
+        >
+          <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 12 }}>Open My Mechanic Console →</Text>
         </TouchableOpacity>
       </View>
 

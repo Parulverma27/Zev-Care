@@ -28,8 +28,8 @@ export default function AdminPanelLayout() {
 
   const menuItems = [
     { path: '/admin/dashboard', icon: DashboardIcon, label: 'Dashboard & Analytics' },
-    { path: '/admin/bookings', icon: BookingsIcon, label: 'Work Orders & Dispatch' },
-    { path: '/admin/consultations', icon: ConsultationsIcon, label: 'Free Mechanic Consultations' },
+    { path: '/admin/bookings', icon: BookingsIcon, label: 'Work Orders & Bookings' },
+    { path: '/admin/consultations', icon: ConsultationsIcon, label: 'My Mechanic (₹0 Diagnosis)' },
     { path: '/admin/ratings', icon: RatingsIcon, label: 'Ratings & Reviews' },
     { path: '/admin/user-services', icon: UserServicesIcon, label: 'User Service Payments' },
     { path: '/admin/users', icon: UsersIcon, label: 'Users & Video Audit' },

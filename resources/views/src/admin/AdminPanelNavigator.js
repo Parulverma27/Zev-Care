@@ -28,8 +28,8 @@ export default function AdminPanelNavigator() {
 
   const menuItems = [
     { key: 'DASHBOARD', icon: DashboardIcon, label: 'Dashboard & Analytics' },
-    { key: 'BOOKINGS', icon: BookingsIcon, label: 'Work Orders & Dispatch' },
-    { key: 'CONSULTATIONS', icon: ConsultationsIcon, label: 'Mechanic Consultations' },
+    { key: 'BOOKINGS', icon: BookingsIcon, label: 'Work Orders & Bookings' },
+    { key: 'CONSULTATIONS', icon: ConsultationsIcon, label: 'My Mechanic (₹0 Diagnosis)' },
     { key: 'USERS', icon: UsersIcon, label: 'Users & Video Audit' },
     { key: 'PROVIDERS', icon: ProvidersIcon, label: 'Field Partners' },
     { key: 'SERVICES', icon: CategoriesIcon, label: 'Category Catalog' },

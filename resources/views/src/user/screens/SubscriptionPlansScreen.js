@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
@@ -293,6 +293,10 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
 
   // Selected appliances map per plan: { [planId]: [ ...appliances ] }
   const [planAppliancesMap, setPlanAppliancesMap] = useState({});
+
+  useEffect(() => {
+    setPlanAppliancesMap({});
+  }, [activeUser?.id, activeUser?.phone]);
 
   // View state: 'DASHBOARD' | 'WIZARD'
   const [viewMode, setViewMode] = useState('DASHBOARD');

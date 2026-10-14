@@ -119,12 +119,11 @@ export default function ConsultationScreen({ onNavigate }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const isGuest = Boolean(
+  const isAnonymous = Boolean(
     !activeUser ||
-    activeUser.isGuest ||
-    activeUser.id === 0 ||
-    activeUser.name === 'Guest User' ||
-    activeUser.isAnonymous
+    activeUser.isAnonymous ||
+    (activeUser.isGuest && !activeUser.phone) ||
+    (!activeUser.phone && !activeUser.guestId)
   );
   const [showGuestModal, setShowGuestModal] = useState(false);
 
@@ -160,7 +159,7 @@ export default function ConsultationScreen({ onNavigate }) {
   };
 
   const handleBookConsultation = async () => {
-    if (isGuest) {
+    if (isAnonymous) {
       setShowGuestModal(true);
       return;
     }
@@ -507,9 +506,9 @@ export default function ConsultationScreen({ onNavigate }) {
               <AppIcon name="lock" size={26} color="#B45309" strokeWidth={2.2} />
             </View>
 
-            <Text style={consultGuestStyles.title}>Register First</Text>
+            <Text style={consultGuestStyles.title}>Sign In Required</Text>
             <Text style={consultGuestStyles.sub}>
-              Please register or sign in to your account to book your free My Mechanic consultation.
+              Please sign in or register your account to book your free My Mechanic consultation.
             </Text>
 
             <TouchableOpacity

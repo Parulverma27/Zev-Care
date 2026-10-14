@@ -151,7 +151,7 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   useEffect(() => {
-    if (isGuest) {
+    if (isConsultation ? isAnonymous : isGuest) {
       promptGuestRegistration(
         isConsultation
           ? 'Please register or log in to book a free My Mechanic consultation.'
@@ -356,7 +356,7 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   const selectCategoryAndNext = (catName) => {
-    if (isGuest) {
+    if (isConsultation ? isAnonymous : isGuest) {
       promptGuestRegistration(`You haven't registered yet. Please register your account to book ${catName || 'home services'}.`);
       return;
     }
@@ -369,7 +369,7 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   const selectSubGroupAndNext = (groupName) => {
-    if (isGuest) {
+    if (isConsultation ? isAnonymous : isGuest) {
       promptGuestRegistration(`You haven't registered yet. Please register your account to book ${groupName || 'home services'}.`);
       return;
     }
@@ -381,7 +381,7 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   const selectServiceTypeAndNext = (item) => {
-    if (isGuest) {
+    if (isConsultation ? isAnonymous : isGuest) {
       promptGuestRegistration(`You haven't registered yet. Please register your account to book ${item?.name || category || 'services'}.`);
       return;
     }
@@ -392,7 +392,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
 
-    if (isZeroFrictionCategory(category)) {
+    if (!isConsultation && isZeroFrictionCategory(category)) {
       setFastAddModalItem(item);
       setFastAddQty(1);
       setShowFastAddModal(true);
@@ -591,10 +591,10 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   const handleConfirm = async () => {
-    if (isGuest) {
+    if (isConsultation ? isAnonymous : isGuest) {
       promptGuestRegistration(
         isConsultation
-          ? 'Please register or log in to book a free consultation. Consultations are complimentary for every logged-in user.'
+          ? 'Please sign in or register to book a free consultation.'
           : 'Please register your account to confirm and place your service booking.'
       );
       return;
@@ -1076,7 +1076,7 @@ export default function BookingFlowScreen({ onNavigate }) {
           {isConsultation ? (
             <View style={styles.consultationFeeCard}>
               <View style={styles.consultationFeeHeader}>
-                <Text style={styles.consultationFeeTitle}>Urban Company ₹0 Free Visit Guarantee</Text>
+                <Text style={styles.consultationFeeTitle}>Zevota Care ₹0 Free Visit Guarantee</Text>
                 <View style={styles.freeChip}>
                   <Text style={styles.freeChipText}>₹0 FREE</Text>
                 </View>
@@ -1227,7 +1227,7 @@ export default function BookingFlowScreen({ onNavigate }) {
           </View>
           <div style={serviceGridCss.wrapper}>
             {gridItems.map((item) => {
-              const isZeroFriction = isZeroFrictionCategory(category);
+              const isZeroFriction = !isConsultation && isZeroFrictionCategory(category);
               const addedCount = cartItems.filter((c) => c.name === item.name).length;
               return (
                 <TouchableOpacity
@@ -1323,8 +1323,8 @@ export default function BookingFlowScreen({ onNavigate }) {
           )}
           <LiveSupportOptionCard onPress={goLiveSupport} />
 
-          {/* Blinkit-Style Cart Bar for Plumber and Pest Control */}
-          {isZeroFrictionCategory(category) && cartItems.length > 0 && (
+          {/* Blinkit-Style Cart Bar for Plumber and Pest Control (Regular service orders only) */}
+          {!isConsultation && isZeroFrictionCategory(category) && cartItems.length > 0 && (
             <BlinkitCartBar
               count={cartItems.length}
               items={cartItems}

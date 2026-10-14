@@ -123,6 +123,7 @@ export default function AdminConsultationsScreen() {
         discount_amount: 0,
         total_bill: parts + labour,
         notes: quoteNotes,
+        parts_description: selectedBooking.parts_description,
       });
     }
     setQuoteModalVisible(false);
@@ -153,13 +154,13 @@ export default function AdminConsultationsScreen() {
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Text style={styles.title}>Mechanic Consultations & Diagnostics</Text>
+            <Text style={styles.title}>My Mechanic Consultations & Diagnostics</Text>
             <View style={styles.freeHeaderTag}>
               <Text style={styles.freeHeaderTagText}>₹0 Free On-Site Inspection</Text>
             </View>
           </View>
           <Text style={styles.subtitle}>
-            Monitor Urban Company-style consultation visits, diagnostic findings, upfront repair quotes & conversions.
+            Review ₹0 free on-site inspections, inspect technician findings & requested parts, calculate repair quotes, and manage conversions.
           </Text>
         </View>
 
@@ -253,7 +254,7 @@ export default function AdminConsultationsScreen() {
               <Text style={[styles.th, { width: 150 }]}>TECHNICIAN</Text>
               <Text style={[styles.th, { width: 140 }]}>STAGE</Text>
               <Text style={[styles.th, { width: 110 }]}>QUOTE</Text>
-              <Text style={[styles.th, { width: 120, textAlign: 'right' }]}>ACTIONS</Text>
+              <Text style={[styles.th, { width: 200, textAlign: 'right' }]}>ACTIONS</Text>
             </View>
 
             {filteredList.map((item) => {
@@ -334,15 +335,24 @@ export default function AdminConsultationsScreen() {
                   </View>
 
                   {/* Actions */}
-                  <View style={{ width: 120, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
-                    <TouchableOpacity
-                      style={styles.actionIconBtn}
-                      onPress={() => handleOpenQuoteBuilder(item)}
-                      title="Prepare / Edit Quote"
-                      activeOpacity={0.7}
-                    >
-                      <AppIcon name="file-text" size={13} color="#2563eb" />
-                    </TouchableOpacity>
+                  <View style={{ width: 200, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+                    {!hasQuote ? (
+                      <TouchableOpacity
+                        style={styles.generateBillBtn}
+                        onPress={() => handleOpenQuoteBuilder(item)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.generateBillBtnText}>+ Generate Bill</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={[styles.generateBillBtn, { backgroundColor: '#059669' }]}
+                        onPress={() => handleOpenQuoteBuilder(item)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.generateBillBtnText}>View / Edit Bill</Text>
+                      </TouchableOpacity>
+                    )}
                     <TouchableOpacity
                       style={styles.viewDetailBtn}
                       onPress={() => handleOpenDetail(item)}
@@ -426,13 +436,13 @@ export default function AdminConsultationsScreen() {
                 <Text style={styles.modalSecondaryBtnText}>Assign Tech</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.modalPrimaryBtn}
+                style={[styles.modalPrimaryBtn, { backgroundColor: '#7c3aed' }]}
                 onPress={() => {
                   setDetailModalVisible(false);
                   handleOpenQuoteBuilder(selectedBooking);
                 }}
               >
-                <Text style={styles.modalPrimaryBtnText}>Prepare Quote</Text>
+                <Text style={styles.modalPrimaryBtnText}>Generate Bill / Quote</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -481,8 +491,8 @@ export default function AdminConsultationsScreen() {
           <View style={[styles.modalBox, { maxWidth: 460 }]}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Upfront Repair Quote</Text>
-                <Text style={styles.modalSub}>ID: {selectedBooking?.booking_id} • Diagnostic Visit: ₹0 Free</Text>
+                <Text style={styles.modalTitle}>Generate Bill & Repair Quote</Text>
+                <Text style={styles.modalSub}>ID: {selectedBooking?.booking_id} • Free ₹0 Diagnostic Inspection</Text>
               </View>
               <TouchableOpacity onPress={() => setQuoteModalVisible(false)} style={styles.modalCloseBtn}>
                 <Text style={{ fontSize: 16, color: '#64748b', fontWeight: '700' }}>✕</Text>
@@ -490,6 +500,30 @@ export default function AdminConsultationsScreen() {
             </View>
 
             <View style={{ padding: 18, gap: 12 }}>
+              {/* Technician's On-Site Inspection Report Box */}
+              {(selectedBooking?.inspection_report || selectedBooking?.parts_description || selectedBooking?.issue_media_url) ? (
+                <View style={{ backgroundColor: '#eff6ff', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#bfdbfe', gap: 6 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#1e40af', letterSpacing: 0.5 }}>
+                    TECHNICIAN INSPECTION REPORT ({selectedBooking.provider_name || 'Assigned Partner'})
+                  </Text>
+                  {selectedBooking?.inspection_report ? (
+                    <Text style={{ fontSize: 12, color: '#0f172a' }}>
+                      <Text style={{ fontWeight: '700' }}>Findings: </Text>{selectedBooking.inspection_report}
+                    </Text>
+                  ) : null}
+                  {selectedBooking?.parts_description ? (
+                    <Text style={{ fontSize: 12, color: '#0f172a' }}>
+                      <Text style={{ fontWeight: '700' }}>Parts Needed: </Text>{selectedBooking.parts_description}
+                    </Text>
+                  ) : null}
+                  {selectedBooking?.issue_media_url ? (
+                    <View style={{ marginTop: 2 }}>
+                      <Text style={{ fontSize: 11, color: '#2563eb', fontWeight: '700' }}>✓ Defective part photo/video attached</Text>
+                    </View>
+                  ) : null}
+                </View>
+              ) : null}
+
               <View style={styles.formRow}>
                 <Text style={styles.fLabel}>Diagnostic Visit Fee</Text>
                 <TextInput style={[styles.fInput, { backgroundColor: '#f1f5f9' }]} value="₹0 (Free Guarantee)" editable={false} />
@@ -543,8 +577,8 @@ export default function AdminConsultationsScreen() {
               <TouchableOpacity style={styles.modalSecondaryBtn} onPress={() => setQuoteModalVisible(false)}>
                 <Text style={styles.modalSecondaryBtnText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalPrimaryBtn} onPress={handleSubmitQuote}>
-                <Text style={styles.modalPrimaryBtnText}>Send Quote to Customer</Text>
+              <TouchableOpacity style={[styles.modalPrimaryBtn, { backgroundColor: '#7c3aed' }]} onPress={handleSubmitQuote}>
+                <Text style={styles.modalPrimaryBtnText}>Send Bill & Quote to Customer</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -825,6 +859,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
+  },
+  generateBillBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: '#7c3aed',
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  generateBillBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#ffffff',
   },
   viewDetailBtn: {
     paddingHorizontal: 10,

@@ -31,10 +31,15 @@ export default function AdminDashboardScreen({ onNavigate }) {
     return planRevenue;
   };
 
+  const isConsultation = (b) => Boolean(b?.isConsultation || b?.booking_mode === 'consultation');
+  const regularBookings = (bookings || []).filter((b) => !isConsultation(b));
+  const consultationBookings = (bookings || []).filter((b) => isConsultation(b));
+
   const stats = [
     { title: 'Total Registered Users', val: (users || []).length, color: '#2563eb', bg: '#eff6ff', icon: UsersIcon, path: '/admin/users' },
     { title: 'Approved Partners', val: (providers || []).length, color: '#059669', bg: '#ecfdf5', icon: ProvidersIcon, path: '/admin/providers' },
-    { title: 'Total Service Bookings', val: (bookings || []).length, color: '#7c3aed', bg: '#f5f3ff', icon: BookingsIcon, path: '/admin/bookings' },
+    { title: 'Work Orders & Bookings', val: regularBookings.length, color: '#7c3aed', bg: '#f5f3ff', icon: BookingsIcon, path: '/admin/bookings' },
+    { title: 'My Mechanic (₹0 Visits)', val: consultationBookings.length, color: '#0284c7', bg: '#f0f9ff', icon: BookingsIcon, path: '/admin/consultations' },
     { title: 'Total Platform Revenue', val: `₹${getPlatformRevenue().toLocaleString('en-IN')}`, color: '#d97706', bg: '#fffbe6', icon: FinanceIcon, path: '/admin/finance' },
   ];
 
@@ -133,10 +138,13 @@ export default function AdminDashboardScreen({ onNavigate }) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.alertTitle}>Inspection Report Received: {b.booking_id}</Text>
                 <Text style={styles.alertText}>
-                  Provider <Text style={styles.alertBold}>{b.provider_name}</Text> submitted field report for {b.service_name}.
+                  Provider <Text style={styles.alertBold}>{b.provider_name}</Text> submitted field report for {b.service_name}{isConsultation(b) ? ' (My Mechanic Consultation)' : ''}.
                 </Text>
               </View>
-              <TouchableOpacity style={styles.alertActionBtn} onPress={() => handleNav(`/admin/bookings/${b.booking_id}`)}>
+              <TouchableOpacity
+                style={styles.alertActionBtn}
+                onPress={() => handleNav(isConsultation(b) ? '/admin/consultations' : `/admin/bookings/${b.booking_id}`)}
+              >
                 <Text style={styles.alertActionBtnText}>Review & Bill</Text>
               </TouchableOpacity>
             </View>

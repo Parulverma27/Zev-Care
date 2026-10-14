@@ -1260,8 +1260,10 @@ export function AppProvider({ children }) {
 
   const registerUser = (profileData) => {
     const cleanNum = getCleanPhone(profileData.phone);
+    const maxId = users.reduce((max, u) => Math.max(max, Number(u.id) || 0), 100);
+    const nextId = maxId + 1;
     const newUser = {
-      id: users.length + 1,
+      id: nextId,
       name: profileData.name,
       email: profileData.email,
       phone: `+91 ${cleanNum}`,
@@ -1544,10 +1546,11 @@ export function AppProvider({ children }) {
           ? {
               ...b,
               inspection_report: reportData.findings,
+              parts_description: reportData.partsDescription || reportData.parts_description || b.parts_description || '',
               issue_media_url: reportData.mediaUrl || b.issue_media_url,
-              parts_charge: Number(reportData.partsCost || 0),
-              labour_charge: Number(reportData.labourCost || 0),
-              service_charge: Number(reportData.serviceCost || 0),
+              parts_charge: Number(reportData.partsCost || b.parts_charge || 0),
+              labour_charge: Number(reportData.labourCost || b.labour_charge || 0),
+              service_charge: Number(reportData.serviceCost || b.service_charge || 0),
               status: 'ASSIGNED_TO_ADMIN',
             }
           : b
@@ -1824,7 +1827,7 @@ export function AppProvider({ children }) {
     );
   };
 
-  const APPLIANCES_VERSION = 'v3-no-default-appliances';
+  const APPLIANCES_VERSION = 'v4-clean-user-appliances';
   const APPLIANCES_VERSION_KEY = 'zevota_appliances_version';
 
   const DEFAULT_INITIAL_APPLIANCES = [];

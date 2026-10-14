@@ -239,68 +239,66 @@ export default function UserProfileScreen({ onNavigate }) {
           )}
 
           <View style={styles.profileMainInfo}>
-            <View style={styles.nameAndActionRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.userName}>
-                  {isAnonymous ? 'Welcome' : isGuest ? 'Guest User' : (activeUser?.name || '—')}
-                </Text>
-                <Text style={styles.userSub}>
-                  {isAnonymous
-                    ? 'Browsing mode • Not logged in'
-                    : Boolean(activeUser?.phone || activeUser?.email)
-                    ? [activeUser?.phone, activeUser?.email].filter(Boolean).join(' • ')
-                    : 'Zevota Care Member'}
-                </Text>
-              </View>
-
-              {!isAnonymous && (
-                isGuest ? (
-                  <View style={styles.guestIdChip}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="5" width="20" height="14" rx="2" />
-                      <line x1="2" y1="10" x2="22" y2="10" />
-                    </svg>
-                    <Text style={styles.guestIdChipText}>{guestIdDisplay}</Text>
-                  </View>
-                ) : (
-                  <TouchableOpacity style={styles.editProfileChip} onPress={handleOpenEditModal} activeOpacity={0.8}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                    <Text style={styles.editProfileChipText}>Edit</Text>
-                  </TouchableOpacity>
-                )
-              )}
+            <View style={styles.userNameBlock}>
+              <Text style={styles.userName} numberOfLines={1}>
+                {isAnonymous ? 'Welcome' : isGuest ? 'Guest User' : (activeUser?.name || '—')}
+              </Text>
+              <Text style={styles.userSub} numberOfLines={1}>
+                {isAnonymous
+                  ? 'Browsing mode • Not logged in'
+                  : Boolean(activeUser?.phone || activeUser?.email)
+                  ? [activeUser?.phone, activeUser?.email].filter(Boolean).join(' • ')
+                  : 'Zevota Care Member'}
+              </Text>
             </View>
 
             {!isAnonymous && (
-              isGuest ? (
-                <View style={styles.guestModeBadge}>
-                  <AppIcon name="lock" size={11} color="#1d4ed8" strokeWidth={2.2} />
-                  <Text style={styles.guestModeBadgeText}>Guest Access</Text>
-                </View>
-              ) : (
-                <View
-                  style={[
-                    styles.planBadge,
-                    {
-                      backgroundColor: userPlanTheme.badgeBg,
-                      borderColor: userPlanTheme.badgeBorder,
-                    },
-                  ]}
-                >
-                  {userPlanTheme.icon}
-                  <Text
-                    style={[
-                      styles.planBadgeText,
-                      { color: userPlanTheme.badgeTextColor },
-                    ]}
-                  >
-                    {hasPlan ? `${activeUser.subscription_plan} Member` : 'Free Tier'}
-                  </Text>
-                </View>
-              )
+              <View style={styles.badgesActionRow}>
+                {isGuest ? (
+                  <>
+                    <View style={styles.guestModeBadge}>
+                      <AppIcon name="lock" size={11} color="#1d4ed8" strokeWidth={2.2} />
+                      <Text style={styles.guestModeBadgeText}>Guest Access</Text>
+                    </View>
+                    <View style={styles.guestIdChip}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="5" width="20" height="14" rx="2" />
+                        <line x1="2" y1="10" x2="22" y2="10" />
+                      </svg>
+                      <Text style={styles.guestIdChipText}>{guestIdDisplay}</Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <View
+                      style={[
+                        styles.planBadge,
+                        {
+                          backgroundColor: userPlanTheme.badgeBg,
+                          borderColor: userPlanTheme.badgeBorder,
+                        },
+                      ]}
+                    >
+                      {userPlanTheme.icon}
+                      <Text
+                        style={[
+                          styles.planBadgeText,
+                          { color: userPlanTheme.badgeTextColor },
+                        ]}
+                      >
+                        {hasPlan ? `${activeUser.subscription_plan} Member` : 'Free Tier'}
+                      </Text>
+                    </View>
+                    <TouchableOpacity style={styles.editProfileChip} onPress={handleOpenEditModal} activeOpacity={0.8}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      <Text style={styles.editProfileChipText}>Edit Profile</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
             )}
           </View>
         </View>
@@ -324,47 +322,61 @@ export default function UserProfileScreen({ onNavigate }) {
       {/* Guest / Anonymous Mode Callout Banner */}
       {isAnonymous ? (
         <View style={styles.guestCalloutBanner}>
-          <View style={styles.guestCalloutIconWrap}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <line x1="19" y1="8" x2="19" y2="14" />
-              <line x1="22" y1="11" x2="16" y2="11" />
-            </svg>
+          <View style={styles.guestCalloutTopRow}>
+            <View style={styles.guestCalloutIconWrap}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.guestCalloutTitle}>Register Account</Text>
+              <Text style={styles.guestCalloutBadgeNote}>Guest session active</Text>
+            </View>
           </View>
-          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Text style={styles.guestCalloutTitle}>Register First</Text>
-            <Text style={styles.guestCalloutBody}>
-              Create your account to protect your appliances, track live service bookings, and recharge your Care Wallet.
-            </Text>
-          </View>
+          <Text style={styles.guestCalloutBody}>
+            Create your account to protect your appliances, track live service bookings, and recharge your Care Wallet.
+          </Text>
           <TouchableOpacity
             style={styles.guestCalloutBtn}
             onPress={() => handleNav('/user/register')}
             activeOpacity={0.85}
           >
-            <Text style={styles.guestCalloutBtnText}>Register</Text>
+            <Text style={styles.guestCalloutBtnText}>Register Account</Text>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
           </TouchableOpacity>
         </View>
       ) : isGuest ? (
         <View style={styles.guestCalloutBanner}>
-          <View style={styles.guestCalloutIconWrap}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
+          <View style={styles.guestCalloutTopRow}>
+            <View style={styles.guestCalloutIconWrap}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.guestCalloutTitle}>Unlock All Care Features</Text>
+              <Text style={styles.guestCalloutBadgeNote}>Profile registration required</Text>
+            </View>
           </View>
-          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Text style={styles.guestCalloutTitle}>Unlock All Care Features</Text>
-            <Text style={styles.guestCalloutBody}>
-              Register or sign in to protect your appliances, track live service bookings, and recharge your Care Wallet.
-            </Text>
-          </View>
+          <Text style={styles.guestCalloutBody}>
+            Register or sign in to protect your appliances, track live service bookings, and recharge your Care Wallet.
+          </Text>
           <TouchableOpacity
             style={styles.guestCalloutBtn}
             onPress={() => handleNav('/user/register')}
             activeOpacity={0.85}
           >
             <Text style={styles.guestCalloutBtnText}>Complete Profile</Text>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -677,13 +689,31 @@ const styles = StyleSheet.create({
   profileMainInfo: {
     flex: 1,
     minWidth: 0,
-    gap: 2,
+    justifyContent: 'center',
   },
-  nameAndActionRow: {
+  userNameBlock: {
+    minWidth: 0,
+    width: '100%',
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: 0.2,
+  },
+  userSub: {
+    fontSize: 13,
+    color: '#2563eb',
+    marginTop: 3,
+    fontWeight: '600',
+    letterSpacing: 0.1,
+  },
+  badgesActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
     gap: 8,
+    marginTop: 8,
   },
   avatarCircleGuest: {
     width: 58,
@@ -715,15 +745,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.2,
   },
-  userName: { fontSize: 18, fontWeight: '800', color: '#0f172a', letterSpacing: 0.2 },
-  userSub: { fontSize: 12, color: '#2563eb', marginTop: 2, fontWeight: '600' },
   planBadge: {
-    borderWidth: 1.5,
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 7,
-    alignSelf: 'flex-start',
-    marginTop: 6,
+    borderWidth: 1.2,
+    paddingHorizontal: 9,
+    paddingVertical: 4.5,
+    borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
@@ -731,33 +757,34 @@ const styles = StyleSheet.create({
   planBadgeText: { fontWeight: '800', fontSize: 11, letterSpacing: 0.3 },
   guestModeBadge: {
     backgroundColor: '#eff6ff',
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 7,
-    alignSelf: 'flex-start',
-    marginTop: 6,
+    paddingHorizontal: 9,
+    paddingVertical: 4.5,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#bfdbfe',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 4.5,
   },
-  guestModeBadgeText: { color: '#1d4ed8', fontWeight: '700', fontSize: 10.5 },
+  guestModeBadgeText: { color: '#1d4ed8', fontWeight: '700', fontSize: 11 },
   guestCalloutBanner: {
-    backgroundColor: '#f8faff',
-    borderRadius: 18,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#dbeafe',
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1.2,
+    borderColor: '#bfdbfe',
+    gap: 12,
+    boxShadow: '0 8px 24px -4px rgba(37, 99, 235, 0.08)',
+  },
+  guestCalloutTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    boxShadow: '0 4px 16px -4px rgba(37, 99, 235, 0.08)',
+    gap: 12,
   },
   guestCalloutIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: '#eff6ff',
     alignItems: 'center',
     justifyContent: 'center',
@@ -766,32 +793,39 @@ const styles = StyleSheet.create({
     borderColor: '#bfdbfe',
   },
   guestCalloutTitle: {
-    fontSize: 13.5,
+    fontSize: 15,
     fontWeight: '800',
-    color: '#1e3a8a',
+    color: '#0f172a',
+    letterSpacing: 0.1,
+  },
+  guestCalloutBadgeNote: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: '#2563eb',
+    marginTop: 1,
   },
   guestCalloutBody: {
-    fontSize: 11.5,
+    fontSize: 12.5,
     color: '#475569',
-    lineHeight: 16,
-    marginTop: 2,
+    lineHeight: 18,
   },
   guestCalloutBtn: {
     backgroundColor: '#2563eb',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
-    flexShrink: 0,
-    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+    gap: 8,
+    alignSelf: 'stretch',
+    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.25)',
   },
   guestCalloutBtnText: {
     color: '#ffffff',
-    fontSize: 11.5,
+    fontSize: 13,
     fontWeight: '700',
-    textAlign: 'center',
+    letterSpacing: 0.2,
   },
 
   menuCard: {
@@ -854,10 +888,10 @@ const styles = StyleSheet.create({
   editProfileChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 4.5,
     backgroundColor: '#eff6ff',
-    paddingHorizontal: 10,
-    paddingVertical: 5.5,
+    paddingHorizontal: 9,
+    paddingVertical: 4.5,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#bfdbfe',
@@ -865,7 +899,7 @@ const styles = StyleSheet.create({
   },
   editProfileChipText: {
     color: '#2563eb',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
 
@@ -888,21 +922,20 @@ const styles = StyleSheet.create({
   guestIdChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4.5,
     backgroundColor: '#eff6ff',
     paddingHorizontal: 9,
-    paddingVertical: 5,
+    paddingVertical: 4.5,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#bfdbfe',
     flexShrink: 0,
-    alignSelf: 'flex-start',
   },
   guestIdChipText: {
-    color: '#0052e0',
-    fontSize: 11.5,
+    color: '#2563eb',
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
   },
 
   modalOverlay: {

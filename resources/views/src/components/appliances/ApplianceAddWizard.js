@@ -413,18 +413,14 @@ export default function ApplianceAddWizard({
   }, [lockedApplianceTypeId, preselectedService, initialService, initialCategory]);
 
   const displayedPlanAppliances = useMemo(() => {
-    if (Array.isArray(existingAppliances) && existingAppliances.length > 0) {
-      return existingAppliances;
-    }
-    if (getAppliancesForUser && activeUser) {
-      const fromUser = getAppliancesForUser(activeUser) || [];
-      if (fromUser.length > 0) return fromUser;
-    }
     if (Array.isArray(existingAppliances)) {
       return existingAppliances;
     }
-    return userAppliances || [];
-  }, [existingAppliances, getAppliancesForUser, activeUser, userAppliances]);
+    if (getAppliancesForUser && activeUser && !activeUser.isGuest) {
+      return getAppliancesForUser(activeUser) || [];
+    }
+    return [];
+  }, [existingAppliances, getAppliancesForUser, activeUser]);
 
   const { width } = useWindowDimensions();
   const columns = width >= 900 ? 5 : width >= 600 ? 4 : 3;

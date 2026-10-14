@@ -523,7 +523,7 @@ export default function HomeScreen({ onNavigate }) {
       return;
     }
     if (item.key === 'mechanic') {
-      if (isGuest) {
+      if (isAnonymous) {
         setGuestModalContext({
           title: 'Sign In / Register Required',
           message: 'Please sign in or register to book your complimentary My Mechanic consultation.',
