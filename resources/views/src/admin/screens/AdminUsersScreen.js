@@ -75,15 +75,20 @@ export default function AdminUsersScreen() {
             <Text style={[styles.td, { flex: 1.2 }]}>{u.phone}</Text>
             <View style={{ flex: 1.0, justifyContent: 'center' }}>
               {(() => {
-                if (!u.subscription_plan) {
-                  return <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '600' }}>Free</Text>;
+                const planName = u.subscription_plan;
+                if (!planName || String(planName).trim().toLowerCase() === 'free') {
+                  return (
+                    <View style={styles.freeBadge}>
+                      <Text style={styles.freeBadgeText}>Free</Text>
+                    </View>
+                  );
                 }
-                const pTheme = getPlanTheme(u.subscription_plan);
+                const pTheme = getPlanTheme(planName);
                 return (
-                  <View style={{ backgroundColor: pTheme.badgeBg, borderWidth: 1, borderColor: pTheme.badgeBorder, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <View style={[styles.planTierBadge, { backgroundColor: pTheme.badgeBg, borderColor: pTheme.badgeBorder }]}>
                     {pTheme.icon}
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: pTheme.badgeTextColor }}>
-                      {u.subscription_plan}
+                    <Text style={[styles.planTierBadgeText, { color: pTheme.badgeTextColor }]}>
+                      {planName}
                     </Text>
                   </View>
                 );
@@ -264,4 +269,34 @@ const styles = StyleSheet.create({
 
   exportBtn: { backgroundColor: '#059669', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, boxShadow: '0 2px 8px rgba(5,150,105,0.2)' },
   exportBtnText: { color: '#ffffff', fontWeight: '700', fontSize: 13 },
+
+  planTierBadge: {
+    borderWidth: 1.5,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 7,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  planTierBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  freeBadge: {
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 7,
+    alignSelf: 'flex-start',
+  },
+  freeBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748b',
+  },
 });

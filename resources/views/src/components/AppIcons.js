@@ -112,6 +112,19 @@ export function AppIcon({ name, size = 16, color = '#64748b', strokeWidth = 2, s
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
         );
+      case 'award':
+        return (
+          <svg {...p}>
+            <circle cx="12" cy="8" r="6" />
+            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+          </svg>
+        );
+      case 'crown':
+        return (
+          <svg {...p}>
+            <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
+          </svg>
+        );
       case 'key':
         return (
           <svg {...p}>
