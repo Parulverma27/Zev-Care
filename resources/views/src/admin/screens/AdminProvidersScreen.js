@@ -8,11 +8,40 @@ import { resolveCategoryImageUri, resolveServiceItemImageUri } from '../../utils
 import { getHardcodedCatalogImage } from '../../utils/bundledImages';
 
 export function AdminProvidersScreen() {
-  const { providers, setProviders } = useApp();
+  const { providers, setProviders, bookings } = useApp();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState(null);
+
+  // Compute real dynamic statistics for a provider from actual bookings
+  const getProviderStats = (provider) => {
+    if (!provider) return { completedCount: 0, revenue: 0, rating: '5.0', totalCount: 0 };
+    const provIdStr = provider.id != null ? String(provider.id) : '';
+    const provPhone = (provider.phone || '').replace(/\D/g, '').slice(-10);
+    const provName = (provider.name || '').trim().toLowerCase();
+
+    const provBookings = (bookings || []).filter((b) => {
+      if (provIdStr && b.provider_id != null && String(b.provider_id) === provIdStr) return true;
+      if (provPhone && b.provider_phone && b.provider_phone.replace(/\D/g, '').slice(-10) === provPhone) return true;
+      if (provName && b.provider_name && b.provider_name.trim().toLowerCase() === provName) return true;
+      return false;
+    });
+
+    const completed = provBookings.filter((b) => b.status === 'BOOKING_COMPLETED' || b.status === 'COMPLETED');
+    const revenue = completed.reduce((sum, b) => sum + Number(b.payout_amount || (b.total_bill ? b.total_bill * 0.8 : 0) || b.amount || 0), 0);
+    const rated = completed.filter((b) => Number(b.user_rating || b.provider_rating || b.rating) > 0);
+    const rating = rated.length > 0
+      ? (rated.reduce((sum, b) => sum + Number(b.user_rating || b.provider_rating || b.rating), 0) / rated.length).toFixed(1)
+      : (provider.rating != null ? Number(provider.rating).toFixed(1) : '5.0');
+
+    return {
+      completedCount: completed.length,
+      revenue,
+      rating,
+      totalCount: provBookings.length,
+    };
+  };
 
   // Delete Confirmation State
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
@@ -94,9 +123,9 @@ export function AdminProvidersScreen() {
       { label: 'Provider ID', accessor: (p) => p.id },
       { label: 'Partner Name', accessor: (p) => p.name },
       { label: 'Phone Number', accessor: (p) => p.phone },
-      { label: 'Rating', accessor: (p) => p.rating || 5.0 },
-      { label: 'Total Jobs Completed', accessor: (p) => p.total_jobs || 0 },
-      { label: 'Total Earnings (INR)', accessor: (p) => p.earnings || 0 },
+      { label: 'Rating', accessor: (p) => getProviderStats(p).rating },
+      { label: 'Total Jobs Completed', accessor: (p) => getProviderStats(p).completedCount },
+      { label: 'Total Earnings (INR)', accessor: (p) => getProviderStats(p).revenue },
       { label: 'Service Location', accessor: (p) => p.location || 'N/A' },
       { label: 'Online Status', accessor: (p) => (p.is_online ? 'ONLINE' : 'OFFLINE') },
     ];
@@ -149,22 +178,24 @@ export function AdminProvidersScreen() {
           <Text style={[styles.th, { flex: 1.5, textAlign: 'right' }]}>Actions</Text>
         </View>
 
-        {providers.map((p, idx) => (
-          <View key={idx} style={styles.tableRow}>
-            <TouchableOpacity style={{ flex: 1.5 }} onPress={() => handleOpenDetailModal(p)} onClick={() => handleOpenDetailModal(p)} activeOpacity={0.7}>
-              <Text style={[styles.tdBold, { color: '#7c3aed' }]}>{p.name}</Text>
-            </TouchableOpacity>
-            <Text style={[styles.td, { flex: 1.2 }]}>{p.phone}</Text>
-            <View style={{ flex: 0.9 }}>
-              <View style={[styles.statusPill, p.is_online !== false ? styles.activePill : styles.offlinePill]}>
-                <Text style={[styles.statusPillText, p.is_online !== false ? styles.activePillText : styles.offlinePillText]}>
-                  {p.is_online !== false ? 'ACTIVE' : 'OFFLINE'}
-                </Text>
+        {providers.map((p, idx) => {
+          const stats = getProviderStats(p);
+          return (
+            <View key={idx} style={styles.tableRow}>
+              <TouchableOpacity style={{ flex: 1.5 }} onPress={() => handleOpenDetailModal(p)} onClick={() => handleOpenDetailModal(p)} activeOpacity={0.7}>
+                <Text style={[styles.tdBold, { color: '#7c3aed' }]}>{p.name}</Text>
+              </TouchableOpacity>
+              <Text style={[styles.td, { flex: 1.2 }]}>{p.phone}</Text>
+              <View style={{ flex: 0.9 }}>
+                <View style={[styles.statusPill, p.is_online !== false ? styles.activePill : styles.offlinePill]}>
+                  <Text style={[styles.statusPillText, p.is_online !== false ? styles.activePillText : styles.offlinePillText]}>
+                    {p.is_online !== false ? 'ACTIVE' : 'OFFLINE'}
+                  </Text>
+                </View>
               </View>
-            </View>
-            <Text style={[styles.td, { flex: 0.9, color: '#d97706', fontWeight: '800' }]}>★ {p.rating}</Text>
-            <Text style={[styles.td, { flex: 0.9 }]}>{p.total_jobs} Jobs</Text>
-            <Text style={[styles.td, { flex: 1.1, color: '#059669', fontWeight: '800' }]}>₹{p.earnings?.toLocaleString()}</Text>
+              <Text style={[styles.td, { flex: 0.9, color: '#d97706', fontWeight: '800' }]}>★ {stats.rating}</Text>
+              <Text style={[styles.td, { flex: 0.9 }]}>{stats.completedCount} Jobs</Text>
+              <Text style={[styles.td, { flex: 1.1, color: '#059669', fontWeight: '800' }]}>₹{stats.revenue.toLocaleString('en-IN')}</Text>
             
             {/* Actions button row with proper touch targets */}
             <View style={{ flex: 1.5, flexDirection: 'row', justifyContent: 'flex-end', gap: 6, zIndex: 10 }}>
@@ -196,7 +227,8 @@ export function AdminProvidersScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        ))}
+        );
+      })}
       </View>
 
       {/* ADD FIELD PARTNER MODAL */}

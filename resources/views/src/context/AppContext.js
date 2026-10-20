@@ -16,8 +16,10 @@ const AppContext = createContext();
 
 const API_BASE = 'http://127.0.0.1:3000/api';
 const CATALOG_VERSION_KEY = 'zevota_catalog_version';
-const BOOKINGS_VERSION = 'v9-clean-aryan'; // bump to force-reset cached bookings
+const BOOKINGS_VERSION = 'v10-provider-real-jobs'; // bump to force-reset cached bookings
 const BOOKINGS_VERSION_KEY = 'zevota_bookings_version';
+const PROVIDERS_VERSION = 'v2-rich-profiles';
+const PROVIDERS_VERSION_KEY = 'zevota_providers_version';
 const WALLET_SYNC_VERSION = 'v5-fix-aryan-phone-collision';
 const WALLET_SYNC_KEY = 'zevota_wallet_sync_version';
 
@@ -553,6 +555,76 @@ export function AppProvider({ children }) {
         parts_charge: 3200.0,
         labour_charge: 1000.0,
         total_bill: 6000.0,
+        wallet_deducted: 6000.0,
+        payout_amount: 4800.0,
+        bill_status: 'PAID',
+        completion_otp: '4829',
+        user_rating: 5.0,
+        user_review: 'Cooling restored to ice cold. Very thorough inspection.',
+      },
+      {
+        id: 6,
+        booking_id: 'BK-2026-000041',
+        user_id: 2,
+        user_name: 'Priya Verma',
+        user_phone: '+91 98123 45678',
+        provider_id: 2,
+        provider_name: 'Suresh Kumar',
+        provider_phone: '+91 98989 12345',
+        provider_rating: 4.8,
+        provider_trade: 'Plumbing Specialist',
+        category_name: 'Plumbing',
+        sub_category_name: 'Faucets & Taps',
+        service_name: 'Kitchen Sink Mixer Tap Replacement & Leak Fix',
+        address_text: 'Bungalow 7, Juhu Scheme, Mumbai - 400049',
+        latitude: 19.1075,
+        longitude: 72.8263,
+        scheduled_date: '21 Aug 2026, 11:30 AM',
+        completed_date: '21 Aug 2026, 12:45 PM',
+        status: 'BOOKING_COMPLETED',
+        inspection_report: 'Replaced corroded angle valve and Teflon braided pipe. Leak resolved.',
+        service_charge: 800.0,
+        parts_charge: 1400.0,
+        labour_charge: 600.0,
+        total_bill: 2800.0,
+        wallet_deducted: 2800.0,
+        payout_amount: 2240.0,
+        bill_status: 'PAID',
+        completion_otp: '4829',
+        user_rating: 5.0,
+        user_review: 'Very professional and polite. Fixed the leakage completely.',
+      },
+      {
+        id: 7,
+        booking_id: 'BK-2026-000030',
+        user_id: 1,
+        user_name: 'Rahul Sharma',
+        user_phone: '+91 98765 43210',
+        provider_id: 2,
+        provider_name: 'Suresh Kumar',
+        provider_phone: '+91 98989 12345',
+        provider_rating: 4.7,
+        provider_trade: 'Plumbing Specialist',
+        category_name: 'Plumbing',
+        sub_category_name: 'Pipes & Drainage',
+        service_name: 'Bathroom Drain Blockage Cleaning',
+        address_text: 'Flat 402, Sea Breeze Towers, Hill Road, Bandra West, Mumbai - 400050',
+        latitude: 19.0596,
+        longitude: 72.8295,
+        scheduled_date: '18 Aug 2026, 4:00 PM',
+        completed_date: '18 Aug 2026, 5:15 PM',
+        status: 'BOOKING_COMPLETED',
+        inspection_report: 'Used drain auger and motorized snake to clear hair and mineral buildup.',
+        service_charge: 1000.0,
+        parts_charge: 500.0,
+        labour_charge: 800.0,
+        total_bill: 2300.0,
+        wallet_deducted: 2300.0,
+        payout_amount: 1840.0,
+        bill_status: 'PAID',
+        completion_otp: '4829',
+        user_rating: 4.5,
+        user_review: 'Fast response and good work.',
       },
     ];
   });
@@ -1073,29 +1145,43 @@ export function AppProvider({ children }) {
 
   const [providers, setProviders] = useState(() => {
     try {
-      const saved = localStorage.getItem('zevota_providers');
-      if (saved) return JSON.parse(saved);
+      const storedVersion = localStorage.getItem(PROVIDERS_VERSION_KEY);
+      if (storedVersion !== PROVIDERS_VERSION) {
+        localStorage.removeItem('zevota_providers');
+        localStorage.setItem(PROVIDERS_VERSION_KEY, PROVIDERS_VERSION);
+      } else {
+        const saved = localStorage.getItem('zevota_providers');
+        if (saved) return JSON.parse(saved);
+      }
     } catch (e) {}
     return [
       {
         id: 1,
         name: 'Rajesh Sharma',
         phone: '+91 99887 76655',
+        email: 'rajesh.electrician@zevotacare.com',
         rating: 4.9,
-        total_jobs: 142,
-        earnings: 128500.0,
         trade: 'Electrical & AC Specialist',
-        location: 'Bandra West (1.2 km away)',
+        experience: '6 Years Experience',
+        location: 'Gurugram, Haryana',
+        categories: ['Electrical & AC', 'Appliances'],
+        services: ['Mixer Repair', 'Switch Repair', 'AC Gas Refill', 'AC Deep Cleaning', 'Chandelier Installation'],
+        is_online: true,
+        status: 'ACTIVE',
       },
       {
         id: 2,
         name: 'Suresh Kumar',
         phone: '+91 98989 12345',
-        rating: 4.7,
-        total_jobs: 98,
-        earnings: 84000.0,
+        email: 'suresh.plumber@zevotacare.com',
+        rating: 4.8,
         trade: 'Plumbing Specialist',
-        location: 'Andheri East (4.5 km away)',
+        experience: '8 Years Experience',
+        location: 'Gurugram, Haryana',
+        categories: ['Plumbing'],
+        services: ['Sink Mixer Replacement', 'Drain Blockage', 'Pipe Leakage Fix', 'Water Tank Cleaning'],
+        is_online: true,
+        status: 'ACTIVE',
       },
     ];
   });
