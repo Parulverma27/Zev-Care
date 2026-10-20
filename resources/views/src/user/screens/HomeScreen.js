@@ -652,7 +652,7 @@ export default function HomeScreen({ onNavigate }) {
                 style={{
                   position: 'absolute',
                   left: 42,
-                  right: 36,
+                  right: 16,
                   top: 0,
                   bottom: 0,
                   display: 'flex',
@@ -693,7 +693,7 @@ export default function HomeScreen({ onNavigate }) {
               placeholder=""
               placeholderTextColor="transparent"
             />
-            {searchQuery.trim().length > 0 ? (
+            {searchQuery.trim().length > 0 && (
               <TouchableOpacity
                 onPress={() => {
                   setSearchQuery('');
@@ -702,22 +702,6 @@ export default function HomeScreen({ onNavigate }) {
                 style={{ padding: 6, marginRight: 2, zIndex: 10 }}
               >
                 <AppIcon name="x" size={14} color="#94a3b8" />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.heroFilterBtn}
-                onPress={() => handleNav('/user/categories')}
-                activeOpacity={0.8}
-                accessibilityLabel="Filter services"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#54647c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="4" y1="7" x2="20" y2="7" />
-                  <circle cx="9" cy="7" r="2.2" fill="#f1f5f9" stroke="#54647c" strokeWidth="2" />
-                  <line x1="4" y1="12" x2="20" y2="12" />
-                  <circle cx="16" cy="12" r="2.2" fill="#f1f5f9" stroke="#54647c" strokeWidth="2" />
-                  <line x1="4" y1="17" x2="20" y2="17" />
-                  <circle cx="11" cy="17" r="2.2" fill="#f1f5f9" stroke="#54647c" strokeWidth="2" />
-                </svg>
               </TouchableOpacity>
             )}
           </View>
