@@ -11,6 +11,7 @@ import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker'
 import { upsertDefaultAddress } from '../../utils/savedAddresses';
 
 const profilePic = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120';
+const zevotaCareWordmark = require('../../../assets/zevota-care-wordmark.png');
 
 const TRUST_FEATURES = [
   {
@@ -604,9 +605,14 @@ export default function HomeScreen({ onNavigate }) {
               onPress={() => handleNav('/user/home')}
               activeOpacity={0.85}
               style={styles.heroBrandWrap}
+              accessibilityRole="button"
+              accessibilityLabel="Zevota Care"
             >
-              <Text style={styles.heroBrandZevota}>Zevota</Text>
-              <Text style={styles.heroBrandCare}>CARE</Text>
+              <Image
+                source={zevotaCareWordmark}
+                style={styles.heroBrandWordmark}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
 
             {/* Right: Greeting, Profile Avatar */}
@@ -1360,10 +1366,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   heroBrandWrap: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    justifyContent: 'center',
     cursor: 'pointer',
     flexShrink: 0,
+  },
+  heroBrandWordmark: {
+    width: 112,
+    height: 38,
   },
   heroBrandZevota: {
     fontSize: 27,
@@ -1374,12 +1383,13 @@ const styles = StyleSheet.create({
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroBrandCare: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 8.5,
+    fontWeight: '400',
     color: '#ffffff',
-    letterSpacing: 4.5,
-    marginTop: 0,
-    paddingLeft: 2,
+    letterSpacing: 1.5,
+    alignSelf: 'flex-end',
+    marginTop: 1,
+    marginRight: 1,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroActionsRow: {
