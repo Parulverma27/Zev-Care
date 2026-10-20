@@ -152,14 +152,51 @@ export function getApplianceDisplayName(applianceTypeId) {
 export function filterAppliancesByType(appliances, applianceTypeId) {
   if (!applianceTypeId || !Array.isArray(appliances)) return [];
   return appliances.filter((a) => {
-    if (a.applianceTypeId === applianceTypeId) return true;
-    const cat = String(a.category || a.name || '').toLowerCase();
+    // 1. Direct type ID match
+    if (a.applianceTypeId && a.applianceTypeId === applianceTypeId) return true;
+    if (a.typeId && a.typeId === applianceTypeId) return true;
+
+    // If appliance has a different known applianceTypeId, do not cross-match
+    if (a.applianceTypeId && a.applianceTypeId !== 'other' && a.applianceTypeId !== applianceTypeId) {
+      return false;
+    }
+
+    const name = String(a.name || a.displayName || '').toLowerCase();
+    const cat = String(a.category || a.serviceName || a.type || '').toLowerCase();
+    const full = `${name} ${cat}`;
     const display = getApplianceDisplayName(applianceTypeId).toLowerCase();
-    if (cat.includes(display.toLowerCase())) return true;
-    // Legacy name matches
-    if (applianceTypeId === 'air_conditioner' && (cat.includes('ac') || cat.includes('air conditioner'))) return true;
-    if (applianceTypeId === 'washing_machine' && cat.includes('wash')) return true;
-    if (applianceTypeId === 'television' && (cat === 'tv' || cat.includes('television'))) return true;
+
+    // 2. Air Conditioner: must match air conditioner or word boundary \bac\b (never substring 'ac' inside 'machine')
+    if (applianceTypeId === 'air_conditioner') {
+      return (
+        full.includes('air conditioner') ||
+        full.includes('air-conditioner') ||
+        full.includes('airconditioner') ||
+        /\bac\b/i.test(full) ||
+        full.includes('hvac') ||
+        full.includes('split ac') ||
+        full.includes('window ac')
+      );
+    }
+
+    // 3. Washing Machine:
+    if (applianceTypeId === 'washing_machine') {
+      return full.includes('wash') || full.includes('laundry') || full.includes('dryer');
+    }
+
+    // 4. Television:
+    if (applianceTypeId === 'television') {
+      return /\btv\b/i.test(full) || full.includes('television') || full.includes('led tv') || full.includes('oled');
+    }
+
+    // 5. Refrigerator:
+    if (applianceTypeId === 'refrigerator') {
+      return full.includes('fridge') || full.includes('refrigerator') || full.includes('freezer');
+    }
+
+    // 6. Generic display name match
+    if (display && display !== 'appliance' && full.includes(display)) return true;
+
     return false;
   });
 }
