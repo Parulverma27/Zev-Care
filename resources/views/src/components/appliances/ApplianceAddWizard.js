@@ -1407,11 +1407,11 @@ export default function ApplianceAddWizard({
       {/* --------- SAVE CONFIRMATION MODAL --------- */}
       <Modal visible={showSaveConfirmModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { maxWidth: 440, maxHeight: '90%' }]}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
-              <View style={{ alignItems: 'center', gap: 6, paddingTop: 4 }}>
+          <View style={[styles.modalCard, { maxWidth: 420, maxHeight: '90%', padding: 16 }]}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+              <View style={{ alignItems: 'center', gap: 4, paddingTop: 2 }}>
                 <View style={styles.confirmIconCircle}>
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0052e0" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     <polyline points="9 12 11 14 15 10" />
                   </svg>
@@ -1422,10 +1422,10 @@ export default function ApplianceAddWizard({
                 </Text>
               </View>
 
-              <View style={{ gap: 10 }}>
+              <View style={{ gap: 8 }}>
                 {units.map((u, i) => (
                   <View key={i} style={styles.confirmApplianceCard}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <View style={styles.confirmApplianceBadge}>
                         <Text style={styles.confirmApplianceBadgeText}>#{i + 1}</Text>
                       </View>
@@ -1434,9 +1434,9 @@ export default function ApplianceAddWizard({
                           {u.displayName || selectedService?.name || 'Item'}
                         </Text>
                         <Text style={styles.confirmApplianceMeta} numberOfLines={1}>
-                          {[selectedCategory?.name, selectedSubgroup?.name, selectedService?.name]
+                          {[selectedCategory?.name, selectedService?.name]
                             .filter(Boolean)
-                            .join(' › ')}
+                            .join(' • ')}
                         </Text>
                       </View>
                     </View>
@@ -1481,7 +1481,7 @@ export default function ApplianceAddWizard({
                       )}
                     </View>
                     <View style={styles.confirmVideoVerifiedRow}>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                       <Text style={styles.confirmVideoVerifiedText}>Live Video Walkthrough Attached</Text>
@@ -1491,8 +1491,8 @@ export default function ApplianceAddWizard({
               </View>
 
               <View style={styles.finalityWarningBox}>
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
@@ -1503,13 +1503,13 @@ export default function ApplianceAddWizard({
                 </Text>
               </View>
 
-              <View style={{ gap: 10, paddingTop: 6 }}>
+              <View style={{ gap: 8, paddingTop: 4 }}>
                 <TouchableOpacity
-                  style={[styles.primaryBtn, { marginTop: 0, paddingHorizontal: 16, paddingVertical: 13 }]}
+                  style={[styles.primaryBtn, { marginTop: 0, paddingHorizontal: 16, paddingVertical: 10.5 }]}
                   onPress={handleConfirmFinalSave}
-                  activeOpacity={0.85}
+                  activeOpacity={0.88}
                 >
-                  <Text style={[styles.primaryBtnText, { fontSize: 14.5, textAlign: 'center' }]}>
+                  <Text style={[styles.primaryBtnText, { fontSize: 13, textAlign: 'center' }]}>
                     {mode === 'booking'
                       ? 'Confirm & Continue'
                       : units.length > 1
@@ -2190,73 +2190,74 @@ const styles = StyleSheet.create({
   coverageNoteTitle: { fontSize: 12, fontWeight: '700', color: '#1e40af', marginBottom: 2 },
   coverageNoteText: { fontSize: 11.5, color: '#334155', lineHeight: 16 },
   confirmIconCircle: {
-    width: 52, height: 52, borderRadius: 26,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: '#eff6ff', borderWidth: 1.5,
     borderColor: '#bfdbfe', alignItems: 'center',
-    justifyContent: 'center', marginBottom: 4,
+    justifyContent: 'center', marginBottom: 2,
   },
   confirmModalTitle: {
-    fontSize: 18, fontWeight: '800', color: '#0f172a',
+    fontSize: 16, fontWeight: '800', color: '#0f172a',
     textAlign: 'center', fontFamily: "'Outfit', 'Inter', sans-serif",
+    letterSpacing: -0.2,
   },
   confirmModalSub: {
-    fontSize: 13, color: '#64748b', textAlign: 'center',
-    lineHeight: 18, fontFamily: "'Outfit', 'Inter', sans-serif",
+    fontSize: 11.5, color: '#64748b', textAlign: 'center',
+    lineHeight: 16, fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   confirmApplianceCard: {
-    backgroundColor: '#f8fafc', borderRadius: 14,
-    borderWidth: 1, borderColor: '#e2e8f0', padding: 12, gap: 8,
+    backgroundColor: '#f8fafc', borderRadius: 12,
+    borderWidth: 1, borderColor: '#e2e8f0', padding: 10, gap: 7,
   },
   confirmApplianceBadge: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center',
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: '#0052e0', alignItems: 'center', justifyContent: 'center',
   },
-  confirmApplianceBadgeText: { color: '#ffffff', fontSize: 12, fontWeight: '800' },
+  confirmApplianceBadgeText: { color: '#ffffff', fontSize: 11, fontWeight: '800' },
   confirmApplianceName: {
-    fontSize: 14, fontWeight: '700', color: '#0f172a',
+    fontSize: 13, fontWeight: '700', color: '#0f172a',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   confirmApplianceMeta: {
-    fontSize: 12, color: '#64748b', marginTop: 1,
+    fontSize: 11, color: '#64748b', marginTop: 1,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   confirmApplianceDetailsGrid: {
-    flexDirection: 'row', gap: 12, paddingTop: 4,
+    flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 5,
     borderTopWidth: 1, borderTopColor: '#f1f5f9',
   },
-  confirmDetailItem: { flex: 1 },
+  confirmDetailItem: { minWidth: '45%', flex: 1, gap: 1 },
   confirmDetailLabel: {
-    fontSize: 10.5, color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase',
+    fontSize: 9.5, color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3,
   },
-  confirmDetailValue: { fontSize: 12, color: '#1e293b', fontWeight: '600', marginTop: 1 },
+  confirmDetailValue: { fontSize: 11.5, color: '#0f172a', fontWeight: '600', lineHeight: 15 },
   confirmVideoVerifiedRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: '#f0fdf4', paddingHorizontal: 8, paddingVertical: 5,
-    borderRadius: 8, borderWidth: 1, borderColor: '#bbf7d0', marginTop: 2,
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: '#f0fdf4', paddingHorizontal: 7, paddingVertical: 4.5,
+    borderRadius: 6, borderWidth: 1, borderColor: '#bbf7d0', marginTop: 2,
   },
   confirmVideoVerifiedText: {
-    fontSize: 11.5, color: '#15803d', fontWeight: '600',
+    fontSize: 10.5, color: '#15803d', fontWeight: '600',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   finalityWarningBox: {
     backgroundColor: '#fffbeb', borderWidth: 1.2,
-    borderColor: '#fde68a', borderRadius: 14, padding: 12, gap: 6,
+    borderColor: '#fde68a', borderRadius: 10, padding: 10, gap: 4,
   },
   finalityWarningTitle: {
-    fontSize: 12.5, fontWeight: '700', color: '#92400e',
+    fontSize: 11.5, fontWeight: '700', color: '#92400e',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   finalityWarningText: {
-    fontSize: 11.5, color: '#78350f', lineHeight: 16,
+    fontSize: 10.5, color: '#78350f', lineHeight: 14.5,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   reviewEditBtn: {
     alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 12, paddingHorizontal: 16,
-    borderRadius: 14, backgroundColor: '#f1f5f9',
+    paddingVertical: 9.5, paddingHorizontal: 16,
+    borderRadius: 10, backgroundColor: '#f1f5f9',
   },
   reviewEditBtnText: {
-    color: '#475569', fontSize: 13.5, fontWeight: '700',
+    color: '#475569', fontSize: 12, fontWeight: '700',
     fontFamily: "'Outfit', 'Inter', sans-serif", textAlign: 'center',
   },
   /* Covered / Plan Appliances Section Styles */
