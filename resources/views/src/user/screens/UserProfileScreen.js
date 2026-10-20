@@ -60,11 +60,11 @@ export default function UserProfileScreen({ onNavigate }) {
   const [successMsg, setSuccessMsg] = useState('');
 
   const handleOpenEditModal = () => {
-    if (isGuest) {
+    if (isAnonymous) {
       setShowGuestModal(true);
       return;
     }
-    setEditName(activeUser?.name || '');
+    setEditName(activeUser?.name === 'Guest User' ? '' : (activeUser?.name || ''));
     setEditEmail(activeUser?.email || '');
     const cleanDigits = (activeUser?.phone || '').replace(/\D/g, '').slice(-10);
     setEditPhone(cleanDigits);
@@ -74,10 +74,6 @@ export default function UserProfileScreen({ onNavigate }) {
   };
 
   const handleSavePersonalDetails = () => {
-    if (isGuest) {
-      setShowGuestModal(true);
-      return;
-    }
     const trimmedName = editName.trim();
     const trimmedEmail = editEmail.trim();
     const cleanDigits = editPhone.replace(/\D/g, '').trim();
@@ -98,12 +94,17 @@ export default function UserProfileScreen({ onNavigate }) {
       return;
     }
 
-    const isDuplicate = (users || []).some(
-      (u) => u.id !== activeUser?.id && String(u.phone).replace(/\D/g, '').slice(-10) === cleanDigits
-    );
-    if (isDuplicate) {
-      setErrorMsg('This mobile number is already registered to another account.');
-      return;
+    const currentDigits = (activeUser?.phone || '').replace(/\D/g, '').slice(-10);
+    if (cleanDigits !== currentDigits) {
+      const isDuplicate = (users || []).some(
+        (u) =>
+          String(u.id) !== String(activeUser?.id) &&
+          String(u.phone).replace(/\D/g, '').slice(-10) === cleanDigits
+      );
+      if (isDuplicate) {
+        setErrorMsg('This mobile number is already registered to another account.');
+        return;
+      }
     }
 
     setErrorMsg('');
@@ -112,6 +113,8 @@ export default function UserProfileScreen({ onNavigate }) {
       name: trimmedName,
       email: trimmedEmail,
       phone: `+91 ${cleanDigits}`,
+      isGuest: false,
+      isAnonymous: false,
     };
 
     updateProfile(updatedUser);
@@ -303,6 +306,13 @@ export default function UserProfileScreen({ onNavigate }) {
                       </svg>
                       <Text style={styles.guestIdChipText}>{guestIdDisplay}</Text>
                     </View>
+                    <TouchableOpacity style={styles.editProfileChip} onPress={handleOpenEditModal} activeOpacity={0.8}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      <Text style={styles.editProfileChipText}>Edit Profile</Text>
+                    </TouchableOpacity>
                   </>
                 ) : (
                   <>

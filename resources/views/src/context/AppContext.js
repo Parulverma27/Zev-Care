@@ -707,6 +707,14 @@ export function AppProvider({ children }) {
     } catch (e) {}
   }, [activeUser]);
 
+  useEffect(() => {
+    try {
+      if (Array.isArray(users) && users.length > 0) {
+        localStorage.setItem('zevota_users', JSON.stringify(users));
+      }
+    } catch (e) {}
+  }, [users]);
+
   // Repair duplicate / multi-default saved addresses from older property saves
   useEffect(() => {
     if (!activeUser?.id || !Array.isArray(activeUser.saved_addresses)) return;
@@ -1000,6 +1008,19 @@ export function AppProvider({ children }) {
       });
     }
   }, [activeUser]);
+
+  // Synchronize activeProvider changes directly into the providers array dynamically
+  useEffect(() => {
+    if (activeProvider && providers.length > 0) {
+      setProviders((prevProviders) => {
+        const existing = prevProviders.find((p) => String(p.id) === String(activeProvider.id));
+        if (existing && JSON.stringify(existing) !== JSON.stringify(activeProvider)) {
+          return prevProviders.map((p) => (String(p.id) === String(activeProvider.id) ? { ...p, ...activeProvider } : p));
+        }
+        return prevProviders;
+      });
+    }
+  }, [activeProvider]);
 
   useEffect(() => {
     try {
@@ -1377,14 +1398,22 @@ export function AppProvider({ children }) {
 
   const updateProfile = (profileData) => {
     if (!profileData) return;
-    if (activeUser?.isGuest || activeUser?.id === 0 || activeUser?.name === 'Guest User' || activeUser?.phone === '+91 00000 00000') {
-      return; // Guest profile cannot save or change addresses
+
+    // Determine or assign a valid persistent ID
+    let nextId = activeUser?.id;
+    if (!nextId || nextId === 0) {
+      const maxId = (users || []).reduce((max, u) => Math.max(max, Number(u.id) || 0), 100);
+      nextId = maxId + 1;
     }
-    // Never invent a session from a partial object when logged out
-    if (!activeUser || (activeUser.id == null && !activeUser.phone)) {
-      if (profileData.id == null && !profileData.phone) return;
-    }
-    const next = { ...(activeUser || {}), ...profileData };
+
+    const next = {
+      ...(activeUser || {}),
+      ...profileData,
+      id: nextId,
+      isGuest: false,
+      isAnonymous: false,
+    };
+
     if (profileData.address && !profileData.saved_addresses) {
       next.saved_addresses = upsertDefaultAddress(
         next.saved_addresses || [],
@@ -1397,12 +1426,63 @@ export function AppProvider({ children }) {
     } else if (Array.isArray(next.saved_addresses)) {
       next.saved_addresses = normalizeSavedAddresses(next.saved_addresses);
     }
+
     setActiveUser(next);
-    if (next.id != null) {
-      setUsers((prev) =>
-        prev.map((u) => (u.id === next.id ? { ...u, ...next } : u))
+    try {
+      localStorage.setItem('zevota_active_user', JSON.stringify(next));
+    } catch (e) {}
+
+    setUsers((prev) => {
+      const currentList = prev || [];
+      const cleanTargetPhone = next.phone ? String(next.phone).replace(/\D/g, '').slice(-10) : '';
+      const exists = currentList.some(
+        (u) => u.id === next.id || (cleanTargetPhone && String(u.phone).replace(/\D/g, '').slice(-10) === cleanTargetPhone)
       );
-    }
+      const updatedList = exists
+        ? currentList.map((u) => {
+            if (u.id === next.id || (cleanTargetPhone && String(u.phone).replace(/\D/g, '').slice(-10) === cleanTargetPhone)) {
+              return { ...u, ...next };
+            }
+            return u;
+          })
+        : [next, ...currentList];
+
+      try {
+        localStorage.setItem('zevota_users', JSON.stringify(updatedList));
+      } catch (e) {}
+      return updatedList;
+    });
+
+    return next;
+  };
+
+  const updateProviderProfile = (profileData) => {
+    if (!profileData) return;
+    const current = activeProvider || {};
+    const updated = {
+      ...current,
+      ...profileData,
+      id: current.id || profileData.id || 1,
+    };
+
+    setActiveProvider(updated);
+    try {
+      localStorage.setItem('zevota_active_provider', JSON.stringify(updated));
+    } catch (e) {}
+
+    setProviders((prev) => {
+      const currentList = prev || [];
+      const exists = currentList.some((p) => p.id === updated.id);
+      const nextList = exists
+        ? currentList.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
+        : [updated, ...currentList];
+      try {
+        localStorage.setItem('zevota_providers', JSON.stringify(nextList));
+      } catch (e) {}
+      return nextList;
+    });
+
+    return updated;
   };
 
   // Global Actions
@@ -2205,6 +2285,7 @@ export function AppProvider({ children }) {
         submitBookingRating,
         skipBookingRating,
         updateProviderLocation,
+        updateProviderProfile,
         calculateApplianceExtraCharge,
       }}
     >

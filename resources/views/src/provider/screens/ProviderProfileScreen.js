@@ -6,11 +6,13 @@ import ImageUploadField from '../../admin/components/ImageUploadField';
 import ProviderIcon from '../ProviderIcons';
 
 export default function ProviderProfileScreen() {
-  const { activeProvider, setActiveProvider, logoutProvider } = useApp();
+  const { activeProvider, setActiveProvider, updateProviderProfile, logoutProvider } = useApp();
   const navigate = useNavigate();
 
   const [isOnline, setIsOnline] = useState(activeProvider?.is_online ?? true);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   // Edit Form State
   const [name, setName] = useState(activeProvider?.name || '');
@@ -21,27 +23,77 @@ export default function ProviderProfileScreen() {
   const [location, setLocation] = useState(activeProvider?.location || '');
   const [profileImage, setProfileImage] = useState(activeProvider?.image_url || '');
 
+  const handleOpenEditModal = () => {
+    setName(activeProvider?.name || '');
+    const cleanDigits = (activeProvider?.phone || '').replace(/\D/g, '').slice(-10);
+    setPhone(cleanDigits);
+    setEmail(activeProvider?.email || '');
+    setTrade(activeProvider?.trade || '');
+    setExperience(activeProvider?.experience || '');
+    setLocation(activeProvider?.location || '');
+    setProfileImage(activeProvider?.image_url || '');
+    setErrorMsg('');
+    setSuccessMsg('');
+    setEditModalVisible(true);
+  };
+
   const handleToggleOnline = (val) => {
     setIsOnline(val);
-    if (setActiveProvider && activeProvider) {
+    if (updateProviderProfile && activeProvider) {
+      updateProviderProfile({ ...activeProvider, is_online: val });
+    } else if (setActiveProvider && activeProvider) {
       setActiveProvider((prev) => ({ ...prev, is_online: val }));
     }
   };
 
   const handleSaveProfile = () => {
-    if (setActiveProvider) {
-      setActiveProvider((prev) => ({
-        ...prev,
-        name,
-        phone,
-        email,
-        trade,
-        experience,
-        location,
-        image_url: profileImage,
-      }));
+    const trimmedName = name.trim();
+    const cleanDigits = phone.replace(/\D/g, '').trim();
+
+    if (!trimmedName || trimmedName.length < 2) {
+      setErrorMsg('Please enter a valid full name (minimum 2 characters).');
+      return;
     }
-    setEditModalVisible(false);
+
+    if (!cleanDigits || cleanDigits.length !== 10) {
+      setErrorMsg('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    if (!trade.trim()) {
+      setErrorMsg('Please enter your trade or skill specialization.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email.trim() && !emailRegex.test(email.trim())) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    setErrorMsg('');
+    const updated = {
+      ...(activeProvider || {}),
+      name: trimmedName,
+      phone: `+91 ${cleanDigits}`,
+      email: email.trim(),
+      trade: trade.trim(),
+      experience: experience.trim(),
+      location: location.trim(),
+      image_url: profileImage,
+    };
+
+    if (updateProviderProfile) {
+      updateProviderProfile(updated);
+    } else if (setActiveProvider) {
+      setActiveProvider(updated);
+    }
+
+    setSuccessMsg('Partner profile updated successfully!');
+    setTimeout(() => {
+      setSuccessMsg('');
+      setEditModalVisible(false);
+    }, 800);
   };
 
   const handleLogout = () => {
@@ -83,7 +135,7 @@ export default function ProviderProfileScreen() {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.editIconBtn} onPress={() => setEditModalVisible(true)} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.editIconBtn} onPress={handleOpenEditModal} activeOpacity={0.8}>
             <ProviderIcon name="edit" color="#2563eb" size={13} />
             <Text style={styles.editIconText}>Edit</Text>
           </TouchableOpacity>
@@ -172,7 +224,7 @@ export default function ProviderProfileScreen() {
 
       {/* Action Buttons */}
       <View style={styles.actionsSection}>
-        <TouchableOpacity style={styles.actionBtnOutline} onPress={() => setEditModalVisible(true)} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.actionBtnOutline} onPress={handleOpenEditModal} activeOpacity={0.8}>
           <ProviderIcon name="edit" color="#2563eb" size={15} />
           <Text style={styles.actionBtnOutlineText}>Edit Profile Information</Text>
         </TouchableOpacity>
@@ -190,35 +242,47 @@ export default function ProviderProfileScreen() {
             <Text style={styles.modalTitle}>Edit Partner Profile</Text>
             <Text style={styles.modalSub}>Update your personal, trade, and contact information.</Text>
 
+            {errorMsg ? (
+              <View style={styles.errorAlert}>
+                <Text style={styles.errorAlertText}>⚠️ {errorMsg}</Text>
+              </View>
+            ) : null}
+
+            {successMsg ? (
+              <View style={styles.successAlert}>
+                <Text style={styles.successAlertText}>✅ {successMsg}</Text>
+              </View>
+            ) : null}
+
             <ScrollView style={{ width: '100%', maxHeight: 420 }} contentContainerStyle={{ gap: 10, paddingRight: 4, paddingBottom: 6 }} showsVerticalScrollIndicator={true}>
               <View>
                 <Text style={styles.inputLabel}>Full Name *</Text>
-                <TextInput style={styles.textInput} value={name} onChangeText={setName} />
+                <TextInput style={styles.textInput} value={name} onChangeText={(v) => { setName(v); setErrorMsg(''); }} placeholder="e.g. Rajesh Sharma" />
               </View>
 
               <View>
-                <Text style={styles.inputLabel}>Phone Number *</Text>
-                <TextInput style={styles.textInput} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+                <Text style={styles.inputLabel}>Mobile Number *</Text>
+                <TextInput style={styles.textInput} value={phone} onChangeText={(v) => { setPhone(v.replace(/\D/g, '').slice(0, 10)); setErrorMsg(''); }} keyboardType="phone-pad" maxLength={10} placeholder="10-digit mobile number" />
               </View>
 
               <View>
                 <Text style={styles.inputLabel}>Email Address</Text>
-                <TextInput style={styles.textInput} value={email} onChangeText={setEmail} keyboardType="email-address" />
+                <TextInput style={styles.textInput} value={email} onChangeText={(v) => { setEmail(v); setErrorMsg(''); }} keyboardType="email-address" autoCapitalize="none" placeholder="e.g. rajesh@example.com" />
               </View>
 
               <View>
                 <Text style={styles.inputLabel}>Trade / Skill Specialization *</Text>
-                <TextInput style={styles.textInput} value={trade} onChangeText={setTrade} />
+                <TextInput style={styles.textInput} value={trade} onChangeText={(v) => { setTrade(v); setErrorMsg(''); }} placeholder="e.g. Electrical & AC Specialist" />
               </View>
 
               <View style={styles.rowTwo}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.inputLabel}>Experience</Text>
-                  <TextInput style={styles.textInput} value={experience} onChangeText={setExperience} />
+                  <TextInput style={styles.textInput} value={experience} onChangeText={(v) => { setExperience(v); setErrorMsg(''); }} placeholder="e.g. 5+ Yrs" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.inputLabel}>Service Base City</Text>
-                  <TextInput style={styles.textInput} value={location} onChangeText={setLocation} />
+                  <TextInput style={styles.textInput} value={location} onChangeText={(v) => { setLocation(v); setErrorMsg(''); }} placeholder="e.g. Mumbai, MH" />
                 </View>
               </View>
 
@@ -559,5 +623,31 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontSize: 12,
     fontWeight: '600',
+  },
+  errorAlert: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  errorAlertText: {
+    color: '#dc2626',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  successAlert: {
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  successAlertText: {
+    color: '#16a34a',
+    fontSize: 11.5,
+    fontWeight: '700',
   },
 });
