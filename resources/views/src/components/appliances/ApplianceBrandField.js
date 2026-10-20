@@ -42,9 +42,14 @@ export default function ApplianceBrandField({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>Company{error ? '' : ''}</Text>
+      <Text style={styles.label}>
+        Company <Text style={{ color: '#ef4444', fontWeight: '700' }}>*</Text>
+      </Text>
       <View style={styles.searchBar}>
-        <Text style={styles.searchIcon}>⌕</Text>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
         <TextInput
           style={styles.searchInput}
           value={query}

@@ -699,6 +699,12 @@ export default function ApplianceAddWizard({
     );
   };
 
+  const isDetailsValid = useMemo(() => {
+    if (!currentUnit) return false;
+    const errors = validateApplianceFields(activeFields, currentUnit);
+    return Object.keys(errors).length === 0;
+  }, [activeFields, currentUnit]);
+
   const handleDetailsContinue = () => {
     const errors = validateApplianceFields(activeFields, currentUnit || {});
     setFieldErrors(errors);
@@ -1322,8 +1328,15 @@ export default function ApplianceAddWizard({
               </View>
             </View>
 
-            <TouchableOpacity style={styles.primaryBtn} onPress={handleDetailsContinue} activeOpacity={0.9}>
-              <Text style={styles.primaryBtnText}>Continue</Text>
+            <TouchableOpacity
+              style={[styles.primaryBtn, !isDetailsValid && styles.primaryBtnDisabled]}
+              onPress={handleDetailsContinue}
+              disabled={!isDetailsValid}
+              activeOpacity={0.88}
+            >
+              <Text style={[styles.primaryBtnText, !isDetailsValid && styles.primaryBtnTextDisabled]}>
+                Continue
+              </Text>
             </TouchableOpacity>
           </>
         )}
@@ -2127,13 +2140,29 @@ const styles = StyleSheet.create({
   summaryYear: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
   unitLabel: { fontSize: 13, fontWeight: '700', color: '#334155' },
   primaryBtn: {
-    backgroundColor: '#2563eb', borderRadius: 14,
-    paddingVertical: 14, paddingHorizontal: 16,
-    alignItems: 'center', justifyContent: 'center', marginTop: 8,
+    backgroundColor: '#0052e0',
+    borderRadius: 12,
+    paddingVertical: 12.5,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    cursor: 'pointer',
+    boxShadow: '0 4px 14px rgba(0, 82, 224, 0.2)',
   },
-  primaryBtnDisabled: { backgroundColor: '#cbd5e1' },
-  primaryBtnText: { color: '#ffffff', fontSize: 15, fontWeight: '800', textAlign: 'center' },
-  primaryBtnTextDisabled: { color: '#f8fafc' },
+  primaryBtnDisabled: {
+    backgroundColor: '#e2e8f0',
+    cursor: 'not-allowed',
+    boxShadow: 'none',
+  },
+  primaryBtnText: {
+    color: '#ffffff',
+    fontSize: 13.5,
+    fontWeight: '700',
+    textAlign: 'center',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  primaryBtnTextDisabled: { color: '#94a3b8' },
   errorText: { color: '#dc2626', fontSize: 12, fontWeight: '600', textAlign: 'center' },
   modalOverlay: {
     flex: 1, backgroundColor: 'rgba(15,23,42,0.55)',

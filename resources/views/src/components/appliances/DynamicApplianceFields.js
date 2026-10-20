@@ -35,9 +35,13 @@ export default function DynamicApplianceFields({
 
         if (field.type === 'select') {
           const isOpen = openDropdown === field.id;
+          const isCompulsory = isFieldCompulsory(field);
           return (
             <View key={field.id} style={[styles.fieldGroup, { zIndex: isOpen ? 40 : 1 }]}>
-              <Text style={styles.label}>{field.label}</Text>
+              <Text style={styles.label}>
+                {field.label}
+                {isCompulsory ? <Text style={styles.requiredStar}> *</Text> : <Text style={styles.optionalHint}> (optional)</Text>}
+              </Text>
               <TouchableOpacity
                 style={[styles.input, styles.dropdown, errors[field.id] && styles.inputError]}
                 onPress={() => setOpenDropdown(isOpen ? null : field.id)}
@@ -76,7 +80,9 @@ export default function DynamicApplianceFields({
           const len = (values[field.id] || '').length;
           return (
             <View key={field.id} style={styles.fieldGroup}>
-              <Text style={styles.label}>{field.label} (optional)</Text>
+              <Text style={styles.label}>
+                {field.label} <Text style={styles.optionalHint}>(optional)</Text>
+              </Text>
               <TextInput
                 style={[styles.input, styles.textarea, errors[field.id] && styles.inputError]}
                 value={values[field.id] || ''}
@@ -92,9 +98,13 @@ export default function DynamicApplianceFields({
           );
         }
 
+        const isCompulsory = isFieldCompulsory(field);
         return (
           <View key={field.id} style={styles.fieldGroup}>
-            <Text style={styles.label}>{field.label}</Text>
+            <Text style={styles.label}>
+              {field.label}
+              {isCompulsory ? <Text style={styles.requiredStar}> *</Text> : <Text style={styles.optionalHint}> (optional)</Text>}
+            </Text>
             <TextInput
               style={[styles.input, errors[field.id] && styles.inputError]}
               value={values[field.id] || ''}
@@ -112,24 +122,37 @@ export default function DynamicApplianceFields({
   );
 }
 
-export function validateApplianceFields(fields, values) {
+export function isFieldCompulsory(field) {
+  if (!field) return false;
+  if (field.id === 'notes') return false;
+  if (field.type === 'textarea') return false;
+  const labelLower = (field.label || '').toLowerCase();
+  if (labelLower.includes('additional detail') || labelLower.includes('optional')) return false;
+  return true;
+}
+
+export function validateApplianceFields(fields, values = {}) {
   const errors = {};
-  (fields || []).filter((f) => f.id !== 'condition' && (f.label || '').toLowerCase() !== 'condition').forEach((field) => {
-    if (!field.required) return;
-    if (field.type === 'brand') {
-      const brand = values.brand || '';
-      if (!brand) {
-        errors.brand = 'Please select a company.';
-      } else if (brand === OTHER_BRAND && !(values.customBrand || '').trim()) {
-        errors.brand = 'Please enter the company name.';
+  (fields || [])
+    .filter((f) => f.id !== 'condition' && (f.label || '').toLowerCase() !== 'condition')
+    .forEach((field) => {
+      if (!isFieldCompulsory(field)) return;
+
+      if (field.type === 'brand') {
+        const brand = (values.brand || '').trim();
+        if (!brand) {
+          errors.brand = 'Please select a company.';
+        } else if (brand === OTHER_BRAND && !(values.customBrand || '').trim()) {
+          errors.brand = 'Please enter the company name.';
+        }
+        return;
       }
-      return;
-    }
-    const v = values[field.id];
-    if (v == null || String(v).trim() === '') {
-      errors[field.id] = `Please ${field.type === 'select' ? 'select' : 'enter'} the ${field.label.toLowerCase()}.`;
-    }
-  });
+
+      const v = values[field.id];
+      if (v == null || String(v).trim() === '') {
+        errors[field.id] = `Please ${field.type === 'select' ? 'select' : 'enter'} ${field.label}.`;
+      }
+    });
   return errors;
 }
 
@@ -147,14 +170,23 @@ const styles = StyleSheet.create({
     color: '#334155',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
+  requiredStar: {
+    color: '#ef4444',
+    fontWeight: '700',
+  },
+  optionalHint: {
+    color: '#94a3b8',
+    fontWeight: '400',
+    fontSize: 11,
+  },
   input: {
     backgroundColor: '#f8fafc',
     borderWidth: 1.5,
     borderColor: '#e2e8f0',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
     color: '#0f172a',
     outlineStyle: 'none',
     fontFamily: "'Outfit', 'Inter', sans-serif",
@@ -165,34 +197,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  inputText: { fontSize: 14, color: '#0f172a', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  inputText: { fontSize: 13, color: '#0f172a', fontFamily: "'Outfit', 'Inter', sans-serif" },
   placeholder: { color: '#94a3b8' },
   chevron: { color: '#64748b', fontSize: 12 },
   menu: {
     position: 'absolute',
-    top: 68,
+    top: 64,
     left: 0,
     right: 0,
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    borderRadius: 12,
+    borderRadius: 10,
     maxHeight: 200,
     overflow: 'hidden',
     zIndex: 50,
     boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
   },
   option: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
   },
-  optionText: { fontSize: 13, color: '#0f172a', fontFamily: "'Outfit', 'Inter', sans-serif" },
-  textarea: { minHeight: 88, textAlignVertical: 'top' },
-  counter: { fontSize: 11, color: '#94a3b8', textAlign: 'right' },
+  optionText: { fontSize: 12.5, color: '#0f172a', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  textarea: { minHeight: 80, textAlignVertical: 'top' },
+  counter: { fontSize: 10.5, color: '#94a3b8', textAlign: 'right' },
   error: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#dc2626',
     fontWeight: '600',
     fontFamily: "'Outfit', 'Inter', sans-serif",
