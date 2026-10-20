@@ -228,8 +228,10 @@ export default function BookingLocationStep({
         onPress={onContinue}
         activeOpacity={0.88}
       >
-        <Text style={styles.primaryBtnText}>Continue to Review & Confirm</Text>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <Text style={[styles.primaryBtnText, !canContinue && styles.primaryBtnTextDisabled]}>
+          Continue to Review & Confirm
+        </Text>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={!canContinue ? '#94a3b8' : '#ffffff'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <line x1="5" y1="12" x2="19" y2="12" />
           <polyline points="12 5 19 12 12 19" />
         </svg>
@@ -296,22 +298,22 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '900',
+    fontSize: 17,
+    fontWeight: '800',
     color: '#0f172a',
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 13.5,
+    fontSize: 11.5,
     color: '#64748b',
-    lineHeight: 20,
+    lineHeight: 16,
     fontWeight: '500',
   },
   sectionWrap: {
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: '800',
     color: '#0f172a',
     letterSpacing: -0.2,
@@ -418,12 +420,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mapSectionTitle: {
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: '800',
     color: '#0f172a',
   },
   mapSectionSubtitle: {
-    fontSize: 11.5,
+    fontSize: 11,
     color: '#64748b',
     fontWeight: '500',
   },
@@ -433,16 +435,16 @@ const styles = StyleSheet.create({
     borderColor: '#cbd5e1',
     borderRadius: 14,
     padding: 14,
-    fontSize: 13.5,
+    fontSize: 13,
     color: '#0f172a',
     backgroundColor: '#ffffff',
     textAlignVertical: 'top',
     boxShadow: '0 2px 6px rgba(15, 23, 42, 0.02)',
-    lineHeight: 20,
+    lineHeight: 19,
     fontWeight: '500',
   },
   inputHint: {
-    fontSize: 11.5,
+    fontSize: 11,
     color: '#94a3b8',
     fontWeight: '500',
   },
@@ -450,7 +452,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    padding: 14,
+    padding: 12,
     borderRadius: 14,
     borderWidth: 1,
   },
@@ -466,7 +468,7 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   validHeader: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
   },
   validOkHeader: {
@@ -476,8 +478,8 @@ const styles = StyleSheet.create({
     color: '#991b1b',
   },
   validText: {
-    fontSize: 12.5,
-    lineHeight: 18,
+    fontSize: 11.5,
+    lineHeight: 16,
     marginTop: 2,
     fontWeight: '500',
   },
@@ -488,26 +490,36 @@ const styles = StyleSheet.create({
     color: '#b91c1c',
   },
   primaryBtn: {
+    width: '100%',
+    boxSizing: 'border-box',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 8,
     backgroundColor: '#2563eb',
     borderRadius: 14,
-    paddingVertical: 15,
+    paddingVertical: 13,
+    paddingHorizontal: 20,
     boxShadow: '0 6px 18px rgba(37, 99, 235, 0.28)',
     cursor: 'pointer',
-    marginTop: 4,
+    marginTop: 6,
   },
   primaryBtnDisabled: {
-    backgroundColor: '#94a3b8',
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
     boxShadow: 'none',
     cursor: 'not-allowed',
   },
   primaryBtnText: {
     color: '#ffffff',
     fontWeight: '800',
-    fontSize: 15,
+    fontSize: 13.5,
     letterSpacing: 0.2,
+    textAlign: 'center',
+  },
+  primaryBtnTextDisabled: {
+    color: '#94a3b8',
+    fontWeight: '700',
   },
 });

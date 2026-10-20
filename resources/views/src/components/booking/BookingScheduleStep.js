@@ -284,34 +284,34 @@ export default function BookingScheduleStep({
       <View style={styles.trustStrip}>
         <View style={styles.trustItem}>
           <View style={styles.trustIconCircle}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               <polyline points="9 11 11 13 15 9" />
             </svg>
           </View>
-          <Text style={styles.trustText}>Certified Expert</Text>
+          <Text style={styles.trustText} numberOfLines={1}>Certified</Text>
         </View>
 
         <View style={styles.trustDivider} />
 
         <View style={styles.trustItem}>
           <View style={styles.trustIconCircle}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
             </svg>
           </View>
-          <Text style={styles.trustText}>Free Reschedule</Text>
+          <Text style={styles.trustText} numberOfLines={1}>Reschedule</Text>
         </View>
 
         <View style={styles.trustDivider} />
 
         <View style={styles.trustItem}>
           <View style={styles.trustIconCircle}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="3 11 22 2 13 21 11 13 3 11" />
             </svg>
           </View>
-          <Text style={styles.trustText}>Live Tracking</Text>
+          <Text style={styles.trustText} numberOfLines={1}>Live Track</Text>
         </View>
       </View>
 
@@ -397,15 +397,16 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   title: {
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: '800',
     color: '#0f172a',
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 11.5,
     color: '#64748b',
-    lineHeight: 18,
+    lineHeight: 16,
+    fontWeight: '500',
   },
 
   // Service Card
@@ -523,12 +524,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sectionTitle: {
-    fontSize: 14.5,
+    fontSize: 12.5,
     fontWeight: '800',
     color: '#0f172a',
+    letterSpacing: -0.2,
   },
   sectionSelectedIndicator: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#2563eb',
     fontWeight: '700',
     marginLeft: 'auto',
@@ -541,15 +543,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 1,
   },
   dateCard: {
-    width: 76,
-    paddingVertical: 10,
+    width: 72,
+    paddingVertical: 9,
     paddingHorizontal: 6,
     borderRadius: 14,
     borderWidth: 1.5,
     borderColor: '#e2e8f0',
     backgroundColor: '#ffffff',
     alignItems: 'center',
-    gap: 3,
+    gap: 2.5,
     cursor: 'pointer',
     shadowColor: '#0f172a',
     shadowOffset: { width: 0, height: 1 },
@@ -580,7 +582,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   dateCardTagText: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: '800',
     color: '#64748b',
     letterSpacing: 0.3,
@@ -589,16 +591,16 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   dateCardNumber: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '900',
     color: '#0f172a',
-    lineHeight: 24,
+    lineHeight: 20,
   },
   dateCardNumberActive: {
     color: '#ffffff',
   },
   dateCardMonth: {
-    fontSize: 10.5,
+    fontSize: 9.5,
     fontWeight: '700',
     color: '#64748b',
     letterSpacing: 0.5,
@@ -616,8 +618,8 @@ const styles = StyleSheet.create({
     opacity: 0.95,
   },
   fastestDot: {
-    width: 5,
-    height: 5,
+    width: 4.5,
+    height: 4.5,
     borderRadius: 2.5,
     backgroundColor: '#16a34a',
   },
@@ -625,7 +627,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#86efac',
   },
   fastestText: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: '700',
     color: '#16a34a',
   },
@@ -641,8 +643,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingVertical: 11,
+    paddingHorizontal: 12,
     borderRadius: 14,
     borderWidth: 1.5,
     borderColor: '#e2e8f0',
@@ -668,10 +670,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     flex: 1,
+    minWidth: 0,
   },
   slotIconBox: {
-    width: 30,
-    height: 30,
+    width: 28,
+    height: 28,
     borderRadius: 8,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
@@ -685,23 +688,26 @@ const styles = StyleSheet.create({
     borderColor: '#bfdbfe',
   },
   slotTimeText: {
-    fontSize: 13.5,
+    fontSize: 12.5,
     fontWeight: '700',
     color: '#0f172a',
+    lineHeight: 18,
+    paddingTop: 1,
   },
   slotTimeTextActive: {
     color: '#1d4ed8',
   },
   slotPeriodText: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#64748b',
     fontWeight: '500',
     marginTop: 1,
+    lineHeight: 14,
   },
   slotRadioCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 1.5,
     borderColor: '#cbd5e1',
     backgroundColor: '#ffffff',
@@ -719,39 +725,46 @@ const styles = StyleSheet.create({
   trustStrip: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     backgroundColor: '#f8fafc',
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 8,
     marginTop: 2,
+    width: '100%',
+    boxSizing: 'border-box',
   },
   trustItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    justifyContent: 'center',
+    gap: 4,
+    flex: 1,
+    minWidth: 0,
   },
   trustIconCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   trustText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     color: '#334155',
   },
   trustDivider: {
     width: 1,
-    height: 16,
+    height: 14,
     backgroundColor: '#e2e8f0',
+    flexShrink: 0,
   },
 
   // Selection Summary
@@ -763,11 +776,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#bfdbfe',
     borderRadius: 12,
-    paddingVertical: 9,
+    paddingVertical: 8,
     paddingHorizontal: 12,
   },
   selectionSummaryText: {
-    fontSize: 12.5,
+    fontSize: 11,
     color: '#1e40af',
     fontWeight: '500',
     flex: 1,
@@ -777,8 +790,8 @@ const styles = StyleSheet.create({
   primaryBtn: {
     backgroundColor: '#2563eb',
     borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 13,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -790,10 +803,12 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
     marginTop: 4,
+    width: '100%',
+    boxSizing: 'border-box',
   },
   primaryBtnDisabled: {
     backgroundColor: '#f1f5f9',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#e2e8f0',
     shadowOpacity: 0,
     elevation: 0,
@@ -801,7 +816,7 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: {
     color: '#ffffff',
-    fontSize: 15,
+    fontSize: 13.5,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
