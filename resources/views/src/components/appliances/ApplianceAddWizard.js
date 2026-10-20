@@ -1139,7 +1139,7 @@ export default function ApplianceAddWizard({
                 : 'Select the item you want to register with a live video.'}
             </Text>
             <View style={styles.searchBar}>
-              <Text style={styles.searchGlyph}>⌕</Text>
+              <AppIcon name="search" size={14} color="#94a3b8" />
               <TextInput
                 style={styles.searchInput}
                 value={searchQuery}
@@ -1165,8 +1165,8 @@ export default function ApplianceAddWizard({
                 <View style={styles.categoryBundleHero}>
                   <View style={styles.bundleHeroHeader}>
                     <View style={styles.bundleBadge}>
-                      <IconShield size={12} color="#2563eb" />
-                      <Text style={styles.bundleBadgeText}>1-TIME CATEGORY ADD</Text>
+                      <IconShield size={11} color="#0052e0" />
+                      <Text style={styles.bundleBadgeText}>1-Click Category Add</Text>
                     </View>
                     <View style={styles.bundleSavingsPill}>
                       <Text style={styles.bundleSavingsText}>
@@ -2044,23 +2044,37 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   title: {
-    fontSize: 22, fontWeight: '800', color: '#0f172a',
-    fontFamily: "'Outfit', 'Inter', sans-serif", letterSpacing: -0.3,
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 14, color: '#64748b', lineHeight: 20, marginTop: -6,
+    fontSize: 11.5,
+    color: '#64748b',
+    lineHeight: 16,
+    marginTop: -4,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   searchBar: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#f8fafc', borderWidth: 1.5,
-    borderColor: '#e2e8f0', borderRadius: 14,
-    paddingHorizontal: 12, paddingVertical: 11, gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 8,
   },
-  searchGlyph: { fontSize: 16, color: '#94a3b8' },
+  searchGlyph: { fontSize: 14, color: '#94a3b8' },
   searchInput: {
-    flex: 1, fontSize: 14, color: '#0f172a',
-    outlineStyle: 'none', fontFamily: "'Outfit', 'Inter', sans-serif",
+    flex: 1,
+    fontSize: 12.5,
+    color: '#0f172a',
+    outlineStyle: 'none',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   clearSearch: { color: '#94a3b8', fontSize: 14, padding: 4 },
   nativeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' },
@@ -2441,47 +2455,49 @@ const styles = StyleSheet.create({
   /* Category Package Hero Banner */
   categoryBundleHero: {
     backgroundColor: '#ffffff',
-    borderRadius: 18,
+    borderRadius: 14,
     borderWidth: 1.5,
     borderColor: '#bfdbfe',
-    padding: 16,
-    marginBottom: 16,
-    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)',
-    gap: 12,
+    padding: 12,
+    marginBottom: 12,
+    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.06)',
+    gap: 9,
   },
   bundleHeroHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: 6,
+    flexWrap: 'wrap',
   },
   bundleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
     backgroundColor: '#eff6ff',
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#bfdbfe',
   },
   bundleBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#1d4ed8',
-    letterSpacing: 0.5,
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#0052e0',
+    letterSpacing: 0.2,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   bundleSavingsPill: {
     backgroundColor: '#f0fdf4',
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#bbf7d0',
   },
   bundleSavingsText: {
-    fontSize: 10.5,
+    fontSize: 9.5,
     fontWeight: '700',
     color: '#15803d',
     fontFamily: "'Outfit', 'Inter', sans-serif",
@@ -2491,22 +2507,23 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   bundleHeroTitle: {
-    fontSize: 16,
+    fontSize: 13.5,
     fontWeight: '800',
     color: '#0f172a',
+    letterSpacing: -0.2,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   bundleHeroDesc: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#64748b',
-    lineHeight: 16,
+    lineHeight: 15,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   bundleFeaturesRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginTop: 4,
+    gap: 8,
+    marginTop: 2,
     flexWrap: 'wrap',
   },
   bundleFeatureItem: {
@@ -2515,31 +2532,31 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   bundleFeatureText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: '#15803d',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   bundleAddBtn: {
-    backgroundColor: '#2563eb',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    backgroundColor: '#0052e0',
+    borderRadius: 10,
+    paddingVertical: 9.5,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+    gap: 6,
+    boxShadow: '0 3px 10px rgba(0, 82, 224, 0.2)',
     cursor: 'pointer',
   },
   bundleAddBtnDone: {
     backgroundColor: '#16a34a',
-    boxShadow: '0 4px 12px rgba(22, 163, 74, 0.25)',
+    boxShadow: '0 3px 10px rgba(22, 163, 74, 0.2)',
   },
   bundleAddBtnText: {
     color: '#ffffff',
-    fontSize: 13.5,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '700',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   emptyCoveredBox: {
