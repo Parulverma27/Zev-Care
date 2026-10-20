@@ -1,48 +1,38 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import BookingProgress from './BookingProgress';
 import LiveSupportOptionCard from './LiveSupportOptionCard';
-import GoogleMapsLocationPicker from '../GoogleMapsLocationPicker';
 
 export default function BookingLocationStep({
   addresses = [],
   selectedAddressId,
   address,
   onSelectSaved,
-  onChangeAddress,
-  onChangeCoords,
   locationValidation,
-  onFetchGps,
-  locatingGps,
-  gpsError,
   onBack,
   onContinue,
   isConsultation = false,
   onLiveSupport,
+  onManageSavedAddresses,
 }) {
-  const [mapAddressKey, setMapAddressKey] = useState(0);
   const canContinue = Boolean(locationValidation?.isSupported);
 
-  const handleLocationPicked = (loc) => {
-    if (!loc) return;
-    if (loc.address) {
-      onChangeAddress?.(loc.address);
+  // Automatically ensure default or first saved address is selected
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddressId) {
+      const def = addresses.find((a) => a.isDefault) || addresses[0];
+      if (def) {
+        onSelectSaved?.(def);
+      }
     }
-    if (loc.lat && loc.lng) {
-      onChangeCoords?.({ latitude: loc.lat, longitude: loc.lng });
-    }
-  };
+  }, [addresses, selectedAddressId, onSelectSaved]);
 
-  const handleSelectSavedAddress = (a) => {
-    onSelectSaved?.(a);
-    if (a.address) {
-      onChangeAddress?.(a.address);
-      setMapAddressKey((k) => k + 1);
-    }
-    if (a.latitude && a.longitude) {
-      onChangeCoords?.({ latitude: a.latitude, longitude: a.longitude });
-    }
-  };
+  const activeAddressObj =
+    addresses.find((a) => a.id === selectedAddressId) ||
+    addresses.find((a) => a.address === address) ||
+    addresses.find((a) => a.isDefault) ||
+    addresses[0] ||
+    null;
 
   const getAddressTagIcon = (tag = '') => {
     const t = tag.toUpperCase();
@@ -100,24 +90,40 @@ export default function BookingLocationStep({
           {isConsultation ? 'Doorstep inspection location' : 'Service location'}
         </Text>
         <Text style={styles.subtitle}>
-          {isConsultation
-            ? 'Pinpoint or search your exact address on Google Map so the technician reaches on time.'
-            : 'Select a saved address or pinpoint your exact doorstep on Google Map.'}
+          Service will be provided at your selected saved address. To update your address, edit it in your Saved Addresses.
         </Text>
       </View>
 
-      {/* Saved Addresses (if any) */}
-      {addresses.length > 0 && (
+      {/* Saved Addresses Section */}
+      {addresses.length > 0 ? (
         <View style={styles.sectionWrap}>
-          <Text style={styles.sectionTitle}>Saved Addresses</Text>
+          <View style={styles.savedSectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Saved Addresses</Text>
+            {onManageSavedAddresses && (
+              <TouchableOpacity
+                onPress={onManageSavedAddresses}
+                style={styles.editSavedAddressesLink}
+                activeOpacity={0.7}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                <Text style={styles.editSavedAddressesText}>Edit in Saved Addresses</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
           <View style={styles.savedList}>
             {addresses.map((a) => {
-              const active = selectedAddressId === a.id || (!selectedAddressId && a.address === address);
+              const active =
+                selectedAddressId === a.id ||
+                (!selectedAddressId && activeAddressObj?.id === a.id);
               return (
                 <TouchableOpacity
                   key={a.id}
                   style={[styles.savedCard, active && styles.savedCardActive]}
-                  onPress={() => handleSelectSavedAddress(a)}
+                  onPress={() => onSelectSaved?.(a)}
                   activeOpacity={0.8}
                 >
                   <View style={styles.savedCardTop}>
@@ -127,16 +133,18 @@ export default function BookingLocationStep({
                         {a.tag || 'Saved Address'}
                       </Text>
                     </View>
-                    {active && (
+                    {active ? (
                       <View style={styles.activeCheckPill}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                         <Text style={styles.activeCheckText}>Selected</Text>
                       </View>
+                    ) : (
+                      <Text style={styles.selectPromptText}>Tap to Select</Text>
                     )}
                   </View>
-                  <Text style={styles.savedAddrText} numberOfLines={2}>
+                  <Text style={styles.savedAddrText} numberOfLines={3}>
                     {a.address}
                   </Text>
                 </TouchableOpacity>
@@ -144,55 +152,47 @@ export default function BookingLocationStep({
             })}
           </View>
         </View>
+      ) : (
+        <View style={styles.emptySavedBox}>
+          <Text style={styles.emptySavedTitle}>No saved address found</Text>
+          <Text style={styles.emptySavedSub}>
+            Please add your home address in your saved addresses to continue booking.
+          </Text>
+          {onManageSavedAddresses && (
+            <TouchableOpacity style={styles.addSavedBtn} onPress={onManageSavedAddresses}>
+              <Text style={styles.addSavedBtnText}>+ Add Saved Address</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       )}
 
-      {/* Embedded Google Map Section */}
-      <View style={styles.mapSectionCard}>
-        <View style={styles.mapSectionHeader}>
-          <View style={styles.mapSectionTitleRow}>
-            <View style={styles.mapIconCircle}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0052e0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-                <line x1="8" y1="2" x2="8" y2="18" />
-                <line x1="16" y1="6" x2="16" y2="22" />
+      {/* Confirmed Locked Doorstep Card */}
+      {activeAddressObj && (
+        <View style={styles.confirmedDoorstepCard}>
+          <View style={styles.confirmedDoorstepTop}>
+            <View style={styles.confirmedIconCircle}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <polyline points="9 12 11 14 15 10" />
               </svg>
             </View>
-            <View style={styles.mapTitleCol}>
-              <Text style={styles.mapSectionTitle}>Pinpoint on Google Map</Text>
-              <Text style={styles.mapSectionSubtitle} numberOfLines={2}>Drag marker or search below for exact doorstep</Text>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.confirmedCardLabel}>CONFIRMED SERVICE DOORSTEP</Text>
+              <Text style={styles.confirmedTagText}>{activeAddressObj.tag || 'Home'}</Text>
             </View>
           </View>
+          <Text style={styles.confirmedAddressBody}>{activeAddressObj.address}</Text>
+          <View style={styles.lockedNoteRow}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <Text style={styles.lockedNoteText}>
+              Address locked for this service. You can only edit it in your Saved Addresses.
+            </Text>
+          </View>
         </View>
-
-        <GoogleMapsLocationPicker
-          key={mapAddressKey}
-          initialAddress={address}
-          onSelectLocation={handleLocationPicked}
-          containerStyle={styles.embeddedMapPicker}
-        />
-      </View>
-
-      {/* Complete Physical Address & Landmark Input */}
-      <View style={styles.sectionWrap}>
-        <View style={styles.addressLabelRow}>
-          <Text style={styles.sectionTitle}>Complete Doorstep Address</Text>
-          <Text style={styles.requiredLabel}>Required</Text>
-        </View>
-        <TextInput
-          style={styles.addressInput}
-          value={address}
-          onChangeText={(t) => {
-            onChangeAddress?.(t);
-          }}
-          placeholder="Flat / House / Floor No., Building name, Street, Landmark & Pincode..."
-          placeholderTextColor="#94a3b8"
-          multiline
-          numberOfLines={3}
-        />
-        <Text style={styles.inputHint}>
-          Add flat, floor, or nearby landmark so the expert technician arrives smoothly.
-        </Text>
-      </View>
+      )}
 
       {/* Service Coverage Validation Banner */}
       {locationValidation && (
@@ -224,15 +224,15 @@ export default function BookingLocationStep({
 
       {/* Continue CTA */}
       <TouchableOpacity
-        style={[styles.primaryBtn, !canContinue && styles.primaryBtnDisabled]}
-        disabled={!canContinue}
+        style={[styles.primaryBtn, (!canContinue || !activeAddressObj) && styles.primaryBtnDisabled]}
+        disabled={!canContinue || !activeAddressObj}
         onPress={onContinue}
         activeOpacity={0.88}
       >
-        <Text style={[styles.primaryBtnText, !canContinue && styles.primaryBtnTextDisabled]}>
+        <Text style={[styles.primaryBtnText, (!canContinue || !activeAddressObj) && styles.primaryBtnTextDisabled]}>
           Continue to Review & Confirm
         </Text>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={!canContinue ? '#94a3b8' : '#ffffff'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={!canContinue || !activeAddressObj ? '#94a3b8' : '#ffffff'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <line x1="5" y1="12" x2="19" y2="12" />
           <polyline points="12 5 19 12 12 19" />
         </svg>
@@ -313,25 +313,32 @@ const styles = StyleSheet.create({
   sectionWrap: {
     gap: 8,
   },
+  savedSectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   sectionTitle: {
     fontSize: 12.5,
     fontWeight: '800',
     color: '#0f172a',
     letterSpacing: -0.2,
   },
-  addressLabelRow: {
+  editSavedAddressesLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: '#eff6ff',
+    cursor: 'pointer',
   },
-  requiredLabel: {
+  editSavedAddressesText: {
     fontSize: 11,
     fontWeight: '700',
     color: '#2563eb',
-    backgroundColor: '#eff6ff',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
   },
   savedList: {
     gap: 10,
@@ -385,85 +392,105 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
+  selectPromptText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748b',
+  },
   savedAddrText: {
     fontSize: 13,
     color: '#475569',
     lineHeight: 18,
     fontWeight: '500',
   },
-  mapSectionCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    padding: 12,
-    gap: 10,
-    boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
-  },
-  mapSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 2,
-    paddingTop: 2,
-  },
-  mapSectionTitleRow: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-    minWidth: 0,
-  },
-  mapIconCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
-    backgroundColor: '#eff6ff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  mapTitleCol: {
-    flex: 1,
-    minWidth: 0,
-  },
-  mapSectionTitle: {
-    fontSize: 12.5,
-    fontWeight: '800',
-    color: '#0f172a',
-    letterSpacing: -0.2,
-  },
-  mapSectionSubtitle: {
-    fontSize: 11,
-    color: '#64748b',
-    fontWeight: '500',
-    lineHeight: 15,
-  },
-  embeddedMapPicker: {
-    borderWidth: 0,
-    padding: 0,
-    borderRadius: 0,
-    boxShadow: 'none',
-    backgroundColor: 'transparent',
-    gap: 10,
-  },
-  addressInput: {
-    minHeight: 84,
+  emptySavedBox: {
+    backgroundColor: '#f8fafc',
     borderWidth: 1.5,
+    borderStyle: 'dashed',
     borderColor: '#cbd5e1',
     borderRadius: 14,
-    padding: 14,
-    fontSize: 13,
-    color: '#0f172a',
-    backgroundColor: '#ffffff',
-    textAlignVertical: 'top',
-    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.02)',
-    lineHeight: 19,
-    fontWeight: '500',
+    padding: 20,
+    alignItems: 'center',
+    textAlign: 'center',
+    gap: 8,
   },
-  inputHint: {
+  emptySavedTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1e293b',
+  },
+  emptySavedSub: {
+    fontSize: 11.5,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  addSavedBtn: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginTop: 4,
+    cursor: 'pointer',
+  },
+  addSavedBtnText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  confirmedDoorstepCard: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#bbf7d0',
+    borderRadius: 14,
+    padding: 14,
+    gap: 8,
+    boxShadow: '0 2px 10px rgba(22, 163, 74, 0.05)',
+  },
+  confirmedDoorstepTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  confirmedIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmedCardLabel: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#15803d',
+    letterSpacing: 0.6,
+  },
+  confirmedTagText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  confirmedAddressBody: {
+    fontSize: 12.5,
+    color: '#334155',
+    lineHeight: 18,
+    fontWeight: '500',
+    paddingLeft: 2,
+  },
+  lockedNoteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  lockedNoteText: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: '#64748b',
     fontWeight: '500',
   },
   validBanner: {

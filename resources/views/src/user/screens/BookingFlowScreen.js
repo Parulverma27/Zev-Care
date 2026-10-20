@@ -95,10 +95,11 @@ export default function BookingFlowScreen({ onNavigate }) {
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledDateLabel, setScheduledDateLabel] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
-  const [address, setAddress] = useState(activeUser?.address || '');
-  const [selectedAddressId, setSelectedAddressId] = useState(null);
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
+  const defaultSavedAddress = (activeUser?.saved_addresses || []).find((a) => a.isDefault) || (activeUser?.saved_addresses || [])[0];
+  const [address, setAddress] = useState(defaultSavedAddress?.address || activeUser?.address || '');
+  const [selectedAddressId, setSelectedAddressId] = useState(defaultSavedAddress?.id || null);
+  const [latitude, setLatitude] = useState(defaultSavedAddress?.latitude || null);
+  const [longitude, setLongitude] = useState(defaultSavedAddress?.longitude || null);
   const [locatingGps, setLocatingGps] = useState(false);
   const [gpsError, setGpsError] = useState('');
 
@@ -249,6 +250,20 @@ export default function BookingFlowScreen({ onNavigate }) {
 
   const subGroups = useMemo(() => getSubGroups(category, subCategories), [category, subCategories]);
   const savedAddresses = activeUser?.saved_addresses || [];
+
+  // Automatically select default saved address
+  useEffect(() => {
+    if (savedAddresses.length > 0 && !selectedAddressId) {
+      const defaultSaved = savedAddresses.find((a) => a.isDefault) || savedAddresses[0];
+      if (defaultSaved) {
+        setSelectedAddressId(defaultSaved.id);
+        setAddress(defaultSaved.address);
+        if (defaultSaved.latitude) setLatitude(defaultSaved.latitude);
+        if (defaultSaved.longitude) setLongitude(defaultSaved.longitude);
+      }
+    }
+  }, [savedAddresses, selectedAddressId]);
+
   const locationValidation = validateServiceLocation
     ? validateServiceLocation(address)
     : { isSupported: true, message: 'OK' };
@@ -961,23 +976,18 @@ export default function BookingFlowScreen({ onNavigate }) {
             onSelectSaved={(a) => {
               setSelectedAddressId(a.id);
               setAddress(a.address);
-            }}
-            onChangeAddress={(t) => {
-              setAddress(t);
-              setSelectedAddressId(null);
-            }}
-            onChangeCoords={({ latitude: la, longitude: lo }) => {
-              setLatitude(la);
-              setLongitude(lo);
+              if (a.latitude) setLatitude(a.latitude);
+              if (a.longitude) setLongitude(a.longitude);
             }}
             locationValidation={locationValidation}
-            onFetchGps={handleFetchGps}
-            locatingGps={locatingGps}
-            gpsError={gpsError}
             isConsultation={isConsultation}
             onBack={handleBack}
             onContinue={() => setStep('REVIEW')}
             onLiveSupport={goLiveSupport}
+            onManageSavedAddresses={() => {
+              if (navigate) navigate('/user/saved-addresses');
+              else if (onNavigate) onNavigate('/user/saved-addresses');
+            }}
           />
         </View>
       );
