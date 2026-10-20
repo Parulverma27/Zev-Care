@@ -747,6 +747,7 @@ export function AppProvider({ children }) {
       .filter((tx) => tx.type === 'SERVICE_PAYMENT')
       .reduce((s, tx) => s + Math.abs(Number(tx.amount || 0)), 0);
     const expectedRemaining = Math.max(0, expectedCredit - serviceDebits);
+    const current = Number(activeUser.wallet_balance || 0);
     const hasRealPurchase = userTxs.some((tx) => tx.type === 'AMC_PURCHASE');
     const hasPlanPurchase = hasRealPurchase || userTxs.some((tx) => tx.type === 'PLAN_PURCHASE');
 
