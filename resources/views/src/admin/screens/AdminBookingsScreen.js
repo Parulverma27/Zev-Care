@@ -63,8 +63,37 @@ export default function AdminBookingsScreen() {
   const [billFormError, setBillFormError] = useState('');
 
   // Strictly filter out "My Mechanic" / Free Consultations so Booking Operations only manages standard work orders
-  const isConsultationBk = (b) => Boolean(b?.isConsultation || b?.booking_mode === 'consultation');
+  const isConsultationBk = (b) => Boolean(b?.isConsultation || b?.is_consultation || b?.booking_mode === 'consultation' || b?.bookingMode === 'consultation');
   const activeBookings = (bookings || []).filter((b) => !isConsultationBk(b));
+
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredBookings = activeBookings.filter((b) => {
+    if (categoryFilter !== 'ALL') {
+      const cat = (b.category_name || b.category || b.service_name || '').toLowerCase();
+      const filterLower = categoryFilter.toLowerCase();
+      if (filterLower === 'ac') {
+        if (!cat.includes('ac') && !cat.includes('air condition') && !cat.includes('cooling')) return false;
+      } else if (!cat.includes(filterLower)) {
+        return false;
+      }
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchId = (b.booking_id || '').toLowerCase().includes(q);
+      const matchName = (b.user_name || '').toLowerCase().includes(q);
+      const matchPhone = (b.user_phone || '').toLowerCase().includes(q);
+      const matchService = (b.service_name || '').toLowerCase().includes(q);
+      const matchCat = (b.category_name || '').toLowerCase().includes(q);
+      const matchProv = (b.provider_name || '').toLowerCase().includes(q);
+      const matchAddr = (b.address_text || b.address || '').toLowerCase().includes(q);
+      if (!matchId && !matchName && !matchPhone && !matchService && !matchCat && !matchProv && !matchAddr) {
+        return false;
+      }
+    }
+    return true;
+  });
 
   // Deep-link: /admin/bookings/:bookingId opens that work order
   useEffect(() => {
@@ -193,7 +222,7 @@ export default function AdminBookingsScreen() {
       { label: 'Partner Payout (INR)', accessor: (b) => (hasGeneratedBill(b) ? b.payout_amount || Math.round((b.total_bill || 0) * 0.8) : '') },
       { label: 'Payment Status', accessor: (b) => (hasGeneratedBill(b) ? b.bill_status || 'UNPAID' : 'NOT BILLED') },
     ];
-    exportToCSV('Zevota_Bookings_Report', columns, activeBookings);
+    exportToCSV('Zevota_Bookings_Report', columns, filteredBookings);
   };
 
   return (
@@ -244,16 +273,61 @@ export default function AdminBookingsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Filter Toolbar with Category Pills and Search */}
+      <View style={styles.toolbar}>
+        <View style={styles.searchBox}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by customer, phone, booking ID, trade..."
+            placeholderTextColor="#94a3b8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7} style={{ padding: 4 }}>
+              <Text style={{ fontSize: 11, color: '#94a3b8', fontWeight: '700' }}>✕</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        {/* Category Filter Pills */}
+        <View style={styles.filterPillsRow}>
+          {['ALL', 'Electrical', 'Plumbing', 'AC', 'Appliance', 'Carpentry'].map((trade) => {
+            const isActive = categoryFilter === trade;
+            return (
+              <TouchableOpacity
+                key={trade}
+                style={[styles.filterPill, isActive && styles.filterPillActive]}
+                onPress={() => setCategoryFilter(trade)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.filterPillText, isActive && styles.filterPillTextActive]}>
+                  {trade}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
       {/* Bookings Table */}
       <View style={styles.tableCard}>
-        {activeBookings.length === 0 && (
+        {filteredBookings.length === 0 && (
           <View style={styles.emptyState}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="3" width="20" height="14" rx="2" />
               <path d="M8 21h8M12 17v4" />
             </svg>
-            <Text style={styles.emptyStateTitle}>No bookings yet</Text>
-            <Text style={styles.emptyStateSub}>Service bookings placed by users will appear here for review & dispatch.</Text>
+            <Text style={styles.emptyStateTitle}>No work orders found</Text>
+            <Text style={styles.emptyStateSub}>
+              {searchQuery || categoryFilter !== 'ALL'
+                ? 'Try adjusting your trade filters or search keywords.'
+                : 'Service bookings placed by users will appear here for review & dispatch.'}
+            </Text>
           </View>
         )}
         <View style={styles.tableHeader}>
@@ -266,7 +340,7 @@ export default function AdminBookingsScreen() {
           <Text style={[styles.th, { flex: 2.0 }]}>Actions & Field Reports</Text>
         </View>
 
-        {activeBookings.map((b, idx) => {
+        {filteredBookings.map((b, idx) => {
           const isRejected = Boolean(rejectedState[b.booking_id] || b.status === 'ADMIN_REJECTED');
           const isAccepted = Boolean(
             acceptedState[b.booking_id] ||
@@ -1168,4 +1242,59 @@ const styles = StyleSheet.create({
 
   closeModalBtn: { paddingVertical: 8, alignItems: 'center' },
   closeModalBtnText: { color: '#64748b', fontWeight: '600', fontSize: 13 },
+
+  toolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  searchBox: {
+    flex: 1,
+    minWidth: 260,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 12,
+    height: 38,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 12.5,
+    color: '#0f172a',
+    outlineStyle: 'none',
+  },
+  filterPillsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  filterPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    cursor: 'pointer',
+  },
+  filterPillActive: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  filterPillText: {
+    fontSize: 11.5,
+    color: '#475569',
+    fontWeight: '600',
+  },
+  filterPillTextActive: {
+    color: '#ffffff',
+    fontWeight: '700',
+  },
 });
