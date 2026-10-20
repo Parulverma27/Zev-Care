@@ -796,8 +796,8 @@ export default function HomeScreen({ onNavigate }) {
                     banner?.id === 2 || banner?.id === 5
                       ? (SERVICE_IMAGES.heroBanner2 || '/assets/hero-banner-2.png')
                       : banner?.id === 3 || banner?.id === 6
-                      ? (SERVICE_IMAGES.heroBanner3 || '/assets/hero-banner-3.png')
-                      : (SERVICE_IMAGES.heroBanner1 || '/assets/hero-banner-1.png');
+                        ? (SERVICE_IMAGES.heroBanner3 || '/assets/hero-banner-3.png')
+                        : (SERVICE_IMAGES.heroBanner1 || '/assets/hero-banner-1.png');
                   const bannerUri = resolveImageUri(banner?.image_url, bannerFallback);
                   return (
                     <div
@@ -1331,9 +1331,9 @@ const styles = StyleSheet.create({
     height: '100%',
     ...(Platform.OS === 'web'
       ? {
-          objectFit: 'cover',
-          objectPosition: 'right center',
-        }
+        objectFit: 'cover',
+        objectPosition: 'right center',
+      }
       : {}),
   },
   luxuryHeroGradientOverlay: {
@@ -1346,8 +1346,8 @@ const styles = StyleSheet.create({
     height: '100%',
     ...(Platform.OS === 'web'
       ? {
-          background: 'linear-gradient(90deg, rgba(6, 17, 43, 0.96) 0%, rgba(6, 17, 43, 0.86) 44%, rgba(6, 17, 43, 0.38) 72%, rgba(6, 17, 43, 0.08) 100%)',
-        }
+        background: 'linear-gradient(90deg, rgba(6, 17, 43, 0.96) 0%, rgba(6, 17, 43, 0.86) 44%, rgba(6, 17, 43, 0.38) 72%, rgba(6, 17, 43, 0.08) 100%)',
+      }
       : { backgroundColor: 'rgba(5, 16, 42, 0.75)' }),
   },
   heroTopBar: {

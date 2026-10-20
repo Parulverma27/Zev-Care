@@ -5,6 +5,19 @@ import { useApp } from '../../context/AppContext';
 import { getPlanTheme } from '../../config/planTheme';
 import { AppIcon } from '../../components/AppIcons';
 
+function formatPhoneNumber(phone) {
+  if (!phone) return '';
+  const trimmed = phone.trim();
+  const digits = trimmed.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+  }
+  return trimmed;
+}
+
 export default function UserProfileScreen({ onNavigate }) {
   const { activeUser, logoutUser, updateProfile, users } = useApp();
   const navigate = useNavigate();
@@ -243,13 +256,36 @@ export default function UserProfileScreen({ onNavigate }) {
               <Text style={styles.userName} numberOfLines={1}>
                 {isAnonymous ? 'Welcome' : isGuest ? 'Guest User' : (activeUser?.name || '—')}
               </Text>
-              <Text style={styles.userSub} numberOfLines={1}>
-                {isAnonymous
-                  ? 'Browsing mode • Not logged in'
-                  : Boolean(activeUser?.phone || activeUser?.email)
-                  ? [activeUser?.phone, activeUser?.email].filter(Boolean).join(' • ')
-                  : 'Zevota Care Member'}
-              </Text>
+              {isAnonymous ? (
+                <Text style={styles.userSub}>Browsing mode • Not logged in</Text>
+              ) : (
+                <View style={styles.userContactCol}>
+                  {Boolean(activeUser?.phone) && (
+                    <View style={styles.userContactItem}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                      <Text style={styles.userPhoneText}>
+                        {formatPhoneNumber(activeUser.phone)}
+                      </Text>
+                    </View>
+                  )}
+                  {Boolean(activeUser?.email) && (
+                    <View style={styles.userContactItem}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                      </svg>
+                      <Text style={styles.userEmailText}>
+                        {activeUser.email}
+                      </Text>
+                    </View>
+                  )}
+                  {!activeUser?.phone && !activeUser?.email && (
+                    <Text style={styles.userSub}>Zevota Care Member</Text>
+                  )}
+                </View>
+              )}
             </View>
 
             {!isAnonymous && (
@@ -707,6 +743,30 @@ const styles = StyleSheet.create({
     marginTop: 3,
     fontWeight: '600',
     letterSpacing: 0.1,
+  },
+  userContactCol: {
+    marginTop: 4,
+    gap: 3,
+    minWidth: 0,
+  },
+  userContactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+  },
+  userPhoneText: {
+    fontSize: 13,
+    color: '#1d4ed8',
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  userEmailText: {
+    fontSize: 12.5,
+    color: '#475569',
+    fontWeight: '500',
+    letterSpacing: 0.1,
+    wordBreak: 'break-all',
   },
   badgesActionRow: {
     flexDirection: 'row',
