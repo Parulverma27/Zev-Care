@@ -29,6 +29,18 @@ export default function PlanReviewScreen({
   const canPurchase = count > 0;
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
+  const [previewVideo, setPreviewVideo] = useState(null);
+
+  const getValidVideoUri = (app) => {
+    const uri = app.video || app.videoUrl || app.video_uri || app.uploadedMediaUri || app.media?.url || app.media?.uri;
+    if (!uri || typeof uri !== 'string') return null;
+    const trimmed = uri.trim();
+    const lower = trimmed.toLowerCase();
+    if (lower.startsWith('auto-verified') || lower.startsWith('fake') || lower === 'null' || lower === 'undefined') {
+      return null;
+    }
+    return trimmed;
+  };
 
   const openConfirm = () => {
     setConfirmChecked(false);
@@ -84,7 +96,7 @@ export default function PlanReviewScreen({
               const meta = [app.category && app.category !== name ? app.category : null, app.brand, app.location]
                 .filter(Boolean)
                 .join(' • ');
-              const hasVideo = !!(app.video || app.videoUrl || app.media?.url);
+              const validVideoUri = getValidVideoUri(app);
               return (
                 <View key={app.id || `rev-${idx}`} style={styles.itemCard}>
                   <View style={styles.itemIndex}>
@@ -97,10 +109,17 @@ export default function PlanReviewScreen({
                       <View style={styles.coveredBadge}>
                         <Text style={styles.coveredBadgeText}>Will be covered</Text>
                       </View>
-                      {hasVideo ? (
-                        <View style={styles.videoBadge}>
-                          <Text style={styles.videoBadgeText}>Video added</Text>
-                        </View>
+                      {validVideoUri ? (
+                        <TouchableOpacity
+                          style={styles.videoBadgeBtn}
+                          onPress={() => setPreviewVideo({ uri: validVideoUri, title: name })}
+                          activeOpacity={0.75}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="#0052e0" stroke="#0052e0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3" />
+                          </svg>
+                          <Text style={styles.videoBadgeBtnText}>View Video</Text>
+                        </TouchableOpacity>
                       ) : null}
                     </View>
                   </View>
@@ -199,6 +218,60 @@ export default function PlanReviewScreen({
           </View>
         </View>
       </Modal>
+
+      {/* Video Preview Modal */}
+      <Modal
+        visible={!!previewVideo}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewVideo(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxWidth: 440, padding: 16, gap: 12 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.videoModalTitle} numberOfLines={1}>
+                  {previewVideo?.title || 'Inspection Video'}
+                </Text>
+                <Text style={styles.videoModalSub}>Recorded Inspection Walkthrough</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setPreviewVideo(null)}
+                style={styles.videoCloseBtn}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.videoCloseBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.videoPlayerBox}>
+              <video
+                key={previewVideo?.uri}
+                src={previewVideo?.uri}
+                controls
+                autoPlay
+                playsInline
+                style={{
+                  width: '100%',
+                  height: 240,
+                  borderRadius: 12,
+                  backgroundColor: '#000000',
+                  objectFit: 'contain',
+                  display: 'block',
+                }}
+              />
+            </View>
+
+            <TouchableOpacity
+              onPress={() => setPreviewVideo(null)}
+              style={styles.videoDoneBtn}
+              activeOpacity={0.88}
+            >
+              <Text style={styles.videoDoneBtnText}>Close Preview</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -249,6 +322,19 @@ const styles = StyleSheet.create({
   itemBadgeRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   coveredBadge: { backgroundColor: '#f0fdf4', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: '#bbf7d0' },
   coveredBadgeText: { fontSize: 10, fontWeight: '700', color: '#15803d' },
+  videoBadgeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#eff6ff',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    cursor: 'pointer',
+  },
+  videoBadgeBtnText: { fontSize: 10, fontWeight: '700', color: '#0052e0' },
   videoBadge: { backgroundColor: '#eff6ff', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: '#bfdbfe' },
   videoBadgeText: { fontSize: 10, fontWeight: '700', color: '#1d4ed8' },
   removeBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: '#fef2f2' },
@@ -271,6 +357,52 @@ const styles = StyleSheet.create({
   },
   purchaseBtnDisabled: { backgroundColor: '#e2e8f0', boxShadow: 'none', cursor: 'default' },
   purchaseBtnText: { fontSize: 14, fontWeight: '800', color: '#ffffff' },
+  videoModalTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  videoModalSub: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 1,
+  },
+  videoCloseBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  videoCloseBtnText: {
+    fontSize: 13,
+    color: '#64748b',
+    fontWeight: '700',
+  },
+  videoPlayerBox: {
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#000000',
+  },
+  videoDoneBtn: {
+    backgroundColor: '#0052e0',
+    borderRadius: 10,
+    paddingVertical: 10.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    marginTop: 2,
+  },
+  videoDoneBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
   modalOverlay: {
     flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.55)', alignItems: 'center', justifyContent: 'center', padding: 18,
   },

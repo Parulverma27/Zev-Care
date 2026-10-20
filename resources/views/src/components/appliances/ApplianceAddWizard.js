@@ -614,11 +614,7 @@ export default function ApplianceAddWizard({
           location: 'Home',
           condition: 'Working',
           notes: `${selectedCategory?.name || 'Quick Add'} category protection`,
-          media: {
-            uri: 'auto-verified://zero-friction',
-            type: 'video',
-            isAutoVerified: true,
-          },
+          media: null,
         };
       });
 
@@ -650,11 +646,7 @@ export default function ApplianceAddWizard({
       location: 'Home',
       condition: 'Working',
       notes: `${selectedCategory?.name || 'Quick Add'} registered`,
-      media: {
-        uri: 'auto-verified://zero-friction',
-        type: 'video',
-        isAutoVerified: true,
-      },
+      media: null,
     }));
 
     setAccumulatedFastUnits((prev) => [...prev, ...newUnits]);
@@ -1882,11 +1874,12 @@ function ServiceItemCard({ item, onPress, style }) {
   );
 }
 
-// --------- buildSavedApplianceRecords (kept for backward compat) ---------------------------------------------------
 export function buildSavedApplianceRecords(units, selectedService, user) {
   return (units || []).map((unit, idx) => {
     const svcName = selectedService?.name || 'Item';
     const brandName = unit.brand === 'Other' && unit.customBrand ? unit.customBrand : (unit.brand || '');
+    const isRealVideo = unit.media?.uri && !String(unit.media.uri).startsWith('auto-verified');
+    const realVideoUri = isRealVideo ? unit.media.uri : null;
     return {
       id: Date.now() + idx,
       userId: user?.id,
@@ -1905,15 +1898,15 @@ export function buildSavedApplianceRecords(units, selectedService, user) {
       location: unit.location || '',
       notes: unit.notes || '',
       model: unit.model || '',
-      img: unit.media?.uri || selectedService?.image_url || null,
-      uploadedMediaUri: unit.media?.uri || null,
-      video: unit.media?.uri || null,
-      videoUrl: unit.media?.uri || null,
-      video_uri: unit.media?.uri || null,
-      media: unit.media
-        ? { type: unit.media.type, url: unit.media.uri, fileName: unit.media.fileName }
+      img: realVideoUri || selectedService?.image_url || null,
+      uploadedMediaUri: realVideoUri,
+      video: realVideoUri,
+      videoUrl: realVideoUri,
+      video_uri: realVideoUri,
+      media: realVideoUri
+        ? { type: unit.media.type || 'video', url: realVideoUri, fileName: unit.media.fileName }
         : null,
-      mediaStatus: unit.media ? 'PENDING_REVIEW' : 'SKIPPED',
+      mediaStatus: realVideoUri ? 'PENDING_REVIEW' : 'NOT_REQUIRED',
       createdAt: new Date().toISOString(),
       is_immutable: false,
     };
