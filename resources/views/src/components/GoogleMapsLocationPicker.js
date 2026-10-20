@@ -336,7 +336,8 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
 
       {!!permissionError && (
         <View style={styles.errorBox}>
-          <Text style={styles.errorText}>⚠ {permissionError}</Text>
+          <AppIcon name="alert" size={14} color="#dc2626" />
+          <Text style={styles.errorText}>{permissionError}</Text>
         </View>
       )}
 
@@ -436,6 +437,9 @@ const styles = StyleSheet.create({
     whiteSpace: 'nowrap',
   },
   errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: '#fef2f2',
     borderRadius: 8,
     padding: 8,

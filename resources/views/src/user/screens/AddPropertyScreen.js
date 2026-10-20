@@ -125,9 +125,12 @@ export default function AddPropertyScreen() {
 
       {/* Embedded Interactive Google Map */}
       <View style={{ marginTop: 2, marginBottom: 8 }}>
-        <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569', marginBottom: 6 }}>
-          📍 Property Location on Map
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+          <AppIcon name="map-pin" size={13} color="#2563eb" />
+          <Text style={{ fontSize: 12, fontWeight: '700', color: '#1e293b' }}>
+            Property Location on Map
+          </Text>
+        </View>
         <GoogleMapsLocationPicker
           initialAddress={address}
           onSelectLocation={(loc) => {
