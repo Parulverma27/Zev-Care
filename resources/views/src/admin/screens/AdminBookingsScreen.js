@@ -71,11 +71,83 @@ export default function AdminBookingsScreen() {
 
   const filteredBookings = activeBookings.filter((b) => {
     if (categoryFilter !== 'ALL') {
-      const cat = (b.category_name || b.category || b.service_name || '').toLowerCase();
-      const filterLower = categoryFilter.toLowerCase();
-      if (filterLower === 'ac') {
-        if (!cat.includes('ac') && !cat.includes('air condition') && !cat.includes('cooling')) return false;
-      } else if (!cat.includes(filterLower)) {
+      const cat = (b.category_name || b.category || '').toLowerCase();
+      const sName = (b.service_name || '').toLowerCase();
+      const subCat = (b.sub_category_name || '').toLowerCase();
+      const combined = `${cat} ${sName} ${subCat}`;
+
+      const f = categoryFilter.toLowerCase();
+      if (f === 'electrician' || f === 'electrical') {
+        if (
+          !combined.includes('electr') &&
+          !combined.includes('mcb') &&
+          !combined.includes('switch') &&
+          !combined.includes('fan') &&
+          !combined.includes('light') &&
+          !combined.includes('wiring') &&
+          !combined.includes('chandelier') &&
+          !combined.includes('ac') &&
+          !combined.includes('cooler') &&
+          !combined.includes('geyser') &&
+          !combined.includes('inverter') &&
+          !combined.includes('appliance') &&
+          !combined.includes('mixer')
+        ) {
+          return false;
+        }
+      } else if (f === 'plumbing') {
+        if (
+          !combined.includes('plumb') &&
+          !combined.includes('pipe') &&
+          !combined.includes('drain') &&
+          !combined.includes('tap') &&
+          !combined.includes('sink') &&
+          !combined.includes('shower') &&
+          !combined.includes('leak') &&
+          !combined.includes('toilet') &&
+          !combined.includes('tank')
+        ) {
+          return false;
+        }
+      } else if (f === 'carpentry') {
+        if (
+          !combined.includes('carpent') &&
+          !combined.includes('wood') &&
+          !combined.includes('door') &&
+          !combined.includes('cupboard') &&
+          !combined.includes('furniture') &&
+          !combined.includes('bed') &&
+          !combined.includes('chair') &&
+          !combined.includes('table') &&
+          !combined.includes('drawer')
+        ) {
+          return false;
+        }
+      } else if (f === 'pest control') {
+        if (
+          !combined.includes('pest') &&
+          !combined.includes('termite') &&
+          !combined.includes('cockroach') &&
+          !combined.includes('bedbug') &&
+          !combined.includes('rodent') &&
+          !combined.includes('insect') &&
+          !combined.includes('mosquito')
+        ) {
+          return false;
+        }
+      } else if (f === 'dry cleaning') {
+        if (
+          !combined.includes('dry clean') &&
+          !combined.includes('cleaning') &&
+          !combined.includes('sofa') &&
+          !combined.includes('carpet') &&
+          !combined.includes('mattress') &&
+          !combined.includes('curtain') &&
+          !combined.includes('deep clean')
+        ) {
+          return false;
+        }
+      } else if (!combined.includes(f)) {
         return false;
       }
     }
@@ -249,30 +321,6 @@ export default function AdminBookingsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Separation Banner */}
-      <View style={{ backgroundColor: '#eff6ff', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#bfdbfe', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 260 }}>
-          <View style={{ backgroundColor: '#dbeafe', width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="#2563eb" stroke="none">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-            </svg>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: '#1e3a8a', fontWeight: '800', fontSize: 13 }}>Looking for My Mechanic Free Consultations?</Text>
-            <Text style={{ color: '#1d4ed8', fontSize: 11.5 }}>
-              All ₹0 diagnostic visits and on-site inspection quotes are tracked separately in the dedicated My Mechanic console.
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity
-          style={{ backgroundColor: '#2563eb', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 }}
-          onPress={() => navigate('/admin/consultations')}
-          activeOpacity={0.8}
-        >
-          <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 12 }}>Open My Mechanic Console →</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Filter Toolbar with Category Pills and Search */}
       <View style={styles.toolbar}>
         <View style={styles.searchBox}>
@@ -296,7 +344,7 @@ export default function AdminBookingsScreen() {
 
         {/* Category Filter Pills */}
         <View style={styles.filterPillsRow}>
-          {['ALL', 'Electrical', 'Plumbing', 'AC', 'Appliance', 'Carpentry'].map((trade) => {
+          {['ALL', 'Electrician', 'Plumbing', 'Carpentry', 'Pest Control', 'Dry Cleaning'].map((trade) => {
             const isActive = categoryFilter === trade;
             return (
               <TouchableOpacity
