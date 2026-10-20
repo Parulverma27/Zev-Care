@@ -441,16 +441,13 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
 
   // History list computation
   const unifiedHistoryList = useMemo(() => {
-    if (isGuest) return [];
+    if (isGuest || !activeUser) return [];
 
     const userTransactions = (wallet.transactions || []).filter((tx) => txBelongsToUser(tx, activeUser));
 
+    // Only genuine AMC claims from wallet transactions
     const serviceTxs = (userTransactions || []).filter((tx) => {
-      const isTopUpTx =
-        tx.type === 'WALLET_CREDIT' ||
-        String(tx.transaction_id || '').includes('TOPUP') ||
-        String(tx.description || '').toLowerCase().includes('top-up');
-      return !isTopUpTx && (tx.type === 'SERVICE_PAYMENT' || tx.type === 'AMC_SERVICE_CLAIM' || tx.category === 'Services');
+      return tx.type === 'AMC_SERVICE_CLAIM' || (tx.category === 'Services' && tx.is_amc);
     });
 
     const userBookings = getUserBookings
@@ -458,43 +455,32 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
       : (bookings || []).filter((b) =>
           bookingBelongsToUser
             ? bookingBelongsToUser(b, activeUser)
-            : b.user_id === activeUser?.id || (b.user_phone && normalizePhone(b.user_phone) === normalizePhone(activeUser?.phone))
+            : (b.user_id && activeUser?.id && String(b.user_id) === String(activeUser.id)) ||
+              (b.user_phone && activeUser?.phone && normalizePhone(b.user_phone) === normalizePhone(activeUser.phone))
         );
 
+    // Only bookings that are actually AMC claims / covered under AMC
     const bookingClaims = (userBookings || [])
-      .filter((b) => b.is_covered_by_amc || b.service_name || b.category_name)
+      .filter((b) => b && (b.is_covered_by_amc === true || b.is_amc === true || Boolean(b.amc_plan_id)))
       .map((b) => {
-        const laborCharge = Number(b.labour_charge || b.laborCharge || 499);
+        const laborCharge = Number(b.labour_charge || b.laborCharge || 0);
         const isCovered = b.is_covered_by_amc !== false;
         return {
           id: `booking-claim-${b.booking_id || b.id}`,
           type: 'AMC_SERVICE_CLAIM',
-          service_name: b.service_name || `${b.sub_category_name || b.category_name || 'Appliance'} Repair`,
-          date: b.completed_date || b.scheduled_date || '5 Oct 2026',
-          refNumber: b.booking_id ? String(b.booking_id).replace(/^BK-2026-/, 'K-').replace(/^BK-/, 'K-') : 'K-000125',
+          service_name: b.service_name || `${b.sub_category_name || b.category_name || 'Appliance'} Service`,
+          date: b.completed_date || b.scheduled_date || b.created_at || new Date().toISOString(),
+          refNumber: b.booking_id ? String(b.booking_id).replace(/^BK-2026-/, 'K-').replace(/^BK-/, 'K-') : String(b.id || ''),
           laborCharge,
-          benefit: isCovered ? `-₹${laborCharge} (100% Free)` : '₹0',
+          benefit: isCovered ? (laborCharge > 0 ? `-₹${laborCharge} (100% Free)` : '₹0 Labor Free') : '₹0',
           totalCustomerPaid: isCovered ? '₹0.00 (Fully Covered)' : `₹${b.total_bill || laborCharge}`,
           category: 'Services',
-          createdAt: b.scheduled_date || b.completed_date || '2026-10-05T10:00:00.000Z',
+          createdAt: b.scheduled_date || b.completed_date || b.created_at || new Date().toISOString(),
         };
       });
 
-    const allServices = [...serviceTxs, ...bookingClaims];
-    const resolvedServices = allServices.length > 0 ? allServices : [
-      {
-        id: 'sample-claim-1',
-        type: 'AMC_SERVICE_CLAIM',
-        service_name: 'Mixer & Grinder Repair',
-        date: '5 Oct 2026',
-        refNumber: 'K-000125',
-        laborCharge: 499,
-        benefit: '-₹499 (100% Free)',
-        totalCustomerPaid: '₹0.00 (Fully Covered)',
-        category: 'Services',
-        createdAt: '2026-10-05T10:00:00.000Z',
-      },
-    ];
+    // Purely dynamic - never inject hardcoded dummy claims when user has no claims!
+    const resolvedServices = [...serviceTxs, ...bookingClaims];
 
     const contractTxs = (userTransactions || []).filter((tx) => {
       const isTopUpTx =
@@ -504,20 +490,26 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
       return isTopUpTx || tx.type === 'AMC_PURCHASE' || tx.type === 'PLAN_PURCHASE' || tx.category === 'Plans';
     });
 
-    const resolvedContracts = contractTxs.length > 0 ? contractTxs : (hasActiveAmc ? [
+    const resolvedContracts = contractTxs.length > 0 ? contractTxs : (hasActiveAmc && contractDetails?.planName ? [
       {
-        id: 'initial-contract-tx',
+        id: `initial-contract-${contractDetails.contractNo || activeUser.id || 'amc'}`,
         type: 'AMC_PURCHASE',
-        plan_name: `${contractDetails?.planName || 'Gold'} AMC Contract`,
-        amount: 2999,
-        date: contractDetails?.startDate || '7 Oct 2026',
-        refNumber: contractDetails?.contractNo || 'AMC-2026-0042',
+        plan_name: `${contractDetails.planName} AMC Contract`,
+        amount: Number(contractDetails.price || contractDetails.amount || 0),
+        date: contractDetails.startDate || new Date().toISOString(),
+        refNumber: contractDetails.contractNo || 'AMC-CONTRACT',
         category: 'Plans',
-        createdAt: '2026-10-07T00:00:00.000Z',
+        createdAt: contractDetails.startDate || new Date().toISOString(),
       },
     ] : []);
 
-    return [...resolvedServices, ...resolvedContracts];
+    const combined = [...resolvedServices, ...resolvedContracts];
+    combined.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.date || a.created_at || 0).getTime();
+      const dateB = new Date(b.createdAt || b.date || b.created_at || 0).getTime();
+      return (Number.isNaN(dateB) ? 0 : dateB) - (Number.isNaN(dateA) ? 0 : dateA);
+    });
+    return combined;
   }, [isGuest, wallet.transactions, activeUser, getUserBookings, bookings, bookingBelongsToUser, hasActiveAmc, contractDetails]);
 
   const filteredHistoryTxs = useMemo(() => {
@@ -1779,11 +1771,11 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                           <View style={styles.claimCostBox}>
                             <View style={styles.claimCostRow}>
                               <Text style={styles.claimCostLabel}>Breakdown Labor Charge:</Text>
-                              <Text style={styles.claimCostStrike}>₹{tx.laborCharge || 499}</Text>
+                              <Text style={styles.claimCostStrike}>₹{tx.laborCharge ?? 0}</Text>
                             </View>
                             <View style={styles.claimCostRow}>
                               <Text style={styles.claimCostLabel}>AMC Member Benefit:</Text>
-                              <Text style={styles.claimCostBenefit}>{tx.benefit || '-₹499 (100% Free)'}</Text>
+                              <Text style={styles.claimCostBenefit}>{tx.benefit || (tx.laborCharge ? `-₹${tx.laborCharge} (100% Free)` : '₹0 Labor Free')}</Text>
                             </View>
                           </View>
                         )}
