@@ -187,8 +187,10 @@ export default function BookingIssueOtherStep({
         onPress={handleContinuePress}
         activeOpacity={0.88}
       >
-        <Text style={styles.primaryBtnText}>Continue</Text>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <Text style={[styles.primaryBtnText, !isFormValid && styles.primaryBtnTextDisabled]}>
+          {!hasVideo ? 'Record Video to Continue' : 'Continue'}
+        </Text>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={!isFormValid ? '#94a3b8' : '#ffffff'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <line x1="5" y1="12" x2="19" y2="12" />
           <polyline points="12 5 19 12 12 19" />
         </svg>
@@ -439,26 +441,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   primaryBtn: {
+    width: '100%',
+    boxSizing: 'border-box',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 8,
     backgroundColor: '#2563eb',
     borderRadius: 14,
-    paddingVertical: 15,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     boxShadow: '0 6px 18px rgba(37, 99, 235, 0.28)',
     cursor: 'pointer',
-    marginTop: 4,
+    marginTop: 6,
   },
   primaryBtnDisabled: {
-    backgroundColor: '#94a3b8',
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
     boxShadow: 'none',
     cursor: 'not-allowed',
   },
   primaryBtnText: {
     color: '#ffffff',
     fontWeight: '800',
-    fontSize: 15,
+    fontSize: 14,
     letterSpacing: 0.2,
+    textAlign: 'center',
+  },
+  primaryBtnTextDisabled: {
+    color: '#94a3b8',
+    fontWeight: '700',
   },
 });
