@@ -999,7 +999,7 @@ export default function ApplianceAddWizard({
                             <Text style={styles.cardTitleText}>{appName}</Text>
                           </View>
                           <View style={styles.activePlanChip}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                             <Text style={styles.activePlanChipText}>COVERED</Text>
@@ -1047,37 +1047,37 @@ export default function ApplianceAddWizard({
                               {appCategory ? (
                                 <View style={styles.specChip}>
                                   <IconTool size={11} color="#64748b" />
-                                  <Text style={styles.specChipText}>{appCategory}</Text>
+                                  <Text style={styles.specChipText} numberOfLines={1} ellipsizeMode="tail">{appCategory}</Text>
                                 </View>
                               ) : null}
                               {appLocation ? (
                                 <View style={styles.specChip}>
                                   <IconPin size={11} color="#64748b" />
-                                  <Text style={styles.specChipText}>{appLocation}</Text>
+                                  <Text style={styles.specChipText} numberOfLines={1} ellipsizeMode="tail">{appLocation}</Text>
                                 </View>
                               ) : null}
                               {appBrand ? (
                                 <View style={styles.specChip}>
                                   <IconTag size={11} color="#64748b" />
-                                  <Text style={styles.specChipText}>{appBrand}</Text>
+                                  <Text style={styles.specChipText} numberOfLines={1} ellipsizeMode="tail">{appBrand}</Text>
                                 </View>
                               ) : null}
                               {appCondition ? (
                                 <View style={[styles.specChip, styles.conditionChip]}>
                                   <IconCheckCircle size={11} color="#15803d" />
-                                  <Text style={[styles.specChipText, { color: '#15803d', fontWeight: '700' }]}>{appCondition}</Text>
+                                  <Text style={[styles.specChipText, { color: '#15803d', fontWeight: '700' }]} numberOfLines={1} ellipsizeMode="tail">{appCondition}</Text>
                                 </View>
                               ) : null}
                               {appliance.capacity ? (
                                 <View style={styles.specChip}>
                                   <IconGauge size={11} color="#0284c7" />
-                                  <Text style={[styles.specChipText, { color: '#0369a1' }]}>{appliance.capacity}</Text>
+                                  <Text style={[styles.specChipText, { color: '#0369a1' }]} numberOfLines={1} ellipsizeMode="tail">{appliance.capacity}</Text>
                                 </View>
                               ) : null}
                               {appliance.year || appliance.age_range ? (
                                 <View style={styles.specChip}>
                                   <IconCalendar size={11} color="#64748b" />
-                                  <Text style={styles.specChipText}>{formatAgeOrYear(appliance.year || appliance.age_range)}</Text>
+                                  <Text style={styles.specChipText} numberOfLines={1} ellipsizeMode="tail">{formatAgeOrYear(appliance.year || appliance.age_range)}</Text>
                                 </View>
                               ) : null}
                             </View>
@@ -2333,6 +2333,7 @@ const styles = StyleSheet.create({
     padding: 14,
     boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
     gap: 10,
+    overflow: 'hidden',
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -2341,12 +2342,35 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
+    gap: 8,
   },
   cardTitleText: {
     fontSize: 15,
     fontWeight: '800',
     color: '#0f172a',
     fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  activePlanChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3.5,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    paddingHorizontal: 6.5,
+    paddingVertical: 2,
+    borderRadius: 5,
+    flexShrink: 0,
+    alignSelf: 'center',
+  },
+  activePlanChipText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#15803d',
+    letterSpacing: 0.3,
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    textTransform: 'uppercase',
+    lineHeight: 12,
   },
   cardBodyRow: {
     flexDirection: 'row',
@@ -2411,16 +2435,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 3.5,
     borderRadius: 7,
+    maxWidth: '100%',
   },
   conditionChip: {
     backgroundColor: '#f0fdf4',
     borderColor: '#bbf7d0',
   },
   specChipText: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: '600',
     color: '#334155',
     fontFamily: "'Outfit', 'Inter', sans-serif",
+    flexShrink: 1,
   },
   videoWatchStrip: {
     flexDirection: 'row',
