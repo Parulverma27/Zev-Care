@@ -100,26 +100,26 @@ export default function BookingScheduleStep({
               <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
             </svg>
           </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.serviceTitle} numberOfLines={1}>
+          <View style={{ flex: 1, minWidth: 0, paddingRight: 6 }}>
+            <Text style={styles.serviceTitle} numberOfLines={2}>
               {serviceLabel}
             </Text>
             {!!applianceSummary && (
-              <Text style={styles.serviceSub} numberOfLines={1}>
+              <Text style={styles.serviceSub} numberOfLines={2}>
                 {applianceSummary}
               </Text>
             )}
           </View>
           {isConsultation ? (
             <View style={styles.freeInspectionChip}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               <Text style={styles.freeInspectionChipText}>₹0 Free Visit</Text>
             </View>
           ) : (
             <View style={styles.slaBadgeChip}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
               </svg>
@@ -131,11 +131,11 @@ export default function BookingScheduleStep({
         <View style={styles.serviceCardDivider} />
 
         <View style={styles.serviceCardFooterRow}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             <polyline points="9 11 11 13 15 9" />
           </svg>
-          <Text style={styles.serviceCardFooterText} numberOfLines={1}>
+          <Text style={styles.serviceCardFooterText}>
             {isConsultation
               ? 'Thorough physical diagnosis • Transparent quote prior to any repair'
               : 'Senior verified technician dispatch • 100% genuine parts guarantee'}
@@ -443,14 +443,16 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   serviceTitle: {
-    fontSize: 14.5,
+    fontSize: 13,
     fontWeight: '800',
     color: '#0f172a',
+    lineHeight: 17,
   },
   serviceSub: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#64748b',
-    marginTop: 1,
+    marginTop: 2,
+    lineHeight: 15,
   },
   freeInspectionChip: {
     flexDirection: 'row',
@@ -459,15 +461,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0fdf4',
     borderWidth: 1,
     borderColor: '#bbf7d0',
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
     borderRadius: 99,
+    flexShrink: 0,
   },
   freeInspectionChipText: {
     color: '#15803d',
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: '800',
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   },
   slaBadgeChip: {
     flexDirection: 'row',
@@ -476,15 +479,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#eff6ff',
     borderWidth: 1,
     borderColor: '#bfdbfe',
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
     borderRadius: 99,
+    flexShrink: 0,
   },
   slaBadgeChipText: {
     color: '#1d4ed8',
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: '800',
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   },
   serviceCardDivider: {
     height: 1,
@@ -492,13 +496,15 @@ const styles = StyleSheet.create({
   },
   serviceCardFooterRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    alignItems: 'flex-start',
+    gap: 7,
   },
   serviceCardFooterText: {
-    fontSize: 11.5,
+    fontSize: 11,
     color: '#64748b',
     fontWeight: '500',
+    lineHeight: 16,
+    flex: 1,
   },
 
   // Section Headers
