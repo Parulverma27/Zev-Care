@@ -629,7 +629,7 @@ export default function HomeScreen({ onNavigate }) {
                 accessibilityRole="button"
                 accessibilityLabel="Go to profile"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
@@ -1320,10 +1320,10 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 26,
     overflow: 'hidden',
     position: 'relative',
-    minHeight: 200,
-    paddingTop: 18,
-    paddingHorizontal: 18,
-    paddingBottom: 36,
+    minHeight: 178,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
     backgroundColor: '#091836',
     boxShadow: '0 12px 32px rgba(9, 24, 54, 0.28)',
   },
@@ -1362,7 +1362,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     zIndex: 10,
-    marginBottom: 16,
+    marginBottom: 12,
     gap: 8,
   },
   heroBrandWrap: {
@@ -1371,19 +1371,19 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   heroBrandWordmark: {
-    width: 112,
-    height: 38,
+    width: 90,
+    height: 30,
   },
   heroBrandZevota: {
-    fontSize: 27,
+    fontSize: 20,
     fontWeight: '800',
     color: '#ffffff',
     letterSpacing: -0.5,
-    lineHeight: 29,
+    lineHeight: 22,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroBrandCare: {
-    fontSize: 8.5,
+    fontSize: 7.5,
     fontWeight: '400',
     color: '#ffffff',
     letterSpacing: 1.5,
@@ -1395,30 +1395,30 @@ const styles = StyleSheet.create({
   heroActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   heroGreetingBlock: {
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
   heroGreetingSub: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#94a3b8',
     fontWeight: '500',
-    lineHeight: 14,
+    lineHeight: 13,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroGreetingName: {
-    fontSize: 14.5,
+    fontSize: 12.5,
     color: '#ffffff',
     fontWeight: '700',
-    lineHeight: 17,
+    lineHeight: 15,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroAvatarCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.16)',
     borderWidth: 1.2,
     borderColor: 'rgba(255, 255, 255, 0.35)',
@@ -1427,9 +1427,9 @@ const styles = StyleSheet.create({
     cursor: 'pointer',
   },
   heroBellBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -1453,26 +1453,26 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   heroHeadline: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: '800',
     color: '#ffffff',
-    lineHeight: 34,
-    letterSpacing: -0.4,
+    lineHeight: 25,
+    letterSpacing: -0.3,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroHeadlineGold: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: '800',
     color: '#f6c453',
     fontStyle: 'italic',
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroSubHeadline: {
-    fontSize: 12.5,
-    lineHeight: 18,
+    fontSize: 11,
+    lineHeight: 15.5,
     color: '#cbd5e1',
     fontWeight: '400',
-    marginTop: 8,
+    marginTop: 5,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   floatingSearchWrapper: {
