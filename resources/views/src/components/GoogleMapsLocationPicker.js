@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator,
 import { GOOGLE_MAPS_API_KEY, isGoogleMapsLoaded, loadGoogleMapsScript } from '../config/maps';
 import { AppIcon } from './AppIcons';
 
-export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddress = '', onClose }) {
+export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddress = '', onClose, containerStyle }) {
   const [loading, setLoading] = useState(true);
   const [detecting, setDetecting] = useState(false);
   const [searchQuery, setSearchQuery] = useState(initialAddress);
@@ -306,11 +306,11 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       {/* Search Header */}
       <View style={styles.header}>
         <View style={styles.searchBox}>
-          <AppIcon name="search" size={16} color="#64748b" />
+          <AppIcon name="search" size={15} color="#64748b" />
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
@@ -318,11 +318,11 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
               setSearchQuery(text);
               forwardGeocode(text);
             }}
-            placeholder="Search address or landmark..."
+            placeholder="Search address / area..."
             placeholderTextColor="#94a3b8"
           />
         </View>
-        <TouchableOpacity style={styles.gpsBtn} onPress={handleDetectCurrentLocation} disabled={detecting}>
+        <TouchableOpacity style={styles.gpsBtn} onPress={handleDetectCurrentLocation} disabled={detecting} activeOpacity={0.85}>
           {detecting ? (
             <ActivityIndicator size="small" color="#2563eb" />
           ) : (
@@ -387,25 +387,25 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     width: '100%',
   },
   searchBox: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     backgroundColor: '#f8fafc',
     borderWidth: 1.5,
     borderColor: '#cbd5e1',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
+    borderRadius: 10,
+    paddingHorizontal: 9,
+    paddingVertical: 7,
     minWidth: 0,
   },
   searchInput: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
     color: '#0f172a',
     outlineStyle: 'none',
@@ -415,22 +415,23 @@ const styles = StyleSheet.create({
     minWidth: 0,
     width: '100%',
     boxSizing: 'border-box',
+    padding: 0,
   },
   gpsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
     backgroundColor: '#eff6ff',
     borderWidth: 1.5,
     borderColor: '#bfdbfe',
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 7,
     cursor: 'pointer',
     flexShrink: 0,
   },
   gpsBtnText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     color: '#0052e0',
     fontFamily: "'Outfit', 'Inter', sans-serif",
@@ -446,14 +447,14 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#dc2626',
-    fontSize: 11.5,
+    fontSize: 11,
     fontWeight: '600',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   mapWrap: {
     width: '100%',
-    height: 230,
-    borderRadius: 14,
+    height: 220,
+    borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#f1f5f9',
     position: 'relative',
@@ -470,36 +471,36 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   loadingText: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: '#64748b',
     fontWeight: '600',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   footer: {
-    gap: 10,
+    gap: 8,
     marginTop: 2,
   },
   locationMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
     backgroundColor: '#f8fafc',
-    padding: 10,
-    borderRadius: 12,
+    padding: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#f1f5f9',
   },
   pinCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: '#0052e0',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   locationTitle: {
-    fontSize: 10.5,
+    fontSize: 9.5,
     fontWeight: '700',
     color: '#64748b',
     textTransform: 'uppercase',
@@ -507,24 +508,24 @@ const styles = StyleSheet.create({
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   locationAddress: {
-    fontSize: 12.5,
+    fontSize: 11.5,
     fontWeight: '700',
     color: '#0f172a',
     fontFamily: "'Outfit', 'Inter', sans-serif",
-    lineHeight: 16,
+    lineHeight: 15,
   },
   confirmBtn: {
     backgroundColor: '#0052e0',
-    borderRadius: 12,
-    paddingVertical: 12,
+    borderRadius: 10,
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(0, 82, 224, 0.18)',
+    boxShadow: '0 3px 10px rgba(0, 82, 224, 0.16)',
   },
   confirmBtnText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: '700',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },

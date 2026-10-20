@@ -151,15 +151,15 @@ export default function BookingLocationStep({
         <View style={styles.mapSectionHeader}>
           <View style={styles.mapSectionTitleRow}>
             <View style={styles.mapIconCircle}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0052e0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
                 <line x1="8" y1="2" x2="8" y2="18" />
                 <line x1="16" y1="6" x2="16" y2="22" />
               </svg>
             </View>
-            <View>
+            <View style={styles.mapTitleCol}>
               <Text style={styles.mapSectionTitle}>Pinpoint on Google Map</Text>
-              <Text style={styles.mapSectionSubtitle}>Drag marker or search below for exact doorstep</Text>
+              <Text style={styles.mapSectionSubtitle} numberOfLines={2}>Drag marker or search below for exact doorstep</Text>
             </View>
           </View>
         </View>
@@ -168,6 +168,7 @@ export default function BookingLocationStep({
           key={mapAddressKey}
           initialAddress={address}
           onSelectLocation={handleLocationPicked}
+          containerStyle={styles.embeddedMapPicker}
         />
       </View>
 
@@ -392,42 +393,59 @@ const styles = StyleSheet.create({
   },
   mapSectionCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: '#e2e8f0',
     padding: 12,
-    gap: 12,
+    gap: 10,
     boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
   },
   mapSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingTop: 4,
+    paddingHorizontal: 2,
+    paddingTop: 2,
   },
   mapSectionTitleRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 9,
+    minWidth: 0,
   },
   mapIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 30,
+    height: 30,
+    borderRadius: 9,
     backgroundColor: '#eff6ff',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+  },
+  mapTitleCol: {
+    flex: 1,
+    minWidth: 0,
   },
   mapSectionTitle: {
     fontSize: 12.5,
     fontWeight: '800',
     color: '#0f172a',
+    letterSpacing: -0.2,
   },
   mapSectionSubtitle: {
     fontSize: 11,
     color: '#64748b',
     fontWeight: '500',
+    lineHeight: 15,
+  },
+  embeddedMapPicker: {
+    borderWidth: 0,
+    padding: 0,
+    borderRadius: 0,
+    boxShadow: 'none',
+    backgroundColor: 'transparent',
+    gap: 10,
   },
   addressInput: {
     minHeight: 84,
