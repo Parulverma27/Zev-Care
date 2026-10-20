@@ -747,13 +747,14 @@ export function AppProvider({ children }) {
       .filter((tx) => tx.type === 'SERVICE_PAYMENT')
       .reduce((s, tx) => s + Math.abs(Number(tx.amount || 0)), 0);
     const expectedRemaining = Math.max(0, expectedCredit - serviceDebits);
-    const current = Number(activeUser.wallet_balance || 0);
-    const hasPlanPurchase = userTxs.some((tx) => tx.type === 'PLAN_PURCHASE');
+    const hasRealPurchase = userTxs.some((tx) => tx.type === 'AMC_PURCHASE');
+    const hasPlanPurchase = hasRealPurchase || userTxs.some((tx) => tx.type === 'PLAN_PURCHASE');
 
     const needsBalanceRepair = current > expectedRemaining + 0.5;
     const needsTxRepair = !hasPlanPurchase && expectedCredit > 0;
+    const hasRedundantSync = hasRealPurchase && userTxs.some((tx) => tx.transaction_id === `TX-SYNC-${activeUser.id}-${plan.id}`);
     const needsOriginal = activeUser.wallet_original_balance == null && expectedCredit > 0;
-    if (!needsBalanceRepair && !needsTxRepair && !needsOriginal) return;
+    if (!needsBalanceRepair && !needsTxRepair && !needsOriginal && !hasRedundantSync) return;
 
     const fixedBalance = needsBalanceRepair ? expectedRemaining : current;
 
@@ -779,8 +780,11 @@ export function AppProvider({ children }) {
     }
 
     setWallet((prev) => {
-      const txs = [...(prev?.transactions || [])];
-      if (needsTxRepair) {
+      let txs = [...(prev?.transactions || [])];
+      if (hasRealPurchase) {
+        txs = txs.filter((tx) => tx.transaction_id !== `TX-SYNC-${activeUser.id}-${plan.id}`);
+      }
+      if (needsTxRepair && !hasRealPurchase) {
         txs.unshift({
           transaction_id: `TX-SYNC-${activeUser.id}-${plan.id}`,
           userId: activeUser.id,
@@ -796,7 +800,11 @@ export function AppProvider({ children }) {
           created_at: new Date().toISOString(),
         });
       }
-      return { balance: fixedBalance, transactions: txs };
+      const updated = { balance: fixedBalance, transactions: txs };
+      try {
+        localStorage.setItem('zevota_wallet', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
     });
   }, [activeUser?.id, activeUser?.subscription_plan, activeUser?.subscription_status, subscriptionPlans, wallet.transactions]);
 

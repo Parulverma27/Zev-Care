@@ -490,7 +490,13 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
       return isTopUpTx || tx.type === 'AMC_PURCHASE' || tx.type === 'PLAN_PURCHASE' || tx.category === 'Plans';
     });
 
-    const resolvedContracts = contractTxs.length > 0 ? contractTxs : (hasActiveAmc && contractDetails?.planName ? [
+    // Deduplicate: if a real AMC purchase transaction exists, discard duplicate auto-generated TX-SYNC transactions
+    const hasRealPurchase = contractTxs.some((tx) => tx.type === 'AMC_PURCHASE' || Boolean(tx.amc_contract_number));
+    const dedupedContractTxs = hasRealPurchase
+      ? contractTxs.filter((tx) => !String(tx.transaction_id || '').startsWith('TX-SYNC-'))
+      : contractTxs;
+
+    const resolvedContracts = dedupedContractTxs.length > 0 ? dedupedContractTxs : (hasActiveAmc && contractDetails?.planName ? [
       {
         id: `initial-contract-${contractDetails.contractNo || activeUser.id || 'amc'}`,
         type: 'AMC_PURCHASE',
