@@ -505,7 +505,12 @@ export default function BookingFlowScreen({ onNavigate }) {
   const handleOtherContinue = () => {
     const desc = (issueDescription || '').trim();
     if (desc.length < 8) {
-      setOtherError('Please describe the issue in a bit more detail.');
+      setOtherError('Please describe the problem reason in more detail (at least 8 characters).');
+      return;
+    }
+    const hasVideo = (issueMedia?.videos || []).length > 0;
+    if (!hasVideo) {
+      setOtherError('A live video recording of the issue is compulsory to proceed.');
       return;
     }
     setOtherError('');
