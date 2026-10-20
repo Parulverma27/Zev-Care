@@ -95,24 +95,28 @@ export default function BookingIssueOtherStep({
 
       {/* 2. Compulsory Video Recording */}
       <View style={styles.fieldBlock}>
-        <View style={styles.sectionHeaderRow}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 7l-7 5 7 5V7z" />
-              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-            </svg>
-            <Text style={styles.sectionTitle}>Record Live Video of Issue</Text>
+        <View style={styles.videoHeaderTop}>
+          <View style={styles.videoTitleLeft}>
+            <View style={styles.videoIconCircle}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 7l-7 5 7 5V7z" />
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+              </svg>
+            </View>
+            <Text style={styles.videoTitle} numberOfLines={1}>
+              Live Video of Issue
+            </Text>
           </View>
-          <View style={[styles.mandatoryBadge, hasVideo && styles.completedBadge]}>
+          <View style={[styles.statusBadge, hasVideo ? styles.statusBadgeOk : styles.statusBadgeReq]}>
             {hasVideo ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <View style={styles.badgeContentRow}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <Text style={styles.completedBadgeText}>RECORDED</Text>
+                <Text style={styles.statusBadgeOkText}>RECORDED</Text>
               </View>
             ) : (
-              <Text style={styles.mandatoryBadgeText}>COMPULSORY</Text>
+              <Text style={styles.statusBadgeReqText}>COMPULSORY</Text>
             )}
           </View>
         </View>
@@ -241,6 +245,68 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  videoHeaderTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+  },
+  videoTitleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    minWidth: 0,
+  },
+  videoIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#fef2f2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  videoTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.2,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    flexShrink: 0,
+  },
+  statusBadgeReq: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
+  statusBadgeReqText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#dc2626',
+    letterSpacing: 0.4,
+  },
+  statusBadgeOk: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+  },
+  statusBadgeOkText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#059669',
+    letterSpacing: 0.4,
+  },
+  badgeContentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   sectionTitle: {
     fontSize: 14.5,
     fontWeight: '800',
@@ -258,16 +324,6 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     fontWeight: '800',
     color: '#dc2626',
-    letterSpacing: 0.4,
-  },
-  completedBadge: {
-    backgroundColor: '#ecfdf5',
-    borderColor: '#a7f3d0',
-  },
-  completedBadgeText: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    color: '#059669',
     letterSpacing: 0.4,
   },
   sectionSub: {

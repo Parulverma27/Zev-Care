@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import MediaCapturePanel from '../MediaCapturePanel';
 import BookingProgress from './BookingProgress';
 import LiveSupportOptionCard from './LiveSupportOptionCard';
@@ -18,8 +18,6 @@ export default function BookingIssueStep({
   onContinue,
   issueMedia,
   onChangeIssueMedia,
-  issueDescription = '',
-  onChangeIssueDescription,
   isComplaint = false,
   isConsultation = false,
   onLiveSupport,
@@ -28,11 +26,9 @@ export default function BookingIssueStep({
   const [validationError, setValidationError] = useState('');
   const [touched, setTouched] = useState(false);
 
-  const photos = issueMedia?.photos || [];
   const videos = issueMedia?.videos || [];
   const hasVideo = videos.length > 0 || (panelValue && panelValue.type === 'video' && Boolean(panelValue.uri));
-  const hasReasonText = (issueDescription || '').trim().length >= 5;
-  const isFormValid = Boolean(selectedIssueId) && hasReasonText && hasVideo;
+  const isFormValid = Boolean(selectedIssueId) && hasVideo;
 
   useEffect(() => {
     setPanelValue(setPrimaryPanelValue(issueMedia));
@@ -48,11 +44,7 @@ export default function BookingIssueStep({
   const handleContinuePress = () => {
     setTouched(true);
     if (!selectedIssueId) {
-      setValidationError('Please select the primary symptom or issue category above.');
-      return;
-    }
-    if (!hasReasonText) {
-      setValidationError('Please enter a specific reason or describe the problem (at least 5 characters).');
+      setValidationError('Please select the symptom or problem noticed above.');
       return;
     }
     if (!hasVideo) {
@@ -152,143 +144,124 @@ export default function BookingIssueStep({
         <Text style={styles.hintSub}>Choose &quot;Other&quot; and our experts will help diagnose your requirement.</Text>
       </View>
 
-      {/* Compulsory Reason & Video Section (shown when issue is chosen) */}
+      {/* Compulsory Live Video Section (shown once issue/symptom is selected) */}
       {selectedIssueId && selectedIssueId !== 'other' && (
-        <View style={styles.mediaSection}>
-          {/* 1. Compulsory Reason & Details */}
-          <View style={styles.fieldBlock}>
-            <View style={styles.sectionHeaderRow}>
-              <View style={styles.sectionTitleWithIcon}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                </svg>
-                <Text style={styles.sectionTitle}>Reason & Problem Details</Text>
-              </View>
-              <View style={styles.mandatoryBadge}>
-                <Text style={styles.mandatoryBadgeText}>COMPULSORY</Text>
-              </View>
-            </View>
-            <Text style={styles.sectionSub}>
-              Please describe the reason or exact symptoms noticed (e.g. stops working, strange sound, sparks).
-            </Text>
-            <TextInput
-              style={[styles.textarea, touched && !hasReasonText && styles.textareaError]}
-              value={issueDescription}
-              onChangeText={(t) => {
-                setValidationError('');
-                onChangeIssueDescription?.(t.slice(0, 300));
-              }}
-              placeholder="Explain the reason for service / symptoms in detail..."
-              placeholderTextColor="#94a3b8"
-              multiline
-            />
-            <View style={styles.charRow}>
-              <Text style={[styles.charHint, hasReasonText && styles.charHintOk]}>
-                {hasReasonText ? 'Reason added' : 'Minimum 5 characters required'}
-              </Text>
-              <Text style={styles.charCount}>{(issueDescription || '').length}/300</Text>
-            </View>
-          </View>
-
-          {/* 2. Compulsory Video Recording */}
-          <View style={styles.fieldBlock}>
-            <View style={styles.sectionHeaderRow}>
-              <View style={styles.sectionTitleWithIcon}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <View style={styles.videoSectionCard}>
+          {/* Responsive Header Row */}
+          <View style={styles.videoHeaderTop}>
+            <View style={styles.videoTitleLeft}>
+              <View style={styles.videoIconCircle}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M23 7l-7 5 7 5V7z" />
                   <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                 </svg>
-                <Text style={styles.sectionTitle}>Record Live Video of Issue</Text>
               </View>
-              <View style={[styles.mandatoryBadge, hasVideo && styles.completedBadge]}>
-                {hasVideo ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    <Text style={styles.completedBadgeText}>RECORDED</Text>
-                  </View>
-                ) : (
-                  <Text style={styles.mandatoryBadgeText}>COMPULSORY</Text>
-                )}
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.videoTitle} numberOfLines={1}>
+                  Live Video of Issue
+                </Text>
               </View>
             </View>
-            <Text style={styles.sectionSub}>
-              A quick live video (10–20s) is mandatory so our technician arrives with the right tools & genuine parts.
-            </Text>
 
-            <MediaCapturePanel
-              value={panelValue}
-              emptyTitle="Record Live Video of Issue"
-              emptyDescription="Capture a quick 10–20s video showing the appliance problem"
-              onChange={handlePanelChange}
-            />
-
-            {videos.length > 0 && (
-              <View style={styles.previews}>
-                {videos.map((v, i) => (
-                  <View key={`v-${i}`} style={styles.thumbWrap}>
-                    {Platform.OS === 'web' ? (
-                      <video src={v.uri} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <View style={[styles.thumb, styles.videoFallback]}>
-                        <Text style={{ color: '#fff', fontSize: 11 }}>Live Video</Text>
-                      </View>
-                    )}
-                    <TouchableOpacity
-                      style={styles.thumbX}
-                      onPress={() => onChangeIssueMedia?.(removeMediaItem(issueMedia, 'video', i))}
-                      activeOpacity={0.8}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
+            <View style={[styles.statusBadge, hasVideo ? styles.statusBadgeOk : styles.statusBadgeReq]}>
+              {hasVideo ? (
+                <View style={styles.badgeContentRow}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <Text style={styles.statusBadgeOkText}>RECORDED</Text>
+                </View>
+              ) : (
+                <Text style={styles.statusBadgeReqText}>COMPULSORY</Text>
+              )}
+            </View>
           </View>
 
-          {/* Validation Banner if missing either requirement */}
+          <Text style={styles.videoSubtitle}>
+            A quick live video (10–20s) is mandatory so our technician arrives with the right tools & genuine parts.
+          </Text>
+
+          {/* Interactive Media Capture Panel */}
+          <MediaCapturePanel
+            value={panelValue}
+            emptyTitle="Record Live Video of Issue"
+            emptyDescription="Capture a quick 10–20s video showing the appliance problem"
+            onChange={handlePanelChange}
+          />
+
+          {/* Video Preview thumbnail if recorded */}
+          {videos.length > 0 && (
+            <View style={styles.previews}>
+              {videos.map((v, i) => (
+                <View key={`v-${i}`} style={styles.thumbWrap}>
+                  {Platform.OS === 'web' ? (
+                    <video src={v.uri} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <View style={[styles.thumb, styles.videoFallback]}>
+                      <Text style={{ color: '#fff', fontSize: 11 }}>Live Video</Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={styles.thumbX}
+                    onPress={() => onChangeIssueMedia?.(removeMediaItem(issueMedia, 'video', i))}
+                    activeOpacity={0.8}
+                    accessibilityLabel="Remove video"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Reassurance strip */}
+          <View style={styles.reassuranceRow}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <Text style={styles.reassuranceText}>
+              Live video ensures accurate diagnosis & fast same-day resolution.
+            </Text>
+          </View>
+
+          {/* Validation Banner if missing video */}
           {validationError ? (
             <View style={styles.errorBanner}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <Text style={styles.errorBannerText}>{validationError}</Text>
             </View>
-          ) : !isFormValid && touched ? (
+          ) : !hasVideo && touched ? (
             <View style={styles.warningBanner}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <Text style={styles.warningBannerText}>
-                {!hasReasonText && !hasVideo
-                  ? 'Both Reason details and Live Video recording are compulsory to proceed.'
-                  : !hasReasonText
-                  ? 'Please enter the specific reason details above.'
-                  : 'Please record a live video of the issue to proceed.'}
+                Live video recording is compulsory to continue.
               </Text>
             </View>
           ) : null}
 
-          {/* Continue Button */}
+          {/* Continue CTA */}
           <TouchableOpacity
             style={[styles.primaryBtn, !isFormValid && styles.primaryBtnDisabled]}
             onPress={handleContinuePress}
             activeOpacity={0.88}
           >
             <Text style={styles.primaryBtnText}>
-              {isConsultation ? 'Select Date & Time' : 'Continue'}
+              {!hasVideo
+                ? 'Record Live Video to Continue'
+                : isConsultation
+                ? 'Continue to Select Date & Time'
+                : 'Continue'}
             </Text>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" />
@@ -462,106 +435,106 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontWeight: '500',
   },
-  mediaSection: {
+  videoSectionCard: {
     marginTop: 6,
-    gap: 16,
+    gap: 12,
     backgroundColor: '#ffffff',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    padding: 16,
+    padding: 14,
     boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
+    boxSizing: 'border-box',
+    width: '100%',
   },
-  fieldBlock: {
-    gap: 8,
-  },
-  sectionHeaderRow: {
+  videoHeaderTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 8,
+    width: '100%',
   },
-  sectionTitleWithIcon: {
+  videoTitleLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flex: 1,
+    minWidth: 0,
   },
-  sectionTitle: {
-    fontSize: 14.5,
+  videoIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#fef2f2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  videoTitle: {
+    fontSize: 14,
     fontWeight: '800',
     color: '#0f172a',
     letterSpacing: -0.2,
   },
-  mandatoryBadge: {
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: '#fecaca',
+  statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
+    flexShrink: 0,
   },
-  mandatoryBadgeText: {
-    fontSize: 10.5,
+  statusBadgeReq: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
+  statusBadgeReqText: {
+    fontSize: 10,
     fontWeight: '800',
     color: '#dc2626',
     letterSpacing: 0.4,
   },
-  completedBadge: {
+  statusBadgeOk: {
     backgroundColor: '#ecfdf5',
+    borderWidth: 1,
     borderColor: '#a7f3d0',
   },
-  completedBadgeText: {
-    fontSize: 10.5,
+  statusBadgeOkText: {
+    fontSize: 10,
     fontWeight: '800',
     color: '#059669',
     letterSpacing: 0.4,
   },
-  sectionSub: {
-    fontSize: 12.5,
-    color: '#64748b',
-    lineHeight: 17,
-    fontWeight: '500',
-  },
-  textarea: {
-    minHeight: 84,
-    borderWidth: 1.5,
-    borderColor: '#cbd5e1',
-    borderRadius: 14,
-    padding: 12,
-    fontSize: 13.5,
-    color: '#0f172a',
-    textAlignVertical: 'top',
-    backgroundColor: '#f8fafc',
-    lineHeight: 19,
-    fontWeight: '500',
-  },
-  textareaError: {
-    borderColor: '#f87171',
-    backgroundColor: '#fff5f5',
-  },
-  charRow: {
+  badgeContentRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: -2,
+    gap: 4,
   },
-  charHint: {
-    fontSize: 11,
-    color: '#94a3b8',
+  videoSubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 16,
     fontWeight: '500',
   },
-  charHintOk: {
-    color: '#059669',
-    fontWeight: '600',
+  reassuranceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 8,
   },
-  charCount: {
-    fontSize: 11,
-    color: '#94a3b8',
+  reassuranceText: {
+    fontSize: 11.5,
+    color: '#475569',
+    fontWeight: '500',
+    flex: 1,
   },
   previews: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginTop: 4,
+    marginTop: 2,
   },
   thumbWrap: {
     width: 84,
@@ -601,12 +574,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fef2f2',
     borderWidth: 1,
     borderColor: '#fecaca',
-    padding: 12,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 10,
   },
   errorBannerText: {
     color: '#b91c1c',
-    fontSize: 12.5,
+    fontSize: 12,
     fontWeight: '700',
     flex: 1,
   },
@@ -617,12 +590,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fffbeb',
     borderWidth: 1,
     borderColor: '#fde68a',
-    padding: 12,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 10,
   },
   warningBannerText: {
     color: '#92400e',
-    fontSize: 12.5,
+    fontSize: 12,
     fontWeight: '600',
     flex: 1,
   },
@@ -633,7 +606,7 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: '#2563eb',
     borderRadius: 14,
-    paddingVertical: 15,
+    paddingVertical: 14,
     boxShadow: '0 6px 18px rgba(37, 99, 235, 0.28)',
     cursor: 'pointer',
     marginTop: 4,
@@ -646,7 +619,7 @@ const styles = StyleSheet.create({
   primaryBtnText: {
     color: '#ffffff',
     fontWeight: '800',
-    fontSize: 15,
+    fontSize: 14.5,
     letterSpacing: 0.2,
   },
 });

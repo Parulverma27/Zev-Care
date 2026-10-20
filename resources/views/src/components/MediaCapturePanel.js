@@ -254,17 +254,17 @@ export default function MediaCapturePanel({
           <TouchableOpacity
             style={[styles.uploadActionBtn, isRecording && styles.uploadActionBtnRecording]}
             onPress={handleRecordVideoPress}
-            activeOpacity={0.85}
+            activeOpacity={0.88}
             accessibilityLabel={isRecording ? 'Stop recording' : 'Record live video'}
           >
             <View style={styles.uploadActionIconBox}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={isRecording ? '#dc2626' : '#2563eb'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 7l-7 5 7 5V7z" />
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
               </svg>
             </View>
             <Text style={styles.uploadActionText}>
-              {isRecording ? `Stop (${recordingSeconds}s)` : 'Record Live Video'}
+              {isRecording ? `Stop Recording (${recordingSeconds}s)` : 'Start Camera & Record Video (10–20s)'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -277,16 +277,18 @@ const styles = StyleSheet.create({
   wrap: { gap: 12, width: '100%' },
   dashedMediaUploadArea: {
     width: '100%',
-    aspectRatio: 1.25,
+    minHeight: 140,
+    maxHeight: 180,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: '#93c5fd',
+    borderColor: '#bfdbfe',
     borderStyle: 'dashed',
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#f8faff',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    padding: 12,
     overflow: 'hidden',
+    boxSizing: 'border-box',
   },
   mediaPreview: { width: '100%', height: '100%', position: 'relative' },
   mediaFill: { width: '100%', height: '100%', borderRadius: 16 },
@@ -298,53 +300,59 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a',
     borderRadius: 16,
   },
-  emptyState: { alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 16 },
-  emptyTitle: { fontSize: 15, fontWeight: '700', color: '#0f172a', fontFamily: 'Inter, sans-serif' },
+  emptyState: { alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 12 },
+  emptyTitle: { fontSize: 14, fontWeight: '800', color: '#0f172a', fontFamily: 'Inter, sans-serif' },
   emptyDesc: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: '#64748b',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 16,
     fontFamily: 'Inter, sans-serif',
   },
   uploadAreaCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: '#eff6ff',
     alignItems: 'center',
     justifyContent: 'center',
   },
   recommendedBadge: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: 12,
-    marginTop: 4,
+    marginTop: 2,
   },
-  recommendedBadgeText: { fontSize: 10.5, color: '#64748b', fontWeight: '500', fontFamily: 'Inter, sans-serif' },
+  recommendedBadgeText: { fontSize: 10.5, color: '#2563eb', fontWeight: '700', fontFamily: 'Inter, sans-serif' },
   uploadActionRow: { flexDirection: 'row', gap: 8 },
   uploadActionBtn: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 6,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#ffffff',
-    gap: 4,
-    minHeight: 72,
+    backgroundColor: '#2563eb',
+    gap: 8,
+    cursor: 'pointer',
+    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.22)',
   },
-  uploadActionBtnRecording: { borderColor: '#dc2626', backgroundColor: '#fef2f2' },
+  uploadActionBtnRecording: {
+    backgroundColor: '#dc2626',
+    boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)',
+  },
   uploadActionIconBox: { alignItems: 'center', justifyContent: 'center' },
   uploadActionText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#ffffff',
     textAlign: 'center',
     fontFamily: 'Inter, sans-serif',
+    letterSpacing: 0.2,
   },
   retakeActionRow: { width: '100%', alignItems: 'center', marginTop: 4 },
   retakeActionBtn: {
