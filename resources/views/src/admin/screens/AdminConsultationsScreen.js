@@ -22,13 +22,21 @@ export default function AdminConsultationsScreen() {
 
   // Filter only consultation bookings
   const consultationBookings = (bookings || []).filter(
-    (b) => b.isConsultation || b.booking_mode === 'consultation'
+    (b) => Boolean(
+      b.isConsultation ||
+      b.is_consultation ||
+      b.booking_mode === 'consultation' ||
+      b.bookingMode === 'consultation' ||
+      (b.service_name && b.service_name.toLowerCase().includes('consultation')) ||
+      (b.service_name && b.service_name.toLowerCase().includes('diagnosis')) ||
+      (b.description && b.description.toLowerCase().includes('consultation'))
+    )
   );
 
   // KPI calculations
   const totalCount = consultationBookings.length;
   const inProgressCount = consultationBookings.filter((b) =>
-    ['PROVIDER_ON_THE_WAY', 'PROVIDER_ARRIVED', 'ISSUE_INSPECTED', 'SERVICE_IN_PROGRESS'].includes(b.status)
+    ['PROVIDER_ASSIGNED', 'PROVIDER_ACCEPTED', 'PROVIDER_ON_THE_WAY', 'PROVIDER_ARRIVED', 'ISSUE_INSPECTED', 'SERVICE_IN_PROGRESS'].includes(b.status)
   ).length;
   const awaitingApprovalCount = consultationBookings.filter(
     (b) => b.status === 'AWAITING_USER_APPROVAL'
