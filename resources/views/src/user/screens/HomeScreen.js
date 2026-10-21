@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Modal, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Modal, Platform, useWindowDimensions } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { searchAllServices } from '../../config/serviceCatalogUtils';
+import HomeDesktopWebView from '../components/HomeDesktopWebView';
 import { resolveImageUri, DEFAULT_BANNERS } from '../../utils/imageUtils';
 import { SERVICE_IMAGES } from '../../utils/bundledImages';
 import { AppIcon } from '../../components/AppIcons';
@@ -585,6 +586,55 @@ export default function HomeScreen({ onNavigate }) {
     }
   };
 
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+
+  // Desktop Web View (Urban Company style) - strictly active on desktop viewports
+  if (isDesktop) {
+    return (
+      <HomeDesktopWebView
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        filteredSuggestions={filteredSuggestions}
+        placeholderIdx={placeholderIdx}
+        placeholders={SEARCH_PLACEHOLDERS}
+        onSelectSuggestion={(item) => {
+          setSearchQuery('');
+          if (isGuest) {
+            setGuestModalContext({
+              title: 'Sign In / Register Required',
+              message: 'Please register your account first to explore and book services.',
+            });
+            setShowGuestModal(true);
+            return;
+          }
+          const navPayload = {
+            state: {
+              preSelectedCategory: item.category_name,
+              preSelectedSubCategory: item.sub_category_name || item.name,
+              preSelectedService: item.name,
+              bookingMode: 'complaint',
+            },
+          };
+          handleNav('/user/bookings/new', navPayload);
+        }}
+        onSelectCategory={(category) => {
+          if (isGuest) {
+            setGuestModalContext({
+              title: 'Sign In / Register Required',
+              message: 'Please register your account first to explore and book services.',
+            });
+            setShowGuestModal(true);
+            return;
+          }
+          handleNav('/user/bookings/new', { state: { preSelectedCategory: category } });
+        }}
+        onNavigate={handleNav}
+      />
+    );
+  }
+
+  // 100% UNTOUCHED Mobile App View (Phones & small screens)
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 

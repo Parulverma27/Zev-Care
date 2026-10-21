@@ -3,7 +3,23 @@ import { CATALOG_VERSION, MAIN_CATEGORY_NAMES, SERVICE_CATALOG } from './service
 export { CATALOG_VERSION, MAIN_CATEGORY_NAMES, SERVICE_CATALOG };
 
 export function getCategoryByName(name) {
-  return SERVICE_CATALOG.find((c) => c.name === name) || null;
+  if (!name) return null;
+  const exact = SERVICE_CATALOG.find((c) => c.name === name || c.id === name);
+  if (exact) return exact;
+  const lower = String(name).toLowerCase().trim();
+  return (
+    SERVICE_CATALOG.find((c) => {
+      const cLower = c.name.toLowerCase();
+      return (
+        cLower === lower ||
+        (lower.includes('plumb') && cLower.includes('plumb')) ||
+        (lower.includes('carpen') && cLower.includes('carpen')) ||
+        (lower.includes('clean') && cLower.includes('clean')) ||
+        (lower.includes('pest') && cLower.includes('pest')) ||
+        (lower.includes('elec') && cLower.includes('elec'))
+      );
+    }) || null
+  );
 }
 
 export function categoryHasGroups(categoryName, liveSubCategories = null) {

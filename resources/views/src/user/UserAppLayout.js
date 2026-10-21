@@ -1,12 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { VectorTabIcon } from '../components/TabIcons';
+import DesktopUserHeader from './components/DesktopUserHeader';
+import DesktopUserFooter from './components/DesktopUserFooter';
 
 export default function UserAppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
 
   const isAuthPage = ['/login', '/register', '/otp', '/add-property', '/basic-details', '/terms'].some(
     (segment) => path.includes(segment)
@@ -26,6 +30,22 @@ export default function UserAppLayout() {
   const isBookingsTab = path.includes('/bookings') && !path.includes('/new') && !isBookingDetail;
   const isProfileTab = path.includes('/profile');
 
+  // Desktop Web Layout (Urban Company style framing) - strictly active on desktop viewports
+  if (isDesktop && !isAuthPage) {
+    return (
+      <div className="user-desktop-layout-root" style={desktopLayoutRootStyle}>
+        <DesktopUserHeader />
+        <main style={desktopMainContentStyle}>
+          <div style={desktopContainerStyle}>
+            <Outlet />
+          </div>
+        </main>
+        <DesktopUserFooter />
+      </div>
+    );
+  }
+
+  // 100% UNTOUCHED Mobile App Layout (Phones & small screens)
   return (
     <View style={styles.container}>
       <View style={[styles.contentContainer, isAuthPage && styles.contentContainerAuth]}>
@@ -233,3 +253,28 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 });
+
+const desktopLayoutRootStyle = {
+  minHeight: '100vh',
+  height: 'auto',
+  display: 'flex',
+  flexDirection: 'column',
+  backgroundColor: '#f8fafc',
+  width: '100%',
+};
+
+const desktopMainContentStyle = {
+  flex: 1,
+  width: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const desktopContainerStyle = {
+  maxWidth: '1240px',
+  width: '100%',
+  margin: '0 auto',
+  padding: '0 24px',
+  boxSizing: 'border-box',
+  flex: 1,
+};
