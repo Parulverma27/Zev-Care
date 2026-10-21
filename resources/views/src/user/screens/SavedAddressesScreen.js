@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Platform, useWindowDimensions } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcons';
@@ -25,6 +25,8 @@ const TAG_COLORS = {
 export default function SavedAddressesScreen({ onNavigate }) {
   const { activeUser, updateProfile, validateServiceLocation } = useApp();
   const navigate = useNavigate();
+  const { width } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && width >= 992;
 
   const isAnonymous = Boolean(
     !activeUser ||
@@ -147,6 +149,510 @@ export default function SavedAddressesScreen({ onNavigate }) {
   };
 
   const TAG_OPTIONS = ['Home', 'Office', 'Other', 'Parents', 'Gym'];
+
+  if (isDesktopWeb) {
+    return (
+      <View style={styles.desktopContainer}>
+        {/* Top Header / Breadcrumb */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <TouchableOpacity
+              onPress={handleGoBack}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 16px',
+                borderRadius: 999,
+                backgroundColor: '#ffffff',
+                border: '1.5px solid #e2e8f0',
+                color: '#1e293b',
+                fontWeight: 600,
+                fontSize: 13.5,
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+              }}
+            >
+              <span>← Back to Profile</span>
+            </TouchableOpacity>
+            <div>
+              <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', margin: 0, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
+                Saved Addresses & Service Locations
+              </h1>
+              <p style={{ fontSize: 13.5, color: '#64748b', margin: '4px 0 0', fontFamily: 'Inter, sans-serif' }}>
+                Manage verified properties and service destinations linked with your AMC protection plan
+              </p>
+            </div>
+          </div>
+
+          {!showAddForm && !isGuest && (
+            <TouchableOpacity
+              onPress={() => { setShowAddForm(true); setEditingId(null); setNewTag('Home'); setNewAddress(''); }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 20px',
+                borderRadius: 12,
+                backgroundColor: '#0052cc',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(0,82,204,0.25)',
+              }}
+            >
+              <span style={{ fontSize: 18, lineHeight: 1 }}>＋</span>
+              <span>Register New Address</span>
+            </TouchableOpacity>
+          )}
+        </div>
+
+        {/* 2-Column Desktop Grid Layout */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 380px', gap: 28, alignItems: 'start' }}>
+          {/* Left Column: Address Cards List / Grid */}
+          <div>
+            {isGuest ? (
+              <div style={{ backgroundColor: '#ffffff', borderRadius: 20, padding: 36, textAlign: 'center', border: '1.5px dashed #cbd5e1' }}>
+                <div style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                  <AppIcon name="lock" size={28} color="#b45309" strokeWidth={2.2} />
+                </div>
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', marginBottom: 8, fontFamily: 'Inter, sans-serif' }}>Guest Access Restricted</h3>
+                <p style={{ fontSize: 14, color: '#64748b', maxWidth: 440, margin: '0 auto 20px', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}>
+                  Saving, managing, and setting primary delivery addresses is reserved for registered account holders.
+                </p>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <button
+                    onClick={() => handleNav('/user/register')}
+                    style={{ padding: '10px 22px', backgroundColor: '#0052cc', color: '#fff', borderRadius: 10, fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 13.5 }}
+                  >
+                    Register Account →
+                  </button>
+                  <button
+                    onClick={() => handleNav('/user/login')}
+                    style={{ padding: '10px 20px', backgroundColor: '#f1f5f9', color: '#334155', borderRadius: 10, fontWeight: 600, border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: 13.5 }}
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+            ) : addresses.length === 0 ? (
+              <div style={{ backgroundColor: '#ffffff', borderRadius: 20, padding: 48, textAlign: 'center', border: '1.5px dashed #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
+                <div style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                  <AppIcon name="map-pin" size={28} color="#2563eb" />
+                </div>
+                <h3 style={{ fontSize: 19, fontWeight: 700, color: '#0f172a', marginBottom: 8, fontFamily: 'Inter, sans-serif' }}>No Saved Addresses Yet</h3>
+                <p style={{ fontSize: 14, color: '#64748b', maxWidth: 420, margin: '0 auto 24px', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}>
+                  Register your home, office, or parents’ address for instant technician dispatch and zero-hassle AMC servicing.
+                </p>
+                <button
+                  onClick={() => { setShowAddForm(true); setEditingId(null); setNewTag('Home'); setNewAddress(''); }}
+                  style={{ padding: '12px 24px', backgroundColor: '#0052cc', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 14, boxShadow: '0 4px 12px rgba(0,82,204,0.2)' }}
+                >
+                  ＋ Add Your First Address
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
+                {addresses.map((item) => {
+                  const iconName = TAG_ICONS[item.tag] || 'map-pin';
+                  const themeColor = TAG_COLORS[item.tag] || '#6366f1';
+                  const cov = validateServiceLocation ? validateServiceLocation(item.address) : { isSupported: true };
+
+                  return (
+                    <div
+                      key={item.id}
+                      style={{
+                        backgroundColor: item.isDefault ? '#f8faff' : '#ffffff',
+                        borderRadius: 18,
+                        padding: 20,
+                        border: item.isDefault ? '2px solid #3b82f6' : '1.5px solid #e2e8f0',
+                        boxShadow: item.isDefault ? '0 8px 24px rgba(59,130,246,0.08)' : '0 2px 10px rgba(15,23,42,0.03)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: 16,
+                        position: 'relative',
+                      }}
+                    >
+                      <div>
+                        {/* Top Meta Row */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: `${themeColor}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <AppIcon name={iconName} size={18} color={themeColor} />
+                            </div>
+                            <div>
+                              <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', fontFamily: 'Inter, sans-serif' }}>
+                                {item.tag}
+                              </span>
+                              {item.isDefault && (
+                                <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 6, backgroundColor: '#2563eb', color: '#ffffff', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                  Primary
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Star button */}
+                          <button
+                            onClick={() => !item.isDefault && handleSetDefault(item.id)}
+                            disabled={item.isDefault}
+                            title={item.isDefault ? "Primary Address" : "Set as Primary"}
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 16,
+                              backgroundColor: item.isDefault ? '#fffbeb' : '#f8fafc',
+                              border: item.isDefault ? '1px solid #fde68a' : '1px solid #e2e8f0',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: item.isDefault ? 'default' : 'pointer',
+                            }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill={item.isDefault ? '#f59e0b' : 'none'} stroke={item.isDefault ? '#f59e0b' : '#94a3b8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                          </button>
+                        </div>
+
+                        {/* Coverage pill */}
+                        <div style={{ marginBottom: 10 }}>
+                          {cov.isSupported ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700, color: '#16a34a' }}>
+                              ✅ Coverage Verified
+                            </span>
+                          ) : (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, backgroundColor: '#fef2f2', border: '1px solid #fecaca', fontSize: 11, fontWeight: 700, color: '#dc2626' }}>
+                              ⚠️ Out of Standard Zone
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Physical Address */}
+                        <p style={{ fontSize: 13.5, color: '#334155', lineHeight: 1.6, margin: 0, fontFamily: 'Inter, sans-serif' }}>
+                          {item.address}
+                        </p>
+                      </div>
+
+                      {/* Card Actions */}
+                      <div style={{ display: 'flex', gap: 10, paddingTop: 12, borderTop: '1px solid #f1f5f9' }}>
+                        <button
+                          onClick={() => handleEdit(item)}
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            borderRadius: 10,
+                            backgroundColor: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            color: '#2563eb',
+                            fontSize: 12.5,
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <AppIcon name="edit" size={13} color="#2563eb" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            borderRadius: 10,
+                            backgroundColor: '#fef2f2',
+                            border: '1px solid #fee2e2',
+                            color: '#dc2626',
+                            fontSize: 12.5,
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <AppIcon name="trash" size={13} color="#dc2626" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Add/Edit Form OR Guarantees Card */}
+          <div style={{ position: 'sticky', top: 90 }}>
+            {showAddForm ? (
+              <div style={{ backgroundColor: '#ffffff', borderRadius: 20, padding: 24, border: '1.5px solid #dbeafe', boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f172a', margin: '0 0 16px', fontFamily: 'Inter, sans-serif' }}>
+                  {editingId ? 'Modify Saved Location' : 'Register New Location'}
+                </h3>
+
+                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#475569', marginBottom: 8, fontFamily: 'Inter, sans-serif' }}>
+                  Address Category
+                </label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                  {TAG_OPTIONS.map(t => {
+                    const active = newTag === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setNewTag(t)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '6px 12px',
+                          borderRadius: 20,
+                          backgroundColor: active ? '#eff6ff' : '#f8fafc',
+                          border: active ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                          color: active ? '#2563eb' : '#475569',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <AppIcon name={TAG_ICONS[t]} size={12} color={active ? '#2563eb' : '#64748b'} />
+                        <span>{t}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Map button */}
+                <button
+                  type="button"
+                  onClick={() => setShowMapPicker(!showMapPicker)}
+                  style={{
+                    width: '100%',
+                    padding: '9px 14px',
+                    borderRadius: 10,
+                    backgroundColor: '#eff6ff',
+                    border: '1.5px solid #bfdbfe',
+                    color: '#2563eb',
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    marginBottom: 14,
+                  }}
+                >
+                  <AppIcon name="map-pin" size={14} color="#2563eb" />
+                  <span>{showMapPicker ? 'Hide Google Map' : 'Detect / Pick Location on Map'}</span>
+                </button>
+
+                {showMapPicker && (
+                  <div style={{ marginBottom: 14 }}>
+                    <GoogleMapsLocationPicker
+                      initialAddress={newAddress}
+                      onSelectLocation={(loc) => {
+                        setNewAddress(loc.address);
+                        setShowMapPicker(false);
+                      }}
+                      onClose={() => setShowMapPicker(false)}
+                    />
+                  </div>
+                )}
+
+                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#475569', marginBottom: 8, fontFamily: 'Inter, sans-serif' }}>
+                  Complete Physical Address
+                </label>
+                <div style={{ backgroundColor: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: 12, padding: 6, marginBottom: 16 }}>
+                  <TextInput
+                    style={styles.textInput}
+                    multiline
+                    numberOfLines={3}
+                    value={newAddress}
+                    onChangeText={setNewAddress}
+                    placeholder="Flat / Villa No., Tower, Society Name, Landmark, Sector, City..."
+                    placeholderTextColor="#94a3b8"
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => { setShowAddForm(false); setEditingId(null); setNewTag(''); setNewAddress(''); }}
+                    style={{
+                      flex: 1,
+                      padding: '11px',
+                      borderRadius: 10,
+                      backgroundColor: '#f1f5f9',
+                      border: 'none',
+                      color: '#475569',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddOrSave}
+                    style={{
+                      flex: 2,
+                      padding: '11px',
+                      borderRadius: 10,
+                      backgroundColor: '#0052cc',
+                      border: 'none',
+                      color: '#ffffff',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(0,82,204,0.25)',
+                    }}
+                  >
+                    {editingId ? 'Update Address' : 'Save Address'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ backgroundColor: '#ffffff', borderRadius: 20, padding: 24, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: '0 0 16px', fontFamily: 'Inter, sans-serif' }}>
+                  📍 Fast Technician Dispatch
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: 14 }}>⚡</span>
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Automated Primary Routing</h4>
+                      <p style={{ fontSize: 12, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                        When you book a service, your primary address is automatically preselected for 15-minute technician dispatch.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: 14 }}>🛡️</span>
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>AMC Plan Protection</h4>
+                      <p style={{ fontSize: 12, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                        Appliance breakdown visits and AMC labor benefits apply seamlessly to all registered locations.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: 14 }}>📌</span>
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Pinpoint GPS Coordinates</h4>
+                      <p style={{ fontSize: 12, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                        Google Maps integration ensures your technician arrives at the correct tower and gate without repeated calling.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {!isGuest && (
+                  <button
+                    onClick={() => { setShowAddForm(true); setEditingId(null); setNewTag('Home'); setNewAddress(''); }}
+                    style={{
+                      width: '100%',
+                      marginTop: 20,
+                      padding: '11px',
+                      borderRadius: 12,
+                      backgroundColor: '#eff6ff',
+                      border: '1.5px dashed #3b82f6',
+                      color: '#2563eb',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <span>＋</span>
+                    <span>Add Another Location</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Modal for guest */}
+        <Modal
+          visible={showGuestModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowGuestModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <TouchableOpacity
+                style={styles.guestCloseBtn}
+                onPress={() => setShowGuestModal(false)}
+                accessibilityLabel="Close modal"
+              >
+                <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
+              </TouchableOpacity>
+
+              <View style={styles.guestIconCircle}>
+                <AppIcon name="lock" size={26} color="#B45309" strokeWidth={2.2} />
+              </View>
+
+              <Text style={styles.modalTitle}>
+                {isAnonymous ? 'Register First' : 'Complete Your Profile First'}
+              </Text>
+              <Text style={styles.modalSub}>
+                {isAnonymous
+                  ? 'Please register your account first to save and manage service addresses.'
+                  : 'Please complete your profile to add, save, and manage your service addresses.'}
+              </Text>
+
+              <TouchableOpacity
+                style={styles.primaryModalBtn}
+                onPress={() => {
+                  setShowGuestModal(false);
+                  if (navigate) navigate('/user/register');
+                  else if (onNavigate) onNavigate('/user/register');
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.primaryModalBtnText}>
+                  {isAnonymous ? 'Register First →' : 'Complete Your Profile →'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.guestOutlineBtn}
+                onPress={() => {
+                  setShowGuestModal(false);
+                  if (navigate) navigate('/user/login');
+                  else if (onNavigate) onNavigate('/user/login');
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.guestOutlineBtnText}>Already have an account? Log In</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -619,5 +1125,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 13,
     fontFamily: 'Inter, sans-serif',
+  },
+  desktopContainer: {
+    width: '100%',
+    paddingVertical: 24,
   },
 });
