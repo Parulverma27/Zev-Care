@@ -237,7 +237,15 @@ function PropertyTypeDropdown({ value, onChange }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-  content: { padding: 20, paddingBottom: 40, gap: 14 },
+  content: {
+    padding: 24,
+    paddingBottom: 48,
+    gap: 16,
+    maxWidth: 680,
+    width: '100%',
+    alignSelf: 'center',
+    boxSizing: 'border-box',
+  },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
   backBtn: {
     width: 36,
@@ -251,13 +259,13 @@ const styles = StyleSheet.create({
   },
   backArrow: { fontSize: 18, color: '#0f172a', fontWeight: '600' },
   progressWrap: { flex: 1, gap: 6 },
-  stepLabel: { fontSize: 12, fontWeight: '600', color: '#64748b' },
+  stepLabel: { fontSize: 12, fontWeight: '600', color: '#64748b', fontFamily: 'Inter, sans-serif' },
   progressTrack: { height: 6, backgroundColor: '#e2e8f0', borderRadius: 99, overflow: 'hidden' },
   progressFill: { width: '50%', height: '100%', backgroundColor: '#2563eb', borderRadius: 99 },
-  title: { fontSize: 24, fontWeight: '800', color: '#0f172a', letterSpacing: -0.3 },
-  subtitle: { fontSize: 13, color: '#64748b', lineHeight: 19, marginTop: -6, marginBottom: 6 },
+  title: { fontSize: 24, fontWeight: '800', color: '#0f172a', letterSpacing: -0.3, fontFamily: 'Inter, sans-serif' },
+  subtitle: { fontSize: 13, color: '#64748b', lineHeight: 19, marginTop: -6, marginBottom: 6, fontFamily: 'Inter, sans-serif' },
   errorBox: { backgroundColor: '#fef2f2', borderRadius: 10, padding: 10 },
-  errorText: { color: '#dc2626', fontSize: 12, fontWeight: '600' },
+  errorText: { color: '#dc2626', fontSize: 12, fontWeight: '600', fontFamily: 'Inter, sans-serif' },
   pickerRow: {
     flexDirection: 'row',
     gap: 8,
