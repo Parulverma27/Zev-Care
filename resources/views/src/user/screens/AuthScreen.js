@@ -239,11 +239,11 @@ export default function AuthScreen() {
   };
 
   return (
-    <div style={css.screen}>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" />
+    <div className="zc-auth-screen" style={css.screen}>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" />
 
       {/* Top Hero Banner Slideshow */}
-      <div style={{ ...css.hero, backgroundColor: SLIDE_CONFIGS[activeSlideIndex % SLIDE_CONFIGS.length]?.bg || '#f1f5f9' }}>
+      <div className="zc-auth-hero" style={{ ...css.hero, backgroundColor: SLIDE_CONFIGS[activeSlideIndex % SLIDE_CONFIGS.length]?.bg || '#f1f5f9' }}>
         {SLIDE_CONFIGS.map((slide, idx) => (
           <div
             key={idx}
@@ -304,7 +304,7 @@ export default function AuthScreen() {
       </div>
 
       {/* Main Form Area */}
-      <div style={css.cardArea}>
+      <div className="zc-auth-card-area" style={css.cardArea}>
         <div style={css.card}>
           {page === 'register' && (
             <div style={css.otpHeader}>
@@ -603,6 +603,34 @@ export default function AuthScreen() {
         }
         .zc-link-hover { transition: color 0.15s ease-in-out; cursor: pointer; }
         .zc-link-hover:hover { color: #0036a3 !important; text-decoration: underline; }
+
+        @media (min-width: 992px) {
+          .zc-auth-screen {
+            flex-direction: row !important;
+            min-height: 100vh !important;
+            height: 100vh !important;
+            background-color: #f8fafc !important;
+            overflow: hidden !important;
+          }
+          .zc-auth-hero {
+            flex: 1 1 50% !important;
+            max-height: 100vh !important;
+            height: 100vh !important;
+            aspect-ratio: auto !important;
+            border-radius: 0 !important;
+          }
+          .zc-auth-card-area {
+            flex: 1 1 50% !important;
+            max-width: 480px !important;
+            margin: auto !important;
+            border-radius: 28px !important;
+            padding: 40px !important;
+            box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08) !important;
+            border: 1.5px solid #e2e8f0 !important;
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+          }
+        }
       `}</style>
     </div>
   );
