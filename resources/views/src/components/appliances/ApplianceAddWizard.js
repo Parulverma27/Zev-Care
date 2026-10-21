@@ -423,6 +423,8 @@ export default function ApplianceAddWizard({
   }, [existingAppliances, getAppliancesForUser, activeUser]);
 
   const { width } = useWindowDimensions();
+  // Desktop web only: wide 2-column layout. Mobile/native keeps the original single-column flow.
+  const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
   const columns = width >= 900 ? 5 : width >= 600 ? 4 : 3;
   const qtyCap = Math.min(MAX_QUANTITY, Math.max(MIN_QUANTITY, Number(maxQuantity) || MAX_QUANTITY));
 
@@ -889,11 +891,17 @@ export default function ApplianceAddWizard({
   const breadcrumb = [selectedCategory?.name, selectedSubgroup?.name].filter(Boolean).join(' › ');
 
   return (
-    <View style={styles.root}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity style={styles.backBtn} onPress={handleBack} accessibilityLabel="Go back">
-          <Text style={styles.backChevron}>‹</Text>
-        </TouchableOpacity>
+    <View style={[styles.root, isDesktopWeb && styles.rootDesktop]}>
+      <View style={[styles.headerRow, isDesktopWeb && styles.headerRowDesktop]}>
+        {isDesktopWeb ? (
+          <TouchableOpacity style={styles.backPillDesktop} onPress={handleBack} accessibilityLabel="Go back">
+            <Text style={styles.backPillDesktopText}>←  Back</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.backBtn} onPress={handleBack} accessibilityLabel="Go back">
+            <Text style={styles.backChevron}>‹</Text>
+          </TouchableOpacity>
+        )}
         {!!breadcrumb && (
           <Text style={styles.breadcrumb} numberOfLines={1}>
             {breadcrumb}
@@ -904,17 +912,30 @@ export default function ApplianceAddWizard({
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          isDesktopWeb && (step === 'category' ? styles.contentDesktopWide : styles.contentDesktop),
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={true}
       >
 
         {/* --------- CATEGORY STEP --------- */}
         {step === 'category' && (
+          <CategoryStepLayout
+            isDesktop={isDesktopWeb}
+            left={(
           <>
-            <Text style={styles.title}>What would you like to add?</Text>
-            <Text style={styles.subtitle}>
-              Choose a service category to register items for your home.
+            <Text
+              style={[styles.title, isDesktopWeb && styles.titleDesktop]}
+              {...(isDesktopWeb ? { role: 'heading', 'aria-level': 1 } : {})}
+            >
+              {isDesktopWeb ? 'Register Home Appliances' : 'What would you like to add?'}
+            </Text>
+            <Text style={[styles.subtitle, isDesktopWeb && styles.subtitleDesktop]}>
+              {isDesktopWeb
+                ? 'Choose a service category to register items under your AMC protection plan.'
+                : 'Choose a service category to register items for your home.'}
             </Text>
             <View style={styles.searchBar}>
               <Text style={styles.searchGlyph}>⌕</Text>
@@ -932,9 +953,11 @@ export default function ApplianceAddWizard({
               )}
             </View>
             {renderCategoryGrid(filteredCategories)}
-
-            {/* --------- REGISTERED / PLAN APPLIANCES SECTION --------- */}
-            <View style={styles.coveredSection}>
+          </>
+            )}
+            right={(
+            /* --------- REGISTERED / PLAN APPLIANCES SECTION --------- */
+            <View style={[styles.coveredSection, isDesktopWeb && styles.coveredSectionDesktop]}>
               <View style={styles.coveredSectionHeader}>
                 <View style={styles.coveredHeaderLeft}>
                   <View style={styles.coveredShieldIcon}>
@@ -1111,7 +1134,8 @@ export default function ApplianceAddWizard({
                 </View>
               )}
             </View>
-          </>
+            )}
+          />
         )}
 
         {/* --------- SUBGROUP STEP --------- */}
@@ -1819,9 +1843,58 @@ export default function ApplianceAddWizard({
 
 // --------- Internal sub-components ------------------------------------------------------------------------------------------------------------------------------------------------
 
+/**
+ * Category step layout. Mobile/native: renders `left` then `right` stacked (original behaviour).
+ * Desktop web: 2-column grid with a sticky coverage panel on the right.
+ */
+function CategoryStepLayout({ isDesktop, left, right }) {
+  if (!isDesktop || Platform.OS !== 'web') {
+    return (
+      <>
+        {left}
+        {right}
+      </>
+    );
+  }
+  return (
+    <div style={desktopSplitStyle}>
+      <div style={desktopLeftColStyle}>{left}</div>
+      <div style={desktopRightColStyle}>{right}</div>
+    </div>
+  );
+}
+
+const desktopSplitStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) 420px',
+  gap: '32px',
+  alignItems: 'start',
+  width: '100%',
+};
+
+const desktopLeftColStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  minWidth: 0,
+  backgroundColor: '#ffffff',
+  border: '1.5px solid rgba(226, 232, 240, 0.9)',
+  borderRadius: '22px',
+  padding: '28px 28px 32px',
+  boxShadow: '0 12px 32px -8px rgba(15, 23, 42, 0.05), 0 2px 8px rgba(15, 23, 42, 0.02)',
+  boxSizing: 'border-box',
+};
+
+const desktopRightColStyle = {
+  position: 'sticky',
+  top: '16px',
+  minWidth: 0,
+};
+
 function CategoryCard({ item, onPress, style }) {
   return (
     <TouchableOpacity
+      dataSet={{ zcCatCard: 'true' }}
       style={[catStyles.card, style]}
       onPress={onPress}
       activeOpacity={0.88}
@@ -2048,6 +2121,64 @@ const styles = StyleSheet.create({
     maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
+  },
+  /* ---- Desktop web only (>=1024px) ---- */
+  rootDesktop: {
+    backgroundColor: 'transparent',
+  },
+  headerRowDesktop: {
+    maxWidth: 1320,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 0,
+    paddingTop: 20,
+    height: 64,
+  },
+  backPillDesktop: {
+    height: 38,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 6px rgba(8, 120, 248, 0.08)',
+  },
+  backPillDesktopText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0878f8',
+  },
+  contentDesktop: {
+    maxWidth: 860,
+    paddingHorizontal: 0,
+    paddingTop: 12,
+    paddingBottom: 120,
+    gap: 16,
+  },
+  contentDesktopWide: {
+    maxWidth: 1320,
+    paddingHorizontal: 0,
+    paddingTop: 12,
+    paddingBottom: 80,
+  },
+  titleDesktop: {
+    fontSize: 30,
+    fontWeight: '800',
+    letterSpacing: -0.8,
+    lineHeight: 36,
+    margin: 0,
+  },
+  subtitleDesktop: {
+    fontSize: 14.5,
+    lineHeight: 21,
+    marginTop: -6,
+    marginBottom: 4,
+  },
+  coveredSectionDesktop: {
+    marginTop: 0,
+    borderRadius: 22,
   },
   title: {
     fontSize: 17,
