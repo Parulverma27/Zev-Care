@@ -6,33 +6,6 @@ import ZevotaLogo from '../../components/ZevotaLogo';
 /* REAL AUTHENTIC VECTOR SVG ICONS                                            */
 /* ========================================================================= */
 
-const IconShieldCheck = ({ size = 20, color = '#2563eb' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    <path d="m9 12 2 2 4-4" strokeWidth="2.4" />
-  </svg>
-);
-
-const IconTagPercent = ({ size = 20, color = '#10b981' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="19" y1="5" x2="5" y2="19" />
-    <circle cx="6.5" cy="6.5" r="2.5" fill={color} stroke="none" />
-    <circle cx="17.5" cy="17.5" r="2.5" fill={color} stroke="none" />
-  </svg>
-);
-
-const IconStar = ({ size = 18, color = '#f59e0b' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="#d97706" strokeWidth="1">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-  </svg>
-);
-
-const IconHeadphones = ({ size = 20, color = '#6366f1' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
-    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
-  </svg>
-);
 
 const IconPhone = ({ size = 15, color = '#2563eb' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -121,63 +94,11 @@ export default function DesktopUserFooter() {
           position: relative;
         }
 
-        /* Top Trust Highlights Banner */
-        .zc-trust-bar {
-          max-width: 1240px;
-          margin: 0 auto;
-          padding: 24px 24px 0 24px;
-          box-sizing: border-box;
-        }
-        .zc-trust-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 16px;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 16px;
-          padding: 16px 20px;
-          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-        }
-        .zc-trust-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          transition: transform 0.22s ease;
-        }
-        .zc-trust-item:hover {
-          transform: translateY(-2px);
-        }
-        .zc-trust-icon-box {
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          transition: transform 0.25s ease;
-        }
-        .zc-trust-item:hover .zc-trust-icon-box {
-          transform: scale(1.08);
-        }
-        .zc-trust-title {
-          font-size: 13px;
-          font-weight: 700;
-          color: #0f172a;
-          line-height: 1.25;
-        }
-        .zc-trust-desc {
-          font-size: 11.5px;
-          color: #64748b;
-          margin-top: 2px;
-          line-height: 1.25;
-        }
-
         /* Main Footer Grid */
         .zc-footer-main {
           max-width: 1240px;
           margin: 0 auto;
-          padding: 44px 24px 36px 24px;
+          padding: 48px 24px 38px 24px;
           display: grid;
           grid-template-columns: 1.35fr 1fr 1fr 1fr 1.25fr;
           gap: 32px;
@@ -396,52 +317,7 @@ export default function DesktopUserFooter() {
         }
       `}</style>
 
-      {/* 1. TOP TRUST HIGHLIGHTS BAR */}
-      <div className="zc-trust-bar">
-        <div className="zc-trust-grid">
-          <div className="zc-trust-item">
-            <div className="zc-trust-icon-box" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>
-              <IconShieldCheck size={22} color="#2563eb" />
-            </div>
-            <div>
-              <div className="zc-trust-title">Verified Technicians</div>
-              <div className="zc-trust-desc">100% background checked</div>
-            </div>
-          </div>
-
-          <div className="zc-trust-item">
-            <div className="zc-trust-icon-box" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
-              <IconTagPercent size={21} color="#10b981" />
-            </div>
-            <div>
-              <div className="zc-trust-title">Transparent Pricing</div>
-              <div className="zc-trust-desc">Upfront fixed rates & ₹0 hidden fee</div>
-            </div>
-          </div>
-
-          <div className="zc-trust-item">
-            <div className="zc-trust-icon-box" style={{ backgroundColor: '#fffbeb', color: '#f59e0b' }}>
-              <IconStar size={20} color="#f59e0b" />
-            </div>
-            <div>
-              <div className="zc-trust-title">4.8★ Rated Service</div>
-              <div className="zc-trust-desc">50,000+ satisfied homes</div>
-            </div>
-          </div>
-
-          <div className="zc-trust-item">
-            <div className="zc-trust-icon-box" style={{ backgroundColor: '#eef2ff', color: '#6366f1' }}>
-              <IconHeadphones size={21} color="#6366f1" />
-            </div>
-            <div>
-              <div className="zc-trust-title">24x7 Dedicated Help</div>
-              <div className="zc-trust-desc">Rapid assistance on chat & call</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. MAIN 5-COLUMN NAVIGATION GRID */}
+      {/* MAIN 5-COLUMN NAVIGATION GRID */}
       <div className="zc-footer-main">
         {/* Col 1: Brand Anchor with Large Prominent Logo */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

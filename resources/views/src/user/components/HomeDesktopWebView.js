@@ -58,91 +58,280 @@ const EXPLORE_SERVICES = [
   },
 ];
 
+/* ========================================================================= */
+/* LUXURY 3D AMC VECTOR ICONS (Matches Mobile App Exactly)                   */
+/* ========================================================================= */
+
+function Luxury3DShieldIcon({ size = 26 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <defs>
+        <linearGradient id="shieldRimGrad_desktop" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#93c5fd" />
+          <stop offset="40%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#1d4ed8" />
+        </linearGradient>
+        <linearGradient id="shieldFacetLeft_desktop" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="50%" stopColor="#2563eb" />
+          <stop offset="100%" stopColor="#1d4ed8" />
+        </linearGradient>
+        <linearGradient id="shieldFacetRight_desktop" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#1d4ed8" />
+          <stop offset="60%" stopColor="#1e3a8a" />
+          <stop offset="100%" stopColor="#0f172a" />
+        </linearGradient>
+        <linearGradient id="shieldSheen_desktop" x1="0%" y1="0%" x2="70%" y2="70%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.65" />
+          <stop offset="45%" stopColor="#ffffff" stopOpacity="0.1" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
+        <filter id="shieldShadow_desktop" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="1.2" stdDeviation="1.2" floodColor="#0f172a" floodOpacity="0.35" />
+        </filter>
+      </defs>
+      <g filter="url(#shieldShadow_desktop)">
+        <path
+          d="M16 2.5L6.5 6.8V14.8C6.5 21.2 10.6 27.2 16 29C21.4 27.2 25.5 21.2 25.5 14.8V6.8L16 2.5Z"
+          fill="url(#shieldRimGrad_desktop)"
+        />
+        <path
+          d="M16 4.2L8 7.8V14.8C8 20.3 11.4 25.4 16 27V4.2Z"
+          fill="url(#shieldFacetLeft_desktop)"
+        />
+        <path
+          d="M16 4.2L24 7.8V14.8C24 20.3 20.6 25.4 16 27V4.2Z"
+          fill="url(#shieldFacetRight_desktop)"
+        />
+        <path
+          d="M16 4.2L8 7.8V14.8C8 17.5 9 20.2 10.8 22.4L20 8.5L16 4.2Z"
+          fill="url(#shieldSheen_desktop)"
+        />
+        <line x1="16" y1="4.2" x2="16" y2="27" stroke="#60a5fa" strokeWidth="0.8" opacity="0.6" />
+        <path
+          d="M11.5 15.2L14.6 18.3L20.8 11.8"
+          stroke="#ffffff"
+          strokeWidth="2.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
+    </svg>
+  );
+}
+
+function Luxury3DWrenchIcon({ size = 20 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <defs>
+        <linearGradient id="wrenchLuxGrad_desktop" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#fb923c" />
+          <stop offset="50%" stopColor="#f97316" />
+          <stop offset="100%" stopColor="#ea580c" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+        stroke="url(#wrenchLuxGrad_desktop)"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="rgba(249, 115, 22, 0.15)"
+      />
+    </svg>
+  );
+}
+
+function Luxury3DMechanicIcon({ size = 20 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <defs>
+        <linearGradient id="mechLuxGrad_desktop" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#60a5fa" />
+          <stop offset="50%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#1d4ed8" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"
+        stroke="url(#mechLuxGrad_desktop)"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="rgba(37, 99, 235, 0.15)"
+      />
+      <path
+        d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"
+        stroke="url(#mechLuxGrad_desktop)"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 15v-3a8 8 0 0 1 16 0v3"
+        stroke="url(#mechLuxGrad_desktop)"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="rgba(37, 99, 235, 0.12)"
+      />
+    </svg>
+  );
+}
+
 const AMC_CARDS = [
   {
-    key: 'plan',
+    key: 'plans',
+    badge: 'EXCLUSIVE PASS',
     title: 'My AMC Plan',
-    subtitle: 'Explore maintenance plans for your home and eligible appliances.',
+    subtitle: 'Protect your home with premium annual coverage.',
     actionLabel: 'Explore Plans',
     route: '/user/plans',
-    badge: 'Protection',
-    iconImage: resolveImageUri(SERVICE_IMAGES.amcShield3d, '/assets/amc-shield-3d.jpg'),
-    borderColor: '#bfdbfe',
+    cardBg: 'linear-gradient(135deg, #ffffff 0%, #f8faff 45%, #eff6ff 100%)',
+    borderColor: 'rgba(59, 130, 246, 0.28)',
+    boxShadow: '0 8px 25px -4px rgba(37, 99, 235, 0.10), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    iconBg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+    iconBorder: '1.5px solid rgba(59, 130, 246, 0.35)',
+    titleColor: '#0f172a',
+    subColor: '#475569',
     badgeBg: '#eff6ff',
+    badgeBorder: '#bfdbfe',
     badgeColor: '#1d4ed8',
-    accentGradient: 'linear-gradient(90deg, #2563eb, #38bdf8)',
-    iconBg: '#eff6ff',
+    pillBtnBg: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+    pillBtnBorder: 'none',
+    pillBtnColor: '#ffffff',
+    pillArrowBg: 'rgba(255, 255, 255, 0.22)',
+    pillArrowColor: '#ffffff',
+    icon: <Luxury3DShieldIcon size={26} />,
   },
   {
-    key: 'complaint',
+    key: 'complaints',
+    badge: 'PRIORITY',
     title: 'AMC Complaints',
-    subtitle: 'Raise a complaint and manage your existing maintenance requests.',
-    actionLabel: 'Raise a Complaint',
+    subtitle: 'Raise any appliance or home issue.',
+    actionLabel: 'Raise Complaint',
     route: '/user/complains',
-    badge: 'Priority Support',
-    iconImage: resolveImageUri(SERVICE_IMAGES.amcWrench3d, '/assets/amc-wrench-3d.jpg'),
-    borderColor: '#fed7aa',
+    cardBg: 'linear-gradient(145deg, #ffffff 0%, #fffdf9 45%, #fff7ed 100%)',
+    borderColor: 'rgba(249, 115, 22, 0.24)',
+    boxShadow: '0 8px 24px -4px rgba(234, 88, 12, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    iconBg: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
+    iconBorder: '1.5px solid rgba(249, 115, 22, 0.35)',
+    titleColor: '#0f172a',
+    subColor: '#64748b',
     badgeBg: '#fff7ed',
+    badgeBorder: '#fed7aa',
     badgeColor: '#c2410c',
-    accentGradient: 'linear-gradient(90deg, #f59e0b, #f97316)',
-    iconBg: '#fff7ed',
+    pillBtnBg: '#ffffff',
+    pillBtnBorder: '1.2px solid #fed7aa',
+    pillBtnColor: '#ea580c',
+    pillArrowBg: '#fff7ed',
+    pillArrowColor: '#ea580c',
+    icon: <Luxury3DWrenchIcon size={20} />,
   },
   {
     key: 'mechanic',
+    badge: '₹0 FREE',
     title: 'My Mechanic',
-    subtitle: 'Access the technician or inspection services available to your account.',
-    actionLabel: 'Book a Visit',
+    subtitle: 'Free on-site diagnosis & inspection.',
+    actionLabel: 'Book Free',
     route: '/user/consultation',
-    badge: 'Dedicated Visit',
-    iconImage: resolveImageUri(SERVICE_IMAGES.amcMechanic3d, '/assets/amc-mechanic-3d.jpg'),
-    borderColor: '#bbf7d0',
-    badgeBg: '#f0fdf4',
-    badgeColor: '#15803d',
-    accentGradient: 'linear-gradient(90deg, #10b981, #059669)',
-    iconBg: '#f0fdf4',
+    cardBg: 'linear-gradient(145deg, #ffffff 0%, #f8faff 45%, #eff6ff 100%)',
+    borderColor: 'rgba(37, 99, 235, 0.24)',
+    boxShadow: '0 8px 24px -4px rgba(37, 99, 235, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    iconBg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+    iconBorder: '1.5px solid rgba(37, 99, 235, 0.35)',
+    titleColor: '#0f172a',
+    subColor: '#64748b',
+    badgeBg: '#eff6ff',
+    badgeBorder: '#bfdbfe',
+    badgeColor: '#1d4ed8',
+    pillBtnBg: '#ffffff',
+    pillBtnBorder: '1.2px solid #bfdbfe',
+    pillBtnColor: '#2563eb',
+    pillArrowBg: '#eff6ff',
+    pillArrowColor: '#2563eb',
+    icon: <Luxury3DMechanicIcon size={20} />,
   },
 ];
 
+/* Real SVG vector icons for Trust Pillars (Zero emojis) */
+const IconShieldCheck = ({ size = 26, color = '#2563eb' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <path d="m9 12 2 2 4-4" strokeWidth="2.6" />
+  </svg>
+);
+
+const IconReceiptPercent = ({ size = 26, color = '#059669' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z" />
+    <line x1="16" y1="8" x2="8" y2="16" />
+    <circle cx="9" cy="9.5" r="1.5" fill={color} stroke="none" />
+    <circle cx="15" cy="14.5" r="1.5" fill={color} stroke="none" />
+  </svg>
+);
+
+const IconClockSpeed = ({ size = 26, color = '#4f46e5' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 15 15" strokeWidth="2.4" />
+  </svg>
+);
+
+const IconBadgeGuarantee = ({ size = 26, color = '#d97706' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="8" r="7" />
+    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+    <path d="m9 8 2 2 4-4" strokeWidth="2.4" />
+  </svg>
+);
+
+const IconMiniCheck = ({ size = 11, color = '#2563eb' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
 const TRUST_PILLARS = [
   {
-    iconName: 'check',
-    stat: '1,000+',
-    statLabel: 'Verified Pros',
+    icon: (color) => <IconShieldCheck size={26} color={color} />,
+    badgeText: 'SAFETY FIRST',
     title: 'Background-Checked',
-    desc: 'Certified and identity-verified home technicians for safe service.',
-    iconBg: '#eff6ff',
-    iconBorder: '#bfdbfe',
-    iconColor: '#0878f8',
+    desc: 'Certified and identity-verified home technicians equipped with proper tools for safe, reliable service.',
+    chipText: 'Verified Identity',
+    accentColor: '#2563eb',
+    bgColor: '#eff6ff',
+    borderColor: '#bfdbfe',
   },
   {
-    iconName: 'star',
-    stat: '₹0 Hidden',
-    statLabel: 'Transparent Rates',
-    title: 'Upfront Pricing',
-    desc: 'Clear rate cards with fixed pricing and zero surprise charges.',
-    iconBg: '#fff7ed',
-    iconBorder: '#fed7aa',
-    iconColor: '#f97316',
+    icon: (color) => <IconReceiptPercent size={26} color={color} />,
+    badgeText: 'HONEST RATES',
+    title: 'Upfront Fixed Pricing',
+    desc: 'Standardized rate cards with clear pricing quotes before work begins. Zero surprise or hidden fees.',
+    chipText: 'Clear Rate Cards',
+    accentColor: '#059669',
+    bgColor: '#ecfdf5',
+    borderColor: '#a7f3d0',
   },
   {
-    iconName: 'lock',
-    stat: '256-Bit',
-    statLabel: 'Bank Grade',
-    title: 'Secure Booking',
-    desc: 'Encrypted transactions with easy, hassle-free rescheduling.',
-    iconBg: '#f0fdf4',
-    iconBorder: '#bbf7d0',
-    iconColor: '#10b981',
+    icon: (color) => <IconClockSpeed size={26} color={color} />,
+    badgeText: 'PROMPT SERVICE',
+    title: 'Scheduled Doorstep Arrival',
+    desc: 'Convenient appointment slots with live arrival updates and timely doorstep service by dedicated professionals.',
+    chipText: 'Scheduled Slots',
+    accentColor: '#4f46e5',
+    bgColor: '#eef2ff',
+    borderColor: '#c7d2fe',
   },
   {
-    iconName: 'clock',
-    stat: '< 2 Hrs',
-    statLabel: 'Quick Response',
-    title: 'Dedicated Support',
-    desc: 'Fast resolution with comprehensive AMC service warranty.',
-    iconBg: '#f5f3ff',
-    iconBorder: '#ddd6fe',
-    iconColor: '#8b5cf6',
+    icon: (color) => <IconBadgeGuarantee size={26} color={color} />,
+    badgeText: 'ASSURANCE',
+    title: 'Post-Service Warranty',
+    desc: 'Every completed repair is covered by our service warranty with free revisit and rework support if unsatisfied.',
+    chipText: 'Service Warranty',
+    accentColor: '#d97706',
+    bgColor: '#fffbeb',
+    borderColor: '#fde68a',
   },
 ];
 
@@ -505,41 +694,142 @@ export default function HomeDesktopWebView({
             <div
               key={card.key}
               className="zc-desktop-amc-card"
-              style={{ ...amcCardStyle, borderColor: card.borderColor }}
+              style={{
+                background: card.cardBg,
+                borderColor: card.borderColor,
+                boxShadow: card.boxShadow,
+                borderRadius: '22px',
+                borderWidth: '1.5px',
+                borderStyle: 'solid',
+                padding: '24px 22px 20px 22px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '235px',
+                cursor: 'pointer',
+                boxSizing: 'border-box',
+              }}
               onClick={() => onNavigate(card.route)}
               role="button"
               tabIndex={0}
             >
-              {/* Colored top accent line */}
-              <div style={{ ...amcAccentBarStyle, background: card.accentGradient }} />
-
-              <div style={amcCardContentStyle}>
-                <div style={amcCardTopStyle}>
-                  <div style={{ ...amcIconBoxStyle, backgroundColor: card.iconBg, borderColor: card.borderColor }}>
-                    <img
-                      src={card.iconImage}
-                      alt={card.title}
-                      className="zc-amc-icon-art"
-                      style={amcIconImgStyle}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = '/assets/hero-banner-1.png';
-                      }}
-                    />
-                  </div>
-                  <span style={{ ...amcBadgeStyle, backgroundColor: card.badgeBg, color: card.badgeColor, borderColor: card.borderColor }}>
+              {/* Top Row: Circular Icon + Symmetrical Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '12px' }}>
+                <div
+                  style={{
+                    background: card.iconBg,
+                    border: card.iconBorder,
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '21px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+                  }}
+                >
+                  {card.icon}
+                </div>
+                <div
+                  style={{
+                    backgroundColor: card.badgeBg,
+                    border: `1px solid ${card.badgeBorder}`,
+                    borderRadius: '999px',
+                    padding: '3px 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <span
+                    style={{
+                      color: card.badgeColor,
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      letterSpacing: '0.4px',
+                      fontFamily: "'Outfit', sans-serif",
+                    }}
+                  >
                     {card.badge}
                   </span>
                 </div>
+              </div>
 
-                <div style={amcCardBodyStyle}>
-                  <h3 style={amcCardTitleStyle}>{card.title}</h3>
-                  <p style={amcCardDescStyle}>{card.subtitle}</p>
-                </div>
+              {/* Middle: Title & Subtitle */}
+              <div style={{ margin: '14px 0 18px 0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <h3
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 800,
+                    color: card.titleColor,
+                    margin: 0,
+                    fontFamily: "'Outfit', sans-serif",
+                    letterSpacing: '-0.2px',
+                    lineHeight: 1.25,
+                  }}
+                >
+                  {card.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: '12.5px',
+                    color: card.subColor,
+                    lineHeight: 1.5,
+                    margin: 0,
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  }}
+                >
+                  {card.subtitle}
+                </p>
+              </div>
 
-                <div className="zc-desktop-btn-primary" style={amcCardBtnStyle}>
-                  <span>{card.actionLabel}</span>
-                  <span style={amcArrowCircleStyle}>›</span>
+              {/* Bottom: Unified Pill Action Button (Matches App Exactly) */}
+              <div
+                style={{
+                  background: card.pillBtnBg,
+                  border: card.pillBtnBorder,
+                  borderRadius: '999px',
+                  height: '38px',
+                  paddingLeft: '14px',
+                  paddingRight: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  boxShadow: card.key === 'plans' ? '0 4px 12px rgba(37, 99, 235, 0.22)' : '0 2px 6px rgba(15, 23, 42, 0.04)',
+                }}
+              >
+                <span
+                  style={{
+                    color: card.pillBtnColor,
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    fontFamily: "'Outfit', sans-serif",
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {card.actionLabel}
+                </span>
+                <div
+                  style={{
+                    backgroundColor: card.pillArrowBg,
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    marginLeft: '8px',
+                  }}
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={card.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
                 </div>
               </div>
             </div>
@@ -552,25 +842,52 @@ export default function HomeDesktopWebView({
         <div style={trustCardStyle}>
           <div style={trustHeaderStyle}>
             <div style={trustBadgeHeaderStyle}>
-              <span style={eyebrowDotStyle} />
+              <span className="zc-eyebrow-pulse-dot" style={eyebrowDotStyle} />
               <span>THE ZEVOTA CARE PROMISE</span>
             </div>
             <h3 style={trustHeadingStyle}>Why Choose Zevota Care?</h3>
-            <p style={trustSubheadingStyle}>Premium home maintenance engineered for safety, speed, and complete peace of mind.</p>
+            <p style={trustSubheadingStyle}>Reliable home maintenance engineered for safety, speed, and complete peace of mind.</p>
           </div>
 
           <div style={trustGridStyle}>
             {TRUST_PILLARS.map((pillar) => (
               <div key={pillar.title} className="zc-desktop-trust-card" style={trustColStyle}>
-                <div style={{ ...trustIconBoxStyle, backgroundColor: pillar.iconBg, borderColor: pillar.iconBorder }}>
-                  <AppIcon name={pillar.iconName} size={22} color={pillar.iconColor} strokeWidth={2.4} />
+                <div
+                  className="zc-trust-icon-box"
+                  style={{
+                    ...trustIconBoxStyle,
+                    backgroundColor: pillar.bgColor,
+                    borderColor: pillar.borderColor,
+                  }}
+                >
+                  {pillar.icon(pillar.accentColor)}
                 </div>
-                <div style={trustStatRowStyle}>
-                  <span style={trustStatValueStyle}>{pillar.stat}</span>
-                  <span style={trustStatLabelStyle}>{pillar.statLabel}</span>
+
+                <div
+                  style={{
+                    fontSize: '10.5px',
+                    fontWeight: 800,
+                    color: pillar.accentColor,
+                    backgroundColor: pillar.bgColor,
+                    border: `1px solid ${pillar.borderColor}`,
+                    borderRadius: '20px',
+                    padding: '3px 10px',
+                    letterSpacing: '0.6px',
+                    fontFamily: "'Outfit', sans-serif",
+                    marginBottom: '10px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {pillar.badgeText}
                 </div>
+
                 <h4 style={trustPillarTitleStyle}>{pillar.title}</h4>
                 <p style={trustPillarDescStyle}>{pillar.desc}</p>
+
+                <div className="zc-trust-chip" style={trustChipStyle}>
+                  <IconMiniCheck size={11} color={pillar.accentColor} />
+                  <span>{pillar.chipText}</span>
+                </div>
               </div>
             ))}
           </div>
@@ -1271,63 +1588,62 @@ const trustGridStyle = {
 const trustColStyle = {
   backgroundColor: '#ffffff',
   border: '1.5px solid #e2e8f0',
-  borderRadius: '20px',
-  padding: '24px 18px',
+  borderRadius: '22px',
+  padding: '28px 20px 22px 20px',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   textAlign: 'center',
-  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
+  cursor: 'default',
 };
 
 const trustIconBoxStyle = {
-  width: '56px',
-  height: '56px',
-  borderRadius: '16px',
-  border: '1.5px solid #dbeafe',
+  width: '60px',
+  height: '60px',
+  borderRadius: '18px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  marginBottom: '10px',
+  marginBottom: '14px',
   flexShrink: 0,
-};
-
-const trustStatRowStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '1px',
-  marginBottom: '6px',
-};
-
-const trustStatValueStyle = {
-  fontSize: '20px',
-  fontWeight: 900,
-  color: '#0f172a',
-  fontFamily: "'Outfit', sans-serif",
-};
-
-const trustStatLabelStyle = {
-  fontSize: '10.5px',
-  fontWeight: 700,
-  color: '#0878f8',
-  textTransform: 'uppercase',
-  letterSpacing: '0.5px',
-  fontFamily: "'Outfit', sans-serif",
+  borderWidth: '1.5px',
+  borderStyle: 'solid',
 };
 
 const trustPillarTitleStyle = {
-  fontSize: '14.5px',
+  fontSize: '16.5px',
   fontWeight: 800,
   color: '#0f172a',
-  margin: '0 0 4px 0',
+  margin: '0 0 8px 0',
   fontFamily: "'Outfit', sans-serif",
+  lineHeight: 1.25,
+  minHeight: '42px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 };
 
 const trustPillarDescStyle = {
-  fontSize: '12px',
+  fontSize: '12.5px',
   color: '#64748b',
-  lineHeight: 1.45,
-  margin: 0,
+  lineHeight: 1.5,
+  margin: '0 0 16px 0',
   fontFamily: "'Plus Jakarta Sans', sans-serif",
+  flex: 1,
+};
+
+const trustChipStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  backgroundColor: '#f8fafc',
+  border: '1px solid #e2e8f0',
+  borderRadius: '16px',
+  padding: '4px 10px',
+  fontSize: '11px',
+  fontWeight: 700,
+  color: '#334155',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  marginTop: 'auto',
 };

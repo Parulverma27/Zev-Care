@@ -608,16 +608,49 @@
   border-color: #93c5fd !important;
 }
 
-/* Trust Card Hover */
+/* Trust Card Hover & Micro-Animations */
 .zc-desktop-trust-card {
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease !important;
   will-change: transform, box-shadow;
 }
 
 .zc-desktop-trust-card:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: 0 14px 28px -4px rgba(8, 120, 248, 0.12), 0 4px 10px rgba(15, 23, 42, 0.04) !important;
+  transform: translateY(-6px) !important;
+  box-shadow: 0 20px 40px -10px rgba(8, 120, 248, 0.14), 0 4px 16px rgba(15, 23, 42, 0.04) !important;
   border-color: #93c5fd !important;
+}
+
+.zc-desktop-trust-card .zc-trust-icon-box {
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.zc-desktop-trust-card:hover .zc-trust-icon-box {
+  transform: scale(1.08) !important;
+}
+
+.zc-desktop-trust-card .zc-trust-chip {
+  transition: all 0.2s ease !important;
+}
+
+.zc-desktop-trust-card:hover .zc-trust-chip {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1e40af !important;
+}
+
+@keyframes zcPulseDot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+}
+
+.zc-eyebrow-pulse-dot {
+  animation: zcPulseDot 2s infinite ease-in-out !important;
 }
 
 /* Desktop Header Nav Link Styling (No Grey Boxes, Pure Restrained Typography) */
