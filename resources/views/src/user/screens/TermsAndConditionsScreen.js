@@ -126,7 +126,15 @@ export default function TermsAndConditionsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F7FF' },
-  content: { padding: 16, gap: 12 },
+  content: {
+    padding: 24,
+    paddingBottom: 48,
+    gap: 14,
+    maxWidth: 840,
+    width: '100%',
+    alignSelf: 'center',
+    boxSizing: 'border-box',
+  },
 
   header: {
     flexDirection: 'row',

@@ -271,8 +271,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backChevron: { fontSize: 28, color: '#0f172a', marginTop: -2 },
-  title: { fontSize: 22, fontWeight: '800', color: '#0f172a' },
-  subtitle: { fontSize: 13, color: '#64748b', marginTop: 2 },
+  title: { fontSize: 22, fontWeight: '800', color: '#0f172a', fontFamily: 'Inter, sans-serif' },
+  subtitle: { fontSize: 13, color: '#64748b', marginTop: 2, fontFamily: 'Inter, sans-serif' },
   providerCard: {
     flexDirection: 'row',
     gap: 12,
