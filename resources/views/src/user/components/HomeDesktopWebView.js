@@ -20,41 +20,175 @@ const EXPLORE_SERVICES = [
     id: 'elec',
     name: 'Electrician',
     category: 'Electrician',
-    desc: 'Wiring, switches & appliances',
-    icon: resolveImageUri(SERVICE_IMAGES.electrician, '/assets/services/catalog/electrician.png'),
-    accent: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+    desc: 'Wiring, switches & appliance fixes',
+    badge: '30+ Services',
+    amcCoverage: '₹0 with AMC',
+    image: resolveImageUri(SERVICE_IMAGES.electrician, '/assets/services/catalog/electrician.png'),
   },
   {
     id: 'plumb',
     name: 'Plumbing',
     category: 'Plumber',
-    desc: 'Pipes, taps & leak fixes',
-    icon: resolveImageUri(SERVICE_IMAGES.plumber, '/assets/services/catalog/plumbing.png'),
-    accent: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
+    desc: 'Pipes, taps, leakage & drainage',
+    badge: 'Taps & Pipes',
+    amcCoverage: '₹0 with AMC',
+    image: resolveImageUri(SERVICE_IMAGES.plumber, '/assets/services/catalog/plumbing.png'),
   },
   {
     id: 'carp',
     name: 'Carpentry',
     category: 'Carpenter',
     desc: 'Furniture repair & fittings',
-    icon: resolveImageUri(SERVICE_IMAGES.carpenter, '/assets/services/catalog/carpenter.png'),
-    accent: 'linear-gradient(90deg, #8b5cf6, #a78bfa)',
+    badge: 'Hinges & Locks',
+    amcCoverage: '₹0 with AMC',
+    image: resolveImageUri(SERVICE_IMAGES.carpenter, '/assets/services/catalog/carpenter.png'),
   },
   {
     id: 'clean',
     name: 'Dry Cleaning',
     category: 'Dry Cleaning',
-    desc: 'Sofa, carpet & upholstery',
-    icon: resolveImageUri(SERVICE_IMAGES.dryCleaning, '/assets/services/catalog/dry-cleaning.png'),
-    accent: 'linear-gradient(90deg, #10b981, #34d399)',
+    desc: 'Sofa, carpet & fabric care',
+    badge: 'Deep Cleaning',
+    amcCoverage: 'Doorstep Care',
+    image: resolveImageUri(SERVICE_IMAGES.dryCleaning, '/assets/services/catalog/dry-cleaning.png'),
   },
   {
     id: 'pest',
     name: 'Pest Control',
     category: 'Pest Control',
     desc: 'Cockroach, termite & bedbugs',
-    icon: resolveImageUri(SERVICE_IMAGES.pestControl, '/assets/services/catalog/pest-control.png'),
-    accent: 'linear-gradient(90deg, #ef4444, #f87171)',
+    badge: '100% Safe',
+    amcCoverage: 'Warranty',
+    image: resolveImageUri(SERVICE_IMAGES.pestControl, '/assets/services/catalog/pest-control.png'),
+  },
+];
+
+const QUICK_SERVICES_TICKER = [
+  {
+    id: 'ac_service',
+    name: 'AC Services',
+    category: 'AC Services',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="5" width="20" height="9" rx="2" />
+        <line x1="6" y1="10" x2="18" y2="10" />
+        <circle cx="18" cy="7.5" r="0.75" fill="#2563eb" />
+        <path d="M5 17c1 1 2 1 3 0" />
+        <path d="M10.5 17c1 1 2 1 3 0" />
+        <path d="M16 17c1 1 2 1 3 0" />
+      </svg>
+    ),
+  },
+  {
+    id: 'washing_machine',
+    name: 'Washing Machine',
+    category: 'Washing Machine Repair',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="2" width="16" height="20" rx="3" />
+        <circle cx="12" cy="13" r="4.5" />
+        <circle cx="12" cy="13" r="1.8" />
+        <line x1="7" y1="5.5" x2="11" y2="5.5" />
+        <circle cx="17" cy="5.5" r="1" fill="#2563eb" />
+      </svg>
+    ),
+  },
+  {
+    id: 'refrigerator',
+    name: 'Refrigerator',
+    category: 'Refrigerator Repair',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2.5" />
+        <line x1="5" y1="10" x2="19" y2="10" />
+        <line x1="8" y1="5.5" x2="8" y2="8" />
+        <line x1="8" y1="13" x2="8" y2="17" />
+      </svg>
+    ),
+  },
+  {
+    id: 'tv_av',
+    name: 'TV & AV',
+    category: 'TV & AV Services',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" />
+        <line x1="8" y1="21" x2="16" y2="21" />
+        <line x1="12" y1="17" x2="12" y2="21" />
+        <circle cx="12" cy="14.5" r="0.8" fill="#2563eb" />
+      </svg>
+    ),
+  },
+  {
+    id: 'electrician_tick',
+    name: 'Electrician',
+    category: 'Electrical Services',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22v-5" />
+        <path d="M9 7V2" />
+        <path d="M15 7V2" />
+        <rect x="6" y="7" width="12" height="10" rx="3" />
+        <path d="M12.5 10l-1.5 2h2l-1.5 2" />
+      </svg>
+    ),
+  },
+  {
+    id: 'plumber_tick',
+    name: 'Plumbing',
+    category: 'Plumbing Services',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 12h8" />
+        <path d="M9 7v5" />
+        <path d="M7 7h4" />
+        <path d="M12 12c1.5 0 3 .5 3 2v2a1 1 0 0 1-1 1h-2" />
+        <path d="M13 20.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5c0-1.5 2.5-4 2.5-4s2.5 2.5 2.5 4z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'carpenter_tick',
+    name: 'Carpenter',
+    category: 'Carpentry Services',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'pest_tick',
+    name: 'Pest Control',
+    category: 'Pest Control Services',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <polyline points="9 11 11 13 15 9" />
+      </svg>
+    ),
+  },
+  {
+    id: 'purifier_tick',
+    name: 'RO Purifier',
+    category: 'Electrical Services',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'geyser_tick',
+    name: 'Geyser Repair',
+    category: 'Electrical Services',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="6" y="2" width="12" height="20" rx="3" />
+        <circle cx="12" cy="15" r="2" />
+        <line x1="9" y1="6" x2="15" y2="6" />
+      </svg>
+    ),
   },
 ];
 
@@ -615,22 +749,17 @@ export default function HomeDesktopWebView({
         </div>
       </section>
 
-      {/* 3. EXPLORE HOME SERVICES (5-Column Grid) */}
+      {/* 3. EXPLORE HOME SERVICES (5-Column Grid + Quick Services Marquee Ticker) */}
       <section id="explore-services-section" style={sectionWrapStyle} aria-label="Explore Home Services">
         <div style={sectionHeaderStyle}>
           <div>
+            <div style={{ ...eyebrowStyle, marginBottom: '6px' }}>
+              <span className="zc-eyebrow-pulse-dot" style={eyebrowDotStyle} />
+              <span>DOORSTEP EXPERTS</span>
+            </div>
             <h2 style={sectionTitleStyle}>Explore Home Services</h2>
-            <p style={sectionSubtitleStyle}>Professional help for repairs and maintenance.</p>
+            <p style={sectionSubtitleStyle}>Professional repair, servicing & certified doorstep maintenance.</p>
           </div>
-          <button
-            type="button"
-            className="zc-desktop-btn-secondary"
-            style={viewAllPillBtnStyle}
-            onClick={() => onNavigate('/user/bookings/new')}
-          >
-            <span>View All</span>
-            <span style={{ fontSize: '14px' }}>→</span>
-          </button>
         </div>
 
         <div style={servicesGridStyle}>
@@ -644,13 +773,12 @@ export default function HomeDesktopWebView({
               tabIndex={0}
               title={`Explore ${srv.name} services`}
             >
-              {/* Colored accent top bar */}
-              <div style={{ ...serviceAccentBarStyle, background: srv.accent }} />
-              <div className="zc-service-icon-squircle" style={serviceIconSquircleStyle}>
+              {/* Big Service Banner with Floating Meta Badges */}
+              <div className="zc-service-banner-wrap" style={serviceBannerWrapStyle}>
                 <img
-                  src={srv.icon}
+                  src={srv.image}
                   alt={srv.name}
-                  style={serviceIconImgStyle}
+                  style={serviceBigImgStyle}
                   onError={(e) => {
                     e.currentTarget.onerror = null;
                     const catMap = {
@@ -663,11 +791,58 @@ export default function HomeDesktopWebView({
                     e.currentTarget.src = `/assets/services/catalog/${catMap[srv.id] || 'electrician'}.png`;
                   }}
                 />
+                <div style={serviceFloatingBadgesRowStyle}>
+                  <span style={serviceBadgeStyle}>{srv.badge}</span>
+                  <span style={serviceAmcTagStyle}>{srv.amcCoverage}</span>
+                </div>
               </div>
-              <span style={serviceNameStyle}>{srv.name}</span>
-              <span style={serviceDescStyle}>{srv.desc}</span>
+
+              {/* Title & Description */}
+              <div style={serviceCardInfoStyle}>
+                <span style={serviceNameStyle}>{srv.name}</span>
+                <span style={serviceDescStyle}>{srv.desc}</span>
+              </div>
+
+              {/* Interactive Bottom CTA Link */}
+              <div className="zc-service-bottom-cta" style={serviceBottomCtaStyle}>
+                <span style={serviceCtaTextStyle}>Book Service</span>
+                <span className="zc-service-cta-arrow" style={serviceCtaArrowStyle}>
+                  →
+                </span>
+              </div>
             </div>
           ))}
+        </div>
+
+        {/* Moving Quick Services Marquee Ticker (from Mobile App) */}
+        <div style={tickerSectionWrapStyle}>
+          <div style={tickerHeaderRowStyle}>
+            <div style={tickerHeaderLeftStyle}>
+              <span style={tickerHeaderDotStyle} />
+              <span style={tickerHeaderLabelStyle}>QUICK APPLIANCE & REPAIR DISPATCH</span>
+            </div>
+            <span style={tickerHeaderHintStyle}>Instant Slot • Verified Technician Dispatch</span>
+          </div>
+
+          <div style={tickerMaskContainerStyle}>
+            <div style={tickerTrackStyle} className="zc-services-marquee-track">
+              {[...QUICK_SERVICES_TICKER, ...QUICK_SERVICES_TICKER, ...QUICK_SERVICES_TICKER].map((item, idx) => (
+                <div
+                  key={`${item.id}-${idx}`}
+                  className="zc-desktop-ticker-card"
+                  onClick={() => onSelectCategory(item.category)}
+                  role="button"
+                  tabIndex={0}
+                  title={`Book ${item.name}`}
+                >
+                  <div className="zc-ticker-squircle">
+                    {item.icon}
+                  </div>
+                  <span style={tickerTitleStyle}>{item.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1353,60 +1528,211 @@ const servicesGridStyle = {
 const serviceCardStyle = {
   backgroundColor: '#ffffff',
   border: '1.5px solid #e2e8f0',
-  borderRadius: '20px',
-  padding: '0 16px 22px 16px',
+  borderRadius: '22px',
+  padding: '12px',
   display: 'flex',
   flexDirection: 'column',
-  alignItems: 'center',
-  gap: '8px',
+  justifyContent: 'space-between',
   cursor: 'pointer',
-  textAlign: 'center',
-  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.06)',
-  overflow: 'hidden',
+  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
   position: 'relative',
+  minHeight: '272px',
+  boxSizing: 'border-box',
 };
 
-const serviceAccentBarStyle = {
+const serviceBannerWrapStyle = {
   width: '100%',
-  height: '4px',
-  borderRadius: '0 0 4px 4px',
-  marginBottom: '16px',
+  height: '138px',
+  borderRadius: '16px',
+  overflow: 'hidden',
+  position: 'relative',
+  backgroundColor: '#f1f5f9',
+  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.06)',
+  marginBottom: '12px',
   flexShrink: 0,
 };
 
-const serviceIconSquircleStyle = {
-  width: '76px',
-  height: '76px',
-  borderRadius: '20px',
-  backgroundColor: '#eff6ff',
-  border: '1.5px solid #dbeafe',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginBottom: '6px',
+const serviceBigImgStyle = {
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  display: 'block',
 };
 
-const serviceIconImgStyle = {
-  width: '48px',
-  height: '48px',
-  objectFit: 'contain',
+const serviceFloatingBadgesRowStyle = {
+  position: 'absolute',
+  top: '8px',
+  left: '8px',
+  right: '8px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '4px',
+  pointerEvents: 'none',
+};
+
+const serviceBadgeStyle = {
+  fontSize: '10.5px',
+  fontWeight: 700,
+  color: '#0f172a',
+  backgroundColor: 'rgba(255, 255, 255, 0.94)',
+  backdropFilter: 'blur(8px)',
+  border: '1px solid rgba(255, 255, 255, 0.85)',
+  borderRadius: '6px',
+  padding: '3px 7px',
+  fontFamily: "'Outfit', sans-serif",
+  whiteSpace: 'nowrap',
+  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.08)',
+};
+
+const serviceAmcTagStyle = {
+  fontSize: '10.5px',
+  fontWeight: 700,
+  color: '#1d4ed8',
+  backgroundColor: 'rgba(239, 246, 255, 0.96)',
+  backdropFilter: 'blur(8px)',
+  border: '1px solid #bfdbfe',
+  borderRadius: '6px',
+  padding: '3px 7px',
+  fontFamily: "'Outfit', sans-serif",
+  whiteSpace: 'nowrap',
+  boxShadow: '0 2px 6px rgba(37, 99, 235, 0.12)',
+};
+
+const serviceCardInfoStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '4px',
+  width: '100%',
+  padding: '0 4px',
+  marginBottom: '10px',
+  textAlign: 'left',
 };
 
 const serviceNameStyle = {
-  fontSize: '15px',
+  fontSize: '16.5px',
   fontWeight: 800,
   color: '#0f172a',
   lineHeight: 1.25,
   fontFamily: "'Outfit', sans-serif",
+  letterSpacing: '-0.2px',
 };
 
 const serviceDescStyle = {
   fontSize: '12px',
-  fontWeight: 600,
-  color: '#475569',
+  fontWeight: 500,
+  color: '#64748b',
   lineHeight: 1.35,
   margin: 0,
   fontFamily: "'Plus Jakarta Sans', sans-serif",
+  display: '-webkit-box',
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
+};
+
+const serviceBottomCtaStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  width: '100%',
+  padding: '8px 4px 2px 4px',
+  borderTop: '1px solid #f1f5f9',
+  boxSizing: 'border-box',
+};
+
+const serviceCtaTextStyle = {
+  fontSize: '12.5px',
+  fontWeight: 700,
+  color: '#0878f8',
+  fontFamily: "'Outfit', sans-serif",
+};
+
+const serviceCtaArrowStyle = {
+  fontSize: '13px',
+  fontWeight: 700,
+  color: '#0878f8',
+  display: 'inline-block',
+};
+
+/* Quick Services Marquee Ticker from App */
+const tickerSectionWrapStyle = {
+  marginTop: '28px',
+  padding: '16px 20px',
+  backgroundColor: '#ffffff',
+  borderRadius: '20px',
+  border: '1px solid #e2e8f0',
+  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+  overflow: 'hidden',
+};
+
+const tickerHeaderRowStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: '14px',
+  paddingBottom: '10px',
+  borderBottom: '1px solid #f1f5f9',
+};
+
+const tickerHeaderLeftStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+};
+
+const tickerHeaderDotStyle = {
+  width: '7px',
+  height: '7px',
+  borderRadius: '50%',
+  backgroundColor: '#10b981',
+  boxShadow: '0 0 8px rgba(16, 185, 129, 0.5)',
+};
+
+const tickerHeaderLabelStyle = {
+  fontSize: '11.5px',
+  fontWeight: 800,
+  color: '#0f172a',
+  letterSpacing: '0.6px',
+  fontFamily: "'Outfit', sans-serif",
+};
+
+const tickerHeaderHintStyle = {
+  fontSize: '11.5px',
+  fontWeight: 600,
+  color: '#64748b',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+};
+
+const tickerMaskContainerStyle = {
+  width: '100%',
+  overflow: 'hidden',
+  position: 'relative',
+  padding: '4px 0',
+  maskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
+  WebkitMaskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
+};
+
+const tickerTrackStyle = {
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: '16px',
+  width: 'max-content',
+  userSelect: 'none',
+};
+
+const tickerTitleStyle = {
+  fontSize: '11.5px',
+  fontWeight: 700,
+  color: '#0f172a',
+  textAlign: 'center',
+  fontFamily: "'Outfit', sans-serif",
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  maxWidth: '82px',
 };
 
 /* Complete Care AMC 3-Grid */
