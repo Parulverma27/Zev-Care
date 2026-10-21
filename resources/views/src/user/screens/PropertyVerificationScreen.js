@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, Platform, useWindowDimensions } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcons';
@@ -153,6 +153,8 @@ export default function PropertyVerificationScreen({ onNavigate }) {
     wallet,
   } = useApp();
   const navigate = useNavigate();
+  const { width } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && width >= 992;
 
   const isAnonymous = Boolean(
     !activeUser ||
@@ -728,6 +730,259 @@ export default function PropertyVerificationScreen({ onNavigate }) {
     if (appliance.img.startsWith('http')) return appliance.img;
     return `http://127.0.0.1:3000/${appliance.img}`;
   };
+
+  if (isDesktopWeb && view === 'LIST') {
+    return (
+      <View style={styles.desktopContainer}>
+        {/* Top Header / Breadcrumb */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <TouchableOpacity
+              onPress={handleBack}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 16px',
+                borderRadius: 999,
+                backgroundColor: '#ffffff',
+                border: '1.5px solid #e2e8f0',
+                color: '#1e293b',
+                fontWeight: 600,
+                fontSize: 13.5,
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+              }}
+            >
+              <span>← Back to Home</span>
+            </TouchableOpacity>
+            <div>
+              <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', margin: 0, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
+                Property Appliances & Verification Hub
+              </h1>
+              <p style={{ fontSize: 13.5, color: '#64748b', margin: '4px 0 0', fontFamily: 'Inter, sans-serif' }}>
+                Manage registered appliances and equipment under your AMC zero-breakdown protection
+              </p>
+            </div>
+          </div>
+
+          <TouchableOpacity
+            onPress={openAddAppliance}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 20px',
+              borderRadius: 12,
+              backgroundColor: '#0052cc',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(0,82,204,0.25)',
+            }}
+          >
+            <span style={{ fontSize: 18, lineHeight: 1 }}>＋</span>
+            <span>Register New Appliance</span>
+          </TouchableOpacity>
+        </div>
+
+        {/* 2-Column Split */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 380px', gap: 28, alignItems: 'start' }}>
+          {/* Left Column: Appliances Grid */}
+          <div>
+            {addedAppliances.length === 0 ? (
+              <div style={{ backgroundColor: '#ffffff', borderRadius: 20, padding: 48, textAlign: 'center', border: '1.5px dashed #cbd5e1', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
+                <div style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                  </svg>
+                </div>
+                <h3 style={{ fontSize: 19, fontWeight: 700, color: '#0f172a', marginBottom: 8, fontFamily: 'Inter, sans-serif' }}>No Appliances Registered Yet</h3>
+                <p style={{ fontSize: 14, color: '#64748b', maxWidth: 440, margin: '0 auto 24px', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}>
+                  Add your Air Conditioners, Refrigerators, Geysers, and Washing Machines to activate 100% free breakdown repairs and zero labor visits.
+                </p>
+                <button
+                  onClick={openAddAppliance}
+                  style={{ padding: '12px 24px', backgroundColor: '#0052cc', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 14, boxShadow: '0 4px 12px rgba(0,82,204,0.2)' }}
+                >
+                  ＋ Add Your First Appliance
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 18 }}>
+                {addedAppliances.map((appliance) => {
+                  const imageSource = getApplianceImageUri(appliance);
+                  return (
+                    <div
+                      key={appliance.id}
+                      style={{
+                        backgroundColor: '#ffffff',
+                        borderRadius: 18,
+                        padding: 18,
+                        border: '1.5px solid #e2e8f0',
+                        boxShadow: '0 2px 10px rgba(15,23,42,0.03)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: 14,
+                      }}
+                    >
+                      <div>
+                        {/* Media image */}
+                        <div style={{ width: '100%', height: 160, borderRadius: 12, overflow: 'hidden', backgroundColor: '#f1f5f9', marginBottom: 12, position: 'relative' }}>
+                          <img
+                            src={imageSource}
+                            alt={appliance.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                          <span style={{ position: 'absolute', top: 8, left: 8, padding: '3px 8px', borderRadius: 6, backgroundColor: '#0f172a', color: '#ffffff', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                            {appliance.category || 'Appliance'}
+                          </span>
+                        </div>
+
+                        {/* Title & Brand */}
+                        <h4 style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: '0 0 4px', fontFamily: 'Inter, sans-serif' }}>
+                          {appliance.name}
+                        </h4>
+                        <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 8px', fontFamily: 'Inter, sans-serif' }}>
+                          {[appliance.brand, appliance.capacity, appliance.type].filter(Boolean).join(' • ') || 'Standard Model'}
+                        </p>
+
+                        {/* Location pill */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          <span style={{ padding: '2px 8px', borderRadius: 6, backgroundColor: '#f1f5f9', color: '#334155', fontSize: 11, fontWeight: 600 }}>
+                            📍 {appliance.location || 'Home'}
+                          </span>
+                          <span style={{ padding: '2px 8px', borderRadius: 6, backgroundColor: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700 }}>
+                            🛡️ AMC Protected
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div style={{ display: 'flex', gap: 8, paddingTop: 10, borderTop: '1px solid #f1f5f9' }}>
+                        <button
+                          onClick={() => handleRemoveAppliance(appliance.id)}
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            borderRadius: 10,
+                            backgroundColor: '#fef2f2',
+                            border: '1px solid #fee2e2',
+                            color: '#dc2626',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <AppIcon name="trash" size={13} color="#dc2626" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Context & Guarantees */}
+          <div style={{ position: 'sticky', top: 90, display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {/* Property Summary */}
+            <div style={{ backgroundColor: '#ffffff', borderRadius: 20, padding: 22, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Active Residence
+                </span>
+                <span style={{ padding: '2px 8px', borderRadius: 6, backgroundColor: '#eff6ff', color: '#1d4ed8', fontSize: 11, fontWeight: 700 }}>
+                  {activeUser?.subscription_plan || 'Gold AMC'}
+                </span>
+              </div>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: '0 0 4px', fontFamily: 'Inter, sans-serif' }}>
+                {isGuest ? 'My Home' : (activeUser?.property?.name || 'Primary Residence')}
+              </h3>
+              <p style={{ fontSize: 12.5, color: '#64748b', margin: 0, lineHeight: 1.5, fontFamily: 'Inter, sans-serif' }}>
+                {isGuest ? 'Default Address' : (activeUser?.property?.address || activeUser?.address || 'NCR Coverage Zone')}
+              </p>
+
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>Coverage Limit:</span>
+                <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>{addedAppliances.length} Registered</span>
+              </div>
+            </div>
+
+            {/* Guarantees */}
+            <div style={{ backgroundColor: '#ffffff', borderRadius: 20, padding: 22, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: '0 0 14px', fontFamily: 'Inter, sans-serif' }}>
+                🛡️ AMC Protection Coverage
+              </h3>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <span style={{ fontSize: 14 }}>⚡</span>
+                  <div>
+                    <h4 style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>₹0 Breakdown Labor</h4>
+                    <p style={{ fontSize: 11.5, color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                      Unlimited technician repair visits with zero callout or inspection charges.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <span style={{ fontSize: 14 }}>🛠️</span>
+                  <div>
+                    <h4 style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Annual Preventative Service</h4>
+                    <p style={{ fontSize: 11.5, color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                      2 complete deep servicing tune-ups per AC and major appliances each year.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <span style={{ fontSize: 14 }}>🎯</span>
+                  <div>
+                    <h4 style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Original Spare Parts</h4>
+                    <p style={{ fontSize: 11.5, color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                      Direct OEM replacement parts with upfront digital estimates and parts allowance.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={openAddAppliance}
+                style={{
+                  width: '100%',
+                  marginTop: 18,
+                  padding: '10px',
+                  borderRadius: 10,
+                  backgroundColor: '#eff6ff',
+                  border: '1.5px dashed #3b82f6',
+                  color: '#2563eb',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                }}
+              >
+                <span>＋</span>
+                <span>Register Another Appliance</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -1675,6 +1930,7 @@ export default function PropertyVerificationScreen({ onNavigate }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#ffffff' },
+  desktopContainer: { width: '100%', paddingVertical: 24 },
   
   /* Header Styles */
   headerRow: {
