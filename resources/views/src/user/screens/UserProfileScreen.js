@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, useWindowDimensions } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { getPlanTheme } from '../../config/planTheme';
 import { AppIcon } from '../../components/AppIcons';
+import ProfileDesktopWebView from '../components/ProfileDesktopWebView';
 
 function formatPhoneNumber(phone) {
   if (!phone) return '';
@@ -212,6 +213,43 @@ export default function UserProfileScreen({ onNavigate }) {
       ),
     },
   ];
+
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+
+  if (isDesktop) {
+    return (
+      <ProfileDesktopWebView
+        activeUser={activeUser}
+        isAnonymous={isAnonymous}
+        isGuest={isGuest}
+        guestIdDisplay={guestIdDisplay}
+        hasPlan={hasPlan}
+        userPlanTheme={userPlanTheme}
+        userInitials={userInitials}
+        onNavigate={handleNav}
+        onOpenEditModal={handleOpenEditModal}
+        onLogout={() => {
+          logoutUser();
+          handleNav('/user/login');
+        }}
+        editModalVisible={editModalVisible}
+        setEditModalVisible={setEditModalVisible}
+        editName={editName}
+        setEditName={setEditName}
+        editEmail={editEmail}
+        setEditEmail={setEditEmail}
+        editPhone={editPhone}
+        setEditPhone={setEditPhone}
+        errorMsg={errorMsg}
+        setErrorMsg={setErrorMsg}
+        successMsg={successMsg}
+        handleSavePersonalDetails={handleSavePersonalDetails}
+        showGuestModal={showGuestModal}
+        setShowGuestModal={setShowGuestModal}
+      />
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>

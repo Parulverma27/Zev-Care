@@ -10,9 +10,9 @@ const homeHeaderBgUri = resolveImageUri(SERVICE_IMAGES.homeHeaderBg, '/assets/ho
 const wordmarkUri = resolveImageUri(SERVICE_IMAGES.zevotaCareWordmark, '/assets/zevota-care-wordmark.png');
 
 const PROMO_SLIDES = [
-  { id: 1, image: banner1Uri, alt: 'Zevota Care Annual Maintenance Plans' },
-  { id: 2, image: banner2Uri, alt: 'Specialist Home Maintenance & Repair' },
-  { id: 3, image: banner3Uri, alt: 'Verified Home Technicians & AMC' },
+  { id: 1, image: banner1Uri, alt: 'Zevota Care Annual Maintenance Plans', target: '/user/plans' },
+  { id: 2, image: banner2Uri, alt: 'Specialist Home Maintenance & Repair', target: '/user/bookings/new' },
+  { id: 3, image: banner3Uri, alt: 'Verified Home Technicians & AMC', target: '/user/plans' },
 ];
 
 const EXPLORE_SERVICES = [
@@ -638,6 +638,10 @@ export default function HomeDesktopWebView({
                 <AppIcon name="check" size={12} color="#059669" strokeWidth={3} />
                 <span>Fast Support</span>
               </span>
+              <span style={trustPillBlueStyle}>
+                <AppIcon name="shield" size={12} color="#0878f8" strokeWidth={2.5} />
+                <span>₹0 Visit with AMC</span>
+              </span>
             </div>
           </div>
 
@@ -658,7 +662,7 @@ export default function HomeDesktopWebView({
                   <img
                     src={wordmarkUri || '/assets/zevota-care-wordmark.png'}
                     alt="Zevota Care"
-                    style={{ height: '21px', objectFit: 'contain' }}
+                    style={{ height: '22px', objectFit: 'contain' }}
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       if (e.currentTarget.nextSibling) {
@@ -679,6 +683,19 @@ export default function HomeDesktopWebView({
                   Trusted home services & AMC for a worry-free tomorrow.
                 </div>
               </div>
+
+              {/* Floating Rating Badge (Top Right) */}
+              <div className="zc-floating-badge" style={heroFloatingBadgeTopStyle}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #fde68a' }}>
+                  <AppIcon name="star" size={15} color="#d97706" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0f172a', fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>4.9 / 5 Rating</div>
+                  <div style={{ fontSize: '10.5px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>50,000+ Happy Homes</div>
+                </div>
+              </div>
+
+              {/* Floating Verified Experts Badge (Bottom Right) */}
               <div className="zc-floating-badge" style={heroFloatingBadgeStyle}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #dbeafe' }}>
                   <AppIcon name="check" size={16} color="#0878f8" strokeWidth={3} />
@@ -693,24 +710,42 @@ export default function HomeDesktopWebView({
         </div>
       </section>
 
-      {/* 2. PROMOTIONAL BANNER SLIDER (2:1 Ratio, Controlled Height, No Cropping) */}
+      {/* 2. PROMOTIONAL BANNER SLIDER (Multi-Card 2-Banner Showcase Carousel) */}
       <section
         style={promoSectionStyle}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         aria-label="Promotional Offers"
       >
-        <div style={promoSliderWrapStyle}>
-          <img
-            src={PROMO_SLIDES[activeSlide]?.image || `/assets/hero-banner-${activeSlide + 1}.png`}
-            alt={PROMO_SLIDES[activeSlide]?.alt || 'Promotional Banner'}
-            style={promoImgStyle}
-            onClick={() => onNavigate('/user/plans')}
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = `/assets/hero-banner-${activeSlide + 1}.png`;
+        <div style={promoCarouselViewportStyle}>
+          <div
+            style={{
+              ...promoTrackStyle,
+              transform: `translateX(calc(-${activeSlide} * (50% + 12px)))`,
             }}
-          />
+          >
+            {[...PROMO_SLIDES, ...PROMO_SLIDES].map((slide, idx) => (
+              <div
+                key={`${slide.id}-${idx}`}
+                className="zc-promo-banner-card"
+                style={promoCardStyle}
+                onClick={() => onNavigate(slide.target || '/user/plans')}
+                role="button"
+                tabIndex={0}
+                title={slide.alt}
+              >
+                <img
+                  src={slide.image || `/assets/hero-banner-${((slide.id - 1) % 3) + 1}.png`}
+                  alt={slide.alt || 'Promotional Banner'}
+                  style={promoImgStyle}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = `/assets/hero-banner-${((slide.id - 1) % 3) + 1}.png`;
+                  }}
+                />
+              </div>
+            ))}
+          </div>
 
           {/* Left Arrow */}
           <button
@@ -720,7 +755,9 @@ export default function HomeDesktopWebView({
             onClick={() => setActiveSlide((prev) => (prev - 1 + PROMO_SLIDES.length) % PROMO_SLIDES.length)}
             aria-label="Previous slide"
           >
-            ‹
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
           </button>
 
           {/* Right Arrow */}
@@ -731,21 +768,23 @@ export default function HomeDesktopWebView({
             onClick={() => setActiveSlide((prev) => (prev + 1) % PROMO_SLIDES.length)}
             aria-label="Next slide"
           >
-            ›
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </button>
+        </div>
 
-          {/* Pagination Indicators */}
-          <div style={dotsWrapStyle}>
-            {PROMO_SLIDES.map((slide, idx) => (
-              <button
-                key={slide.id}
-                type="button"
-                style={idx === activeSlide ? dotActiveStyle : dotStyle}
-                onClick={() => setActiveSlide(idx)}
-                aria-label={`Go to slide ${idx + 1}`}
-              />
-            ))}
-          </div>
+        {/* Pagination Indicators */}
+        <div style={dotsWrapStyle}>
+          {PROMO_SLIDES.map((slide, idx) => (
+            <button
+              key={slide.id}
+              type="button"
+              style={idx === activeSlide ? dotActiveStyle : dotStyle}
+              onClick={() => setActiveSlide(idx)}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
         </div>
       </section>
 
@@ -813,35 +852,34 @@ export default function HomeDesktopWebView({
             </div>
           ))}
         </div>
+      </section>
 
-        {/* Moving Quick Services Marquee Ticker (from Mobile App) */}
-        <div style={tickerSectionWrapStyle}>
+      {/* FULL-SCREEN LIVE SERVICES TICKER (100vw Full-Bleed, Non-Clickable Ambient Ribbon) */}
+      <section style={fullBleedTickerSectionStyle} aria-label="Quick Services Live Ticker">
+        <div style={tickerInnerContentStyle}>
           <div style={tickerHeaderRowStyle}>
             <div style={tickerHeaderLeftStyle}>
               <span style={tickerHeaderDotStyle} />
               <span style={tickerHeaderLabelStyle}>QUICK APPLIANCE & REPAIR DISPATCH</span>
             </div>
-            <span style={tickerHeaderHintStyle}>Instant Slot • Verified Technician Dispatch</span>
+            <span style={tickerHeaderHintStyle}>Instant Slot • Verified Technician Network</span>
           </div>
+        </div>
 
-          <div style={tickerMaskContainerStyle}>
-            <div style={tickerTrackStyle} className="zc-services-marquee-track">
-              {[...QUICK_SERVICES_TICKER, ...QUICK_SERVICES_TICKER, ...QUICK_SERVICES_TICKER].map((item, idx) => (
-                <div
-                  key={`${item.id}-${idx}`}
-                  className="zc-desktop-ticker-card"
-                  onClick={() => onSelectCategory(item.category)}
-                  role="button"
-                  tabIndex={0}
-                  title={`Book ${item.name}`}
-                >
-                  <div className="zc-ticker-squircle">
-                    {item.icon}
-                  </div>
-                  <span style={tickerTitleStyle}>{item.name}</span>
+        <div style={tickerMaskContainerStyle}>
+          <div style={tickerTrackStyle} className="zc-services-marquee-track">
+            {[...QUICK_SERVICES_TICKER, ...QUICK_SERVICES_TICKER, ...QUICK_SERVICES_TICKER].map((item, idx) => (
+              <div
+                key={`${item.id}-${idx}`}
+                className="zc-desktop-ticker-card"
+                style={tickerCardNonClickableStyle}
+              >
+                <div className="zc-ticker-squircle" style={tickerSquircleStyle}>
+                  {item.icon}
                 </div>
-              ))}
-            </div>
+                <span style={tickerTitleStyle}>{item.name}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -1083,19 +1121,20 @@ const wrapperStyle = {
 
 const heroCardStyle = {
   width: '100%',
-  background: 'radial-gradient(ellipse at 85% 15%, rgba(8, 120, 248, 0.12), transparent 55%), radial-gradient(ellipse at 15% 85%, rgba(8, 120, 248, 0.05), transparent 50%), linear-gradient(135deg, #ffffff 0%, #f8faff 50%, #eff6ff 100%)',
-  border: '1.5px solid rgba(191, 219, 254, 0.75)',
-  borderRadius: '24px',
-  padding: '42px 46px',
-  boxShadow: '0 20px 48px -12px rgba(8, 120, 248, 0.12), 0 4px 16px rgba(15, 23, 42, 0.04)',
-  marginTop: '16px',
-  marginBottom: '34px',
+  position: 'relative',
+  background: 'radial-gradient(circle at 92% 16%, rgba(8, 120, 248, 0.16) 0%, transparent 48%), radial-gradient(circle at 8% 88%, rgba(245, 158, 11, 0.08) 0%, transparent 44%), linear-gradient(135deg, #ffffff 0%, #f8faff 45%, #eff6ff 100%)',
+  border: '1.5px solid rgba(191, 219, 254, 0.85)',
+  borderRadius: '26px',
+  padding: '44px 48px',
+  boxShadow: '0 24px 64px -16px rgba(8, 120, 248, 0.14), 0 4px 20px rgba(15, 23, 42, 0.04)',
+  marginTop: '18px',
+  marginBottom: '36px',
   boxSizing: 'border-box',
 };
 
 const heroGridStyle = {
   display: 'grid',
-  gridTemplateColumns: '1.2fr 0.8fr',
+  gridTemplateColumns: '1.14fr 0.86fr',
   gap: '36px',
   alignItems: 'center',
 };
@@ -1103,7 +1142,8 @@ const heroGridStyle = {
 const heroLeftStyle = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '14px',
+  gap: '16px',
+  zIndex: 2,
 };
 
 const eyebrowStyle = {
@@ -1130,41 +1170,41 @@ const eyebrowDotStyle = {
 };
 
 const heroHeadlineStyle = {
-  fontSize: '44px',
+  fontSize: '46px',
   fontWeight: 900,
   color: '#0f172a',
-  lineHeight: 1.14,
+  lineHeight: 1.15,
   margin: 0,
-  letterSpacing: '-0.8px',
+  letterSpacing: '-1px',
   fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
-  textShadow: '0 2px 8px rgba(15,23,42,0.04)',
+  textShadow: '0 2px 8px rgba(15,23,42,0.03)',
 };
 
 const heroSubtextStyle = {
-  fontSize: '15px',
+  fontSize: '15.5px',
   color: '#475569',
-  lineHeight: 1.55,
+  lineHeight: 1.6,
   margin: 0,
-  maxWidth: '520px',
+  maxWidth: '580px',
   fontFamily: "'Plus Jakarta Sans', sans-serif",
 };
 
 const searchBoxWrapperStyle = {
   position: 'relative',
   width: '100%',
-  maxWidth: '520px',
+  maxWidth: '580px',
   marginTop: '4px',
 };
 
 const searchBoxInnerStyle = {
   display: 'flex',
   alignItems: 'center',
-  gap: '10px',
+  gap: '12px',
   backgroundColor: '#ffffff',
   border: '1.5px solid #bfdbfe',
-  borderRadius: '14px',
-  padding: '11px 18px',
-  boxShadow: '0 8px 24px -4px rgba(8, 120, 248, 0.12), 0 2px 6px rgba(15, 23, 42, 0.04)',
+  borderRadius: '16px',
+  padding: '13px 20px',
+  boxShadow: '0 10px 28px -4px rgba(8, 120, 248, 0.14), 0 2px 8px rgba(15, 23, 42, 0.04)',
   position: 'relative',
   overflow: 'hidden',
 };
@@ -1284,6 +1324,20 @@ const trustPillStyle = {
   padding: '5px 14px',
 };
 
+const trustPillBlueStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#0878f8',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  backgroundColor: '#eff6ff',
+  border: '1px solid #bfdbfe',
+  borderRadius: '20px',
+  padding: '5px 14px',
+};
+
 const heroRightStyle = {
   display: 'flex',
   justifyContent: 'center',
@@ -1293,12 +1347,12 @@ const heroRightStyle = {
 const heroArtCardStyle = {
   position: 'relative',
   width: '100%',
-  maxWidth: '440px',
-  height: '300px',
-  borderRadius: '22px',
+  maxWidth: '510px',
+  height: '370px',
+  borderRadius: '24px',
   overflow: 'hidden',
-  boxShadow: '0 24px 56px -10px rgba(3, 13, 58, 0.38), 0 8px 22px rgba(8, 120, 248, 0.18)',
-  border: '2px solid rgba(191, 219, 254, 0.85)',
+  boxShadow: '0 28px 64px -12px rgba(3, 13, 58, 0.42), 0 8px 24px rgba(8, 120, 248, 0.22)',
+  border: '2px solid rgba(191, 219, 254, 0.9)',
   backgroundColor: '#03102e',
 };
 
@@ -1313,11 +1367,11 @@ const heroArtImgStyle = {
 const heroArtOverlayStyle = {
   position: 'absolute',
   inset: 0,
-  padding: '24px 22px',
+  padding: '30px 28px',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-start',
-  background: 'linear-gradient(90deg, rgba(3, 16, 46, 0.94) 0%, rgba(3, 16, 46, 0.76) 48%, rgba(3, 16, 46, 0.12) 100%)',
+  background: 'linear-gradient(90deg, rgba(3, 16, 46, 0.95) 0%, rgba(3, 16, 46, 0.78) 50%, rgba(3, 16, 46, 0.15) 100%)',
   pointerEvents: 'none',
   boxSizing: 'border-box',
 };
@@ -1329,29 +1383,46 @@ const heroArtWordmarkWrapStyle = {
 };
 
 const heroArtTitleStyle = {
-  fontSize: '22px',
+  fontSize: '26px',
   fontWeight: 900,
   color: '#ffffff',
-  lineHeight: 1.22,
+  lineHeight: 1.2,
   fontFamily: "'Outfit', sans-serif",
   letterSpacing: '-0.3px',
-  maxWidth: '220px',
+  maxWidth: '260px',
 };
 
 const heroArtSubStyle = {
-  fontSize: '11.5px',
+  fontSize: '12.5px',
   fontWeight: 500,
-  color: 'rgba(255, 255, 255, 0.85)',
-  lineHeight: 1.45,
-  marginTop: '8px',
-  maxWidth: '200px',
+  color: 'rgba(255, 255, 255, 0.88)',
+  lineHeight: 1.5,
+  marginTop: '10px',
+  maxWidth: '240px',
   fontFamily: "'Plus Jakarta Sans', sans-serif",
+};
+
+const heroFloatingBadgeTopStyle = {
+  position: 'absolute',
+  top: '20px',
+  right: '20px',
+  backgroundColor: 'rgba(255, 255, 255, 0.97)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  borderRadius: '14px',
+  padding: '8px 14px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  boxShadow: '0 10px 28px rgba(0, 0, 0, 0.22)',
+  border: '1px solid rgba(255, 255, 255, 0.9)',
+  zIndex: 10,
 };
 
 const heroFloatingBadgeStyle = {
   position: 'absolute',
-  bottom: '18px',
-  right: '18px',
+  bottom: '20px',
+  right: '20px',
   backgroundColor: 'rgba(255, 255, 255, 0.97)',
   backdropFilter: 'blur(12px)',
   WebkitBackdropFilter: 'blur(12px)',
@@ -1360,33 +1431,53 @@ const heroFloatingBadgeStyle = {
   display: 'flex',
   alignItems: 'center',
   gap: '10px',
-  boxShadow: '0 10px 28px rgba(0, 0, 0, 0.2)',
-  border: '1px solid rgba(255, 255, 255, 0.85)',
+  boxShadow: '0 10px 28px rgba(0, 0, 0, 0.22)',
+  border: '1px solid rgba(255, 255, 255, 0.9)',
+  zIndex: 10,
 };
 
-/* Promotional Banner */
+/* Promotional Banner Carousel */
 const promoSectionStyle = {
   width: '100%',
-  marginBottom: '28px',
+  marginBottom: '36px',
+  position: 'relative',
 };
 
-const promoSliderWrapStyle = {
+const promoCarouselViewportStyle = {
   position: 'relative',
   width: '100%',
-  height: '270px',
-  maxHeight: '285px',
+  overflow: 'hidden',
+  borderRadius: '24px',
+  padding: '6px 2px',
+};
+
+const promoTrackStyle = {
+  display: 'flex',
+  flexDirection: 'row',
+  gap: '24px',
+  width: '100%',
+  transition: 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+  willChange: 'transform',
+};
+
+const promoCardStyle = {
+  flex: '0 0 calc(50% - 12px)',
+  width: 'calc(50% - 12px)',
+  height: '318px',
   borderRadius: '22px',
   overflow: 'hidden',
-  backgroundColor: '#091e48',
-  boxShadow: '0 20px 48px -12px rgba(9, 30, 72, 0.25), 0 4px 16px rgba(15, 23, 42, 0.08)',
-  border: '1.5px solid rgba(191, 219, 254, 0.6)',
+  cursor: 'pointer',
+  position: 'relative',
+  backgroundColor: '#03102e',
+  boxShadow: '0 14px 34px -8px rgba(8, 120, 248, 0.16), 0 2px 8px rgba(15, 23, 42, 0.04)',
+  border: '1.5px solid rgba(191, 219, 254, 0.75)',
+  boxSizing: 'border-box',
 };
 
 const promoImgStyle = {
   width: '100%',
   height: '100%',
-  objectFit: 'contain',
-  cursor: 'pointer',
+  objectFit: 'cover',
   display: 'block',
 };
 
@@ -1394,70 +1485,61 @@ const arrowBtnStyle = {
   position: 'absolute',
   top: '50%',
   transform: 'translateY(-50%)',
-  width: '42px',
-  height: '42px',
-  borderRadius: '21px',
-  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-  border: 'none',
-  fontSize: '22px',
-  fontWeight: 700,
+  width: '44px',
+  height: '44px',
+  borderRadius: '22px',
+  backgroundColor: 'rgba(255, 255, 255, 0.96)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  border: '1px solid rgba(226, 232, 240, 0.9)',
   color: '#0f172a',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  boxShadow: '0 6px 18px rgba(0, 0, 0, 0.22)',
+  boxShadow: '0 8px 24px rgba(15, 23, 42, 0.16)',
   zIndex: 10,
 };
 
 const arrowBtnLeftStyle = {
   ...arrowBtnStyle,
-  left: '16px',
+  left: '14px',
 };
 
 const arrowBtnRightStyle = {
   ...arrowBtnStyle,
-  right: '16px',
+  right: '14px',
 };
 
 const dotsWrapStyle = {
-  position: 'absolute',
-  bottom: '14px',
-  left: '50%',
-  transform: 'translateX(-50%)',
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'center',
   gap: '8px',
-  backgroundColor: 'rgba(3, 16, 46, 0.45)',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
-  padding: '5px 12px',
-  borderRadius: '16px',
-  border: '1px solid rgba(255, 255, 255, 0.18)',
-  zIndex: 10,
+  marginTop: '16px',
 };
 
 const dotStyle = {
   width: '8px',
   height: '8px',
   borderRadius: '4px',
-  backgroundColor: 'rgba(255, 255, 255, 0.45)',
+  backgroundColor: '#cbd5e1',
   border: 'none',
   cursor: 'pointer',
   padding: 0,
-  transition: 'all 0.2s ease',
+  transition: 'all 0.24s ease',
 };
 
 const dotActiveStyle = {
   width: '28px',
   height: '8px',
   borderRadius: '4px',
-  backgroundColor: '#38bdf8',
-  boxShadow: '0 0 10px rgba(56, 189, 248, 0.6)',
+  backgroundColor: '#0878f8',
+  boxShadow: '0 0 12px rgba(8, 120, 248, 0.55)',
   border: 'none',
   cursor: 'pointer',
   padding: 0,
-  transition: 'all 0.2s ease',
+  transition: 'all 0.24s ease',
 };
 
 /* General Section Wrappers */
@@ -1656,15 +1738,31 @@ const serviceCtaArrowStyle = {
   display: 'inline-block',
 };
 
-/* Quick Services Marquee Ticker from App */
-const tickerSectionWrapStyle = {
-  marginTop: '28px',
-  padding: '16px 20px',
-  backgroundColor: '#ffffff',
-  borderRadius: '20px',
-  border: '1px solid #e2e8f0',
-  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+/* Full-Screen Ambient Quick Services Ticker */
+const fullBleedTickerSectionStyle = {
+  width: '100vw',
+  position: 'relative',
+  left: '50%',
+  right: '50%',
+  marginLeft: '-50vw',
+  marginRight: '-50vw',
+  padding: '24px 0 20px 0',
+  backgroundColor: 'rgba(248, 250, 252, 0.88)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  borderTop: '1px solid #e2e8f0',
+  borderBottom: '1px solid #e2e8f0',
+  marginTop: '12px',
+  marginBottom: '40px',
   overflow: 'hidden',
+  boxSizing: 'border-box',
+};
+
+const tickerInnerContentStyle = {
+  maxWidth: '1420px',
+  margin: '0 auto',
+  padding: '0 32px',
+  boxSizing: 'border-box',
 };
 
 const tickerHeaderRowStyle = {
@@ -1673,7 +1771,7 @@ const tickerHeaderRowStyle = {
   justifyContent: 'space-between',
   marginBottom: '14px',
   paddingBottom: '10px',
-  borderBottom: '1px solid #f1f5f9',
+  borderBottom: '1px solid #e2e8f0',
 };
 
 const tickerHeaderLeftStyle = {
@@ -1706,21 +1804,54 @@ const tickerHeaderHintStyle = {
 };
 
 const tickerMaskContainerStyle = {
-  width: '100%',
+  width: '100vw',
   overflow: 'hidden',
   position: 'relative',
   padding: '4px 0',
-  maskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
-  WebkitMaskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
+  maskImage: 'linear-gradient(to right, transparent, black 3%, black 97%, transparent)',
+  WebkitMaskImage: 'linear-gradient(to right, transparent, black 3%, black 97%, transparent)',
+  pointerEvents: 'none',
 };
 
 const tickerTrackStyle = {
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'center',
-  gap: '16px',
+  gap: '18px',
   width: 'max-content',
   userSelect: 'none',
+  pointerEvents: 'none',
+};
+
+const tickerCardNonClickableStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '8px',
+  width: '100px',
+  flexShrink: 0,
+  padding: '12px 10px',
+  borderRadius: '18px',
+  backgroundColor: '#ffffff',
+  border: '1.2px solid #e2e8f0',
+  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+  cursor: 'default',
+  pointerEvents: 'none',
+  userSelect: 'none',
+};
+
+const tickerSquircleStyle = {
+  width: '54px',
+  height: '54px',
+  borderRadius: '16px',
+  background: 'linear-gradient(145deg, #f8faff 0%, #eff6ff 100%)',
+  border: '1.2px solid #dbeafe',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.06)',
+  pointerEvents: 'none',
 };
 
 const tickerTitleStyle = {
@@ -1732,7 +1863,8 @@ const tickerTitleStyle = {
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  maxWidth: '82px',
+  maxWidth: '88px',
+  pointerEvents: 'none',
 };
 
 /* Complete Care AMC 3-Grid */

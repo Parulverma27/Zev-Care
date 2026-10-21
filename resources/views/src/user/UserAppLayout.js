@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     letterSpacing: 0.2,
     whiteSpace: 'nowrap',
-    fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif",
+    fontFamily: "'Inter', -apple-system, sans-serif",
   },
   activeHomeLabel: {
     color: '#1d4ed8',
@@ -261,6 +261,8 @@ const desktopLayoutRootStyle = {
   flexDirection: 'column',
   backgroundColor: '#f8fafc',
   width: '100%',
+  position: 'relative',
+  overflowX: 'hidden',
 };
 
 const desktopMainContentStyle = {
@@ -268,13 +270,15 @@ const desktopMainContentStyle = {
   width: '100%',
   display: 'flex',
   flexDirection: 'column',
+  position: 'relative',
+  zIndex: 1,
 };
 
 const desktopContainerStyle = {
-  maxWidth: '1240px',
+  maxWidth: '1420px',
   width: '100%',
   margin: '0 auto',
-  padding: '0 24px',
+  padding: '0 32px',
   boxSizing: 'border-box',
   flex: 1,
 };

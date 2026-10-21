@@ -96,9 +96,9 @@ export default function DesktopUserFooter() {
 
         /* Main Footer Grid */
         .zc-footer-main {
-          max-width: 1240px;
+          max-width: 1420px;
           margin: 0 auto;
-          padding: 48px 24px 38px 24px;
+          padding: 48px 32px 38px 32px;
           display: grid;
           grid-template-columns: 1.35fr 1fr 1fr 1fr 1.25fr;
           gap: 32px;
@@ -113,7 +113,7 @@ export default function DesktopUserFooter() {
           text-transform: uppercase;
           letter-spacing: 0.9px;
           margin: 0 0 16px 0;
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
           display: flex;
           align-items: center;
           gap: 6px;
@@ -233,7 +233,7 @@ export default function DesktopUserFooter() {
           font-weight: 800;
           color: #0f172a;
           line-height: 1.2;
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
         }
 
         /* Social Media Icons */
@@ -273,11 +273,12 @@ export default function DesktopUserFooter() {
         .zc-bottom-bar {
           border-top: 1px solid #e2e8f0;
           background: #eef2f6;
-          padding: 18px 24px;
+          padding: 18px 0;
         }
         .zc-bottom-inner {
-          max-width: 1240px;
+          max-width: 1420px;
           margin: 0 auto;
+          padding: 0 32px;
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -324,7 +325,7 @@ export default function DesktopUserFooter() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <ZevotaLogo size="large" />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '26px', fontWeight: 900, color: '#0f172a', letterSpacing: '0.6px', fontFamily: "'Outfit', sans-serif", lineHeight: 1.15 }}>
+              <span style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.025em', fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif", lineHeight: 1.15 }}>
                 ZEVOTA CARE
               </span>
               <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#2563eb', letterSpacing: '0.3px', marginTop: '3px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

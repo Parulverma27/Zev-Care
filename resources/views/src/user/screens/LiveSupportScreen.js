@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, useWindowDimensions } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcons';
+import SupportDesktopWebView from '../components/SupportDesktopWebView';
 import mammoth from 'mammoth';
 
 const QUICK_REPLIES = [
@@ -22,7 +23,9 @@ const BOT_RESPONSES = {
 };
 
 export default function LiveSupportScreen({ onNavigate }) {
-  const { activeUser, chats, setChats } = useApp();
+  const { activeUser, chats, setChats, bookings } = useApp();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const navigate = useNavigate();
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -340,6 +343,268 @@ export default function LiveSupportScreen({ onNavigate }) {
     scrollRef.current?.scrollToEnd?.({ animated: true });
   }, [chats, isTyping]);
 
+  const renderModals = () => (
+    <>
+      {/* Registration Required Modal for Guests */}
+      <Modal
+        visible={showGuestModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowGuestModal(false);
+          handleGoBack();
+        }}
+      >
+        <View style={styles.guestModalOverlay}>
+          <View style={styles.guestModalContent}>
+            <TouchableOpacity
+              style={styles.guestCloseBtn}
+              onPress={() => {
+                setShowGuestModal(false);
+                handleGoBack();
+              }}
+              accessibilityLabel="Close modal"
+            >
+              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
+            </TouchableOpacity>
+
+            <View style={styles.guestIconCircle}>
+              <AppIcon name="lock" size={26} color="#B45309" strokeWidth={2.2} />
+            </View>
+
+            <Text style={styles.guestModalTitle}>
+              {isAnonymous ? 'Register First' : 'Complete Your Profile First'}
+            </Text>
+            <Text style={styles.guestModalSub}>
+              {isAnonymous
+                ? 'Please register your account first to access Live Operations Support.'
+                : 'Please complete your profile or log in with your mobile number to access Live Operations Support.'}
+            </Text>
+
+            <TouchableOpacity
+              style={styles.guestPrimaryBtn}
+              onPress={() => {
+                setShowGuestModal(false);
+                handleNav('/user/register');
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.guestPrimaryBtnText}>
+                {isAnonymous ? 'Register First →' : 'Complete Your Profile →'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.guestOutlineBtn}
+              onPress={() => {
+                setShowGuestModal(false);
+                handleNav('/user/login');
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.guestOutlineBtnText}>Already have an account? Log In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* IN-APP DOCUMENT PREVIEW MODAL */}
+      <Modal
+        visible={previewDocVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewDocVisible(false)}
+      >
+        <View style={styles.docModalOverlay}>
+          <View style={styles.docModalCard}>
+            {/* Header */}
+            <View style={styles.docModalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                <View style={styles.docModalIconBadge}>
+                  <Text style={{ fontSize: 18 }}>📄</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.docModalTitle} numberOfLines={1}>
+                    {previewDoc?.fileName || previewDoc?.text || 'Document Viewer'}
+                  </Text>
+                  <Text style={styles.docModalSub}>
+                    {previewDoc?.fileSize || 'Standard File'} • {previewDoc?.fileExt || 'DOCUMENT'} • {previewDoc?.time || 'Today'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TouchableOpacity
+                  style={styles.docModalDownloadBtn}
+                  onPress={() => previewDoc && handleDownloadDocument(previewDoc)}
+                  activeOpacity={0.85}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <Text style={styles.docModalDownloadBtnText}>Download</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.docModalCloseBtn}
+                  onPress={() => setPreviewDocVisible(false)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ fontSize: 16, color: '#64748b', fontWeight: '700' }}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Viewer Content */}
+            <View style={styles.docModalBody}>
+              {(() => {
+                if (!previewDoc) return null;
+                const ext = (previewDoc.fileExt || (previewDoc.fileName || '').split('.').pop() || '').toUpperCase();
+                const isPdf = ext === 'PDF' || (previewDoc.fileMime && previewDoc.fileMime.includes('pdf'));
+                const isImg = ['PNG', 'JPG', 'JPEG', 'WEBP', 'GIF', 'SVG'].includes(ext) || (previewDoc.fileMime && previewDoc.fileMime.includes('image'));
+
+                if (isPdf && previewBlobUrl) {
+                  return (
+                    <iframe
+                      src={`${previewBlobUrl}#toolbar=1&navpanes=0`}
+                      style={{ width: '100%', height: '70vh', border: 'none', borderRadius: 8, backgroundColor: '#525659' }}
+                      title="PDF Document Preview"
+                    />
+                  );
+                }
+
+                if (isImg && (previewBlobUrl || previewDoc.fileData)) {
+                  return (
+                    <View style={styles.docImageContainer}>
+                      <img
+                        src={previewBlobUrl || previewDoc.fileData}
+                        alt="Document Preview"
+                        style={{ maxWidth: '100%', maxHeight: '68vh', objectFit: 'contain', borderRadius: 8 }}
+                      />
+                    </View>
+                  );
+                }
+
+                if (previewDoc.extractedHtml) {
+                  return (
+                    <div style={{ width: '100%', maxHeight: '70vh', overflowY: 'auto', backgroundColor: '#ffffff', borderRadius: 10, borderWidth: '1px', borderColor: '#cbd5e1', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+                      <div
+                        style={{
+                          padding: '24px 32px',
+                          fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
+                          fontSize: '14.5px',
+                          lineHeight: '1.7',
+                          color: '#1e293b',
+                        }}
+                        dangerouslySetInnerHTML={{ __html: previewDoc.extractedHtml }}
+                      />
+                    </div>
+                  );
+                }
+
+                if (previewDoc.extractedText) {
+                  return (
+                    <div style={{ width: '100%', maxHeight: '70vh', overflowY: 'auto', backgroundColor: '#ffffff', borderRadius: 10, borderWidth: '1px', borderColor: '#cbd5e1', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+                      <pre style={{ margin: 0, padding: '20px 24px', fontFamily: 'monospace', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#1e293b' }}>
+                        {previewDoc.extractedText}
+                      </pre>
+                    </div>
+                  );
+                }
+
+                return (
+                  <View style={styles.docOfficeViewerContainer}>
+                    <View style={styles.docOfficeCard}>
+                      <View style={styles.docOfficeHeaderRow}>
+                        <View style={styles.docOfficeIconCircle}>
+                          <Text style={{ fontSize: 26 }}>📑</Text>
+                        </View>
+                        <View style={{ flex: 1, gap: 3 }}>
+                          <Text style={styles.docOfficeName}>
+                            {previewDoc.fileName || previewDoc.text}
+                          </Text>
+                          <Text style={styles.docOfficeMeta}>
+                            Format: {ext} • Size: {previewDoc.fileSize || 'Standard'} • Verified Clean
+                          </Text>
+                        </View>
+                        <View style={styles.verifiedBadge}>
+                          <Text style={styles.verifiedBadgeText}>✓ Ready to View</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.docPreviewPaper}>
+                        <View style={styles.paperHeader}>
+                          <Text style={styles.paperOrgTitle}>ZEVOTA CARE DOCUMENT VIEWER</Text>
+                          <Text style={styles.paperDateText}>{previewDoc.time || 'Today'}</Text>
+                        </View>
+                        <View style={styles.paperDivider} />
+                        <Text style={styles.paperDocHeading}>Document Summary & Inspection</Text>
+                        <Text style={styles.paperBodyText}>
+                          • File Name: {previewDoc.fileName || previewDoc.text}
+                        </Text>
+                        <Text style={styles.paperBodyText}>
+                          • Sender: {previewDoc.sender || userName}
+                        </Text>
+                        <Text style={styles.paperBodyText}>
+                          • Type: Official Document Attachment ({ext})
+                        </Text>
+                        <Text style={styles.paperBodyText}>
+                          • Time Sent: {previewDoc.time || 'Active Session'}
+                        </Text>
+
+                        <View style={styles.paperCallout}>
+                          <Text style={styles.paperCalloutText}>
+                            💡 Viewing in preview mode without downloading. Click Download above if you need a local copy.
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })()}
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
+
+  // Desktop Web Layout (Zevota 2-Column Luxury Operations Desk)
+  if (isDesktop) {
+    return (
+      <View style={{ flex: 1, width: '100%', backgroundColor: 'transparent' }}>
+        <SupportDesktopWebView
+          activeUser={activeUser}
+          userMessages={userMessages}
+          isTyping={isTyping}
+          inputText={inputText}
+          setInputText={setInputText}
+          sendMessage={sendMessage}
+          handleFileUpload={handleFileUpload}
+          handleOpenDocument={handleOpenDocument}
+          handleDownloadDocument={handleDownloadDocument}
+          isGuest={isGuest}
+          setShowGuestModal={setShowGuestModal}
+          onNavigate={handleNav}
+          bookings={bookings}
+          QUICK_REPLIES={QUICK_REPLIES}
+          showEmojiPicker={showEmojiPicker}
+          setShowEmojiPicker={setShowEmojiPicker}
+          handleSelectEmoji={handleSelectEmoji}
+          fileInputRef={fileInputRef}
+          isRecording={isRecording}
+          recordingSeconds={recordingSeconds}
+          toggleVoiceRecording={toggleVoiceRecording}
+          setIsRecording={setIsRecording}
+        />
+        {renderModals()}
+      </View>
+    );
+  }
+
+  // 100% UNTOUCHED Mobile App Layout
   return (
     <View style={styles.container}>
       
@@ -554,231 +819,7 @@ export default function LiveSupportScreen({ onNavigate }) {
         </TouchableOpacity>
       </View>
 
-      {/* Registration Required Modal for Guests */}
-      <Modal
-        visible={showGuestModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => {
-          setShowGuestModal(false);
-          handleGoBack();
-        }}
-      >
-        <View style={styles.guestModalOverlay}>
-          <View style={styles.guestModalContent}>
-            <TouchableOpacity
-              style={styles.guestCloseBtn}
-              onPress={() => {
-                setShowGuestModal(false);
-                handleGoBack();
-              }}
-              accessibilityLabel="Close modal"
-            >
-              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
-            </TouchableOpacity>
-
-            <View style={styles.guestIconCircle}>
-              <AppIcon name="lock" size={26} color="#B45309" strokeWidth={2.2} />
-            </View>
-
-            <Text style={styles.guestModalTitle}>
-              {isAnonymous ? 'Register First' : 'Complete Your Profile First'}
-            </Text>
-            <Text style={styles.guestModalSub}>
-              {isAnonymous
-                ? 'Please register your account first to access Live Operations Support.'
-                : 'Please complete your profile or log in with your mobile number to access Live Operations Support.'}
-            </Text>
-
-            <TouchableOpacity
-              style={styles.guestPrimaryBtn}
-              onPress={() => {
-                setShowGuestModal(false);
-                handleNav('/user/register');
-              }}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.guestPrimaryBtnText}>
-                {isAnonymous ? 'Register First →' : 'Complete Your Profile →'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.guestOutlineBtn}
-              onPress={() => {
-                setShowGuestModal(false);
-                handleNav('/user/login');
-              }}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.guestOutlineBtnText}>Already have an account? Log In</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* IN-APP DOCUMENT PREVIEW MODAL */}
-      <Modal
-        visible={previewDocVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setPreviewDocVisible(false)}
-      >
-        <View style={styles.docModalOverlay}>
-          <View style={styles.docModalCard}>
-            {/* Header */}
-            <View style={styles.docModalHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-                <View style={styles.docModalIconBadge}>
-                  <Text style={{ fontSize: 18 }}>📄</Text>
-                </View>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.docModalTitle} numberOfLines={1}>
-                    {previewDoc?.fileName || previewDoc?.text || 'Document Viewer'}
-                  </Text>
-                  <Text style={styles.docModalSub}>
-                    {previewDoc?.fileSize || 'Standard File'} • {previewDoc?.fileExt || 'DOCUMENT'} • {previewDoc?.time || 'Today'}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <TouchableOpacity
-                  style={styles.docModalDownloadBtn}
-                  onPress={() => previewDoc && handleDownloadDocument(previewDoc)}
-                  activeOpacity={0.85}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  <Text style={styles.docModalDownloadBtnText}>Download</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.docModalCloseBtn}
-                  onPress={() => setPreviewDocVisible(false)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={{ fontSize: 16, color: '#64748b', fontWeight: '700' }}>✕</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Viewer Content */}
-            <View style={styles.docModalBody}>
-              {(() => {
-                if (!previewDoc) return null;
-                const ext = (previewDoc.fileExt || (previewDoc.fileName || '').split('.').pop() || '').toUpperCase();
-                const isPdf = ext === 'PDF' || (previewDoc.fileMime && previewDoc.fileMime.includes('pdf'));
-                const isImg = ['PNG', 'JPG', 'JPEG', 'WEBP', 'GIF', 'SVG'].includes(ext) || (previewDoc.fileMime && previewDoc.fileMime.includes('image'));
-
-                if (isPdf && previewBlobUrl) {
-                  return (
-                    <iframe
-                      src={`${previewBlobUrl}#toolbar=1&navpanes=0`}
-                      style={{ width: '100%', height: '70vh', border: 'none', borderRadius: 8, backgroundColor: '#525659' }}
-                      title="PDF Document Preview"
-                    />
-                  );
-                }
-
-                if (isImg && (previewBlobUrl || previewDoc.fileData)) {
-                  return (
-                    <View style={styles.docImageContainer}>
-                      <img
-                        src={previewBlobUrl || previewDoc.fileData}
-                        alt="Document Preview"
-                        style={{ maxWidth: '100%', maxHeight: '68vh', objectFit: 'contain', borderRadius: 8 }}
-                      />
-                    </View>
-                  );
-                }
-
-                if (previewDoc.extractedHtml) {
-                  return (
-                    <div style={{ width: '100%', maxHeight: '70vh', overflowY: 'auto', backgroundColor: '#ffffff', borderRadius: 10, borderWidth: '1px', borderColor: '#cbd5e1', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-                      <div
-                        style={{
-                          padding: '24px 32px',
-                          fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
-                          fontSize: '14.5px',
-                          lineHeight: '1.7',
-                          color: '#1e293b',
-                        }}
-                        dangerouslySetInnerHTML={{ __html: previewDoc.extractedHtml }}
-                      />
-                    </div>
-                  );
-                }
-
-                if (previewDoc.extractedText) {
-                  return (
-                    <div style={{ width: '100%', maxHeight: '70vh', overflowY: 'auto', backgroundColor: '#ffffff', borderRadius: 10, borderWidth: '1px', borderColor: '#cbd5e1', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-                      <pre style={{ margin: 0, padding: '20px 24px', fontFamily: 'monospace', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#1e293b' }}>
-                        {previewDoc.extractedText}
-                      </pre>
-                    </div>
-                  );
-                }
-
-                // Fallback In-App Interactive Reader View
-                return (
-                  <View style={styles.docOfficeViewerContainer}>
-                    <View style={styles.docOfficeCard}>
-                      <View style={styles.docOfficeHeaderRow}>
-                        <View style={styles.docOfficeIconCircle}>
-                          <Text style={{ fontSize: 26 }}>📑</Text>
-                        </View>
-                        <View style={{ flex: 1, gap: 3 }}>
-                          <Text style={styles.docOfficeName}>
-                            {previewDoc.fileName || previewDoc.text}
-                          </Text>
-                          <Text style={styles.docOfficeMeta}>
-                            Format: {ext} • Size: {previewDoc.fileSize || 'Standard'} • Verified Clean
-                          </Text>
-                        </View>
-                        <View style={styles.verifiedBadge}>
-                          <Text style={styles.verifiedBadgeText}>✓ Ready to View</Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.docPreviewPaper}>
-                        <View style={styles.paperHeader}>
-                          <Text style={styles.paperOrgTitle}>ZEVOTA CARE DOCUMENT VIEWER</Text>
-                          <Text style={styles.paperDateText}>{previewDoc.time || 'Today'}</Text>
-                        </View>
-                        <View style={styles.paperDivider} />
-                        <Text style={styles.paperDocHeading}>Document Summary & Inspection</Text>
-                        <Text style={styles.paperBodyText}>
-                          • File Name: {previewDoc.fileName || previewDoc.text}
-                        </Text>
-                        <Text style={styles.paperBodyText}>
-                          • Sender: {previewDoc.sender || userName}
-                        </Text>
-                        <Text style={styles.paperBodyText}>
-                          • Type: Official Document Attachment ({ext})
-                        </Text>
-                        <Text style={styles.paperBodyText}>
-                          • Time Sent: {previewDoc.time || 'Active Session'}
-                        </Text>
-
-                        <View style={styles.paperCallout}>
-                          <Text style={styles.paperCalloutText}>
-                            💡 Viewing in preview mode without downloading. Click Download above if you need a local copy.
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-                );
-              })()}
-            </View>
-          </View>
-        </View>
-      </Modal>
-
+      {renderModals()}
     </View>
   );
 }

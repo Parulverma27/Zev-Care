@@ -475,9 +475,9 @@ const headerStyle = {
 };
 
 const innerWrapStyle = {
-  maxWidth: '1240px',
+  maxWidth: '1420px',
   margin: '0 auto',
-  padding: '0 24px',
+  padding: '0 32px',
   height: '62px',
   display: 'flex',
   alignItems: 'center',
@@ -514,10 +514,10 @@ const brandTextWrapStyle = {
 
 const brandNameStyle = {
   fontSize: '17px',
-  fontWeight: 900,
+  fontWeight: 800,
   color: '#0f172a',
-  letterSpacing: '0.4px',
-  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  letterSpacing: '-0.025em',
+  fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
 };
 
 const brandTaglineStyle = {
@@ -656,7 +656,7 @@ const locationPopoverTitleStyle = {
   fontSize: '13px',
   fontWeight: 700,
   color: '#0f172a',
-  fontFamily: "'Outfit', sans-serif",
+  fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
 };
 
 const locationCloseBtnStyle = {
@@ -764,7 +764,7 @@ const changeAddressBtnStyle = {
   fontSize: '12.5px',
   fontWeight: 700,
   cursor: 'pointer',
-  fontFamily: "'Outfit', sans-serif",
+  fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
 };
 
 /* Compact AMC Wallet */
@@ -787,7 +787,7 @@ const walletCompactValueStyle = {
   fontSize: '12.5px',
   fontWeight: 700,
   color: '#0878f8',
-  fontFamily: "'Outfit', sans-serif",
+  fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
 };
 
 /* Support Icon Button */
@@ -836,7 +836,7 @@ const avatarCircleStyle = {
   justifyContent: 'center',
   border: '1px solid rgba(8, 120, 248, 0.25)',
   flexShrink: 0,
-  fontFamily: "'Outfit', sans-serif",
+  fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
 };
 
 const profileNameTextStyle = {
@@ -862,7 +862,7 @@ const loginBtnStyle = {
   cursor: 'pointer',
   outline: 'none',
   boxShadow: '0 2px 8px rgba(8, 120, 248, 0.25)',
-  fontFamily: "'Outfit', sans-serif",
+  fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
   transition: 'background-color 0.16s ease',
 };
 
