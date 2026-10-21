@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform, useWindowDimensions } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcons';
 import { resolveImageUri } from '../../utils/imageUtils';
 import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
 import LiveProviderTrackingMap from '../../components/LiveProviderTrackingMap';
 import { hasGeneratedBill } from '../../utils/billing';
+import BookingDetailDesktopWebView from '../components/BookingDetailDesktopWebView';
 
 export default function BookingDetailScreen() {
   const { getUserBookings, activeUser, approveBill, rejectBill, providers } = useApp();
@@ -16,6 +17,8 @@ export default function BookingDetailScreen() {
   const [billError, setBillError] = useState('');
   const [selectedPaymentMode, setSelectedPaymentMode] = useState('PAY_ON_COMPLETION');
   const [showDeclineConfirmModal, setShowDeclineConfirmModal] = useState(false);
+  const { width } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
 
   const userBookings = getUserBookings(activeUser);
   const bk = userBookings.find((b) => b.booking_id === bookingId);
@@ -228,6 +231,40 @@ export default function BookingDetailScreen() {
   const isBillSent = hasGeneratedBill(bk);
 
   const statusBadge = getStatusBadge();
+
+  if (isDesktopWeb) {
+    return (
+      <BookingDetailDesktopWebView
+        bk={bk}
+        hasProvider={hasProvider}
+        providerName={providerName}
+        providerPhone={providerPhone}
+        providerRating={providerRating}
+        providerTrade={providerTrade}
+        assignedProvider={assignedProvider}
+        customerCoords={customerCoords}
+        providerLiveCoords={providerLiveCoords}
+        trackingStatus={trackingStatus}
+        stages={stages}
+        activeStageIndex={activeStageIndex}
+        statusBadge={statusBadge}
+        isConsultationBk={isConsultationBk}
+        isBillSent={isBillSent}
+        selectedPaymentMode={selectedPaymentMode}
+        setSelectedPaymentMode={setSelectedPaymentMode}
+        approving={approving}
+        billError={billError}
+        handleApproveBillAction={handleApproveBillAction}
+        handleRejectBillAction={handleRejectBillAction}
+        handleConfirmDecline={handleConfirmDecline}
+        showDeclineConfirmModal={showDeclineConfirmModal}
+        setShowDeclineConfirmModal={setShowDeclineConfirmModal}
+        handleGoBack={handleGoBack}
+        navigate={navigate}
+        activeUser={activeUser}
+      />
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
