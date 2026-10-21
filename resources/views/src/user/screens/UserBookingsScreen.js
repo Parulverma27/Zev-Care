@@ -1,13 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcons';
+import BookingsDesktopWebView from '../components/BookingsDesktopWebView';
 
 export default function UserBookingsScreen() {
   const { activeUser, getUserBookings } = useApp();
   const navigate = useNavigate();
   const userBookings = getUserBookings(activeUser);
+  const { width } = useWindowDimensions();
+  const isDesktop = Platform.OS === 'web' && width >= 768;
 
   const handleGoBack = () => {
     if (window?.history?.state && window.history.state.idx > 0) {
@@ -16,6 +19,16 @@ export default function UserBookingsScreen() {
       navigate('/user/home');
     }
   };
+
+  if (isDesktop) {
+    return (
+      <BookingsDesktopWebView
+        bookings={userBookings}
+        onNavigate={navigate}
+        formatStatus={formatStatus}
+      />
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
