@@ -1,17 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, useWindowDimensions } from 'react-native';
 import { resolveCategoryImageUri } from '../../utils/imageUtils';
-
-const exploreGridCss = {
-  wrapper: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px 14px',
-    width: '100%',
-    boxSizing: 'border-box',
-    marginTop: 10,
-  },
-};
 
 export default function HomeExploreServices({
   categories = [],
@@ -21,10 +10,22 @@ export default function HomeExploreServices({
   onSelectCategory,
   isComplaint = false,
 }) {
+  const { width } = useWindowDimensions();
+  const isDesktop = Platform.OS === 'web' && width >= 768;
+
+  const gridStyle = {
+    display: 'grid',
+    gridTemplateColumns: isDesktop ? 'repeat(auto-fill, minmax(210px, 1fr))' : '1fr 1fr',
+    gap: isDesktop ? '22px' : '16px 14px',
+    width: '100%',
+    boxSizing: 'border-box',
+    marginTop: 12,
+  };
+
   return (
     <>
       <View style={styles.exploreHeader}>
-        <Text style={styles.exploreTitle}>{title}</Text>
+        <Text style={[styles.exploreTitle, isDesktop && styles.exploreTitleDesktop]}>{title}</Text>
         {onViewAll ? (
           <TouchableOpacity onPress={onViewAll}>
             <Text style={styles.viewAllText}>{viewAllLabel}</Text>
@@ -32,7 +33,7 @@ export default function HomeExploreServices({
         ) : null}
       </View>
 
-      <div style={exploreGridCss.wrapper}>
+      <div style={gridStyle}>
         {(categories || []).map((cat) => (
           <TouchableOpacity
             key={cat.id || cat.name}
@@ -40,14 +41,14 @@ export default function HomeExploreServices({
             onPress={() => onSelectCategory?.(cat)}
             activeOpacity={0.85}
           >
-            <View style={styles.gridImgWrap}>
+            <View style={[styles.gridImgWrap, isDesktop && styles.gridImgWrapDesktop]}>
               <Image
                 source={{ uri: resolveCategoryImageUri(cat.name, cat.image_url, isComplaint) }}
                 style={styles.gridImg}
                 resizeMode="cover"
               />
             </View>
-            <Text style={styles.gridCardTitleUnder} numberOfLines={1}>
+            <Text style={[styles.gridCardTitleUnder, isDesktop && styles.gridCardTitleDesktop]} numberOfLines={1}>
               {cat.name}
             </Text>
           </TouchableOpacity>
@@ -103,5 +104,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 16,
+  },
+  exploreTitleDesktop: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.4,
+  },
+  gridImgWrapDesktop: {
+    height: 140,
+    borderRadius: 14,
+    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+  },
+  gridCardTitleDesktop: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginTop: 10,
   },
 });

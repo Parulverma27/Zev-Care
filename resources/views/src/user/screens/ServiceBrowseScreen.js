@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Platform, useWindowDimensions } from 'react-native';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { searchAllServices } from '../../config/serviceCatalogUtils';
@@ -12,6 +12,8 @@ export default function ServiceBrowseScreen({ onNavigate }) {
   const location = useLocation();
   const isConsultation = (location.pathname || '').includes('consultation');
   const [searchQuery, setSearchQuery] = useState('');
+  const { width } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
 
   const isAnonymous = Boolean(
     !activeUser ||
@@ -119,34 +121,48 @@ export default function ServiceBrowseScreen({ onNavigate }) {
   }, [searchQuery, services]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, isDesktopWeb && styles.contentDesktop]}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={goHome}
-          activeOpacity={0.75}
-          accessibilityRole="button"
-          accessibilityLabel="Back to Home"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#0F1F3D"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ pointerEvents: 'none' }}
+      <View style={[styles.header, isDesktopWeb && styles.headerDesktop]}>
+        {isDesktopWeb ? (
+          <TouchableOpacity
+            style={styles.backPillDesktop}
+            onPress={goHome}
+            activeOpacity={0.75}
           >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </TouchableOpacity>
+            <Text style={styles.backPillDesktopText}>←  Back to Home</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={goHome}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel="Back to Home"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#0F1F3D"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ pointerEvents: 'none' }}
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </TouchableOpacity>
+        )}
 
         <View style={styles.headerTextCol}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>
+            <Text style={[styles.title, isDesktopWeb && styles.titleDesktop]}>
               {isConsultation ? 'Book Free Consultation' : 'AMC Complaints & Repair'}
             </Text>
             {isConsultation && (
@@ -155,10 +171,10 @@ export default function ServiceBrowseScreen({ onNavigate }) {
               </View>
             )}
           </View>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.subtitle, isDesktopWeb && styles.subtitleDesktop]}>
             {isConsultation
-              ? 'Expert on-site inspection & diagnosis across all services'
-              : 'Report any appliance breakdown or maintenance issue'}
+              ? 'Expert on-site inspection & diagnosis across all home appliances with zero visitation fee'
+              : 'Report any appliance breakdown or maintenance issue under your active AMC protection plan'}
           </Text>
         </View>
       </View>
@@ -394,11 +410,51 @@ export default function ServiceBrowseScreen({ onNavigate }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc', width: '100%' },
   content: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 110, gap: 14, width: '100%', boxSizing: 'border-box' },
+  contentDesktop: {
+    maxWidth: 1320,
+    paddingHorizontal: 0,
+    paddingTop: 24,
+    paddingBottom: 120,
+    gap: 24,
+    alignSelf: 'center',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
     paddingTop: 2,
+  },
+  headerDesktop: {
+    paddingTop: 8,
+    gap: 16,
+    alignItems: 'center',
+  },
+  backPillDesktop: {
+    height: 38,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+    cursor: 'pointer',
+  },
+  backPillDesktopText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  titleDesktop: {
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.6,
+  },
+  subtitleDesktop: {
+    fontSize: 14,
+    color: '#64748b',
+    marginTop: 4,
   },
   backBtn: {
     width: 38,
