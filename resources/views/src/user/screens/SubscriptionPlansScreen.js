@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Platform, useWindowDimensions } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import api from '../../services/ApiService';
@@ -292,6 +292,8 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
 
   const navigate = useNavigate();
   const scrollRef = useRef(null);
+  const { width } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
 
   // Selected appliances map per plan: { [planId]: [ ...appliances ] }
   const [planAppliancesMap, setPlanAppliancesMap] = useState({});
@@ -847,24 +849,30 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
     <ScrollView
       ref={scrollRef}
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, isDesktopWeb && styles.contentDesktop]}
       showsVerticalScrollIndicator={false}
     >
       {/* Top Header */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.75}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F1F3D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </TouchableOpacity>
-        <View style={{ flex: 1, minWidth: 0, marginLeft: 12 }}>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {hasActiveAmc ? 'MY AMC' : 'AMC Membership Plans'}
+      <View style={[styles.topHeader, isDesktopWeb && styles.topHeaderDesktop]}>
+        {isDesktopWeb ? (
+          <TouchableOpacity style={styles.backPillDesktop} onPress={handleBack} activeOpacity={0.75}>
+            <Text style={styles.backPillDesktopText}>←  Back to Home</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.75}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F1F3D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </TouchableOpacity>
+        )}
+        <View style={{ flex: 1, minWidth: 0, marginLeft: isDesktopWeb ? 16 : 12 }}>
+          <Text style={[styles.headerTitle, isDesktopWeb && styles.headerTitleDesktop]} numberOfLines={1}>
+            {hasActiveAmc ? 'My AMC Membership' : 'Annual Maintenance Contracts (AMC)'}
           </Text>
-          <Text style={styles.headerSubtitle} numberOfLines={1}>
+          <Text style={[styles.headerSubtitle, isDesktopWeb && styles.headerSubtitleDesktop]} numberOfLines={1}>
             {hasActiveAmc
-              ? `${contractDetails?.planName} • Active Contract`
-              : 'Add appliances & activate ₹0 breakdown labor'}
+              ? `${contractDetails?.planName} • Active Contract Protection`
+              : 'Add appliances & activate ₹0 breakdown labor for your home'}
           </Text>
         </View>
         {hasActiveAmc && (
@@ -1154,7 +1162,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
       {/* ===================================================================== */}
       {/* ALL SUBSCRIPTION PLANS LIST                                           */}
       {/* ===================================================================== */}
-      <View style={styles.plansContainer}>
+      <View style={[styles.plansContainer, isDesktopWeb && desktopPlansGridStyle]}>
         {subscriptionPlans.map((plan) => {
           const isCurrent = isCurrentPlan(plan);
           const features = JSON.parse(plan.features_json || '[]');
@@ -1167,6 +1175,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
               key={plan.id}
               style={[
                 styles.planCard,
+                isDesktopWeb && styles.planCardDesktop,
                 {
                   borderColor: theme.borderGold,
                   borderWidth: plan.is_recommended || isCurrent ? 2 : 1.4,
@@ -1888,9 +1897,24 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
   );
 }
 
+const desktopPlansGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+  gap: '24px',
+  alignItems: 'stretch',
+  width: '100%',
+};
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   content: { padding: 16, paddingBottom: 130, maxWidth: 680, alignSelf: 'center', width: '100%', gap: 16 },
+  contentDesktop: {
+    maxWidth: 1320,
+    paddingHorizontal: 0,
+    paddingTop: 20,
+    paddingBottom: 120,
+    gap: 24,
+  },
 
   topHeader: {
     flexDirection: 'row',
@@ -1898,6 +1922,42 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     width: '100%',
     boxSizing: 'border-box',
+  },
+  topHeaderDesktop: {
+    paddingVertical: 12,
+  },
+  backPillDesktop: {
+    height: 38,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+  },
+  backPillDesktopText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  headerTitleDesktop: {
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.6,
+  },
+  headerSubtitleDesktop: {
+    fontSize: 14,
+    color: '#64748b',
+    marginTop: 4,
+  },
+  planCardDesktop: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    minWidth: 0,
   },
   backBtn: {
     width: 38,
