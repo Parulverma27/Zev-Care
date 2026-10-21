@@ -168,6 +168,22 @@ export default function HomeDesktopWebView({
     return () => clearInterval(timer);
   }, [isPaused]);
 
+  // Smooth scroll to Explore Services section if requested via hash or categories route
+  useEffect(() => {
+    if (
+      typeof window !== 'undefined' &&
+      (window.location.hash === '#explore-services-section' ||
+        window.location.pathname.includes('/categories'))
+    ) {
+      setTimeout(() => {
+        const el = document.getElementById('explore-services-section');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    }
+  }, []);
+
   return (
     <div className="home-desktop-web-wrap" style={wrapperStyle}>
       {/* 1. HERO SECTION (Urban Company 2-Column Gateway) */}
@@ -410,8 +426,8 @@ export default function HomeDesktopWebView({
         </div>
       </section>
 
-      {/* 3. EXPLORE HOME SERVICES (8-Column Balanced Grid) */}
-      <section style={sectionWrapStyle} aria-label="Explore Home Services">
+      {/* 3. EXPLORE HOME SERVICES (5-Column Grid) */}
+      <section id="explore-services-section" style={sectionWrapStyle} aria-label="Explore Home Services">
         <div style={sectionHeaderStyle}>
           <div>
             <h2 style={sectionTitleStyle}>Explore Home Services</h2>
@@ -421,7 +437,7 @@ export default function HomeDesktopWebView({
             type="button"
             className="zc-desktop-btn-secondary"
             style={viewAllPillBtnStyle}
-            onClick={() => onNavigate('/user/categories')}
+            onClick={() => onNavigate('/user/bookings/new')}
           >
             <span>View All</span>
             <span style={{ fontSize: '14px' }}>→</span>
