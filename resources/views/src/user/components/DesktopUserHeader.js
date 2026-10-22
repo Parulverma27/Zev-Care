@@ -86,24 +86,14 @@ export default function DesktopUserHeader() {
   const walletBalance = Number(activeUser?.wallet_balance || 0);
   const hasWallet = !isGuest && walletBalance > 0;
 
-  // Streamlined 4-link primary navigation (Services label used consistently)
+  // Streamlined primary navigation
   const navLinks = [
     { label: 'Home', route: '/user/home', active: path === '/user/home' || path === '/user' || path === '/user/' },
-    { label: 'Services', route: '/user/categories', active: path.includes('/categories') },
     { label: 'My Bookings', route: '/user/bookings', active: path.includes('/bookings') && !path.includes('/new') },
     { label: 'AMC Plans', route: '/user/plans', active: path.includes('/plans') },
   ];
 
   const handleNavClick = (item) => {
-    if (item.label === 'Services') {
-      const section = typeof document !== 'undefined' ? document.getElementById('explore-services-section') : null;
-      if (section) {
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-      navigate('/user/home#explore-services-section');
-      return;
-    }
     navigate(item.route);
   };
 
@@ -135,6 +125,14 @@ export default function DesktopUserHeader() {
 
   const userInitial = (activeUser?.name || 'U').charAt(0).toUpperCase();
   const userFirstName = (activeUser?.name || 'Account').split(' ')[0];
+  const userPlanRaw = activeUser?.subscription_plan;
+  const userPlanLabel = userPlanRaw
+    ? (/pass$/i.test(userPlanRaw.trim())
+        ? userPlanRaw.trim()
+        : /amc$/i.test(userPlanRaw.trim())
+          ? `${userPlanRaw.trim()} Pass`
+          : `${userPlanRaw.trim()} AMC Pass`)
+    : 'Standard Account';
 
   return (
     <header className="desktop-web-header" style={headerStyle}>
@@ -450,8 +448,11 @@ export default function DesktopUserHeader() {
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={dropdownHeaderNameStyle}>{activeUser?.name || 'User Profile'}</div>
                       <div style={dropdownHeaderPhoneStyle}>{activeUser?.phone || activeUser?.email || 'Registered User'}</div>
-                      <div style={dropdownHeaderBadgeStyle}>
-                        {activeUser?.subscription_plan ? `✓ ${activeUser.subscription_plan} AMC Pass` : 'Standard Account'}
+                      <div style={dropdownPlanBadgeStyle}>
+                        <span style={dropdownPlanDotStyle} />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          ✓ {userPlanLabel}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -461,75 +462,145 @@ export default function DesktopUserHeader() {
                   <div style={dropdownMenuLinksStyle}>
                     <button
                       type="button"
-                      style={dropdownItemBtnStyle}
-                      onClick={() => navigate('/user/profile')}
+                      className="zc-dropdown-item"
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate('/user/profile');
+                      }}
                     >
-                      <AppIcon name="lock" size={14} color="#0878f8" strokeWidth={2.2} />
+                      <div className="zc-dropdown-icon-box" style={{ backgroundColor: '#eff6ff', border: '1px solid #dbeafe' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                      </div>
                       <span>My Profile & Account</span>
+                      <svg className="zc-dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                     </button>
 
                     <button
                       type="button"
-                      style={dropdownItemBtnStyle}
-                      onClick={() => navigate('/user/bookings')}
+                      className="zc-dropdown-item"
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate('/user/bookings');
+                      }}
                     >
-                      <AppIcon name="file-text" size={14} color="#7c3aed" strokeWidth={2.2} />
+                      <div className="zc-dropdown-icon-box" style={{ backgroundColor: '#f5f3ff', border: '1px solid #ede9fe' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                      </div>
                       <span>My Bookings & Orders</span>
+                      <svg className="zc-dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                     </button>
 
                     <button
                       type="button"
-                      style={dropdownItemBtnStyle}
-                      onClick={() => navigate('/user/plans')}
+                      className="zc-dropdown-item"
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate('/user/plans');
+                      }}
                     >
-                      <AppIcon name="check" size={14} color="#059669" strokeWidth={2.4} />
+                      <div className="zc-dropdown-icon-box" style={{ backgroundColor: '#ecfdf5', border: '1px solid #d1fae5' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          <path d="m9 12 2 2 4-4" />
+                        </svg>
+                      </div>
                       <span>AMC Plans & Coverage</span>
+                      <svg className="zc-dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                     </button>
 
                     <button
                       type="button"
-                      style={dropdownItemBtnStyle}
-                      onClick={() => navigate('/user/my-amc')}
+                      className="zc-dropdown-item"
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate('/user/my-amc');
+                      }}
                     >
-                      <AppIcon name="star" size={14} color="#d97706" strokeWidth={2.2} />
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <div className="zc-dropdown-icon-box" style={{ backgroundColor: '#fffbeb', border: '1px solid #fef3c7' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="#d97706" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1, minWidth: 0 }}>
                         <span>AMC Wallet & Pass</span>
                         {walletBalance > 0 && (
                           <span style={dropdownWalletBadgeStyle}>₹{walletBalance.toLocaleString('en-IN')}</span>
                         )}
                       </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      style={dropdownItemBtnStyle}
-                      onClick={() => navigate('/user/saved-addresses')}
-                    >
-                      <AppIcon name="map-pin" size={14} color="#0878f8" strokeWidth={2.2} />
-                      <span>Saved Delivery Addresses</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      style={dropdownItemBtnStyle}
-                      onClick={() => navigate('/user/support')}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                        <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
-                        <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z" />
-                        <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+                      <svg className="zc-dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
                       </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="zc-dropdown-item"
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate('/user/saved-addresses');
+                      }}
+                    >
+                      <div className="zc-dropdown-icon-box" style={{ backgroundColor: '#f0f9ff', border: '1px solid #e0f2fe' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                      </div>
+                      <span>Saved Delivery Addresses</span>
+                      <svg className="zc-dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="zc-dropdown-item"
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate('/user/support');
+                      }}
+                    >
+                      <div className="zc-dropdown-icon-box" style={{ backgroundColor: '#ecfeff', border: '1px solid #cffafe' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0891b2" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+                          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z" />
+                          <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+                        </svg>
+                      </div>
                       <span>Help & Live Support</span>
+                      <svg className="zc-dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                     </button>
 
                     <div style={dropdownDividerStyle} />
 
                     <button
                       type="button"
-                      style={{ ...dropdownItemBtnStyle, color: '#dc2626' }}
+                      className="zc-dropdown-item zc-dropdown-item-danger"
                       onClick={handleSignOut}
                     >
-                      <AppIcon name="x" size={14} color="#dc2626" strokeWidth={2.2} />
+                      <div className="zc-dropdown-icon-box" style={{ backgroundColor: '#fef2f2', border: '1px solid #fee2e2' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                          <polyline points="16 17 21 12 16 7" />
+                          <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                      </div>
                       <span>Sign Out</span>
                     </button>
                   </div>
@@ -996,99 +1067,105 @@ const guestRegisterBtnStyle = {
 /* Profile Dropdown Card */
 const dropdownCardStyle = {
   position: 'absolute',
-  top: '44px',
+  top: '46px',
   right: 0,
-  width: '240px',
+  width: '286px',
   backgroundColor: '#ffffff',
-  borderRadius: '14px',
-  border: '1px solid #bfdbfe',
-  boxShadow: '0 14px 32px rgba(15, 23, 42, 0.12), 0 4px 10px rgba(8, 120, 248, 0.06)',
+  borderRadius: '18px',
+  border: '1px solid rgba(203, 213, 225, 0.85)',
+  boxShadow: '0 20px 48px -10px rgba(15, 23, 42, 0.16), 0 8px 18px -4px rgba(8, 120, 248, 0.08)',
   zIndex: 1200,
   overflow: 'hidden',
   fontFamily: "'Plus Jakarta Sans', sans-serif",
+  animation: 'dropdownFadeIn 0.16s ease-out',
 };
 
 const dropdownHeaderStyle = {
-  padding: '12px 14px',
+  padding: '15px 16px',
   display: 'flex',
   alignItems: 'center',
-  gap: '10px',
-  backgroundColor: '#f8fafc',
+  gap: '12px',
+  background: 'linear-gradient(135deg, #f8faff 0%, #edf4fe 100%)',
+  borderBottom: '1px solid #eef2f6',
 };
 
 const dropdownAvatarBigStyle = {
-  width: '36px',
-  height: '36px',
-  borderRadius: '18px',
-  backgroundColor: 'rgba(8, 120, 248, 0.12)',
-  color: '#0878f8',
+  width: '44px',
+  height: '44px',
+  borderRadius: '22px',
+  background: 'linear-gradient(135deg, #0878f8 0%, #0353c7 100%)',
+  color: '#ffffff',
   fontWeight: 800,
-  fontSize: '14px',
+  fontSize: '17px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  border: '1.2px solid rgba(8, 120, 248, 0.25)',
+  border: '2px solid #ffffff',
+  boxShadow: '0 4px 12px rgba(8, 120, 248, 0.28)',
   flexShrink: 0,
 };
 
 const dropdownHeaderNameStyle = {
-  fontSize: '13px',
-  fontWeight: 700,
+  fontSize: '14.5px',
+  fontWeight: 800,
   color: '#0f172a',
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
+  letterSpacing: '-0.2px',
 };
 
 const dropdownHeaderPhoneStyle = {
-  fontSize: '11px',
+  fontSize: '11.5px',
   color: '#64748b',
-  marginTop: '1px',
+  marginTop: '2px',
+  fontWeight: 500,
 };
 
-const dropdownHeaderBadgeStyle = {
-  fontSize: '9.5px',
+const dropdownPlanBadgeStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '5px',
+  marginTop: '4px',
+  padding: '2.5px 8px',
+  borderRadius: '12px',
+  backgroundColor: '#ecfdf5',
+  border: '1px solid #a7f3d0',
+  color: '#047857',
+  fontSize: '10.5px',
   fontWeight: 700,
-  color: '#059669',
-  marginTop: '2px',
+  maxWidth: '100%',
+  boxSizing: 'border-box',
+};
+
+const dropdownPlanDotStyle = {
+  width: '6px',
+  height: '6px',
+  borderRadius: '50%',
+  backgroundColor: '#10b981',
+  flexShrink: 0,
 };
 
 const dropdownDividerStyle = {
   height: '1px',
   backgroundColor: '#f1f5f9',
+  margin: '4px 6px',
 };
 
 const dropdownMenuLinksStyle = {
-  padding: '5px',
+  padding: '8px 6px',
   display: 'flex',
   flexDirection: 'column',
-  gap: '2px',
-};
-
-const dropdownItemBtnStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '9px',
-  padding: '8px 10px',
-  borderRadius: '7px',
-  background: 'none',
-  border: 'none',
-  fontSize: '12.5px',
-  fontWeight: 600,
-  color: '#334155',
-  cursor: 'pointer',
-  textAlign: 'left',
-  width: '100%',
-  boxSizing: 'border-box',
-  fontFamily: "'Plus Jakarta Sans', sans-serif",
-  transition: 'background-color 0.12s ease',
+  gap: '3px',
 };
 
 const dropdownWalletBadgeStyle = {
   fontSize: '11px',
-  fontWeight: 700,
-  color: '#0878f8',
-  backgroundColor: 'rgba(8, 120, 248, 0.08)',
-  padding: '1px 6px',
+  fontWeight: 800,
+  color: '#1d4ed8',
+  backgroundColor: '#eff6ff',
+  border: '1px solid #bfdbfe',
+  padding: '2px 8px',
   borderRadius: '10px',
+  letterSpacing: '0.2px',
 };
