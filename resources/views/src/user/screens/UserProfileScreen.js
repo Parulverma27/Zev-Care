@@ -369,8 +369,14 @@ export default function UserProfileScreen({ onNavigate }) {
                           styles.planBadgeText,
                           { color: userPlanTheme.badgeTextColor },
                         ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
                       >
-                        {hasPlan ? `${activeUser.subscription_plan} Member` : 'Free Tier'}
+                        {hasPlan ? (
+                          activeUser.subscription_plan.toLowerCase().includes('amc')
+                            ? activeUser.subscription_plan
+                            : `${activeUser.subscription_plan} Member`
+                        ) : 'Free Tier'}
                       </Text>
                     </View>
                     <TouchableOpacity style={styles.editProfileChip} onPress={handleOpenEditModal} activeOpacity={0.8}>
@@ -732,6 +738,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.2,
     borderColor: '#bfdbfe',
     boxShadow: '0 8px 24px -4px rgba(37, 99, 235, 0.08)',
+    overflow: 'hidden',
   },
   profileHeaderTopRow: {
     flexDirection: 'row',
@@ -861,8 +868,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+    maxWidth: '100%',
+    flexShrink: 1,
   },
-  planBadgeText: { fontWeight: '800', fontSize: 11, letterSpacing: 0.3 },
+  planBadgeText: {
+    fontWeight: '800',
+    fontSize: 11,
+    letterSpacing: 0.3,
+    flexShrink: 1,
+  },
   guestModeBadge: {
     backgroundColor: '#eff6ff',
     paddingHorizontal: 9,

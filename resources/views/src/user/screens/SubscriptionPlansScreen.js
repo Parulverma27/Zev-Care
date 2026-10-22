@@ -276,6 +276,26 @@ const getActiveCardPalette = (name) => {
   };
 };
 
+const getPlanCtaStyle = (theme) => {
+  if (theme?.isPlatinum) {
+    return {
+      background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
+      boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+    };
+  }
+  if (theme?.isGold) {
+    return {
+      background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+      boxShadow: '0 4px 14px rgba(217, 119, 6, 0.35)',
+    };
+  }
+  // Silver / default
+  return {
+    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+    boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
+  };
+};
+
 export default function SubscriptionPlansScreen({ onNavigate }) {
   const {
     subscriptionPlans = [],
@@ -1157,14 +1177,16 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                 <>
                   {/* Plan Name & Contract Number Row */}
                   <View style={styles.purchasedPlanRow}>
-                    <Text style={[styles.cardPlanName, { textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)' }]}>
-                      {contractDetails.planName}
-                    </Text>
-                    <View style={[styles.contractNumChip, { backgroundColor: activeCardPalette.chipBg, borderColor: activeCardPalette.chipBorder, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }]}>
+                    <View style={{ flex: 1, minWidth: 150, paddingRight: 6 }}>
+                      <Text style={[styles.cardPlanName, { textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)' }]}>
+                        {contractDetails.planName}
+                      </Text>
+                    </View>
+                    <View style={[styles.contractNumChip, { backgroundColor: activeCardPalette.chipBg, borderColor: activeCardPalette.chipBorder, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', flexShrink: 0 }]}>
                       <Text style={[styles.contractNumText, { color: activeCardPalette.chipText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
                         #{contractDetails.contractNo}
                       </Text>
-                      <TouchableOpacity onPress={handleCopyContractNo} style={{ padding: 2 }} activeOpacity={0.7}>
+                      <TouchableOpacity onPress={handleCopyContractNo} style={{ padding: 2 }} activeOpacity={0.7} title="Copy Contract No">
                         {copiedContract ? (
                           <IconCheck size={12} color="#4ade80" />
                         ) : (
@@ -1458,14 +1480,18 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                     gap: '6px',
                   }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                       {theme.icon}
-                      <Text style={[styles.planName, { color: '#ffffff', textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.7)' }]}>{plan.name}</Text>
+                      <Text style={[styles.planName, { color: '#ffffff', textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.7)' }]} numberOfLines={1}>
+                        {plan.name}
+                      </Text>
                     </View>
-                    <View style={[styles.tierTagBadge, { backgroundColor: 'rgba(0, 0, 0, 0.7)', borderColor: theme.badgeBorder || 'rgba(255, 255, 255, 0.6)', flexShrink: 0 }]}>
-                      <Text style={[styles.tierTagText, { color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }]}>{theme.tierBadge}</Text>
-                    </View>
+                    {!plan.is_recommended && (
+                      <View style={[styles.tierTagBadge, { backgroundColor: 'rgba(0, 0, 0, 0.7)', borderColor: theme.badgeBorder || 'rgba(255, 255, 255, 0.6)', flexShrink: 0 }]}>
+                        <Text style={[styles.tierTagText, { color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }]}>{theme.tierBadge}</Text>
+                      </View>
+                    )}
                   </View>
 
                   {/* Price and Duration wrapped cleanly */}
@@ -1615,18 +1641,14 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
               {/* Action / Purchase Button */}
               {isCurrent ? (
                 <View style={styles.currentActiveBtn}>
-                  <AppIcon name="check" size={16} color="#2563eb" strokeWidth={3} />
-                  <Text style={styles.currentActiveBtnText}>Active AMC Plan</Text>
+                  <AppIcon name="check" size={16} color="#047857" strokeWidth={3} />
+                  <Text style={styles.currentActiveBtnText}>Current Active AMC Plan</Text>
                 </View>
               ) : (
                 <TouchableOpacity
                   style={[
                     styles.purchaseBtn,
-                    {
-                      backgroundColor: theme.buttonBg || '#ffffff',
-                      borderColor: theme.borderGold || '#cbd5e1',
-                      borderWidth: 1.5,
-                    },
+                    getPlanCtaStyle(theme),
                   ]}
                   onPress={() => {
                     if (isGuest) {
@@ -1643,12 +1665,14 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                   }}
                   activeOpacity={0.88}
                 >
-                  <Text style={[styles.purchaseBtnText, { color: theme.buttonTextColor || '#0f172a' }]}>
+                  <Text style={styles.purchaseBtnText}>
                     {hasAddedAppliances
-                      ? `Review & Purchase (${selectedForThisPlan.length} added) →`
+                      ? `Review & Activate Plan (${selectedForThisPlan.length} added) →`
                       : hasActiveAmc
-                        ? `Add Appliances to Upgrade to ${plan.name}`
-                        : 'Add Appliances to Start →'}
+                        ? (Number(plan.price || 0) > Number(contractDetails?.price || 0)
+                            ? `Upgrade to ${plan.name} →`
+                            : `Switch to ${plan.name} →`)
+                        : `Choose ${plan.name} →`}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -2185,8 +2209,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 10,
+    gap: 8,
     marginTop: -4,
+    flexWrap: 'wrap',
   },
   cardTierBadge: {
     paddingHorizontal: 10,
@@ -2204,9 +2229,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingVertical: 3.5,
+    borderRadius: 8,
     borderWidth: 1,
+    flexShrink: 0,
   },
   contractNumText: {
     fontSize: 10.5,
@@ -2214,10 +2240,11 @@ const styles = StyleSheet.create({
   },
   cardPlanName: {
     color: '#ffffff',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     fontFamily: "'Outfit', 'Inter', sans-serif",
     letterSpacing: -0.3,
+    lineHeight: 25,
   },
   daysLeftBadge: {
     flexDirection: 'row',
@@ -2705,16 +2732,23 @@ const styles = StyleSheet.create({
   },
 
   purchaseBtn: {
-    paddingVertical: 13,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: 6,
+    borderWidth: 0,
+    cursor: 'pointer',
   },
   purchaseBtnText: {
     fontWeight: '800',
     fontSize: 13.5,
     fontFamily: 'Inter, sans-serif',
+    color: '#ffffff',
+    letterSpacing: 0.2,
+    textAlign: 'center',
   },
   purchaseBtnPrompt: {
     backgroundColor: '#ffffff',
@@ -2732,14 +2766,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#eff6ff',
+    backgroundColor: '#ecfdf5',
     borderWidth: 1.5,
-    borderColor: '#2563eb',
-    paddingVertical: 12,
+    borderColor: '#10b981',
+    paddingVertical: 13,
+    paddingHorizontal: 16,
     borderRadius: 12,
   },
   currentActiveBtnText: {
-    color: '#2563eb',
+    color: '#047857',
     fontWeight: '800',
     fontSize: 13.5,
   },
