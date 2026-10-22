@@ -729,10 +729,6 @@ export default function HomeDesktopWebView({
                 key={`${slide.id}-${idx}`}
                 className="zc-promo-banner-card"
                 style={promoCardStyle}
-                onClick={() => onNavigate(slide.target || '/user/plans')}
-                role="button"
-                tabIndex={0}
-                title={slide.alt}
               >
                 <img
                   src={slide.image || `/assets/hero-banner-${((slide.id - 1) % 3) + 1}.png`}
@@ -1466,7 +1462,7 @@ const promoCardStyle = {
   height: '318px',
   borderRadius: '22px',
   overflow: 'hidden',
-  cursor: 'pointer',
+  cursor: 'default',
   position: 'relative',
   backgroundColor: '#03102e',
   boxShadow: '0 14px 34px -8px rgba(8, 120, 248, 0.16), 0 2px 8px rgba(15, 23, 42, 0.04)',

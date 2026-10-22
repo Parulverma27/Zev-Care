@@ -807,23 +807,7 @@ export default function HomeScreen({ onNavigate }) {
       </View>
 
       <View style={styles.heroCardContainer}>
-        <TouchableOpacity
-          style={styles.heroCard}
-          onPress={() => {
-            if (!isSwiping) {
-              if (isGuest) {
-                setGuestModalContext({
-                  title: 'Sign In / Register Required',
-                  message: 'Please register your account first to explore and book services.',
-                });
-                setShowGuestModal(true);
-                return;
-              }
-              handleNav(activeHeroBanner?.redirect_url || '/user/bookings/new', { state: {} });
-            }
-          }}
-          activeOpacity={0.95}
-        >
+        <View style={styles.heroCard}>
           {Platform.OS === 'web' ? (
             <div
               style={heroBannerWebCss.slidesWrapper}
@@ -887,7 +871,7 @@ export default function HomeScreen({ onNavigate }) {
               resizeMode="fill"
             />
           )}
-        </TouchableOpacity>
+        </View>
 
         {activeBannersList.length > 1 && (
           <View style={styles.heroDotsContainer}>
@@ -2390,7 +2374,7 @@ const heroBannerWebCss = {
     borderRadius: '14px',
     overflow: 'hidden',
     backgroundColor: '#ffffff',
-    cursor: 'grab',
+    cursor: 'default',
     userSelect: 'none',
     touchAction: 'pan-y',
   },

@@ -156,25 +156,29 @@ export default function SavedAddressesScreen({ onNavigate }) {
         {/* Top Header / Breadcrumb */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <TouchableOpacity
-              onPress={handleGoBack}
+            <button
+              type="button"
+              onClick={handleGoBack}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
-                padding: '8px 16px',
+                padding: '9px 18px',
                 borderRadius: 999,
                 backgroundColor: '#ffffff',
                 border: '1.5px solid #e2e8f0',
                 color: '#1e293b',
                 fontWeight: 600,
                 fontSize: 13.5,
+                fontFamily: 'Inter, sans-serif',
                 cursor: 'pointer',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                whiteSpace: 'nowrap',
+                lineHeight: 1,
               }}
             >
               <span>← Back to Profile</span>
-            </TouchableOpacity>
+            </button>
             <div>
               <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', margin: 0, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
                 Saved Addresses & Service Locations
@@ -186,11 +190,13 @@ export default function SavedAddressesScreen({ onNavigate }) {
           </div>
 
           {!showAddForm && !isGuest && (
-            <TouchableOpacity
-              onPress={() => { setShowAddForm(true); setEditingId(null); setNewTag('Home'); setNewAddress(''); }}
+            <button
+              type="button"
+              onClick={() => { setShowAddForm(true); setEditingId(null); setNewTag('Home'); setNewAddress(''); }}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: 8,
                 padding: '10px 20px',
                 borderRadius: 12,
@@ -198,13 +204,20 @@ export default function SavedAddressesScreen({ onNavigate }) {
                 color: '#ffffff',
                 fontWeight: 700,
                 fontSize: 14,
+                fontFamily: 'Inter, sans-serif',
+                border: 'none',
                 cursor: 'pointer',
                 boxShadow: '0 4px 14px rgba(0,82,204,0.25)',
+                whiteSpace: 'nowrap',
+                lineHeight: 1,
               }}
             >
-              <span style={{ fontSize: 18, lineHeight: 1 }}>＋</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
               <span>Register New Address</span>
-            </TouchableOpacity>
+            </button>
           )}
         </div>
 
@@ -247,9 +260,13 @@ export default function SavedAddressesScreen({ onNavigate }) {
                 </p>
                 <button
                   onClick={() => { setShowAddForm(true); setEditingId(null); setNewTag('Home'); setNewAddress(''); }}
-                  style={{ padding: '12px 24px', backgroundColor: '#0052cc', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 14, boxShadow: '0 4px 12px rgba(0,82,204,0.2)' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', backgroundColor: '#0052cc', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 14, boxShadow: '0 4px 12px rgba(0,82,204,0.2)' }}
                 >
-                  ＋ Add Your First Address
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  <span>Add Your First Address</span>
                 </button>
               </div>
             ) : (
@@ -320,12 +337,20 @@ export default function SavedAddressesScreen({ onNavigate }) {
                         {/* Coverage pill */}
                         <div style={{ marginBottom: 10 }}>
                           {cov.isSupported ? (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700, color: '#16a34a' }}>
-                              ✅ Coverage Verified
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 6, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700, color: '#16a34a' }}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                              Coverage Verified
                             </span>
                           ) : (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, backgroundColor: '#fef2f2', border: '1px solid #fecaca', fontSize: 11, fontWeight: 700, color: '#dc2626' }}>
-                              ⚠️ Out of Standard Zone
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 6, backgroundColor: '#fef2f2', border: '1px solid #fecaca', fontSize: 11, fontWeight: 700, color: '#dc2626' }}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                              </svg>
+                              Out of Standard Zone
                             </span>
                           )}
                         </div>
@@ -521,14 +546,19 @@ export default function SavedAddressesScreen({ onNavigate }) {
               </div>
             ) : (
               <div style={{ backgroundColor: '#ffffff', borderRadius: 20, padding: 24, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
-                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: '0 0 16px', fontFamily: 'Inter, sans-serif' }}>
-                  📍 Fast Technician Dispatch
-                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <AppIcon name="map-pin" size={18} color="#2563eb" />
+                  <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0, fontFamily: 'Inter, sans-serif' }}>
+                    Fast Technician Dispatch
+                  </h3>
+                </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div style={{ display: 'flex', gap: 12 }}>
                     <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: 14 }}>⚡</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                      </svg>
                     </div>
                     <div>
                       <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Automated Primary Routing</h4>
@@ -540,7 +570,10 @@ export default function SavedAddressesScreen({ onNavigate }) {
 
                   <div style={{ display: 'flex', gap: 12 }}>
                     <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: 14 }}>🛡️</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <polyline points="9 12 11 14 15 10" />
+                      </svg>
                     </div>
                     <div>
                       <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>AMC Plan Protection</h4>
@@ -552,7 +585,13 @@ export default function SavedAddressesScreen({ onNavigate }) {
 
                   <div style={{ display: 'flex', gap: 12 }}>
                     <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: 14 }}>📌</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="22" y1="12" x2="18" y2="12" />
+                        <line x1="6" y1="12" x2="2" y2="12" />
+                        <line x1="12" y1="6" x2="12" y2="2" />
+                        <line x1="12" y1="22" x2="12" y2="18" />
+                      </svg>
                     </div>
                     <div>
                       <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Pinpoint GPS Coordinates</h4>
@@ -583,7 +622,10 @@ export default function SavedAddressesScreen({ onNavigate }) {
                       gap: 8,
                     }}
                   >
-                    <span>＋</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
                     <span>Add Another Location</span>
                   </button>
                 )}
@@ -606,7 +648,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
                 onPress={() => setShowGuestModal(false)}
                 accessibilityLabel="Close modal"
               >
-                <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
+                <AppIcon name="x" size={16} color="#64748B" strokeWidth={2.2} />
               </TouchableOpacity>
 
               <View style={styles.guestIconCircle}>
@@ -712,12 +754,20 @@ export default function SavedAddressesScreen({ onNavigate }) {
                     {(() => {
                       const cov = validateServiceLocation ? validateServiceLocation(item.address) : { isSupported: true };
                       return cov.isSupported ? (
-                        <View style={{ backgroundColor: '#f0fdf4', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#bbf7d0' }}>
-                          <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#16a34a' }}>Coverage Verified ✅</Text>
+                        <View style={{ backgroundColor: '#f0fdf4', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#bbf7d0', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#16a34a' }}>Coverage Verified</Text>
                         </View>
                       ) : (
-                        <View style={{ backgroundColor: '#fef2f2', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#fecaca' }}>
-                          <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#dc2626' }}>Out of Coverage ⚠️</Text>
+                        <View style={{ backgroundColor: '#fef2f2', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#fecaca', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                          </svg>
+                          <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#dc2626' }}>Out of Coverage</Text>
                         </View>
                       );
                     })()}
@@ -831,14 +881,24 @@ export default function SavedAddressesScreen({ onNavigate }) {
         </View>
       ) : (
         <TouchableOpacity style={styles.addNewBtn} onPress={() => { setShowAddForm(true); setEditingId(null); setNewTag('Home'); setNewAddress(''); }} activeOpacity={0.85}>
-          <Text style={{ fontSize: 18, color: '#2563eb', fontWeight: '800' }}>＋</Text>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
           <Text style={styles.addNewBtnText}>Create New Verified Location</Text>
         </TouchableOpacity>
       )}
 
       {/* Info Banner */}
       <View style={styles.infoBanner}>
-        <Text style={styles.infoBannerText}>✨ Locations saved here are shared securely with verified technician dispatchers for prompt servicing.</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          <Text style={styles.infoBannerText}>Locations saved here are shared securely with verified technician dispatchers for prompt servicing.</Text>
+        </View>
       </View>
 
       {/* Registration Required Modal */}
@@ -855,7 +915,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
               onPress={() => setShowGuestModal(false)}
               accessibilityLabel="Close modal"
             >
-              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
+              <AppIcon name="x" size={16} color="#64748B" strokeWidth={2.2} />
             </TouchableOpacity>
 
             <View style={styles.guestIconCircle}>

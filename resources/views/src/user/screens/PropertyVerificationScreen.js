@@ -782,7 +782,10 @@ export default function PropertyVerificationScreen({ onNavigate }) {
               boxShadow: '0 4px 14px rgba(0,82,204,0.25)',
             }}
           >
-            <span style={{ fontSize: 18, lineHeight: 1 }}>＋</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
             <span>Register New Appliance</span>
           </TouchableOpacity>
         </div>
@@ -805,9 +808,13 @@ export default function PropertyVerificationScreen({ onNavigate }) {
                 </p>
                 <button
                   onClick={openAddAppliance}
-                  style={{ padding: '12px 24px', backgroundColor: '#0052cc', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 14, boxShadow: '0 4px 12px rgba(0,82,204,0.2)' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', backgroundColor: '#0052cc', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 14, boxShadow: '0 4px 12px rgba(0,82,204,0.2)' }}
                 >
-                  ＋ Add Your First Appliance
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  <span>Add Your First Appliance</span>
                 </button>
               </div>
             ) : (
@@ -852,11 +859,19 @@ export default function PropertyVerificationScreen({ onNavigate }) {
 
                         {/* Location pill */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                          <span style={{ padding: '2px 8px', borderRadius: 6, backgroundColor: '#f1f5f9', color: '#334155', fontSize: 11, fontWeight: 600 }}>
-                            📍 {appliance.location || 'Home'}
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, backgroundColor: '#f1f5f9', color: '#334155', fontSize: 11, fontWeight: 600 }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                              <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            {appliance.location || 'Home'}
                           </span>
-                          <span style={{ padding: '2px 8px', borderRadius: 6, backgroundColor: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700 }}>
-                            🛡️ AMC Protected
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, backgroundColor: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700 }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                              <polyline points="9 12 11 14 15 10" />
+                            </svg>
+                            AMC Protected
                           </span>
                         </div>
                       </div>
@@ -919,13 +934,23 @@ export default function PropertyVerificationScreen({ onNavigate }) {
 
             {/* Guarantees */}
             <div style={{ backgroundColor: '#ffffff', borderRadius: 20, padding: 22, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
-              <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: '0 0 14px', fontFamily: 'Inter, sans-serif' }}>
-                🛡️ AMC Protection Coverage
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <polyline points="9 12 11 14 15 10" />
+                </svg>
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: 0, fontFamily: 'Inter, sans-serif' }}>
+                  AMC Protection Coverage
+                </h3>
+              </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <span style={{ fontSize: 14 }}>⚡</span>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    </svg>
+                  </div>
                   <div>
                     <h4 style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>₹0 Breakdown Labor</h4>
                     <p style={{ fontSize: 11.5, color: '#64748b', margin: 0, lineHeight: 1.4 }}>
@@ -935,7 +960,11 @@ export default function PropertyVerificationScreen({ onNavigate }) {
                 </div>
 
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <span style={{ fontSize: 14 }}>🛠️</span>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                    </svg>
+                  </div>
                   <div>
                     <h4 style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Annual Preventative Service</h4>
                     <p style={{ fontSize: 11.5, color: '#64748b', margin: 0, lineHeight: 1.4 }}>
@@ -945,7 +974,13 @@ export default function PropertyVerificationScreen({ onNavigate }) {
                 </div>
 
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <span style={{ fontSize: 14 }}>🎯</span>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <circle cx="12" cy="12" r="6" />
+                      <circle cx="12" cy="12" r="2" />
+                    </svg>
+                  </div>
                   <div>
                     <h4 style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Original Spare Parts</h4>
                     <p style={{ fontSize: 11.5, color: '#64748b', margin: 0, lineHeight: 1.4 }}>
@@ -974,7 +1009,10 @@ export default function PropertyVerificationScreen({ onNavigate }) {
                   gap: 6,
                 }}
               >
-                <span>＋</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
                 <span>Register Another Appliance</span>
               </button>
             </div>

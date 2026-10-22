@@ -541,22 +541,14 @@
   box-shadow: 0 12px 32px -4px rgba(8, 120, 248, 0.22), 0 0 0 3px rgba(8, 120, 248, 0.12) !important;
 }
 
-/* Promotional Banner Carousel Card */
+/* Promotional Banner Carousel Card (Non-Clickable Ambient Showcase) */
 .zc-promo-banner-card {
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.28s ease,
-              border-color 0.22s ease !important;
-  will-change: transform, box-shadow;
+  cursor: default !important;
+  user-select: none !important;
 }
 
 .zc-promo-banner-card:hover {
-  transform: translateY(-5px) !important;
-  border-color: #0878f8 !important;
-  box-shadow: 0 20px 44px -10px rgba(8, 120, 248, 0.28), 0 4px 14px rgba(15, 23, 42, 0.08) !important;
-}
-
-.zc-promo-banner-card:hover img {
-  transform: scale(1.03) !important;
+  cursor: default !important;
 }
 
 .zc-promo-banner-card img {
