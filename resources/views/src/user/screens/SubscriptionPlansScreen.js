@@ -137,46 +137,46 @@ const getActiveCardPalette = (name) => {
       cardBg: "linear-gradient(135deg, rgba(255, 255, 255, 0.38) 0%, rgba(254, 240, 138, 0.22) 42%, rgba(180, 83, 9, 0.12) 100%), url('/gold_silk_bg.jpg') center / cover no-repeat",
       cardBgSolid: '#d97706',
       borderColor: '#eab308',
-      glow: '0 14px 42px rgba(217, 119, 6, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.85)',
-      badgeBg: 'rgba(14, 9, 3, 0.82)',
-      badgeBorder: 'rgba(250, 204, 21, 0.65)',
+      glow: '0 16px 48px rgba(217, 119, 6, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.85)',
+      badgeBg: 'rgba(20, 14, 8, 0.72)',
+      badgeBorder: 'rgba(250, 204, 21, 0.55)',
       badgeText: '#fde047',
       daysPillBg: '#ffffff',
       daysPillText: '#78350f',
-      chipBg: 'rgba(14, 9, 3, 0.78)',
-      chipBorder: 'rgba(250, 204, 21, 0.45)',
+      chipBg: 'rgba(20, 14, 8, 0.62)',
+      chipBorder: 'rgba(250, 204, 21, 0.4)',
       chipText: '#ffffff',
-      balanceBoxBg: 'rgba(14, 9, 3, 0.82)',
-      balanceBoxBorder: 'rgba(250, 204, 21, 0.38)',
+      balanceBoxBg: 'rgba(20, 14, 8, 0.62)',
+      balanceBoxBorder: 'rgba(250, 204, 21, 0.35)',
       balanceLabel: '#fde047',
       balanceAmount: '#ffffff',
       meterFill: '#facc15',
-      meterTrack: 'rgba(0, 0, 0, 0.55)',
+      meterTrack: 'rgba(0, 0, 0, 0.45)',
       meterLegendText: '#fef08a',
-      actionBtnBg: 'rgba(14, 9, 3, 0.82)',
-      actionBtnBorder: 'rgba(250, 204, 21, 0.45)',
+      actionBtnBg: 'rgba(20, 14, 8, 0.62)',
+      actionBtnBorder: 'rgba(250, 204, 21, 0.35)',
       actionIconBg: '#facc15',
       actionIconColor: '#451a03',
       actionBtnTitle: '#ffffff',
       actionBtnSub: '#fde047',
-      outlineBtnBg: 'rgba(14, 9, 3, 0.82)',
-      outlineBtnBorder: 'rgba(250, 204, 21, 0.38)',
+      outlineBtnBg: 'rgba(20, 14, 8, 0.62)',
+      outlineBtnBorder: 'rgba(250, 204, 21, 0.32)',
       outlineIconBg: 'rgba(250, 204, 21, 0.22)',
       outlineIconColor: '#fde047',
       outlineBtnTitle: '#ffffff',
       outlineBtnSub: '#fde047',
       copyIconColor: '#fde047',
-      timelineBg: 'rgba(14, 9, 3, 0.85)',
-      timelineBorder: 'rgba(250, 204, 21, 0.35)',
+      timelineBg: 'rgba(20, 14, 8, 0.65)',
+      timelineBorder: 'rgba(250, 204, 21, 0.3)',
       timelineTrack: 'rgba(255, 255, 255, 0.18)',
       timelineFill: '#facc15',
       timelineHighlight: '#fde047',
       timelineLabel: '#fde047',
       timelineVal: '#ffffff',
-      exploreBtnBg: 'rgba(14, 9, 3, 0.88)',
-      exploreBtnBorder: 'rgba(250, 204, 21, 0.55)',
+      exploreBtnBg: 'rgba(20, 14, 8, 0.72)',
+      exploreBtnBorder: 'rgba(250, 204, 21, 0.42)',
       exploreBtnText: '#fde047',
-      vignetteBg: 'linear-gradient(180deg, rgba(120, 53, 15, 0.08) 0%, rgba(69, 26, 3, 0.28) 55%, rgba(20, 8, 2, 0.48) 100%)',
+      vignetteBg: 'linear-gradient(180deg, rgba(120, 53, 15, 0.04) 0%, rgba(69, 26, 3, 0.18) 55%, rgba(20, 8, 2, 0.32) 100%)',
     };
   }
   if (n.includes('platinum')) {
@@ -185,46 +185,46 @@ const getActiveCardPalette = (name) => {
       cardBg: "linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(224, 242, 254, 0.16) 45%, rgba(15, 23, 42, 0.28) 100%), url('/platinum_silk_bg.jpg') center / cover no-repeat",
       cardBgSolid: '#334155',
       borderColor: '#94a3b8',
-      glow: '0 14px 42px rgba(51, 65, 85, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.85)',
-      badgeBg: 'rgba(10, 15, 26, 0.82)',
-      badgeBorder: 'rgba(147, 197, 253, 0.65)',
+      glow: '0 16px 48px rgba(51, 65, 85, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.85)',
+      badgeBg: 'rgba(12, 16, 26, 0.72)',
+      badgeBorder: 'rgba(147, 197, 253, 0.55)',
       badgeText: '#93c5fd',
       daysPillBg: '#ffffff',
       daysPillText: '#0f172a',
-      chipBg: 'rgba(10, 15, 26, 0.78)',
-      chipBorder: 'rgba(147, 197, 253, 0.45)',
+      chipBg: 'rgba(12, 16, 26, 0.62)',
+      chipBorder: 'rgba(147, 197, 253, 0.4)',
       chipText: '#ffffff',
-      balanceBoxBg: 'rgba(10, 15, 26, 0.82)',
-      balanceBoxBorder: 'rgba(147, 197, 253, 0.38)',
+      balanceBoxBg: 'rgba(12, 16, 26, 0.62)',
+      balanceBoxBorder: 'rgba(147, 197, 253, 0.35)',
       balanceLabel: '#93c5fd',
       balanceAmount: '#ffffff',
       meterFill: '#60a5fa',
-      meterTrack: 'rgba(0, 0, 0, 0.55)',
+      meterTrack: 'rgba(0, 0, 0, 0.45)',
       meterLegendText: '#e0f2fe',
-      actionBtnBg: 'rgba(10, 15, 26, 0.82)',
-      actionBtnBorder: 'rgba(147, 197, 253, 0.45)',
+      actionBtnBg: 'rgba(12, 16, 26, 0.62)',
+      actionBtnBorder: 'rgba(147, 197, 253, 0.35)',
       actionIconBg: '#93c5fd',
       actionIconColor: '#0f172a',
       actionBtnTitle: '#ffffff',
       actionBtnSub: '#bfdbfe',
-      outlineBtnBg: 'rgba(10, 15, 26, 0.82)',
-      outlineBtnBorder: 'rgba(147, 197, 253, 0.38)',
+      outlineBtnBg: 'rgba(12, 16, 26, 0.62)',
+      outlineBtnBorder: 'rgba(147, 197, 253, 0.32)',
       outlineIconBg: 'rgba(147, 197, 253, 0.22)',
       outlineIconColor: '#bfdbfe',
       outlineBtnTitle: '#ffffff',
       outlineBtnSub: '#bfdbfe',
       copyIconColor: '#bfdbfe',
-      timelineBg: 'rgba(10, 15, 26, 0.85)',
-      timelineBorder: 'rgba(147, 197, 253, 0.35)',
+      timelineBg: 'rgba(12, 16, 26, 0.65)',
+      timelineBorder: 'rgba(147, 197, 253, 0.3)',
       timelineTrack: 'rgba(255, 255, 255, 0.18)',
       timelineFill: '#60a5fa',
       timelineHighlight: '#93c5fd',
       timelineLabel: '#93c5fd',
       timelineVal: '#ffffff',
-      exploreBtnBg: 'rgba(10, 15, 26, 0.88)',
-      exploreBtnBorder: 'rgba(147, 197, 253, 0.55)',
+      exploreBtnBg: 'rgba(12, 16, 26, 0.72)',
+      exploreBtnBorder: 'rgba(147, 197, 253, 0.42)',
       exploreBtnText: '#93c5fd',
-      vignetteBg: 'linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.3) 55%, rgba(10, 15, 30, 0.5) 100%)',
+      vignetteBg: 'linear-gradient(180deg, rgba(15, 23, 42, 0.05) 0%, rgba(15, 23, 42, 0.2) 55%, rgba(10, 15, 30, 0.35) 100%)',
     };
   }
   // Silver
@@ -233,46 +233,46 @@ const getActiveCardPalette = (name) => {
     cardBg: "linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(220, 230, 242, 0.08) 45%, rgba(15, 23, 42, 0.25) 100%), url('/silver_silk_bg.jpg') center / cover no-repeat",
     cardBgSolid: '#64748b',
     borderColor: '#94a3b8',
-    glow: '0 14px 42px rgba(71, 85, 105, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.85)',
-    badgeBg: 'rgba(12, 18, 28, 0.82)',
-    badgeBorder: 'rgba(203, 213, 225, 0.65)',
+    glow: '0 16px 48px rgba(71, 85, 105, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.85)',
+    badgeBg: 'rgba(16, 22, 34, 0.72)',
+    badgeBorder: 'rgba(203, 213, 225, 0.55)',
     badgeText: '#e2e8f0',
     daysPillBg: '#ffffff',
     daysPillText: '#0f172a',
-    chipBg: 'rgba(12, 18, 28, 0.78)',
-    chipBorder: 'rgba(203, 213, 225, 0.45)',
+    chipBg: 'rgba(16, 22, 34, 0.62)',
+    chipBorder: 'rgba(203, 213, 225, 0.4)',
     chipText: '#ffffff',
-    balanceBoxBg: 'rgba(12, 18, 28, 0.82)',
-    balanceBoxBorder: 'rgba(203, 213, 225, 0.38)',
+    balanceBoxBg: 'rgba(16, 22, 34, 0.62)',
+    balanceBoxBorder: 'rgba(203, 213, 225, 0.35)',
     balanceLabel: '#cbd5e1',
     balanceAmount: '#ffffff',
     meterFill: '#cbd5e1',
-    meterTrack: 'rgba(0, 0, 0, 0.55)',
+    meterTrack: 'rgba(0, 0, 0, 0.45)',
     meterLegendText: '#e2e8f0',
-    actionBtnBg: 'rgba(12, 18, 28, 0.82)',
-    actionBtnBorder: 'rgba(203, 213, 225, 0.45)',
+    actionBtnBg: 'rgba(16, 22, 34, 0.62)',
+    actionBtnBorder: 'rgba(203, 213, 225, 0.35)',
     actionIconBg: '#e2e8f0',
     actionIconColor: '#0f172a',
     actionBtnTitle: '#ffffff',
     actionBtnSub: '#e2e8f0',
-    outlineBtnBg: 'rgba(12, 18, 28, 0.82)',
-    outlineBtnBorder: 'rgba(203, 213, 225, 0.38)',
+    outlineBtnBg: 'rgba(16, 22, 34, 0.62)',
+    outlineBtnBorder: 'rgba(203, 213, 225, 0.32)',
     outlineIconBg: 'rgba(203, 213, 225, 0.22)',
     outlineIconColor: '#e2e8f0',
     outlineBtnTitle: '#ffffff',
     outlineBtnSub: '#e2e8f0',
     copyIconColor: '#e2e8f0',
-    timelineBg: 'rgba(12, 18, 28, 0.85)',
-    timelineBorder: 'rgba(203, 213, 225, 0.35)',
+    timelineBg: 'rgba(16, 22, 34, 0.65)',
+    timelineBorder: 'rgba(203, 213, 225, 0.3)',
     timelineTrack: 'rgba(255, 255, 255, 0.18)',
     timelineFill: '#cbd5e1',
     timelineHighlight: '#f1f5f9',
     timelineLabel: '#cbd5e1',
     timelineVal: '#ffffff',
-    exploreBtnBg: 'rgba(12, 18, 28, 0.88)',
-    exploreBtnBorder: 'rgba(203, 213, 225, 0.55)',
+    exploreBtnBg: 'rgba(16, 22, 34, 0.72)',
+    exploreBtnBorder: 'rgba(203, 213, 225, 0.42)',
     exploreBtnText: '#e2e8f0',
-    vignetteBg: 'linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.3) 55%, rgba(10, 15, 30, 0.5) 100%)',
+    vignetteBg: 'linear-gradient(180deg, rgba(15, 23, 42, 0.05) 0%, rgba(15, 23, 42, 0.2) 55%, rgba(10, 15, 30, 0.35) 100%)',
   };
 };
 
@@ -897,15 +897,15 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
           <div
             style={{
               backgroundColor: activeCardPalette.cardBgSolid,
-              borderRadius: '22px',
-              padding: '20px 18px',
+              borderRadius: isDesktopWeb ? '28px' : '22px',
+              padding: isDesktopWeb ? '28px 32px' : '20px 18px',
               border: `2px solid ${activeCardPalette.borderColor}`,
               boxShadow: activeCardPalette.glow,
               position: 'relative',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px',
+              gap: isDesktopWeb ? '22px' : '16px',
             }}
           >
             {/* Silky Metallic Base Texture Layer (Crisp defined metallic silk texture with minimal 0.8px blur) */}
@@ -976,7 +976,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
             />
 
             {/* Content Layer (Pin-Sharp & High Contrast, zIndex: 2) */}
-            <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: isDesktopWeb ? '20px' : '16px' }}>
               {/* Top Row: VIP Status Badge on Left, Days Left on Right */}
               <View style={styles.purchasedTopRow}>
                 <View style={[styles.cardTierBadge, { backgroundColor: activeCardPalette.badgeBg, borderColor: activeCardPalette.badgeBorder }]}>
@@ -993,143 +993,307 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                 </View>
               </View>
 
-              {/* Plan Name & Contract Number Row (Spacious & Clean, Zero Overlap) */}
-              <View style={styles.purchasedPlanRow}>
-                <Text style={[styles.cardPlanName, { textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)' }]}>
-                  {contractDetails.planName}
-                </Text>
-                <View style={[styles.contractNumChip, { backgroundColor: activeCardPalette.chipBg, borderColor: activeCardPalette.chipBorder, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }]}>
-                  <Text style={[styles.contractNumText, { color: activeCardPalette.chipText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
-                    #{contractDetails.contractNo}
-                  </Text>
-                  <TouchableOpacity onPress={handleCopyContractNo} style={{ padding: 2 }} activeOpacity={0.7}>
-                    {copiedContract ? (
-                      <IconCheck size={12} color="#4ade80" />
-                    ) : (
-                      <IconCopy size={12} color={activeCardPalette.copyIconColor} />
-                    )}
+              {isDesktopWeb ? (
+                /* DESKTOP 2-COLUMN LUXURY SUITE */
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', alignItems: 'stretch' }}>
+                  {/* Left Column: Plan Identity & Available Balance Vault */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'space-between' }}>
+                    <View style={styles.purchasedPlanRow}>
+                      <Text style={[styles.cardPlanName, styles.cardPlanNameDesktop, { textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)' }]}>
+                        {contractDetails.planName}
+                      </Text>
+                      <View style={[styles.contractNumChip, { backgroundColor: activeCardPalette.chipBg, borderColor: activeCardPalette.chipBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}>
+                        <Text style={[styles.contractNumText, { color: activeCardPalette.chipText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                          #{contractDetails.contractNo}
+                        </Text>
+                        <TouchableOpacity onPress={handleCopyContractNo} style={{ padding: 2 }} activeOpacity={0.7} title="Copy Contract No">
+                          {copiedContract ? (
+                            <IconCheck size={13} color="#4ade80" />
+                          ) : (
+                            <IconCopy size={13} color={activeCardPalette.copyIconColor} />
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {/* Available Balance Card */}
+                    <View style={[styles.balanceBox, styles.balanceBoxDesktop, { backgroundColor: activeCardPalette.balanceBoxBg, borderColor: activeCardPalette.balanceBoxBorder, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }]}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={[styles.balanceLabel, styles.balanceLabelDesktop, { color: activeCardPalette.balanceLabel, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                          AVAILABLE AMC BALANCE
+                        </Text>
+                        <View style={styles.activeProtectionBadge}>
+                          <View style={styles.activeProtectionPulse} />
+                          <Text style={styles.activeProtectionText}>100% Protected</Text>
+                        </View>
+                      </View>
+
+                      <Text style={[styles.balanceAmount, styles.balanceAmountDesktop, { textShadow: '0 2px 8px rgba(0,0,0,0.7)' }]}>
+                        {formatMoney(usage.balance.remaining)}
+                      </Text>
+
+                      <View style={[styles.meterTrack, styles.meterTrackDesktop, { backgroundColor: activeCardPalette.meterTrack }]}>
+                        <View style={[styles.meterFill, { width: `${usage.balance.pctLeft}%`, backgroundColor: activeCardPalette.meterFill, boxShadow: '0 0 12px rgba(250, 204, 21, 0.65)' }]} />
+                      </View>
+
+                      <View style={styles.meterLegendRow}>
+                        <Text style={[styles.meterLegend, styles.meterLegendDesktop, { color: activeCardPalette.meterLegendText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                          {usage.balance.pctLeft}% left • Used {formatMoney(usage.balance.used)}
+                        </Text>
+                        <Text style={[styles.meterLegend, styles.meterLegendDesktop, { color: activeCardPalette.meterLegendText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                          of {formatLakh(usage.balance.total)} Limit
+                        </Text>
+                      </View>
+                    </View>
+                  </div>
+
+                  {/* Right Column: Actions, Timeline Milestones & Quick Upgrade */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', justifyContent: 'space-between' }}>
+                    {/* Action Buttons Row */}
+                    <View style={styles.cardActionsRow}>
+                      <TouchableOpacity
+                        className="zc-amc-action-card"
+                        style={[styles.cardActionBtn, styles.cardActionBtnDesktop, { background: activeCardPalette.actionBtnBg, borderColor: activeCardPalette.actionBtnBorder, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }]}
+                        onPress={() => {
+                          if (isGuest) {
+                            setShowGuestModal(true);
+                            return;
+                          }
+                          setWizardTargetPlan(null);
+                          setViewMode('WIZARD');
+                        }}
+                        activeOpacity={0.85}
+                      >
+                        <View style={[styles.cardActionIconCircle, styles.cardActionIconCircleDesktop, { backgroundColor: activeCardPalette.actionIconBg }]}>
+                          <IconPlus size={16} color={activeCardPalette.actionIconColor} />
+                        </View>
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text style={[styles.cardActionBtnTitle, styles.cardActionBtnTitleDesktop, { color: activeCardPalette.actionBtnTitle, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                            Add Appliance
+                          </Text>
+                          <Text style={[styles.cardActionBtnSub, styles.cardActionBtnSubDesktop, { color: activeCardPalette.actionBtnSub, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                            Unlimited Coverage
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        className="zc-amc-action-card"
+                        style={[styles.cardActionBtn, styles.cardActionBtnDesktop, { background: activeCardPalette.outlineBtnBg, borderColor: activeCardPalette.outlineBtnBorder, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }]}
+                        onPress={() => setShowHistoryModal(true)}
+                        activeOpacity={0.85}
+                      >
+                        <View style={[styles.cardActionIconCircle, styles.cardActionIconCircleDesktop, { backgroundColor: activeCardPalette.outlineIconBg }]}>
+                          <IconScroll size={16} color={activeCardPalette.outlineIconColor} />
+                        </View>
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text style={[styles.cardActionBtnTitle, styles.cardActionBtnTitleDesktop, { color: activeCardPalette.outlineBtnTitle, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                            AMC History
+                          </Text>
+                          <Text style={[styles.cardActionBtnSub, styles.cardActionBtnSubDesktop, { color: activeCardPalette.outlineBtnSub, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                            Claims & Ledger →
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Validity Timeline Strip */}
+                    <View style={[styles.timelineCardStrip, styles.timelineCardStripDesktop, { backgroundColor: activeCardPalette.timelineBg, borderColor: activeCardPalette.timelineBorder, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }]}>
+                      <View style={[styles.timelineMeterTrack, { backgroundColor: activeCardPalette.timelineTrack }]}>
+                        <View style={[styles.timelineMeterFill, { width: `${100 - usage.days.pctLeft}%`, backgroundColor: activeCardPalette.timelineFill }]} />
+                      </View>
+                      <View style={styles.timelineStatsRow}>
+                        <View style={styles.timelineStatCol}>
+                          <Text style={[styles.timelineStatLabel, styles.timelineStatLabelDesktop, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                            STARTED
+                          </Text>
+                          <Text style={[styles.timelineStatVal, styles.timelineStatValDesktop, { color: activeCardPalette.timelineVal, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                            {contractDetails.startDate}
+                          </Text>
+                        </View>
+                        <View style={[styles.timelineStatCol, { alignItems: 'center', flex: 1.25 }]}>
+                          <Text style={[styles.timelineStatLabel, styles.timelineStatLabelDesktop, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                            DAYS REMAINING
+                          </Text>
+                          <Text style={[styles.timelineStatVal, styles.timelineStatValDesktop, { color: activeCardPalette.timelineHighlight, fontWeight: '800', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }]}>
+                            {usage.days.left} Days
+                          </Text>
+                        </View>
+                        <View style={[styles.timelineStatCol, { alignItems: 'flex-end' }]}>
+                          <Text style={[styles.timelineStatLabel, styles.timelineStatLabelDesktop, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                            VALID TILL
+                          </Text>
+                          <Text style={[styles.timelineStatVal, styles.timelineStatValDesktop, { color: activeCardPalette.timelineVal, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                            {contractDetails.expiryDate}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Explore All Plans Button */}
+                    <TouchableOpacity
+                      className="zc-amc-explore-btn"
+                      style={[
+                        styles.cardExploreLinkBtn,
+                        styles.cardExploreLinkBtnDesktop,
+                        {
+                          backgroundColor: activeCardPalette.exploreBtnBg,
+                          borderColor: activeCardPalette.exploreBtnBorder,
+                          backdropFilter: 'blur(12px)',
+                          WebkitBackdropFilter: 'blur(12px)',
+                        },
+                      ]}
+                      onPress={scrollToExplorePlans}
+                      activeOpacity={0.82}
+                    >
+                      <Text style={[styles.cardExploreLinkText, styles.cardExploreLinkTextDesktop, { color: activeCardPalette.exploreBtnText, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                        Explore All Plans & Upgrades ↓
+                      </Text>
+                    </TouchableOpacity>
+                  </div>
+                </div>
+              ) : (
+                /* MOBILE VIEW */
+                <>
+                  {/* Plan Name & Contract Number Row */}
+                  <View style={styles.purchasedPlanRow}>
+                    <Text style={[styles.cardPlanName, { textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)' }]}>
+                      {contractDetails.planName}
+                    </Text>
+                    <View style={[styles.contractNumChip, { backgroundColor: activeCardPalette.chipBg, borderColor: activeCardPalette.chipBorder, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }]}>
+                      <Text style={[styles.contractNumText, { color: activeCardPalette.chipText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                        #{contractDetails.contractNo}
+                      </Text>
+                      <TouchableOpacity onPress={handleCopyContractNo} style={{ padding: 2 }} activeOpacity={0.7}>
+                        {copiedContract ? (
+                          <IconCheck size={12} color="#4ade80" />
+                        ) : (
+                          <IconCopy size={12} color={activeCardPalette.copyIconColor} />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {/* Available Balance Section */}
+                  <View style={[styles.balanceBox, { backgroundColor: activeCardPalette.balanceBoxBg, borderColor: activeCardPalette.balanceBoxBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}>
+                    <Text style={[styles.balanceLabel, { color: activeCardPalette.balanceLabel, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                      AVAILABLE AMC BALANCE
+                    </Text>
+                    <Text style={[styles.balanceAmount, { textShadow: '0 2px 6px rgba(0,0,0,0.7)' }]}>
+                      {formatMoney(usage.balance.remaining)}
+                    </Text>
+                    <View style={[styles.meterTrack, { backgroundColor: activeCardPalette.meterTrack }]}>
+                      <View style={[styles.meterFill, { width: `${usage.balance.pctLeft}%`, backgroundColor: activeCardPalette.meterFill }]} />
+                    </View>
+                    <View style={styles.meterLegendRow}>
+                      <Text style={[styles.meterLegend, { color: activeCardPalette.meterLegendText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                        {usage.balance.pctLeft}% left • Used {formatMoney(usage.balance.used)}
+                      </Text>
+                      <Text style={[styles.meterLegend, { color: activeCardPalette.meterLegendText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                        of {formatLakh(usage.balance.total)}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Card Action Buttons: Add Appliance & My AMC History */}
+                  <View style={styles.cardActionsRow}>
+                    <TouchableOpacity
+                      style={[styles.cardActionBtn, { background: activeCardPalette.actionBtnBg, borderColor: activeCardPalette.actionBtnBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}
+                      onPress={() => {
+                        if (isGuest) {
+                          setShowGuestModal(true);
+                          return;
+                        }
+                        setWizardTargetPlan(null);
+                        setViewMode('WIZARD');
+                      }}
+                      activeOpacity={0.85}
+                    >
+                      <View style={[styles.cardActionIconCircle, { backgroundColor: activeCardPalette.actionIconBg }]}>
+                        <IconPlus size={14} color={activeCardPalette.actionIconColor} />
+                      </View>
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <Text style={[styles.cardActionBtnTitle, { color: activeCardPalette.actionBtnTitle, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                          Add Appliance
+                        </Text>
+                        <Text style={[styles.cardActionBtnSub, { color: activeCardPalette.actionBtnSub, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                          Unlimited Appliances
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.cardActionBtn, { background: activeCardPalette.outlineBtnBg, borderColor: activeCardPalette.outlineBtnBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}
+                      onPress={() => setShowHistoryModal(true)}
+                      activeOpacity={0.85}
+                    >
+                      <View style={[styles.cardActionIconCircle, { backgroundColor: activeCardPalette.outlineIconBg }]}>
+                        <IconScroll size={14} color={activeCardPalette.outlineIconColor} />
+                      </View>
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <Text style={[styles.cardActionBtnTitle, { color: activeCardPalette.outlineBtnTitle, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                          AMC History
+                        </Text>
+                        <Text style={[styles.cardActionBtnSub, { color: activeCardPalette.outlineBtnSub, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                          Claims & Ledger →
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Validity Timeline */}
+                  <View style={[styles.timelineCardStrip, { backgroundColor: activeCardPalette.timelineBg, borderColor: activeCardPalette.timelineBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}>
+                    <View style={[styles.timelineMeterTrack, { backgroundColor: activeCardPalette.timelineTrack }]}>
+                      <View style={[styles.timelineMeterFill, { width: `${100 - usage.days.pctLeft}%`, backgroundColor: activeCardPalette.timelineFill }]} />
+                    </View>
+                    <View style={styles.timelineStatsRow}>
+                      <View style={styles.timelineStatCol}>
+                        <Text style={[styles.timelineStatLabel, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                          STARTED
+                        </Text>
+                        <Text style={[styles.timelineStatVal, { color: activeCardPalette.timelineVal, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                          {contractDetails.startDate}
+                        </Text>
+                      </View>
+                      <View style={[styles.timelineStatCol, { alignItems: 'center', flex: 1.25 }]}>
+                        <Text style={[styles.timelineStatLabel, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                          DAYS REMAINING
+                        </Text>
+                        <Text style={[styles.timelineStatVal, { color: activeCardPalette.timelineHighlight, fontWeight: '800', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }]}>
+                          {usage.days.left} Days
+                        </Text>
+                      </View>
+                      <View style={[styles.timelineStatCol, { alignItems: 'flex-end' }]}>
+                        <Text style={[styles.timelineStatLabel, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
+                          VALID TILL
+                        </Text>
+                        <Text style={[styles.timelineStatVal, { color: activeCardPalette.timelineVal, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                          {contractDetails.expiryDate}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Interactive Jump Link to Explore All Plans */}
+                  <TouchableOpacity
+                    style={[
+                      styles.cardExploreLinkBtn,
+                      {
+                        backgroundColor: activeCardPalette.exploreBtnBg,
+                        borderColor: activeCardPalette.exploreBtnBorder,
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                      },
+                    ]}
+                    onPress={scrollToExplorePlans}
+                    activeOpacity={0.82}
+                  >
+                    <Text style={[styles.cardExploreLinkText, { color: activeCardPalette.exploreBtnText, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
+                      Explore All Plans & Upgrades ↓
+                    </Text>
                   </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Available Balance Section */}
-              <View style={[styles.balanceBox, { backgroundColor: activeCardPalette.balanceBoxBg, borderColor: activeCardPalette.balanceBoxBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}>
-                <Text style={[styles.balanceLabel, { color: activeCardPalette.balanceLabel, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
-                  AVAILABLE AMC BALANCE
-                </Text>
-                <Text style={[styles.balanceAmount, { textShadow: '0 2px 6px rgba(0,0,0,0.7)' }]}>
-                  {formatMoney(usage.balance.remaining)}
-                </Text>
-                <View style={[styles.meterTrack, { backgroundColor: activeCardPalette.meterTrack }]}>
-                  <View style={[styles.meterFill, { width: `${usage.balance.pctLeft}%`, backgroundColor: activeCardPalette.meterFill }]} />
-                </View>
-                <View style={styles.meterLegendRow}>
-                  <Text style={[styles.meterLegend, { color: activeCardPalette.meterLegendText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
-                    {usage.balance.pctLeft}% left • Used {formatMoney(usage.balance.used)}
-                  </Text>
-                  <Text style={[styles.meterLegend, { color: activeCardPalette.meterLegendText, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
-                    of {formatLakh(usage.balance.total)}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Card Action Buttons: Add Appliance & My AMC History */}
-              <View style={styles.cardActionsRow}>
-                <TouchableOpacity
-                  style={[styles.cardActionBtn, { background: activeCardPalette.actionBtnBg, borderColor: activeCardPalette.actionBtnBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}
-                  onPress={() => {
-                    if (isGuest) {
-                      setShowGuestModal(true);
-                      return;
-                    }
-                    setWizardTargetPlan(null);
-                    setViewMode('WIZARD');
-                  }}
-                  activeOpacity={0.85}
-                >
-                  <View style={[styles.cardActionIconCircle, { backgroundColor: activeCardPalette.actionIconBg }]}>
-                    <IconPlus size={14} color={activeCardPalette.actionIconColor} />
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={[styles.cardActionBtnTitle, { color: activeCardPalette.actionBtnTitle, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
-                      Add Appliance
-                    </Text>
-                    <Text style={[styles.cardActionBtnSub, { color: activeCardPalette.actionBtnSub, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
-                      Unlimited Appliances
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.cardActionBtn, { background: activeCardPalette.outlineBtnBg, borderColor: activeCardPalette.outlineBtnBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}
-                  onPress={() => setShowHistoryModal(true)}
-                  activeOpacity={0.85}
-                >
-                  <View style={[styles.cardActionIconCircle, { backgroundColor: activeCardPalette.outlineIconBg }]}>
-                    <IconScroll size={14} color={activeCardPalette.outlineIconColor} />
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={[styles.cardActionBtnTitle, { color: activeCardPalette.outlineBtnTitle, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
-                      AMC History
-                    </Text>
-                    <Text style={[styles.cardActionBtnSub, { color: activeCardPalette.outlineBtnSub, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
-                      Claims & Ledger →
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              {/* Validity Timeline */}
-              <View style={[styles.timelineCardStrip, { backgroundColor: activeCardPalette.timelineBg, borderColor: activeCardPalette.timelineBorder, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }]}>
-                <View style={[styles.timelineMeterTrack, { backgroundColor: activeCardPalette.timelineTrack }]}>
-                  <View style={[styles.timelineMeterFill, { width: `${100 - usage.days.pctLeft}%`, backgroundColor: activeCardPalette.timelineFill }]} />
-                </View>
-                <View style={styles.timelineStatsRow}>
-                  <View style={styles.timelineStatCol}>
-                    <Text style={[styles.timelineStatLabel, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
-                      STARTED
-                    </Text>
-                    <Text style={[styles.timelineStatVal, { color: activeCardPalette.timelineVal, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
-                      {contractDetails.startDate}
-                    </Text>
-                  </View>
-                  <View style={[styles.timelineStatCol, { alignItems: 'center', flex: 1.25 }]}>
-                    <Text style={[styles.timelineStatLabel, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
-                      DAYS REMAINING
-                    </Text>
-                    <Text style={[styles.timelineStatVal, { color: activeCardPalette.timelineHighlight, fontWeight: '800', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }]}>
-                      {usage.days.left} Days
-                    </Text>
-                  </View>
-                  <View style={[styles.timelineStatCol, { alignItems: 'flex-end' }]}>
-                    <Text style={[styles.timelineStatLabel, { color: activeCardPalette.timelineLabel, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
-                      VALID TILL
-                    </Text>
-                    <Text style={[styles.timelineStatVal, { color: activeCardPalette.timelineVal, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
-                      {contractDetails.expiryDate}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Interactive Jump Link to Explore All Plans */}
-              <TouchableOpacity
-                style={[
-                  styles.cardExploreLinkBtn,
-                  {
-                    backgroundColor: activeCardPalette.exploreBtnBg,
-                    borderColor: activeCardPalette.exploreBtnBorder,
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                  },
-                ]}
-                onPress={scrollToExplorePlans}
-                activeOpacity={0.82}
-              >
-                <Text style={[styles.cardExploreLinkText, { color: activeCardPalette.exploreBtnText, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
-                  Explore All Plans & Upgrades ↓
-                </Text>
-              </TouchableOpacity>
+                </>
+              )}
             </div>
           </div>
         </View>
@@ -2199,6 +2363,90 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: '700',
     letterSpacing: 0.2,
+  },
+  cardPlanNameDesktop: {
+    fontSize: 26,
+    letterSpacing: -0.4,
+  },
+  balanceBoxDesktop: {
+    padding: 20,
+    borderRadius: 18,
+    gap: 8,
+  },
+  balanceLabelDesktop: {
+    fontSize: 11,
+    letterSpacing: 0.8,
+  },
+  balanceAmountDesktop: {
+    fontSize: 36,
+    fontWeight: '900',
+    marginVertical: 6,
+  },
+  meterTrackDesktop: {
+    height: 8,
+    marginVertical: 8,
+  },
+  meterLegendDesktop: {
+    fontSize: 11.5,
+  },
+  cardActionBtnDesktop: {
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+  },
+  cardActionIconCircleDesktop: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  cardActionBtnTitleDesktop: {
+    fontSize: 13.5,
+  },
+  cardActionBtnSubDesktop: {
+    fontSize: 10.5,
+  },
+  timelineCardStripDesktop: {
+    padding: 14,
+    borderRadius: 14,
+    gap: 8,
+  },
+  timelineStatLabelDesktop: {
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  timelineStatValDesktop: {
+    fontSize: 13,
+  },
+  cardExploreLinkBtnDesktop: {
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  cardExploreLinkTextDesktop: {
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+  activeProtectionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(34, 197, 94, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.38)',
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 99,
+  },
+  activeProtectionPulse: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#4ade80',
+    boxShadow: '0 0 6px #4ade80',
+  },
+  activeProtectionText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#86efac',
   },
 
   /* Explore Section Header */

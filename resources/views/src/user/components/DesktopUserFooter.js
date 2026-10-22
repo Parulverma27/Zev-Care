@@ -20,57 +20,6 @@ const IconMail = ({ size = 15, color = '#2563eb' }) => (
   </svg>
 );
 
-const IconApple = ({ size = 20, color = '#0f172a' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.35-.58.67-1.09 1.74-.96 2.77 1.01.08 2.07-.52 2.69-1.27z" />
-  </svg>
-);
-
-const IconGooglePlay = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path d="M3.609 1.814L13.792 12 3.61 22.186A2.22 2.22 0 0 1 3 20.61V3.39c0-.6.22-1.16.609-1.576z" fill="#00C1A6" />
-    <path d="M17.38 8.414l-3.588 3.586 3.588 3.586 4.04-2.32c1.16-.66 1.16-1.75 0-2.41l-4.04-2.442z" fill="#FFBA00" />
-    <path d="M3.609 1.814l10.183 10.186 3.588-3.586L6.22 1.41C5.23.85 4.17 1.01 3.61 1.814z" fill="#0086F0" />
-    <path d="M3.609 22.186c.56.8 1.62.96 2.61.4l11.16-6.406-3.588-3.586L3.61 22.186z" fill="#FF3A44" />
-  </svg>
-);
-
-const IconInstagram = ({ size = 17, color = 'currentColor' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" strokeWidth="2.5" />
-  </svg>
-);
-
-const IconXTwitter = ({ size = 16, color = 'currentColor' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
-
-const IconLinkedIn = ({ size = 16, color = 'currentColor' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-    <rect x="2" y="9" width="4" height="12" />
-    <circle cx="4" cy="4" r="2" fill={color} />
-  </svg>
-);
-
-const IconYouTube = ({ size = 18, color = 'currentColor' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.43z" />
-    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill={color} stroke="none" />
-  </svg>
-);
-
-const IconLock = ({ size = 13, color = '#64748b' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-  </svg>
-);
-
 /* ========================================================================= */
 /* COMPONENT                                                                 */
 /* ========================================================================= */
@@ -94,14 +43,14 @@ export default function DesktopUserFooter() {
           position: relative;
         }
 
-        /* Main Footer Grid */
+        /* Main Footer Grid - 4 Balanced Columns */
         .zc-footer-main {
           max-width: 1420px;
           margin: 0 auto;
-          padding: 48px 32px 38px 32px;
+          padding: 52px 32px 44px 32px;
           display: grid;
-          grid-template-columns: 1.35fr 1fr 1fr 1fr 1.25fr;
-          gap: 32px;
+          grid-template-columns: 1.6fr 1fr 1fr 1fr;
+          gap: 48px;
           box-sizing: border-box;
         }
 
@@ -199,76 +148,6 @@ export default function DesktopUserFooter() {
           color: #1d4ed8;
         }
 
-        /* App Download Buttons */
-        .zc-app-btn {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          background: #ffffff;
-          border: 1px solid #cbd5e1;
-          border-radius: 12px;
-          padding: 9px 14px;
-          text-decoration: none;
-          color: #0f172a;
-          box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
-          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-          cursor: pointer;
-        }
-        .zc-app-btn:hover {
-          border-color: #2563eb;
-          background: #ffffff;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px -3px rgba(37, 99, 235, 0.15), 0 2px 4px rgba(15, 23, 42, 0.04);
-        }
-        .zc-app-btn-sub {
-          font-size: 9.5px;
-          font-weight: 600;
-          color: #64748b;
-          text-transform: uppercase;
-          letter-spacing: 0.4px;
-          line-height: 1;
-        }
-        .zc-app-btn-title {
-          font-size: 13.5px;
-          font-weight: 800;
-          color: #0f172a;
-          line-height: 1.2;
-          font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
-        }
-
-        /* Social Media Icons */
-        .zc-social-row {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-top: 14px;
-        }
-        .zc-social-btn {
-          width: 36px;
-          height: 36px;
-          border-radius: 18px;
-          background: #ffffff;
-          border: 1px solid #cbd5e1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #475569;
-          text-decoration: none;
-          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 2px 5px rgba(15, 23, 42, 0.03);
-          cursor: pointer;
-        }
-        .zc-social-btn:hover {
-          color: #ffffff;
-          background: #0f172a;
-          border-color: #0f172a;
-          transform: translateY(-3px) scale(1.08);
-          box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
-        }
-        .zc-social-btn:active {
-          transform: translateY(-1px) scale(1.02);
-        }
-
         /* Bottom Copyright Strip */
         .zc-bottom-bar {
           border-top: 1px solid #e2e8f0;
@@ -312,7 +191,14 @@ export default function DesktopUserFooter() {
             grid-template-columns: repeat(2, 1fr);
           }
           .zc-footer-main {
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1.2fr 1fr 1fr;
+            gap: 32px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .zc-footer-main {
+            grid-template-columns: 1fr;
             gap: 28px;
           }
         }
@@ -493,58 +379,6 @@ export default function DesktopUserFooter() {
               </button>
             </li>
           </ul>
-        </div>
-
-        {/* Col 5: App Download & Socials */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div>
-            <h4 className="zc-col-heading" style={{ marginBottom: '8px' }}>
-              <span className="zc-col-heading-dot" />
-              Get The App
-            </h4>
-            <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0', lineHeight: '18px' }}>
-              Book services in seconds & track technician arrival in real-time.
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div className="zc-app-btn" title="Download on App Store">
-              <IconApple size={22} color="#0f172a" />
-              <div>
-                <div className="zc-app-btn-sub">Download on the</div>
-                <div className="zc-app-btn-title">App Store</div>
-              </div>
-            </div>
-
-            <div className="zc-app-btn" title="Get it on Google Play">
-              <IconGooglePlay size={20} />
-              <div>
-                <div className="zc-app-btn-sub">GET IT ON</div>
-                <div className="zc-app-btn-title">Google Play</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Social Icons */}
-          <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.6px', marginTop: '6px' }}>
-              Connect With Us
-            </div>
-            <div className="zc-social-row">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="zc-social-btn" title="Instagram">
-                <IconInstagram size={17} />
-              </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="zc-social-btn" title="X (Twitter)">
-                <IconXTwitter size={15} />
-              </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="zc-social-btn" title="LinkedIn">
-                <IconLinkedIn size={16} />
-              </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="zc-social-btn" title="YouTube">
-                <IconYouTube size={18} />
-              </a>
-            </div>
-          </div>
         </div>
       </div>
 

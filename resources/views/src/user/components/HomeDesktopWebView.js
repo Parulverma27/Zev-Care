@@ -321,9 +321,10 @@ const AMC_CARDS = [
     subtitle: 'Protect your home with premium annual coverage.',
     actionLabel: 'Explore Plans',
     route: '/user/plans',
-    cardBg: 'linear-gradient(135deg, #ffffff 0%, #f8faff 45%, #eff6ff 100%)',
-    borderColor: 'rgba(59, 130, 246, 0.28)',
-    boxShadow: '0 8px 25px -4px rgba(37, 99, 235, 0.10), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    cardBg: 'linear-gradient(155deg, #ffffff 0%, #f8faff 45%, #eff6ff 100%)',
+    borderColor: 'rgba(59, 130, 246, 0.32)',
+    boxShadow: '0 8px 24px -4px rgba(37, 99, 235, 0.10), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    accentGradient: 'linear-gradient(90deg, #2563eb, #38bdf8)',
     iconBg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
     iconBorder: '1.5px solid rgba(59, 130, 246, 0.35)',
     titleColor: '#0f172a',
@@ -332,10 +333,10 @@ const AMC_CARDS = [
     badgeBorder: '#bfdbfe',
     badgeColor: '#1d4ed8',
     pillBtnBg: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-    pillBtnBorder: 'none',
     pillBtnColor: '#ffffff',
     pillArrowBg: 'rgba(255, 255, 255, 0.22)',
     pillArrowColor: '#ffffff',
+    pillShadow: '0 4px 14px rgba(37, 99, 235, 0.24)',
     icon: <Luxury3DShieldIcon size={26} />,
   },
   {
@@ -345,22 +346,23 @@ const AMC_CARDS = [
     subtitle: 'Raise any appliance or home issue.',
     actionLabel: 'Raise Complaint',
     route: '/user/complains',
-    cardBg: 'linear-gradient(145deg, #ffffff 0%, #fffdf9 45%, #fff7ed 100%)',
-    borderColor: 'rgba(249, 115, 22, 0.24)',
+    cardBg: 'linear-gradient(155deg, #ffffff 0%, #fffbf5 45%, #fff7ed 100%)',
+    borderColor: 'rgba(249, 115, 22, 0.32)',
     boxShadow: '0 8px 24px -4px rgba(234, 88, 12, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    accentGradient: 'linear-gradient(90deg, #ea580c, #f59e0b)',
     iconBg: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
     iconBorder: '1.5px solid rgba(249, 115, 22, 0.35)',
     titleColor: '#0f172a',
-    subColor: '#64748b',
+    subColor: '#475569',
     badgeBg: '#fff7ed',
     badgeBorder: '#fed7aa',
     badgeColor: '#c2410c',
-    pillBtnBg: '#ffffff',
-    pillBtnBorder: '1.2px solid #fed7aa',
-    pillBtnColor: '#ea580c',
-    pillArrowBg: '#fff7ed',
-    pillArrowColor: '#ea580c',
-    icon: <Luxury3DWrenchIcon size={20} />,
+    pillBtnBg: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+    pillBtnColor: '#ffffff',
+    pillArrowBg: 'rgba(255, 255, 255, 0.22)',
+    pillArrowColor: '#ffffff',
+    pillShadow: '0 4px 14px rgba(234, 88, 12, 0.24)',
+    icon: <Luxury3DWrenchIcon size={22} />,
   },
   {
     key: 'mechanic',
@@ -369,22 +371,23 @@ const AMC_CARDS = [
     subtitle: 'Free on-site diagnosis & inspection.',
     actionLabel: 'Book Free',
     route: '/user/consultation',
-    cardBg: 'linear-gradient(145deg, #ffffff 0%, #f8faff 45%, #eff6ff 100%)',
-    borderColor: 'rgba(37, 99, 235, 0.24)',
-    boxShadow: '0 8px 24px -4px rgba(37, 99, 235, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)',
-    iconBg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-    iconBorder: '1.5px solid rgba(37, 99, 235, 0.35)',
+    cardBg: 'linear-gradient(155deg, #ffffff 0%, #f0fdf9 45%, #ecfdf5 100%)',
+    borderColor: 'rgba(16, 185, 129, 0.32)',
+    boxShadow: '0 8px 24px -4px rgba(16, 185, 129, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    accentGradient: 'linear-gradient(90deg, #10b981, #06b6d4)',
+    iconBg: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+    iconBorder: '1.5px solid rgba(16, 185, 129, 0.35)',
     titleColor: '#0f172a',
-    subColor: '#64748b',
-    badgeBg: '#eff6ff',
-    badgeBorder: '#bfdbfe',
-    badgeColor: '#1d4ed8',
-    pillBtnBg: '#ffffff',
-    pillBtnBorder: '1.2px solid #bfdbfe',
-    pillBtnColor: '#2563eb',
-    pillArrowBg: '#eff6ff',
-    pillArrowColor: '#2563eb',
-    icon: <Luxury3DMechanicIcon size={20} />,
+    subColor: '#475569',
+    badgeBg: '#ecfdf5',
+    badgeBorder: '#a7f3d0',
+    badgeColor: '#047857',
+    pillBtnBg: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    pillBtnColor: '#ffffff',
+    pillArrowBg: 'rgba(255, 255, 255, 0.22)',
+    pillArrowColor: '#ffffff',
+    pillShadow: '0 4px 14px rgba(5, 150, 105, 0.24)',
+    icon: <Luxury3DMechanicIcon size={22} />,
   },
 ];
 
@@ -480,16 +483,14 @@ export default function HomeDesktopWebView({
   onNavigate,
 }) {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
 
-  // Auto-play promo banners with pause on hover
+  // Auto-play promo banners continuously every 3.5s
   useEffect(() => {
-    if (isPaused) return;
     const timer = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % PROMO_SLIDES.length);
-    }, 4500);
+    }, 3500);
     return () => clearInterval(timer);
-  }, [isPaused]);
+  }, []);
 
   // Smooth scroll to Explore Services section if requested via hash or categories route
   useEffect(() => {
@@ -531,7 +532,35 @@ export default function HomeDesktopWebView({
             {/* Live Search Input with Animated Placeholder Ticker (Smooth like in the app) */}
             <div style={searchBoxWrapperStyle}>
               <div className="zc-hero-search-box" style={searchBoxInnerStyle}>
-                <AppIcon name="search" size={18} color="#0878f8" strokeWidth={2.4} />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (filteredSuggestions && filteredSuggestions.length > 0) {
+                      onSelectSuggestion(filteredSuggestions[0]);
+                    } else if (searchQuery.trim()) {
+                      onSelectSuggestion({
+                        name: searchQuery.trim(),
+                        category_name: 'Electrician',
+                        sub_category_name: searchQuery.trim(),
+                      });
+                    }
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    margin: 0,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    zIndex: 4,
+                  }}
+                  aria-label="Search services"
+                >
+                  <AppIcon name="search" size={18} color="#0878f8" strokeWidth={2.4} />
+                </button>
 
                 {!searchQuery && (
                   <div
@@ -571,6 +600,20 @@ export default function HomeDesktopWebView({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (filteredSuggestions && filteredSuggestions.length > 0) {
+                        onSelectSuggestion(filteredSuggestions[0]);
+                      } else if (searchQuery.trim()) {
+                        onSelectSuggestion({
+                          name: searchQuery.trim(),
+                          category_name: 'Electrician',
+                          sub_category_name: searchQuery.trim(),
+                        });
+                      }
+                    }
+                  }}
                   placeholder=""
                   style={searchInputStyle}
                 />
@@ -579,6 +622,7 @@ export default function HomeDesktopWebView({
                     type="button"
                     onClick={() => setSearchQuery('')}
                     style={clearBtnStyle}
+                    aria-label="Clear search"
                   >
                     <AppIcon name="x" size={14} color="#94a3b8" />
                   </button>
@@ -592,11 +636,18 @@ export default function HomeDesktopWebView({
                     <button
                       key={item.id}
                       type="button"
+                      className="zc-suggestion-row-item"
                       style={suggestionRowStyle}
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => onSelectSuggestion(item)}
                     >
-                      <AppIcon name="search" size={14} color="#64748b" />
-                      <span>{item.name}</span>
+                      <AppIcon name="search" size={14} color="#0878f8" />
+                      <span style={{ fontWeight: 600, color: '#0f172a' }}>{item.name}</span>
+                      {item.category_name && (
+                        <span style={{ marginLeft: 'auto', fontSize: '11.5px', color: '#64748b', fontWeight: 500 }}>
+                          {item.category_name}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -713,8 +764,6 @@ export default function HomeDesktopWebView({
       {/* 2. PROMOTIONAL BANNER SLIDER (Multi-Card 2-Banner Showcase Carousel) */}
       <section
         style={promoSectionStyle}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
         aria-label="Promotional Offers"
       >
         <div style={promoCarouselViewportStyle}>
@@ -914,6 +963,8 @@ export default function HomeDesktopWebView({
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
+                position: 'relative',
+                overflow: 'hidden',
                 minHeight: '235px',
                 cursor: 'pointer',
                 boxSizing: 'border-box',
@@ -922,20 +973,33 @@ export default function HomeDesktopWebView({
               role="button"
               tabIndex={0}
             >
-              {/* Top Row: Circular Icon + Symmetrical Badge */}
+              {/* Top Accent Gradient Line */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '3.5px',
+                  background: card.accentGradient,
+                }}
+              />
+
+              {/* Top Row: Squircle 3D Icon + Symmetrical Badge */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '12px' }}>
                 <div
+                  className="zc-amc-icon-art"
                   style={{
                     background: card.iconBg,
                     border: card.iconBorder,
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '21px',
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '16px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
-                    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+                    boxShadow: '0 3px 10px rgba(15, 23, 42, 0.05)',
                   }}
                 >
                   {card.icon}
@@ -945,11 +1009,12 @@ export default function HomeDesktopWebView({
                     backgroundColor: card.badgeBg,
                     border: `1px solid ${card.badgeBorder}`,
                     borderRadius: '999px',
-                    padding: '3px 10px',
+                    padding: '4px 11px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
+                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
                   }}
                 >
                   <span
@@ -970,7 +1035,7 @@ export default function HomeDesktopWebView({
               <div style={{ margin: '14px 0 18px 0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <h3
                   style={{
-                    fontSize: '18px',
+                    fontSize: '19px',
                     fontWeight: 800,
                     color: card.titleColor,
                     margin: 0,
@@ -994,30 +1059,31 @@ export default function HomeDesktopWebView({
                 </p>
               </div>
 
-              {/* Bottom: Unified Pill Action Button (Matches App Exactly) */}
+              {/* Bottom: Solid Gradient Action Button */}
               <div
                 style={{
                   background: card.pillBtnBg,
-                  border: card.pillBtnBorder,
                   borderRadius: '999px',
-                  height: '38px',
-                  paddingLeft: '14px',
+                  height: '40px',
+                  paddingLeft: '16px',
                   paddingRight: '6px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   width: '100%',
                   boxSizing: 'border-box',
-                  boxShadow: card.key === 'plans' ? '0 4px 12px rgba(37, 99, 235, 0.22)' : '0 2px 6px rgba(15, 23, 42, 0.04)',
+                  boxShadow: card.pillShadow,
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                 }}
               >
                 <span
                   style={{
                     color: card.pillBtnColor,
-                    fontSize: '12px',
+                    fontSize: '12.5px',
                     fontWeight: 700,
                     fontFamily: "'Outfit', sans-serif",
                     whiteSpace: 'nowrap',
+                    letterSpacing: '-0.1px',
                   }}
                 >
                   {card.actionLabel}
@@ -1025,9 +1091,9 @@ export default function HomeDesktopWebView({
                 <div
                   style={{
                     backgroundColor: card.pillArrowBg,
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '12px',
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '13px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1035,7 +1101,7 @@ export default function HomeDesktopWebView({
                     marginLeft: '8px',
                   }}
                 >
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={card.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={card.pillArrowColor} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />
                   </svg>
@@ -1240,6 +1306,8 @@ const suggestionsDropdownStyle = {
   boxShadow: '0 14px 32px rgba(15, 23, 42, 0.12)',
   zIndex: 100,
   overflow: 'hidden',
+  maxHeight: '360px',
+  overflowY: 'auto',
 };
 
 const suggestionRowStyle = {

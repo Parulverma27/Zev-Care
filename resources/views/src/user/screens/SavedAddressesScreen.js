@@ -697,7 +697,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, isDesktopWeb && styles.contentDesktop]} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.topHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={handleGoBack} activeOpacity={0.7}>
@@ -713,7 +713,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
       </View>
 
       {/* Address Cards */}
-      <View style={styles.cardGroup}>
+      <div style={isDesktopWeb ? desktopAddressGridStyle : { display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {addresses.map((item) => {
           const iconName = TAG_ICONS[item.tag] || 'map-pin';
           const themeColor = TAG_COLORS[item.tag] || '#6366f1';
@@ -794,7 +794,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
             </View>
           );
         })}
-      </View>
+      </div>
 
       {/* If guest or no addresses, show message */}
       {isGuest ? (
@@ -963,9 +963,26 @@ export default function SavedAddressesScreen({ onNavigate }) {
   );
 }
 
+const desktopAddressGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+  gap: '16px',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F7FF' },
   content: { padding: 18, gap: 16 },
+  contentDesktop: {
+    maxWidth: 1120,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 80,
+    boxSizing: 'border-box',
+  },
 
   topHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, marginBottom: 8 },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#ffffff', borderWidth: 1.2, borderColor: '#D7E3F5', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(15,31,61,0.04)' },

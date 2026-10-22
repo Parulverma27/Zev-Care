@@ -592,45 +592,145 @@ export default function HomeScreen({ onNavigate }) {
   // Desktop Web View (Urban Company style) - strictly active on desktop viewports
   if (isDesktop) {
     return (
-      <HomeDesktopWebView
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        filteredSuggestions={filteredSuggestions}
-        placeholderIdx={placeholderIdx}
-        placeholders={SEARCH_PLACEHOLDERS}
-        onSelectSuggestion={(item) => {
-          setSearchQuery('');
-          if (isGuest) {
-            setGuestModalContext({
-              title: 'Sign In / Register Required',
-              message: 'Please register your account first to explore and book services.',
+      <View style={{ flex: 1, width: '100%', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <HomeDesktopWebView
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          filteredSuggestions={filteredSuggestions}
+          placeholderIdx={placeholderIdx}
+          placeholders={SEARCH_PLACEHOLDERS}
+          onSelectSuggestion={(item) => {
+            setSearchQuery('');
+            const navPayload = {
+              state: {
+                preSelectedCategory: item.category_name || item.name,
+                preSelectedSubCategory: item.sub_category_name || item.name,
+                preSelectedService: item.name,
+                bookingMode: 'service',
+              },
+            };
+            handleNav('/user/bookings/new', navPayload);
+          }}
+          onSelectCategory={(category) => {
+            handleNav('/user/bookings/new', {
+              state: {
+                preSelectedCategory: category,
+                bookingMode: 'service',
+              },
             });
-            setShowGuestModal(true);
-            return;
-          }
-          const navPayload = {
-            state: {
-              preSelectedCategory: item.category_name,
-              preSelectedSubCategory: item.sub_category_name || item.name,
-              preSelectedService: item.name,
-              bookingMode: 'complaint',
-            },
-          };
-          handleNav('/user/bookings/new', navPayload);
-        }}
-        onSelectCategory={(category) => {
-          if (isGuest) {
-            setGuestModalContext({
-              title: 'Sign In / Register Required',
-              message: 'Please register your account first to explore and book services.',
-            });
-            setShowGuestModal(true);
-            return;
-          }
-          handleNav('/user/bookings/new', { state: { preSelectedCategory: category } });
-        }}
-        onNavigate={handleNav}
-      />
+          }}
+          onNavigate={handleNav}
+        />
+
+        {/* Registration Required Modal for Guests on Desktop */}
+        <Modal
+          visible={showGuestModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowGuestModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.guestModalCard}>
+              <TouchableOpacity
+                style={styles.guestCloseBtn}
+                onPress={() => setShowGuestModal(false)}
+                accessibilityLabel="Close modal"
+              >
+                <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
+              </TouchableOpacity>
+
+              <View style={styles.guestIconCircle}>
+                <AppIcon name="lock" size={26} color="#B45309" strokeWidth={2.2} />
+              </View>
+
+              <Text style={styles.guestModalTitle}>
+                {guestModalContext.title || (isAnonymous ? 'Register First' : 'Complete Your Profile First')}
+              </Text>
+              <Text style={styles.guestModalSub}>
+                {guestModalContext.message ||
+                  (isAnonymous
+                    ? 'Please register your account first to set your delivery address and book services.'
+                    : 'Please complete your profile to set and save your delivery address and book services.')}
+              </Text>
+
+              <TouchableOpacity
+                style={styles.guestPrimaryBtn}
+                onPress={() => {
+                  setShowGuestModal(false);
+                  handleNav('/user/register');
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.guestPrimaryBtnText}>
+                  {isAnonymous ? 'Register First →' : 'Complete Your Profile →'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.guestOutlineBtn}
+                onPress={() => {
+                  setShowGuestModal(false);
+                  handleNav('/user/login');
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.guestOutlineBtnText}>Already have an account? Log In</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* AMC Plan Required Modal on Desktop */}
+        <Modal
+          visible={showPlanRequiredModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowPlanRequiredModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.guestModalCard}>
+              <TouchableOpacity
+                style={styles.guestCloseBtn}
+                onPress={() => setShowPlanRequiredModal(false)}
+                accessibilityLabel="Close modal"
+              >
+                <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '700' }}>✕</Text>
+              </TouchableOpacity>
+
+              <View style={[styles.guestIconCircle, { backgroundColor: '#EFF6FF' }]}>
+                <Luxury3DShieldIcon size={28} />
+              </View>
+
+              <Text style={styles.guestModalTitle}>AMC Plan Required</Text>
+              <Text style={styles.guestModalSub}>
+                AMC complaints with ₹0 breakdown labor, free repairs, and priority technician visits are exclusive to active AMC plan members. Protect your home appliances today!
+              </Text>
+
+              <TouchableOpacity
+                style={styles.guestPrimaryBtn}
+                onPress={() => {
+                  setShowPlanRequiredModal(false);
+                  handleNav('/user/plans');
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.guestPrimaryBtnText}>Explore AMC Plans →</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.guestOutlineBtn}
+                onPress={() => {
+                  setShowPlanRequiredModal(false);
+                  handleNav('/user/consultation');
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.guestOutlineBtnText}>Book My Mechanic (₹0 Diagnosis)</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </View>
     );
   }
 
@@ -784,7 +884,7 @@ export default function HomeScreen({ onNavigate }) {
                         preSelectedCategory: item.category_name,
                         preSelectedSubCategory: item.sub_category_name || item.name,
                         preSelectedService: item.name,
-                        bookingMode: 'complaint',
+                        bookingMode: 'service',
                       },
                     };
                     if (navigate) navigate('/user/bookings/new', navPayload);

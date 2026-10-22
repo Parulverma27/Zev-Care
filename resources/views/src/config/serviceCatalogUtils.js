@@ -165,47 +165,158 @@ export function flattenToLegacyCatalog() {
   return { categories, subCategories, services };
 }
 
+const SEARCH_ALIASES = {
+  ac: ['air conditioner', 'air conditioning', 'cooling', 'hvac', 'split ac', 'window ac'],
+  'air conditioner': ['ac'],
+  'air condition': ['ac'],
+  tv: ['television', 'led', 'lcd'],
+  television: ['tv'],
+  fridge: ['refrigerator'],
+  refrigerator: ['fridge'],
+  wm: ['washing machine'],
+  washer: ['washing machine'],
+  ro: ['water purifiers', 'purifier'],
+  purifier: ['water purifiers', 'ro'],
+  cooler: ['air cooler'],
+  plumber: ['plumbing'],
+  plumbing: ['plumber'],
+  electrician: ['electrical'],
+  carpenter: ['carpentry'],
+};
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export function searchAllServices(query = '', liveServices = null) {
-  const q = query.trim().toLowerCase();
+  const q = String(query || '').trim().toLowerCase();
   if (!q) return [];
 
+  const rawList = [];
   if (Array.isArray(liveServices) && liveServices.length > 0) {
-    return liveServices.filter((s) => {
-      const haystack = `${s.name || ''} ${s.category_name || ''} ${s.sub_category_name || ''} ${s.description || ''}`.toLowerCase();
-      return haystack.includes(q);
+    liveServices.forEach((s) => {
+      rawList.push({
+        id: s.id || s.name,
+        name: s.name,
+        category_name: s.category_name,
+        sub_category_name: s.sub_category_name || s.name,
+        description: s.description || '',
+        image_url: s.image_url,
+      });
     });
-  }
-
-  const results = [];
-  SERVICE_CATALOG.forEach((cat) => {
-    const scan = (items, subGroupName = null) => {
-      (items || []).forEach((item) => {
-        if (item.isOther) return;
-        const haystack = [cat.name, subGroupName, item.name, item.description]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
-        if (haystack.includes(q)) {
-          results.push({
+  } else {
+    SERVICE_CATALOG.forEach((cat) => {
+      const scan = (items, subGroupName = null) => {
+        (items || []).forEach((item) => {
+          if (item.isOther) return;
+          rawList.push({
             id: `${cat.id}-${subGroupName || 'root'}-${item.name}`,
             name: item.name,
             category_name: cat.name,
             sub_category_name: subGroupName || item.name,
-            description: item.description,
+            description: item.description || '',
             image_url: item.image_url,
           });
-        }
-      });
-    };
+        });
+      };
+      if (cat.groups) {
+        cat.groups.forEach((g) => scan(g.items, g.name));
+      } else {
+        scan(cat.items);
+      }
+    });
+  }
 
-    if (cat.groups) {
-      cat.groups.forEach((g) => scan(g.items, g.name));
-    } else {
-      scan(cat.items);
+  const aliases = SEARCH_ALIASES[q] || [];
+  const isShortQuery = q.length <= 2;
+  const wordBoundaryRegex = new RegExp(`\\b${escapeRegex(q)}\\b`, 'i');
+  const wordStartRegex = new RegExp(`\\b${escapeRegex(q)}`, 'i');
+
+  const scoredResults = [];
+
+  rawList.forEach((item) => {
+    const nameLower = String(item.name || '').toLowerCase().trim();
+    const catLower = String(item.category_name || '').toLowerCase().trim();
+    const subLower = String(item.sub_category_name || '').toLowerCase().trim();
+    const descLower = String(item.description || '').toLowerCase().trim();
+
+    let score = 0;
+
+    // 1. Exact Name match
+    if (nameLower === q) {
+      score += 1000;
+    }
+    // 2. Name starts with query
+    else if (nameLower.startsWith(q)) {
+      score += 600;
+    }
+    // 3. Name contains query as a distinct word
+    else if (wordBoundaryRegex.test(nameLower)) {
+      score += 450;
+    }
+    // 4. Name starts a word with query (for queries >= 3 chars)
+    else if (!isShortQuery && wordStartRegex.test(nameLower)) {
+      score += 300;
+    }
+    // 5. Name contains substring (for queries >= 3 chars)
+    else if (!isShortQuery && nameLower.includes(q)) {
+      score += 150;
+    }
+
+    // 6. Common Alias match (e.g. ac -> air conditioner, fridge -> refrigerator)
+    if (aliases.length > 0) {
+      const matchedAlias = aliases.some((a) => {
+        const aLower = a.toLowerCase().trim();
+        if (nameLower === aLower) return true;
+        if (aLower.length <= 2) {
+          return new RegExp(`\\b${escapeRegex(aLower)}\\b`, 'i').test(nameLower);
+        }
+        return (
+          new RegExp(`\\b${escapeRegex(aLower)}`, 'i').test(nameLower) ||
+          nameLower.includes(aLower)
+        );
+      });
+      if (matchedAlias) score += 500;
+    }
+
+    // 7. Category / SubCategory match
+    if (catLower === q || subLower === q) {
+      score += 200;
+    } else if (catLower.startsWith(q) || subLower.startsWith(q)) {
+      score += 120;
+    } else if (wordBoundaryRegex.test(catLower) || wordBoundaryRegex.test(subLower)) {
+      score += 100;
+    } else if (!isShortQuery && (catLower.includes(q) || subLower.includes(q))) {
+      score += 50;
+    }
+
+    // 8. Description match - strictly whole word boundary match!
+    if (wordBoundaryRegex.test(descLower)) {
+      score += 60;
+    } else if (!isShortQuery && wordStartRegex.test(descLower)) {
+      score += 30;
+    }
+
+    if (score > 0) {
+      scoredResults.push({ item, score });
     }
   });
 
-  return results;
+  // Sort descending by relevance score
+  scoredResults.sort((a, b) => b.score - a.score);
+
+  // Return items, removing duplicates by name + category
+  const seen = new Set();
+  const finalResults = [];
+  for (const { item } of scoredResults) {
+    const key = `${item.name}-${item.category_name}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      finalResults.push(item);
+    }
+  }
+
+  return finalResults;
 }
 
 /**

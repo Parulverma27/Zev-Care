@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { isDesktopWeb } from '../utils/isDesktopWeb';
 
 const PUBLIC_USER_PATHS = [
   '/user/login',
@@ -14,6 +15,20 @@ function isValidUser(user) {
   return !!(user && (user.id != null || user.phone));
 }
 
+/** Desktop web only: start a guest session silently, then render the page. */
+function DesktopGuestBootstrap({ children }) {
+  const { activeUser, skipAuth } = useApp();
+  const hasUser = isValidUser(activeUser);
+
+  useEffect(() => {
+    if (!hasUser && typeof skipAuth === 'function') {
+      skipAuth();
+    }
+  }, [hasUser, skipAuth]);
+
+  return hasUser ? children : null;
+}
+
 export function UserProtectedRoute({ children }) {
   const { activeUser } = useApp();
   const location = useLocation();
@@ -21,6 +36,9 @@ export function UserProtectedRoute({ children }) {
   const isPublic = PUBLIC_USER_PATHS.some((path) => location.pathname.startsWith(path));
 
   if (!isValidUser(activeUser) && !isPublic) {
+    if (isDesktopWeb()) {
+      return <DesktopGuestBootstrap>{children}</DesktopGuestBootstrap>;
+    }
     return <Navigate to="/user/login" replace state={{ from: location.pathname }} />;
   }
 

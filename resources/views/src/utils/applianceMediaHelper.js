@@ -9,8 +9,20 @@ export function getApplianceVideoUri(appliance) {
 
   if (appliance.media?.type === 'video' || appliance.media_type === 'video') {
     const directVideo = appliance.media?.url || appliance.media?.uri || appliance.uploadedMediaUri || appliance.video;
-    if (typeof directVideo === 'string' && directVideo.trim() && !directVideo.startsWith('auto-verified://')) {
-      return directVideo.trim();
+    if (typeof directVideo === 'string' && directVideo.trim()) {
+      const clean = directVideo.trim();
+      if (!clean.toLowerCase().startsWith('auto-verified')) {
+        return clean;
+      }
+    }
+  }
+
+  const explicitVideo = appliance.video || appliance.videoUrl || appliance.video_uri || appliance.uploadedMediaUri;
+  if (typeof explicitVideo === 'string' && explicitVideo.trim()) {
+    const clean = explicitVideo.trim();
+    const lower = clean.toLowerCase();
+    if (!lower.startsWith('auto-verified') && !lower.startsWith('fake') && lower !== 'null' && lower !== 'undefined') {
+      return clean;
     }
   }
 
@@ -27,13 +39,14 @@ export function getApplianceVideoUri(appliance) {
   for (const uri of candidates) {
     if (typeof uri === 'string' && uri.trim()) {
       const clean = uri.trim();
-      if (clean.startsWith('auto-verified://')) continue;
+      const lower = clean.toLowerCase();
+      if (lower.startsWith('auto-verified') || lower === 'null' || lower === 'undefined') continue;
       if (
-        clean.startsWith('data:video/') ||
-        clean.startsWith('blob:') ||
-        clean.includes('.webm') ||
-        clean.includes('.mp4') ||
-        clean.includes('video')
+        lower.startsWith('data:video/') ||
+        lower.startsWith('blob:') ||
+        lower.includes('.webm') ||
+        lower.includes('.mp4') ||
+        lower.includes('video')
       ) {
         return clean;
       }

@@ -112,7 +112,8 @@ export default function DesktopUserHeader() {
     if (typeof logoutUser === 'function') {
       logoutUser();
     }
-    navigate('/user/login');
+    // Desktop web behaves like a normal website: back to Home as a guest.
+    navigate('/user/home', { replace: true });
   };
 
   const handleSelectSavedAddress = (addr) => {
@@ -310,14 +311,99 @@ export default function DesktopUserHeader() {
 
           {/* 4. Compact Profile / Account Control */}
           {isGuest ? (
-            <button
-              type="button"
-              className="zc-desktop-btn-primary"
-              style={loginBtnStyle}
-              onClick={() => navigate('/user/login')}
-            >
-              Sign In
-            </button>
+            <div ref={dropdownRef} style={{ position: 'relative' }}>
+              <button
+                type="button"
+                id="desktop-header-guest-profile"
+                className="zc-header-util-btn"
+                style={profileCompactChipStyle}
+                onClick={() => {
+                  setDropdownOpen((prev) => !prev);
+                  setLocationOpen(false);
+                }}
+                aria-expanded={dropdownOpen}
+                aria-haspopup="menu"
+                title="Login or create an account"
+              >
+                <div style={guestAvatarCircleStyle}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+                <span style={profileNameTextStyle}>Login</span>
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#64748b"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    transform: dropdownOpen ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 0.18s ease',
+                    flexShrink: 0,
+                  }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+
+              {dropdownOpen && (
+                <div style={{ ...dropdownCardStyle, width: '272px' }} role="menu">
+                  <div style={guestDropdownHeroStyle}>
+                    <span style={guestDropdownTitleStyle}>Welcome to Zevota Care</span>
+                    <span style={guestDropdownSubStyle}>
+                      Log in to book services, track visits and manage your AMC plan.
+                    </span>
+                    <button
+                      type="button"
+                      id="desktop-header-login-btn"
+                      className="zc-desktop-btn-primary"
+                      style={guestLoginBtnStyle}
+                      onClick={() => navigate('/user/login', { state: { from: path } })}
+                    >
+                      Login
+                    </button>
+                    <button
+                      type="button"
+                      id="desktop-header-register-btn"
+                      style={guestRegisterBtnStyle}
+                      onClick={() => navigate('/user/register', { state: { from: path } })}
+                    >
+                      Create Account
+                    </button>
+                  </div>
+
+                  <div style={dropdownDividerStyle} />
+
+                  <div style={dropdownMenuLinksStyle}>
+                    <button
+                      type="button"
+                      style={dropdownItemBtnStyle}
+                      onClick={() => navigate('/user/plans')}
+                    >
+                      <AppIcon name="check" size={14} color="#059669" strokeWidth={2.4} />
+                      <span>AMC Plans &amp; Coverage</span>
+                    </button>
+                    <button
+                      type="button"
+                      style={dropdownItemBtnStyle}
+                      onClick={() => navigate('/user/support')}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+                        <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z" />
+                        <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+                      </svg>
+                      <span>Help &amp; Live Support</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <div ref={dropdownRef} style={{ position: 'relative' }}>
               <button
@@ -850,20 +936,61 @@ const profileNameTextStyle = {
   fontFamily: "'Plus Jakarta Sans', sans-serif",
 };
 
-const loginBtnStyle = {
+const guestAvatarCircleStyle = {
+  ...avatarCircleStyle,
+  backgroundColor: '#f1f5f9',
+  color: '#475569',
+  border: '1px solid #e2e8f0',
+};
+
+const guestDropdownHeroStyle = {
+  padding: '16px 16px 14px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  background: 'linear-gradient(160deg, #eff6ff 0%, #ffffff 70%)',
+};
+
+const guestDropdownTitleStyle = {
+  fontSize: '14.5px',
+  fontWeight: 800,
+  color: '#0f172a',
+  letterSpacing: '-0.01em',
+  fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
+};
+
+const guestDropdownSubStyle = {
+  fontSize: '12px',
+  color: '#64748b',
+  lineHeight: 1.5,
+  marginBottom: '4px',
+};
+
+const guestLoginBtnStyle = {
+  width: '100%',
+  height: '38px',
   backgroundColor: '#0878f8',
   color: '#ffffff',
   border: 'none',
-  borderRadius: '9px',
-  height: '36px',
-  padding: '0 16px',
-  fontSize: '13px',
+  borderRadius: '10px',
+  fontSize: '13.5px',
   fontWeight: 700,
   cursor: 'pointer',
-  outline: 'none',
-  boxShadow: '0 2px 8px rgba(8, 120, 248, 0.25)',
+  boxShadow: '0 4px 12px rgba(8, 120, 248, 0.25)',
   fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
-  transition: 'background-color 0.16s ease',
+};
+
+const guestRegisterBtnStyle = {
+  width: '100%',
+  height: '38px',
+  backgroundColor: '#ffffff',
+  color: '#0878f8',
+  border: '1.5px solid #bfdbfe',
+  borderRadius: '10px',
+  fontSize: '13.5px',
+  fontWeight: 700,
+  cursor: 'pointer',
+  fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
 };
 
 /* Profile Dropdown Card */

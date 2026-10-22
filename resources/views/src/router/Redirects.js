@@ -1,20 +1,27 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { isDesktopWeb } from '../utils/isDesktopWeb';
 
 function isValidUser(user) {
   return !!(user && (user.id != null || user.phone));
 }
 
-/** `/` → home if logged in, else login */
+/** Desktop web: always Home (guest session is created by the route guard). Mobile: login if no user. */
+function userLandingPath(user) {
+  if (isValidUser(user) || isDesktopWeb()) return '/user/home';
+  return '/user/login';
+}
+
+/** `/` → home if logged in (or desktop web), else login */
 export function RootRedirect() {
   const { activeUser } = useApp();
-  return <Navigate to={isValidUser(activeUser) ? '/user/home' : '/user/login'} replace />;
+  return <Navigate to={userLandingPath(activeUser)} replace />;
 }
 
 export function UserIndexRedirect() {
   const { activeUser } = useApp();
-  return <Navigate to={isValidUser(activeUser) ? '/user/home' : '/user/login'} replace />;
+  return <Navigate to={userLandingPath(activeUser)} replace />;
 }
 
 export function ProviderIndexRedirect() {
@@ -39,5 +46,5 @@ export function CatchAllRedirect() {
   if (path.startsWith('/provider')) {
     return <Navigate to={activeProvider ? '/provider/dashboard' : '/provider/login'} replace />;
   }
-  return <Navigate to={isValidUser(activeUser) ? '/user/home' : '/user/login'} replace />;
+  return <Navigate to={userLandingPath(activeUser)} replace />;
 }

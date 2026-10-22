@@ -15,11 +15,11 @@ export default function HomeExploreServices({
 
   const gridStyle = {
     display: 'grid',
-    gridTemplateColumns: isDesktop ? 'repeat(auto-fill, minmax(210px, 1fr))' : '1fr 1fr',
-    gap: isDesktop ? '22px' : '16px 14px',
+    gridTemplateColumns: isDesktop ? 'repeat(auto-fill, minmax(280px, 1fr))' : '1fr 1fr',
+    gap: isDesktop ? '26px' : '16px 14px',
     width: '100%',
     boxSizing: 'border-box',
-    marginTop: 12,
+    marginTop: 14,
   };
 
   return (
@@ -37,9 +37,10 @@ export default function HomeExploreServices({
         {(categories || []).map((cat) => (
           <TouchableOpacity
             key={cat.id || cat.name}
-            style={styles.gridCardContainer}
+            style={[styles.gridCardContainer, isDesktop && styles.gridCardContainerDesktop]}
+            className="zc-category-browse-card"
             onPress={() => onSelectCategory?.(cat)}
-            activeOpacity={0.85}
+            activeOpacity={0.88}
           >
             <View style={[styles.gridImgWrap, isDesktop && styles.gridImgWrapDesktop]}>
               <Image
@@ -84,10 +85,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     cursor: 'pointer',
   },
+  gridCardContainerDesktop: {
+    alignItems: 'center',
+  },
   gridImgWrap: {
     width: '100%',
-    height: 110,
-    borderRadius: 10,
+    height: 125,
+    borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#f1f5f9',
     boxShadow: '0 4px 14px rgba(0, 0, 0, 0.07)',
@@ -103,7 +107,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter, sans-serif',
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   exploreTitleDesktop: {
     fontSize: 22,
@@ -112,13 +116,16 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
   gridImgWrapDesktop: {
-    height: 140,
-    borderRadius: 14,
-    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+    height: 260,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    boxShadow: '0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04)',
   },
   gridCardTitleDesktop: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '700',
-    marginTop: 10,
+    marginTop: 12,
+    letterSpacing: -0.2,
   },
 });

@@ -783,10 +783,12 @@ export default function ApplianceAddWizard({
   const gridStyle = {
     display: Platform.OS === 'web' ? 'grid' : undefined,
     gridTemplateColumns:
-      Platform.OS === 'web' ? `repeat(${columns}, minmax(0, 1fr))` : undefined,
-    gap: 12,
-    rowGap: 16,
-    columnGap: 12,
+      Platform.OS === 'web'
+        ? (isDesktopWeb ? 'repeat(auto-fill, minmax(230px, 1fr))' : `repeat(${columns}, minmax(0, 1fr))`)
+        : undefined,
+    gap: isDesktopWeb ? 20 : 12,
+    rowGap: isDesktopWeb ? 24 : 16,
+    columnGap: isDesktopWeb ? 20 : 12,
     width: '100%',
   };
 
@@ -858,8 +860,8 @@ export default function ApplianceAddWizard({
     }
     const serviceGridStyle = {
       ...gridStyle,
-      rowGap: 16,
-      columnGap: 12,
+      rowGap: isDesktopWeb ? 24 : 16,
+      columnGap: isDesktopWeb ? 20 : 12,
     };
     if (Platform.OS === 'web') {
       return (
@@ -914,7 +916,7 @@ export default function ApplianceAddWizard({
         style={styles.scroll}
         contentContainerStyle={[
           styles.content,
-          isDesktopWeb && (step === 'category' ? styles.contentDesktopWide : styles.contentDesktop),
+          isDesktopWeb && (['category', 'subgroup', 'service'].includes(step) ? styles.contentDesktopWide : styles.contentDesktop),
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={true}
@@ -1141,8 +1143,8 @@ export default function ApplianceAddWizard({
         {/* --------- SUBGROUP STEP --------- */}
         {step === 'subgroup' && selectedCategory && (
           <>
-            <Text style={styles.title}>{selectedCategory.name}</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, isDesktopWeb && styles.titleDesktop]}>{selectedCategory.name}</Text>
+            <Text style={[styles.subtitle, isDesktopWeb && styles.subtitleDesktop]}>
               {selectedCategory.description || 'Choose a sub-category.'}
             </Text>
             {renderSubgroupGrid(subgroups)}
@@ -1152,18 +1154,18 @@ export default function ApplianceAddWizard({
         {/* --------- SERVICE STEP --------- */}
         {step === 'service' && (
           <>
-            <Text style={styles.title}>
+            <Text style={[styles.title, isDesktopWeb && styles.titleDesktop]}>
               {selectedSubgroup ? selectedSubgroup.name : selectedCategory?.name}
             </Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, isDesktopWeb && styles.subtitleDesktop]}>
               {isZeroFrictionCategory(selectedCategory?.name || selectedCategory?.id)
                 ? 'Select any service to add directly without video verification.'
                 : 'Select the item you want to register with a live video.'}
             </Text>
-            <View style={styles.searchBar}>
-              <AppIcon name="search" size={14} color="#94a3b8" />
+            <View style={[styles.searchBar, isDesktopWeb && styles.searchBarDesktop]}>
+              <AppIcon name="search" size={isDesktopWeb ? 16 : 14} color="#94a3b8" />
               <TextInput
-                style={styles.searchInput}
+                style={[styles.searchInput, isDesktopWeb && styles.searchInputDesktop]}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 placeholder="Search services..."
@@ -1923,6 +1925,7 @@ function ServiceItemCard({ item, onPress, style }) {
   const isOther = item.isOther || item.name === 'Other';
   return (
     <TouchableOpacity
+      dataSet={{ zcSvcCard: 'true' }}
       style={[svcStyles.card, style]}
       onPress={onPress}
       activeOpacity={0.88}
@@ -1949,18 +1952,29 @@ function ServiceItemCard({ item, onPress, style }) {
 
 export function buildSavedApplianceRecords(units, selectedService, user) {
   return (units || []).map((unit, idx) => {
-    const svcName = selectedService?.name || 'Item';
+    const rawVideo =
+      unit.media?.uri ||
+      unit.media?.url ||
+      unit.uploadedMediaUri ||
+      unit.video ||
+      unit.videoUrl ||
+      unit.video_uri ||
+      (typeof unit.img === 'string' && (unit.img.startsWith('data:video') || unit.img.startsWith('blob:') || unit.img.includes('.webm') || unit.img.includes('.mp4')) ? unit.img : null);
+    const isRealVideo = rawVideo && typeof rawVideo === 'string' && !rawVideo.startsWith('auto-verified') && rawVideo.trim().length > 0;
+    const realVideoUri = isRealVideo ? rawVideo.trim() : null;
+
+    const svcName = selectedService?.name || unit.serviceName || unit.category || unit.displayName || 'Item';
     const brandName = unit.brand === 'Other' && unit.customBrand ? unit.customBrand : (unit.brand || '');
-    const isRealVideo = unit.media?.uri && !String(unit.media.uri).startsWith('auto-verified');
-    const realVideoUri = isRealVideo ? unit.media.uri : null;
+    const resolvedImg = resolveApplianceImage({ ...unit, category: svcName }) || selectedService?.image_url || null;
+
     return {
-      id: Date.now() + idx,
+      id: unit.id || (Date.now() + idx),
       userId: user?.id,
       user_phone: user?.phone || '',
-      name: unit.displayName || `${svcName} ${idx + 1}`,
-      displayName: unit.displayName || `${svcName} ${idx + 1}`,
+      name: unit.displayName || (unit.name ? unit.name : `${svcName} ${idx + 1}`),
+      displayName: unit.displayName || (unit.name ? unit.name : `${svcName} ${idx + 1}`),
       category: svcName,
-      applianceTypeId: selectedService?.applianceTypeId || selectedService?.id || 'other',
+      applianceTypeId: selectedService?.applianceTypeId || selectedService?.id || unit.applianceTypeId || 'other',
       brand: brandName,
       customBrand: unit.customBrand || '',
       type: unit.type || '',
@@ -1971,16 +1985,17 @@ export function buildSavedApplianceRecords(units, selectedService, user) {
       location: unit.location || '',
       notes: unit.notes || '',
       model: unit.model || '',
-      img: realVideoUri || selectedService?.image_url || null,
+      img: realVideoUri || resolvedImg,
+      serviceImage: resolvedImg,
       uploadedMediaUri: realVideoUri,
       video: realVideoUri,
       videoUrl: realVideoUri,
       video_uri: realVideoUri,
       media: realVideoUri
-        ? { type: unit.media.type || 'video', url: realVideoUri, fileName: unit.media.fileName }
+        ? { type: 'video', url: realVideoUri, uri: realVideoUri, fileName: unit.media?.fileName || 'Appliance_Live_Video.webm' }
         : null,
       mediaStatus: realVideoUri ? 'PENDING_REVIEW' : 'NOT_REQUIRED',
-      createdAt: new Date().toISOString(),
+      createdAt: unit.createdAt || new Date().toISOString(),
       is_immutable: false,
     };
   });
@@ -1992,21 +2007,30 @@ const catStyles = StyleSheet.create({
   card: {
     flex: 1,
     minWidth: 90,
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    borderColor: 'transparent',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 18,
     paddingTop: 0,
-    paddingBottom: 4,
+    paddingBottom: 10,
     paddingHorizontal: 0,
     alignItems: 'center',
+    overflow: 'hidden',
     ...(Platform.OS === 'web'
-      ? { boxShadow: 'none', cursor: 'pointer' }
+      ? {
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+          cursor: 'pointer',
+          transition: 'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease',
+        }
       : {}),
   },
   imageWrap: {
     width: '100%',
-    aspectRatio: 1,
-    borderRadius: 18,
+    aspectRatio: 1.15,
+    borderTopLeftRadius: 17,
+    borderTopRightRadius: 17,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
     overflow: 'hidden',
     backgroundColor: '#f1f5f9',
     alignItems: 'center',
@@ -2023,12 +2047,13 @@ const catStyles = StyleSheet.create({
   },
   placeholderText: { fontSize: 26, fontWeight: '800', color: '#64748b' },
   name: {
-    fontSize: 12.5,
+    fontSize: 13.5,
     fontWeight: '700',
     color: '#0f172a',
     textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: 18,
     marginTop: 2,
+    paddingHorizontal: 8,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
 });
@@ -2037,21 +2062,30 @@ const svcStyles = StyleSheet.create({
   card: {
     flex: 1,
     minWidth: 90,
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    borderColor: 'transparent',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 18,
     paddingTop: 0,
-    paddingBottom: 4,
+    paddingBottom: 10,
     paddingHorizontal: 0,
     alignItems: 'center',
+    overflow: 'hidden',
     ...(Platform.OS === 'web'
-      ? { boxShadow: 'none', cursor: 'pointer' }
+      ? {
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+          cursor: 'pointer',
+          transition: 'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease',
+        }
       : {}),
   },
   imageWrap: {
     width: '100%',
-    aspectRatio: 1,
-    borderRadius: 18,
+    aspectRatio: 1.15,
+    borderTopLeftRadius: 17,
+    borderTopRightRadius: 17,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
     overflow: 'hidden',
     backgroundColor: '#f1f5f9',
     alignItems: 'center',
@@ -2076,12 +2110,13 @@ const svcStyles = StyleSheet.create({
   },
   otherDots: { fontSize: 22, color: '#64748b', fontWeight: '800', letterSpacing: 2 },
   name: {
-    fontSize: 12.5,
+    fontSize: 13.5,
     fontWeight: '700',
     color: '#0f172a',
     textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: 18,
     marginTop: 2,
+    paddingHorizontal: 8,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
 });
@@ -2152,16 +2187,22 @@ const styles = StyleSheet.create({
   },
   contentDesktop: {
     maxWidth: 860,
+    width: '100%',
+    alignSelf: 'center',
     paddingHorizontal: 0,
     paddingTop: 12,
     paddingBottom: 120,
     gap: 16,
+    boxSizing: 'border-box',
   },
   contentDesktopWide: {
     maxWidth: 1320,
+    width: '100%',
+    alignSelf: 'center',
     paddingHorizontal: 0,
     paddingTop: 12,
     paddingBottom: 80,
+    boxSizing: 'border-box',
   },
   titleDesktop: {
     fontSize: 30,
@@ -2204,6 +2245,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     gap: 8,
+  },
+  searchBarDesktop: {
+    height: 48,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+    marginBottom: 4,
+  },
+  searchInputDesktop: {
+    fontSize: 14,
   },
   searchGlyph: { fontSize: 14, color: '#94a3b8' },
   searchInput: {
@@ -2635,19 +2689,19 @@ const styles = StyleSheet.create({
   /* Category Package Hero Banner */
   categoryBundleHero: {
     backgroundColor: '#ffffff',
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1.5,
     borderColor: '#bfdbfe',
-    padding: 12,
-    marginBottom: 12,
-    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.06)',
-    gap: 9,
+    padding: 16,
+    marginBottom: 16,
+    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)',
+    gap: 10,
   },
   bundleHeroHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: 6,
+    gap: 8,
     flexWrap: 'wrap',
   },
   bundleBadge: {
@@ -2655,14 +2709,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#eff6ff',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#bfdbfe',
   },
   bundleBadgeText: {
-    fontSize: 9.5,
+    fontSize: 11,
     fontWeight: '700',
     color: '#0052e0',
     letterSpacing: 0.2,
@@ -2670,14 +2724,14 @@ const styles = StyleSheet.create({
   },
   bundleSavingsPill: {
     backgroundColor: '#f0fdf4',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#bbf7d0',
   },
   bundleSavingsText: {
-    fontSize: 9.5,
+    fontSize: 11,
     fontWeight: '700',
     color: '#15803d',
     fontFamily: "'Outfit', 'Inter', sans-serif",
@@ -2687,45 +2741,45 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   bundleHeroTitle: {
-    fontSize: 13.5,
+    fontSize: 16,
     fontWeight: '800',
     color: '#0f172a',
     letterSpacing: -0.2,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   bundleHeroDesc: {
-    fontSize: 11,
+    fontSize: 12.5,
     color: '#64748b',
-    lineHeight: 15,
+    lineHeight: 18,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   bundleFeaturesRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 2,
+    gap: 12,
+    marginTop: 4,
     flexWrap: 'wrap',
   },
   bundleFeatureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
   bundleFeatureText: {
-    fontSize: 10,
+    fontSize: 11.5,
     fontWeight: '600',
     color: '#15803d',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   bundleAddBtn: {
     backgroundColor: '#0052e0',
-    borderRadius: 10,
-    paddingVertical: 9.5,
-    paddingHorizontal: 14,
+    borderRadius: 12,
+    paddingVertical: 11.5,
+    paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 8,
     boxShadow: '0 3px 10px rgba(0, 82, 224, 0.2)',
     cursor: 'pointer',
   },

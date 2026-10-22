@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform, useWindowDimensions, Image } from 'react-native';
+import { getApplianceVideoUri, resolveApplianceImage } from '../../utils/applianceMediaHelper';
 
 const EXTRA_APPLIANCE_FEE = 500;
 
@@ -24,6 +25,8 @@ export default function PlanReviewScreen({
   onPurchase,
   onBack,
 }) {
+  const { width } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
   const count = appliances.length;
   const price = Number(plan?.price || 0);
   const canPurchase = count > 0;
@@ -32,14 +35,7 @@ export default function PlanReviewScreen({
   const [previewVideo, setPreviewVideo] = useState(null);
 
   const getValidVideoUri = (app) => {
-    const uri = app.video || app.videoUrl || app.video_uri || app.uploadedMediaUri || app.media?.url || app.media?.uri;
-    if (!uri || typeof uri !== 'string') return null;
-    const trimmed = uri.trim();
-    const lower = trimmed.toLowerCase();
-    if (lower.startsWith('auto-verified') || lower.startsWith('fake') || lower === 'null' || lower === 'undefined') {
-      return null;
-    }
-    return trimmed;
+    return getApplianceVideoUri(app);
   };
 
   const openConfirm = () => {
@@ -55,105 +51,201 @@ export default function PlanReviewScreen({
 
   return (
     <View style={styles.root}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <TouchableOpacity onPress={onBack} style={styles.backLink} activeOpacity={0.7}>
-          <Text style={styles.backLinkText}>← Back to Plans</Text>
-        </TouchableOpacity>
+      <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, isDesktopWeb && styles.contentDesktop]} showsVerticalScrollIndicator={false}>
+        <div style={isDesktopWeb ? desktopTwoColReview : undefined}>
+          <div style={isDesktopWeb ? desktopLeftCol : undefined}>
+            <TouchableOpacity onPress={onBack} style={styles.backLink} activeOpacity={0.7}>
+              <Text style={styles.backLinkText}>← Back to Plans</Text>
+            </TouchableOpacity>
 
-        {/* Step indicator */}
-        <View style={styles.stepRow}>
-          <View style={[styles.stepDot, styles.stepDotDone]}><Text style={styles.stepDotText}>✓</Text></View>
-          <View style={[styles.stepLine, styles.stepLineDone]} />
-          <View style={[styles.stepDot, styles.stepDotActive]}><Text style={styles.stepDotText}>2</Text></View>
-          <View style={styles.stepLine} />
-          <View style={styles.stepDot}><Text style={[styles.stepDotText, { color: '#64748b' }]}>3</Text></View>
-        </View>
-        <View style={styles.stepLabelRow}>
-          <Text style={styles.stepLabel}>Add Appliances</Text>
-          <Text style={[styles.stepLabel, { color: '#2563eb' }]}>Review</Text>
-          <Text style={styles.stepLabel}>Purchase</Text>
-        </View>
+            {/* Step indicator */}
+            <View style={styles.stepRow}>
+              <View style={[styles.stepDot, styles.stepDotDone]}><Text style={styles.stepDotText}>✓</Text></View>
+              <View style={[styles.stepLine, styles.stepLineDone]} />
+              <View style={[styles.stepDot, styles.stepDotActive]}><Text style={styles.stepDotText}>2</Text></View>
+              <View style={styles.stepLine} />
+              <View style={styles.stepDot}><Text style={[styles.stepDotText, { color: '#64748b' }]}>3</Text></View>
+            </View>
+            <View style={styles.stepLabelRow}>
+              <Text style={styles.stepLabel}>Add Appliances</Text>
+              <Text style={[styles.stepLabel, { color: '#2563eb' }]}>Review</Text>
+              <Text style={styles.stepLabel}>Purchase</Text>
+            </View>
 
-        <View style={styles.headerCard}>
-          <Text style={styles.headerEyebrow}>{(plan?.name || 'AMC').toUpperCase()} PLAN</Text>
-          <Text style={styles.headerTitle}>Your Appliances</Text>
-          <Text style={styles.headerSub}>
-            {count === 0
-              ? 'No appliances added yet. Add every appliance you want covered before purchasing.'
-              : `${count} appliance${count === 1 ? '' : 's'} will be covered under your ${plan?.name}. Add everything you want protected now.`}
-          </Text>
-        </View>
+            <View style={styles.headerCard}>
+              <Text style={styles.headerEyebrow}>{(plan?.name || 'AMC').toUpperCase()} PLAN</Text>
+              <Text style={styles.headerTitle}>Your Appliances</Text>
+              <Text style={styles.headerSub}>
+                {count === 0
+                  ? 'No appliances added yet. Add every appliance you want covered before purchasing.'
+                  : `${count} appliance${count === 1 ? '' : 's'} will be covered under your ${plan?.name}. Add everything you want protected now.`}
+              </Text>
+            </View>
 
-        {count === 0 ? (
-          <View style={styles.emptyBox}>
-            <Text style={styles.emptyTitle}>No appliances added</Text>
-            <Text style={styles.emptySub}>Tap “Add Appliance” to register your first appliance.</Text>
-          </View>
-        ) : (
-          <View style={styles.list}>
-            {appliances.map((app, idx) => {
-              const name = app.displayName || app.name || 'Appliance';
-              const meta = [app.category && app.category !== name ? app.category : null, app.brand, app.location]
-                .filter(Boolean)
-                .join(' • ');
-              const validVideoUri = getValidVideoUri(app);
-              return (
-                <View key={app.id || `rev-${idx}`} style={styles.itemCard}>
-                  <View style={styles.itemIndex}>
-                    <Text style={styles.itemIndexText}>{idx + 1}</Text>
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
-                    <Text style={styles.itemName} numberOfLines={1}>{name}</Text>
-                    {meta ? <Text style={styles.itemMeta} numberOfLines={1}>{meta}</Text> : null}
-                    <View style={styles.itemBadgeRow}>
-                      <View style={styles.coveredBadge}>
-                        <Text style={styles.coveredBadgeText}>Will be covered</Text>
-                      </View>
+            {count === 0 ? (
+              <View style={styles.emptyBox}>
+                <Text style={styles.emptyTitle}>No appliances added</Text>
+                <Text style={styles.emptySub}>Tap “Add Appliance” to register your first appliance.</Text>
+              </View>
+            ) : (
+              <View style={styles.list}>
+                {appliances.map((app, idx) => {
+                  const name = app.displayName || app.name || 'Appliance';
+                  const meta = [app.category && app.category !== name ? app.category : null, app.brand, app.location]
+                    .filter(Boolean)
+                    .join(' • ');
+                  const validVideoUri = getValidVideoUri(app);
+                  const catalogImg = resolveApplianceImage(app);
+
+                  return (
+                    <View key={app.id || `rev-${idx}`} style={styles.itemCard}>
                       {validVideoUri ? (
                         <TouchableOpacity
-                          style={styles.videoBadgeBtn}
+                          style={[styles.itemThumb, isDesktopWeb && styles.itemThumbDesktop, styles.itemThumbVideoWrap]}
                           onPress={() => setPreviewVideo({ uri: validVideoUri, title: name })}
-                          activeOpacity={0.75}
+                          activeOpacity={0.85}
+                          accessibilityLabel={`Play walkthrough video for ${name}`}
                         >
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="#0052e0" stroke="#0052e0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="5 3 19 12 5 21 5 3" />
-                          </svg>
-                          <Text style={styles.videoBadgeBtnText}>View Video</Text>
+                          <video
+                            src={validVideoUri}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              display: 'block',
+                              pointerEvents: 'none',
+                              borderRadius: 'inherit',
+                            }}
+                            muted
+                            loop
+                            autoPlay
+                            playsInline
+                          />
+                          <View style={styles.playOverlayBadge}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="#ffffff">
+                              <polygon points="5 3 19 12 5 21 5 3" />
+                            </svg>
+                          </View>
                         </TouchableOpacity>
-                      ) : null}
+                      ) : catalogImg ? (
+                        <Image
+                          source={{ uri: catalogImg }}
+                          style={[styles.itemThumb, isDesktopWeb && styles.itemThumbDesktop]}
+                          resizeMode="contain"
+                        />
+                      ) : (
+                        <View style={styles.itemIndex}>
+                          <Text style={styles.itemIndexText}>{idx + 1}</Text>
+                        </View>
+                      )}
+                      <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                        <Text style={styles.itemName} numberOfLines={1}>{name}</Text>
+                        {meta ? <Text style={styles.itemMeta} numberOfLines={1}>{meta}</Text> : null}
+                        <View style={styles.itemBadgeRow}>
+                          <View style={styles.coveredBadge}>
+                            <Text style={styles.coveredBadgeText}>Will be covered</Text>
+                          </View>
+                          {validVideoUri ? (
+                            <TouchableOpacity
+                              style={styles.videoBadgeBtn}
+                              onPress={() => setPreviewVideo({ uri: validVideoUri, title: name })}
+                              activeOpacity={0.75}
+                            >
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="#0052e0" stroke="#0052e0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="5 3 19 12 5 21 5 3" />
+                              </svg>
+                              <Text style={styles.videoBadgeBtnText}>Play Video</Text>
+                            </TouchableOpacity>
+                          ) : (
+                            <View style={styles.catalogBadge}>
+                              <Text style={styles.catalogBadgeText}>Catalog Verified</Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                      <TouchableOpacity onPress={() => onRemove?.(idx)} style={styles.removeBtn} activeOpacity={0.7}>
+                        <Text style={styles.removeBtnText}>Remove</Text>
+                      </TouchableOpacity>
                     </View>
-                  </View>
-                  <TouchableOpacity onPress={() => onRemove?.(idx)} style={styles.removeBtn} activeOpacity={0.7}>
-                    <Text style={styles.removeBtnText}>Remove</Text>
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
-          </View>
-        )}
+                  );
+                })}
+              </View>
+            )}
 
-        <TouchableOpacity onPress={onAddMore} style={styles.addMoreBtn} activeOpacity={0.85}>
-          <Text style={styles.addMoreBtnText}>+ {count === 0 ? 'Add Appliance' : 'Add Another Appliance'}</Text>
-        </TouchableOpacity>
+            <TouchableOpacity onPress={onAddMore} style={styles.addMoreBtn} activeOpacity={0.85}>
+              <Text style={styles.addMoreBtnText}>+ {count === 0 ? 'Add Appliance' : 'Add Another Appliance'}</Text>
+            </TouchableOpacity>
+          </div>
+
+          {/* Right Column: Desktop Sticky Summary */}
+          {isDesktopWeb && (
+            <div style={desktopStickySummaryStyle}>
+              <View style={styles.desktopSummaryCard}>
+                <Text style={styles.summaryCardEyebrow}>PLAN SUMMARY</Text>
+                <Text style={styles.summaryCardTitle}>{plan?.name || 'AMC'} Plan</Text>
+                <Text style={styles.summaryCardSub}>12 Months Comprehensive Coverage</Text>
+
+                <View style={styles.summaryDivider} />
+
+                <View style={styles.summaryDetailRow}>
+                  <Text style={styles.summaryDetailLabel}>Protected Appliances</Text>
+                  <Text style={styles.summaryDetailValue}>{count} Items</Text>
+                </View>
+                <View style={styles.summaryDetailRow}>
+                  <Text style={styles.summaryDetailLabel}>Breakdown Repair Labor</Text>
+                  <Text style={[styles.summaryDetailValue, { color: '#16a34a' }]}>₹0 Free</Text>
+                </View>
+                <View style={styles.summaryDetailRow}>
+                  <Text style={styles.summaryDetailLabel}>Contract Validity</Text>
+                  <Text style={styles.summaryDetailValue}>1 Year (365 Days)</Text>
+                </View>
+
+                <View style={styles.summaryDivider} />
+
+                <View style={styles.summaryTotalRow}>
+                  <Text style={styles.summaryTotalLabel}>Total Amount</Text>
+                  <Text style={styles.summaryTotalValue}>₹{price.toLocaleString('en-IN')}</Text>
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.desktopPurchaseBtn, !canPurchase && styles.purchaseBtnDisabled]}
+                  onPress={canPurchase ? openConfirm : undefined}
+                  disabled={!canPurchase}
+                  activeOpacity={0.88}
+                >
+                  <Text style={styles.desktopPurchaseBtnText}>
+                    {canPurchase ? `Confirm & Pay ₹${price.toLocaleString('en-IN')}` : 'Add Appliances First'}
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={styles.summaryGuaranteeText}>
+                  🛡️ 100% Satisfaction Guaranteed • Verified Technicians • Digital Warranty
+                </Text>
+              </View>
+            </div>
+          )}
+        </div>
       </ScrollView>
 
-      {/* Sticky purchase footer */}
-      <View style={styles.footer}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.footerLabel}>{plan?.name} • {plan?.validity_months || 12} months</Text>
-          <Text style={styles.footerPrice}>₹{price.toLocaleString('en-IN')}</Text>
+      {/* Sticky purchase footer (Mobile only) */}
+      {!isDesktopWeb && (
+        <View style={styles.footer}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.footerLabel}>{plan?.name} • {plan?.validity_months || 12} months</Text>
+            <Text style={styles.footerPrice}>₹{price.toLocaleString('en-IN')}</Text>
+          </View>
+          <TouchableOpacity
+            onPress={canPurchase ? openConfirm : undefined}
+            disabled={!canPurchase}
+            style={[styles.purchaseBtn, !canPurchase && styles.purchaseBtnDisabled]}
+            activeOpacity={0.88}
+          >
+            <Text style={[styles.purchaseBtnText, !canPurchase && { color: '#94a3b8' }]}>
+              Purchase {plan?.name}
+            </Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={canPurchase ? openConfirm : undefined}
-          disabled={!canPurchase}
-          style={[styles.purchaseBtn, !canPurchase && styles.purchaseBtnDisabled]}
-          activeOpacity={0.88}
-        >
-          <Text style={[styles.purchaseBtnText, !canPurchase && { color: '#94a3b8' }]}>
-            Purchase {plan?.name}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      )}
 
       {/* Pre-purchase confirmation note */}
       <Modal visible={showConfirm} transparent animationType="fade" onRequestClose={() => setShowConfirm(false)}>
@@ -276,10 +368,131 @@ export default function PlanReviewScreen({
   );
 }
 
+const desktopTwoColReview = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
+  gap: '32px',
+  alignItems: 'start',
+  width: '100%',
+};
+
+const desktopLeftCol = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '14px',
+  minWidth: 0,
+};
+
+const desktopStickySummaryStyle = {
+  position: 'sticky',
+  top: '20px',
+  minWidth: 0,
+};
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f8fafc' },
   scroll: { flex: 1 },
   content: { padding: 16, paddingBottom: 120, gap: 14 },
+  contentDesktop: {
+    maxWidth: 1240,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 60,
+    boxSizing: 'border-box',
+  },
+  itemThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+  },
+  desktopSummaryCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    padding: 24,
+    gap: 12,
+    boxShadow: '0 8px 28px rgba(15, 23, 42, 0.06)',
+  },
+  summaryCardEyebrow: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#2563eb',
+    letterSpacing: 0.8,
+  },
+  summaryCardTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  summaryCardSub: {
+    fontSize: 13,
+    color: '#64748b',
+    marginTop: -4,
+  },
+  summaryDivider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+    marginVertical: 4,
+  },
+  summaryDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  summaryDetailLabel: {
+    fontSize: 13,
+    color: '#64748b',
+  },
+  summaryDetailValue: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  summaryTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  summaryTotalLabel: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  summaryTotalValue: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  desktopPurchaseBtn: {
+    backgroundColor: '#2563eb',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 6px 18px rgba(37, 99, 235, 0.3)',
+    cursor: 'pointer',
+    marginTop: 6,
+  },
+  desktopPurchaseBtnText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  summaryGuaranteeText: {
+    fontSize: 11,
+    color: '#64748b',
+    textAlign: 'center',
+    marginTop: 6,
+    lineHeight: 16,
+  },
   backLink: { alignSelf: 'flex-start', paddingVertical: 4 },
   backLinkText: { fontSize: 13, fontWeight: '700', color: '#2563eb' },
   stepRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, marginTop: 4 },
@@ -311,6 +524,56 @@ const styles = StyleSheet.create({
   itemCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#ffffff',
     borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#e2e8f0',
+  },
+  itemThumb: {
+    width: 60,
+    height: 60,
+    borderRadius: 14,
+    backgroundColor: '#f8fafc',
+    overflow: 'hidden',
+    position: 'relative',
+    flexShrink: 0,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  itemThumbDesktop: {
+    width: 72,
+    height: 72,
+    borderRadius: 16,
+  },
+  itemThumbVideoWrap: {
+    cursor: 'pointer',
+    backgroundColor: '#000000',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+  },
+  playOverlayBadge: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(0, 82, 224, 0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.4)',
+    pointerEvents: 'none',
+  },
+  catalogBadge: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  catalogBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748b',
   },
   itemIndex: {
     width: 32, height: 32, borderRadius: 10, backgroundColor: '#eff6ff',

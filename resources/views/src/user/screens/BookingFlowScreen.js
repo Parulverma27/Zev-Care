@@ -8,6 +8,8 @@ import {
   TextInput,
   Image,
   Modal,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
@@ -51,6 +53,9 @@ import { emptyIssueMedia, issueMediaToLegacyUrl, countIssueMedia, applyPanelValu
  * Legacy non-appliance: after SERVICE_TYPE → SCHEDULE (then LOCATION → REVIEW) with optional ISSUE via description
  */
 export default function BookingFlowScreen({ onNavigate }) {
+  const { width } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
+
   const {
     createBooking,
     activeUser,
@@ -145,11 +150,9 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   useEffect(() => {
-    if (isConsultation ? isAnonymous : isGuest) {
+    if (isConsultation && isAnonymous) {
       promptGuestRegistration(
-        isConsultation
-          ? 'Please register or log in to book a free My Mechanic consultation.'
-          : `Please register or log in to book ${preSelectedService || preSelectedCategory || 'home services'}.`
+        'Please register or log in to book a free My Mechanic consultation.'
       );
       if (preSelectedCategory) setCategory(preSelectedCategory);
       if (preSelectedService) setService(preSelectedService);
@@ -182,7 +185,7 @@ export default function BookingFlowScreen({ onNavigate }) {
         clearIssueState();
         setStep('ISSUE');
       } else if (isApplianceLinkedService(preSelectedService)) {
-        if (!hasActiveAmc) {
+        if (isComplaint && !hasActiveAmc) {
           promptGuestRegistration('An active AMC plan is required to raise complaints on appliances. Please explore AMC plans to cover your home.');
           return;
         }
@@ -213,7 +216,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       if (navigate) navigate('/user/complains', { replace: true });
       else if (onNavigate) onNavigate('/user/complains');
     }
-  }, [preSelectedCategory, preSelectedSubCategory, preSelectedService, isGuest]);
+  }, [preSelectedCategory, preSelectedSubCategory, preSelectedService, isGuest, isComplaint]);
 
   const userAppliances = useMemo(
     () => (getAppliancesForUser ? getAppliancesForUser(activeUser) : []),
@@ -861,7 +864,7 @@ export default function BookingFlowScreen({ onNavigate }) {
     // ── DETAILS SUMMARY ──
     if (step === 'DETAILS_SUMMARY') {
       return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.pad}>
+        <ScrollView style={styles.container} contentContainerStyle={[styles.pad, isDesktopWeb && styles.padDesktop]}>
           <View style={styles.rowHeader}>
             <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
               <Text style={styles.backChevron}>‹</Text>
@@ -996,7 +999,7 @@ export default function BookingFlowScreen({ onNavigate }) {
     // ── REVIEW ──
     if (step === 'REVIEW') {
       return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.pad}>
+        <ScrollView style={styles.container} contentContainerStyle={[styles.pad, isDesktopWeb && styles.padDesktop]}>
           <View style={styles.rowHeader}>
             <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
               <Text style={styles.backChevron}>‹</Text>
@@ -1112,7 +1115,7 @@ export default function BookingFlowScreen({ onNavigate }) {
     // ── CATALOG OTHER DETAIL ──
     if (step === 'OTHER_DETAIL') {
       return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.pad}>
+        <ScrollView style={styles.container} contentContainerStyle={[styles.pad, isDesktopWeb && styles.padDesktop]}>
           <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
             <Text style={styles.backChevron}>‹</Text>
           </TouchableOpacity>
@@ -1171,7 +1174,7 @@ export default function BookingFlowScreen({ onNavigate }) {
         };
 
       return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.pad}>
+        <ScrollView style={styles.container} contentContainerStyle={[styles.pad, isDesktopWeb && styles.padDesktop]}>
           <View style={styles.rowHeader}>
             <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
               <Text style={styles.backChevron}>‹</Text>
@@ -1190,22 +1193,22 @@ export default function BookingFlowScreen({ onNavigate }) {
               placeholderTextColor="#94a3b8"
             />
           </View>
-          <div style={serviceGridCss.wrapper}>
+          <div style={isDesktopWeb ? serviceGridCss.desktopWrapper : serviceGridCss.wrapper}>
             {gridItems.map((item) => (
               <TouchableOpacity
                 key={item.name}
-                style={styles.svcGridCard}
+                style={[styles.svcGridCard, isDesktopWeb && styles.svcGridCardDesktop]}
                 onPress={() => selectServiceTypeAndNext(item)}
                 activeOpacity={0.88}
               >
-                <View style={styles.svcGridImgWrap}>
+                <View style={[styles.svcGridImgWrap, isDesktopWeb && styles.svcGridImgWrapDesktop]}>
                   <Image
                     source={{ uri: resolveServiceItemImageUri(item, category) }}
                     style={styles.svcGridImg}
                     resizeMode="cover"
                   />
                 </View>
-                <Text style={styles.svcGridTitle} numberOfLines={2}>
+                <Text style={[styles.svcGridTitle, isDesktopWeb && styles.svcGridTitleDesktop]} numberOfLines={2}>
                   {item.name}
                 </Text>
               </TouchableOpacity>
@@ -1283,7 +1286,7 @@ export default function BookingFlowScreen({ onNavigate }) {
     // ── SUB GROUP ──
     if (step === 'SUB_GROUP') {
       return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.pad}>
+        <ScrollView style={styles.container} contentContainerStyle={[styles.pad, isDesktopWeb && styles.padDesktop]}>
           <View style={styles.rowHeader}>
             <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
               <Text style={styles.backChevron}>‹</Text>
@@ -1322,7 +1325,7 @@ export default function BookingFlowScreen({ onNavigate }) {
 
     // ── CATEGORY (step 1) ──
     return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.pad}>
+      <ScrollView style={styles.container} contentContainerStyle={[styles.pad, isDesktopWeb && styles.padDesktop]}>
         <View style={styles.rowHeader}>
           <TouchableOpacity style={styles.backBtn} onPress={goBack}>
             <Text style={styles.backChevron}>‹</Text>
@@ -1336,20 +1339,20 @@ export default function BookingFlowScreen({ onNavigate }) {
             </Text>
           </View>
         </View>
-        <View style={{ gap: 10 }}>
+        <div style={isDesktopWeb ? categoryGridCss.desktopWrapper : { display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {(categories || []).map((cat) => (
             <TouchableOpacity
               key={cat.id || cat.name}
-              style={styles.catCard}
+              style={[styles.catCard, isDesktopWeb && styles.catCardDesktop]}
               onPress={() => selectCategoryAndNext(cat.name)}
             >
               <Image
                 source={{ uri: resolveCategoryImageUri(cat.name, cat.image_url, true) }}
-                style={styles.catImg}
+                style={[styles.catImg, isDesktopWeb && styles.catImgDesktop]}
               />
               <View style={{ flex: 1 }}>
-                <Text style={styles.catTitle}>{cat.name}</Text>
-                <Text style={styles.catSub}>{cat.description}</Text>
+                <Text style={[styles.catTitle, isDesktopWeb && styles.catTitleDesktop]}>{cat.name}</Text>
+                <Text style={[styles.catSub, isDesktopWeb && styles.catSubDesktop]}>{cat.description}</Text>
                 <Text style={styles.badge}>
                   {countServicesInCategory(cat.name, services)} services
                 </Text>
@@ -1358,7 +1361,7 @@ export default function BookingFlowScreen({ onNavigate }) {
             </TouchableOpacity>
           ))}
           <LiveSupportOptionCard onPress={goLiveSupport} />
-        </View>
+        </div>
       </ScrollView>
     );
   };
@@ -1376,6 +1379,23 @@ const serviceGridCss = {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
     gap: '10px',
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  desktopWrapper: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+    gap: '20px',
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+};
+
+const categoryGridCss = {
+  desktopWrapper: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
+    gap: '16px',
     width: '100%',
     boxSizing: 'border-box',
   },
@@ -1398,6 +1418,66 @@ const styles = StyleSheet.create({
     maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
+  },
+  padDesktop: {
+    paddingHorizontal: 32,
+    paddingTop: 24,
+    paddingBottom: 80,
+    gap: 20,
+    maxWidth: 1280,
+    width: '100%',
+    alignSelf: 'center',
+    boxSizing: 'border-box',
+  },
+  catCardDesktop: {
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    gap: 14,
+    boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)',
+    cursor: 'pointer',
+  },
+  catImgDesktop: {
+    width: 84,
+    height: 84,
+    borderRadius: 14,
+    backgroundColor: '#f1f5f9',
+  },
+  catTitleDesktop: {
+    fontSize: 16.5,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  catSubDesktop: {
+    fontSize: 13,
+    color: '#64748b',
+    marginTop: 3,
+    lineHeight: 18,
+  },
+  svcGridCardDesktop: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 18,
+    padding: 8,
+    alignItems: 'center',
+    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+    cursor: 'pointer',
+  },
+  svcGridImgWrapDesktop: {
+    aspectRatio: 1.15,
+    borderRadius: 14,
+    marginBottom: 8,
+  },
+  svcGridTitleDesktop: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0f172a',
+    lineHeight: 18,
+    textAlign: 'center',
+    paddingHorizontal: 6,
   },
   rowHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   backBtn: {

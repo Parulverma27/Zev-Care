@@ -1081,7 +1081,7 @@ export default function PropertyVerificationScreen({ onNavigate }) {
       </View>
 
       {view === 'LIST' ? (
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={[styles.content, isDesktopWeb && styles.contentDesktop]}>
           {/* Title Section */}
           <View style={styles.titleSection}>
             <Text style={styles.titleText}>Your Appliances</Text>
@@ -1117,29 +1117,31 @@ export default function PropertyVerificationScreen({ onNavigate }) {
             /* List of added appliances matching ss 2 exactly */
             <View style={styles.appliancesListContainer}>
               <Text style={styles.listSectionHeader}>Added Appliances ({addedAppliances.length})</Text>
-              {addedAppliances.map((appliance) => {
-                const imageSource = getApplianceImageUri(appliance);
+              <div style={isDesktopWeb ? desktopApplianceGridStyle : undefined}>
+                {addedAppliances.map((appliance) => {
+                  const imageSource = getApplianceImageUri(appliance);
 
-                return (
-                  <View key={appliance.id} style={styles.applianceListItem}>
-                    <View style={styles.itemLeftRow}>
-                      {renderApplianceMediaPreview(appliance, styles.listItemImg)}
-                      <View style={{ flexDirection: 'column', gap: 2, flex: 1, minWidth: 0 }}>
-                        <Text style={styles.listItemName} numberOfLines={1}>{appliance.name}</Text>
-                        <Text style={styles.listItemSub} numberOfLines={1}>
-                          {[appliance.brand, appliance.capacity, appliance.type].filter(Boolean).join(' • ')
-                            || `${appliance.category || 'Appliance'}`}
-                        </Text>
-                        <Text style={styles.listItemMeta} numberOfLines={1}>
-                          {[appliance.location, appliance.condition ? `Condition: ${appliance.condition}` : '']
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </Text>
+                  return (
+                    <View key={appliance.id} style={[styles.applianceListItem, isDesktopWeb && styles.applianceListItemDesktop]}>
+                      <View style={styles.itemLeftRow}>
+                        {renderApplianceMediaPreview(appliance, isDesktopWeb ? styles.listItemImgDesktop : styles.listItemImg)}
+                        <View style={{ flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
+                          <Text style={[styles.listItemName, isDesktopWeb && styles.listItemNameDesktop]} numberOfLines={1}>{appliance.name}</Text>
+                          <Text style={styles.listItemSub} numberOfLines={1}>
+                            {[appliance.brand, appliance.capacity, appliance.type].filter(Boolean).join(' • ')
+                              || `${appliance.category || 'Appliance'}`}
+                          </Text>
+                          <Text style={styles.listItemMeta} numberOfLines={1}>
+                            {[appliance.location, appliance.condition ? `Condition: ${appliance.condition}` : '']
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </Text>
+                        </View>
                       </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
+              </div>
             </View>
           )}
 
@@ -1966,6 +1968,14 @@ export default function PropertyVerificationScreen({ onNavigate }) {
   );
 }
 
+const desktopApplianceGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
+  gap: '16px',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#ffffff' },
   desktopContainer: { width: '100%', paddingVertical: 24 },
@@ -1988,6 +1998,34 @@ const styles = StyleSheet.create({
   bellBtn: { padding: 8 },
 
   content: { padding: 18, gap: 16, boxSizing: 'border-box' },
+  contentDesktop: {
+    maxWidth: 1280,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 28,
+    paddingTop: 24,
+    paddingBottom: 80,
+    boxSizing: 'border-box',
+  },
+  listItemImgDesktop: {
+    width: 76,
+    height: 76,
+    borderRadius: 14,
+    backgroundColor: '#f1f5f9',
+  },
+  applianceListItemDesktop: {
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)',
+  },
+  listItemNameDesktop: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
   addContent: { padding: 16, paddingBottom: 32, gap: 14, boxSizing: 'border-box' },
   addTitleSection: { gap: 6, marginTop: 0, marginBottom: 2 },
   addTitleText: {
