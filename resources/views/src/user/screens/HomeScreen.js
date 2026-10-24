@@ -184,21 +184,21 @@ const AMC_HOME_ACTIONS = [
     subtitle: 'Protect your home with premium annual coverage.',
     actionLabel: 'Explore Plans',
     route: '/user/plans',
-    theme: 'light',
-    cardBg: 'linear-gradient(135deg, #ffffff 0%, #f8faff 45%, #eff6ff 100%)',
-    borderColor: 'rgba(59, 130, 246, 0.28)',
-    boxShadow: '0 8px 25px -4px rgba(37, 99, 235, 0.10), 0 2px 6px rgba(15, 23, 42, 0.04)',
-    iconBg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-    iconBorder: '1.5px solid rgba(59, 130, 246, 0.35)',
-    titleColor: '#0f172a',
-    subColor: '#475569',
-    badgeBg: '#eff6ff',
-    badgeBorder: '#bfdbfe',
-    badgeColor: '#1d4ed8',
-    pillBtnBg: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-    pillBtnColor: '#ffffff',
-    pillArrowBg: 'rgba(255, 255, 255, 0.22)',
-    pillArrowColor: '#ffffff',
+    theme: 'luxury',
+    cardBg: 'linear-gradient(135deg, #0b1e47 0%, #123073 45%, #1d4ed8 100%)',
+    borderColor: 'rgba(147, 197, 253, 0.35)',
+    boxShadow: '0 12px 30px -4px rgba(11, 30, 71, 0.32), 0 3px 8px rgba(15, 23, 42, 0.08)',
+    iconBg: 'rgba(255, 255, 255, 0.12)',
+    iconBorder: '1px solid rgba(255, 255, 255, 0.22)',
+    titleColor: '#ffffff',
+    subColor: '#cbd5e1',
+    badgeBg: 'rgba(255, 255, 255, 0.12)',
+    badgeBorder: 'rgba(147, 197, 253, 0.35)',
+    badgeColor: '#bfdbfe',
+    pillBtnBg: '#ffffff',
+    pillBtnColor: '#1e40af',
+    pillArrowBg: '#eff6ff',
+    pillArrowColor: '#1e40af',
     icon: <Luxury3DShieldIcon size={26} />,
   },
   {
@@ -206,7 +206,7 @@ const AMC_HOME_ACTIONS = [
     badge: 'PRIORITY',
     title: 'AMC Complaints',
     subtitle: 'Raise any appliance or home issue.',
-    actionLabel: 'Raise Complaint',
+    actionLabel: 'Raise Issue',
     route: '/user/complains',
     theme: 'light',
     cardBg: 'linear-gradient(145deg, #ffffff 0%, #fffdf9 45%, #fff7ed 100%)',
@@ -998,7 +998,11 @@ export default function HomeScreen({ onNavigate }) {
       <View style={styles.amcSection}>
         <View style={styles.amcHeaderBlock}>
           <View style={styles.amcHeaderTitleRow}>
-            <View style={styles.amcHeaderAccentBar} />
+            <View style={styles.amcHeaderSparkleIcon}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2" />
+              </svg>
+            </View>
             <Text style={styles.amcSectionTitle}>Our AMC Services</Text>
           </View>
           <Text style={styles.amcSectionSub}>Everything you need, under one roof</Text>
@@ -1047,26 +1051,21 @@ export default function HomeScreen({ onNavigate }) {
               >
                 {item.key === 'plans' ? (
                   <View style={styles.amcPlansBannerContent}>
-                    {/* Top Row: Icon + Title on left, Badge on top right */}
-                    <View style={styles.amcPlansHeaderRow}>
-                      <View style={styles.amcPlansHeaderLeft}>
-                        <View
-                          style={[
-                            styles.amcLuxuryIconCircle,
-                            {
-                              background: item.iconBg,
-                              border: item.iconBorder,
-                              width: 42,
-                              height: 42,
-                              borderRadius: 21,
-                            },
-                          ]}
-                        >
-                          {item.icon}
-                        </View>
-                        <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 16.5 }]}>
-                          {item.title}
-                        </Text>
+                    {/* Top Row: Icon on left, Exclusive Pass Badge on right */}
+                    <View style={styles.amcPlansTopRow}>
+                      <View
+                        style={[
+                          styles.amcLuxuryIconCircle,
+                          {
+                            background: item.iconBg,
+                            border: item.iconBorder,
+                            width: 44,
+                            height: 44,
+                            borderRadius: 22,
+                          },
+                        ]}
+                      >
+                        {item.icon}
                       </View>
                       {item.badge ? (
                         <View
@@ -1076,35 +1075,67 @@ export default function HomeScreen({ onNavigate }) {
                               backgroundColor: item.badgeBg,
                               borderColor: item.badgeBorder,
                               borderWidth: 1,
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              paddingHorizontal: 9,
+                              paddingVertical: 4,
                             },
                           ]}
                         >
-                          <Text style={[styles.amcBadgePillText, { color: item.badgeColor }]}>{item.badge}</Text>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                          <Text style={[styles.amcBadgePillText, { color: item.badgeColor, fontSize: 10 }]}>{item.badge}</Text>
                         </View>
                       ) : null}
                     </View>
 
-                    {/* Middle: Spacious Subtitle across the card */}
-                    <Text style={[styles.amcLuxurySub, { color: item.subColor, marginTop: 8, marginBottom: 12, fontSize: 12, lineHeight: 16.5 }]}>
+                    {/* Title & Tagline below the top row with comfortable space */}
+                    <View style={styles.amcPlansTitleBlock}>
+                      <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 18.5, letterSpacing: -0.3 }]}>
+                        {item.title}
+                      </Text>
+                      <Text style={{ color: '#93c5fd', fontSize: 11.5, fontWeight: '600', letterSpacing: 0.2, marginTop: 1 }}>
+                        Annual Maintenance Pass
+                      </Text>
+                    </View>
+
+                    {/* Middle: Description */}
+                    <Text style={[styles.amcLuxurySub, { color: item.subColor, marginTop: 6, marginBottom: 12, fontSize: 12, lineHeight: 16.5 }]}>
                       {item.subtitle}
                     </Text>
 
+                    {/* Perk chips strip (REAL ICONS ONLY, NO EMOJIS) */}
+                    <View style={styles.amcPerksStrip}>
+                      <View style={styles.amcPerkChip}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                        </svg>
+                        <Text style={styles.amcPerkChipText}>2-Hr Priority</Text>
+                      </View>
+                      <View style={styles.amcPerkChip}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          <path d="m9 12 2 2 4-4" />
+                        </svg>
+                        <Text style={styles.amcPerkChipText}>₹0 Labour Fee</Text>
+                      </View>
+                      <View style={styles.amcPerkChip}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                        </svg>
+                        <Text style={styles.amcPerkChipText}>Free Inspections</Text>
+                      </View>
+                    </View>
+
                     {/* Bottom: Right-aligned Action Pill Button */}
                     <View style={styles.amcPlansFooterRow}>
-                      <View
-                        style={[
-                          styles.amcPlansActionPill,
-                          {
-                            backgroundImage: item.pillBtnBg,
-                            backgroundColor: '#2563eb',
-                          },
-                        ]}
-                      >
-                        <Text style={[styles.amcPlansActionPillText, { color: item.pillBtnColor }]}>
+                      <View style={styles.amcPlansActionPill}>
+                        <Text style={styles.amcPlansActionPillText}>
                           {item.actionLabel}
                         </Text>
-                        <View style={[styles.amcCardActionPillArrow, { backgroundColor: item.pillArrowBg, width: 22, height: 22, borderRadius: 11, marginLeft: 8 }]}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={item.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                        <View style={styles.amcPlansActionPillArrow}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="5" y1="12" x2="19" y2="12" />
                             <polyline points="12 5 19 12 12 19" />
                           </svg>
@@ -1122,9 +1153,9 @@ export default function HomeScreen({ onNavigate }) {
                           {
                             background: item.iconBg,
                             border: item.iconBorder,
-                            width: 36,
-                            height: 36,
-                            borderRadius: 18,
+                            width: 38,
+                            height: 38,
+                            borderRadius: 19,
                           },
                         ]}
                       >
@@ -1138,9 +1169,23 @@ export default function HomeScreen({ onNavigate }) {
                               backgroundColor: item.badgeBg,
                               borderColor: item.badgeBorder,
                               borderWidth: 1,
+                              flexDirection: 'row',
+                              alignItems: 'center',
                             },
                           ]}
                         >
+                          {item.key === 'complaints' && (
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={item.badgeColor} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                          )}
+                          {item.key === 'mechanic' && (
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={item.badgeColor} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
+                              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                              <line x1="7" y1="7" x2="7.01" y2="7" />
+                            </svg>
+                          )}
                           <Text style={[styles.amcBadgePillText, { color: item.badgeColor }]}>{item.badge}</Text>
                         </View>
                       ) : null}
@@ -1823,11 +1868,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  amcHeaderAccentBar: {
-    width: 22,
-    height: 3,
-    backgroundColor: '#2563eb',
-    borderRadius: 2,
+  amcHeaderSparkleIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   amcSectionTitle: {
     fontSize: 19,
@@ -1852,7 +1901,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   amcLuxuryCardFeatured: {
-    minHeight: 104,
+    minHeight: 140,
     padding: 16,
     justifyContent: 'center',
   },
@@ -1880,18 +1929,42 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     width: '100%',
   },
-  amcPlansHeaderRow: {
+  amcPlansTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
+    marginBottom: 10,
   },
-  amcPlansHeaderLeft: {
+  amcPlansTitleBlock: {
+    flexDirection: 'column',
+    width: '100%',
+  },
+  amcPerksStrip: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+    marginBottom: 12,
+    width: '100%',
+  },
+  amcPerkChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    flex: 1,
-    paddingRight: 8,
+    gap: 4.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 999,
+  },
+  amcPerkChipText: {
+    color: '#e0f2fe',
+    fontSize: 10.5,
+    fontWeight: '600',
+    letterSpacing: 0.1,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
   },
   amcPlansFooterRow: {
     flexDirection: 'row',
@@ -1907,14 +1980,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.22)',
+    backgroundColor: '#ffffff',
+    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.16)',
     boxSizing: 'border-box',
   },
   amcPlansActionPillText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#1e40af',
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
     ...(Platform.OS === 'web' ? { whiteSpace: 'nowrap' } : {}),
+  },
+  amcPlansActionPillArrow: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
   },
   amcCardTopRow: {
     flexDirection: 'row',

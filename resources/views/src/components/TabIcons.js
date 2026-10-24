@@ -9,14 +9,21 @@ export function VectorTabIcon({ name, active, activeColor = '#2563eb', inactiveC
       case 'home':
         if (active) {
           return (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="#2563eb" stroke="#2563eb" strokeWidth="1">
-              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <defs>
+                <linearGradient id="homeGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#1d4ed8" />
+                </linearGradient>
+              </defs>
+              <path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z" stroke="url(#homeGrad)" fill="rgba(37, 99, 235, 0.16)" />
+              <polyline points="9 22 9 12 15 12 15 22" stroke="url(#homeGrad)" strokeWidth="2.2" />
             </svg>
           );
         }
         return (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z" />
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         );
@@ -79,15 +86,15 @@ export function VectorTabIcon({ name, active, activeColor = '#2563eb', inactiveC
       case 'profile':
         if (active) {
           return (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <defs>
                 <linearGradient id="profGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#334155" />
-                  <stop offset="100%" stopColor="#0f172a" />
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#1d4ed8" />
                 </linearGradient>
               </defs>
-              <path d="M20 21v-1.5a4.5 4.5 0 0 0-4.5-4.5h-7A4.5 4.5 0 0 0 4 19.5V21" stroke="url(#profGrad)" fill="rgba(15, 23, 42, 0.14)" />
-              <circle cx="12" cy="7" r="4" stroke="url(#profGrad)" fill="rgba(15, 23, 42, 0.14)" />
+              <path d="M20 21v-1.5a4.5 4.5 0 0 0-4.5-4.5h-7A4.5 4.5 0 0 0 4 19.5V21" stroke="url(#profGrad)" fill="rgba(37, 99, 235, 0.16)" />
+              <circle cx="12" cy="7" r="4" stroke="url(#profGrad)" fill="rgba(37, 99, 235, 0.16)" />
             </svg>
           );
         }
