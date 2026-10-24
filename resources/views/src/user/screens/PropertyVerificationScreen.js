@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcons';
 import { SERVICE_IMAGES } from '../../utils/bundledImages';
 import ApplianceAddWizard, { buildSavedApplianceRecords } from '../../components/appliances/ApplianceAddWizard';
+import AppliancePaymentPromptModal from '../../components/appliances/AppliancePaymentPromptModal';
 import DynamicApplianceFields, {
   validateApplianceFields,
   resolveBrandName,
@@ -178,6 +179,8 @@ export default function PropertyVerificationScreen({ onNavigate }) {
   const [showLocModal, setShowLocModal] = useState(false);
   const [showNotifModal, setShowNotifModal] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentPromptTarget, setPaymentPromptTarget] = useState(null);
   const [address, setAddress] = useState(activeUser?.property?.address || activeUser?.address || '');
 
   useEffect(() => {
@@ -396,10 +399,12 @@ export default function PropertyVerificationScreen({ onNavigate }) {
       mediaStatus: capturedMedia ? 'PENDING_REVIEW' : 'SKIPPED',
       createdAt: new Date().toISOString(),
     };
-    addUserAppliance(finalAppliance);
-    setLatestAdded(finalAppliance);
-    setCapturedMedia(null);
-    setView('SUCCESS');
+    setPaymentPromptTarget({
+      type: 'SINGLE',
+      appliance: finalAppliance,
+      name: nameToSave,
+    });
+    setShowPaymentModal(true);
   };
 
   const stopCamera = () => {
@@ -667,9 +672,45 @@ export default function PropertyVerificationScreen({ onNavigate }) {
   const handleWizardComplete = (units, applianceType) => {
     if (!activeUser) return;
     const records = buildSavedApplianceRecords(units, applianceType, activeUser);
-    records.forEach((rec) => addUserAppliance(rec));
-    setLatestAdded(records[records.length - 1] || null);
-    setView('SUCCESS');
+    const first = records[0];
+    setPaymentPromptTarget({
+      type: 'WIZARD',
+      records,
+      name: first?.name || applianceType?.name || 'Appliance',
+    });
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSuccess = (paymentResult) => {
+    setShowPaymentModal(false);
+    const payId = paymentResult?.paymentId || `pay_${Date.now()}`;
+    const nowIso = new Date().toISOString();
+
+    if (paymentPromptTarget?.type === 'WIZARD') {
+      const records = (paymentPromptTarget.records || []).map((rec) => ({
+        ...rec,
+        isCoveredByAmc: true,
+        fee_paid: 500,
+        paymentId: payId,
+        paymentDate: nowIso,
+      }));
+      records.forEach((rec) => addUserAppliance(rec));
+      setLatestAdded(records[records.length - 1] || null);
+      setView('SUCCESS');
+    } else if (paymentPromptTarget?.type === 'SINGLE') {
+      const finalAppliance = {
+        ...paymentPromptTarget.appliance,
+        isCoveredByAmc: true,
+        fee_paid: 500,
+        paymentId: payId,
+        paymentDate: nowIso,
+      };
+      addUserAppliance(finalAppliance);
+      setLatestAdded(finalAppliance);
+      setCapturedMedia(null);
+      setView('SUCCESS');
+    }
+    setPaymentPromptTarget(null);
   };
 
   const handleCategorySelect = (cat) => {
@@ -1962,6 +2003,18 @@ export default function PropertyVerificationScreen({ onNavigate }) {
           </View>
         </View>
       </Modal>
+
+      <AppliancePaymentPromptModal
+        visible={showPaymentModal}
+        applianceName={paymentPromptTarget?.name || 'Appliance'}
+        activeUser={activeUser}
+        contextLabel="appliance onboarding and active AMC coverage"
+        onPaymentSuccess={handlePaymentSuccess}
+        onCancel={() => {
+          setShowPaymentModal(false);
+          setPaymentPromptTarget(null);
+        }}
+      />
       </>
       )}
     </View>

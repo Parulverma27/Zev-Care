@@ -73,18 +73,8 @@ export default function BookingApplianceCard({ appliance, selected, onPress }) {
             </Text>
           )}
 
-          <View style={styles.badgesRow}>
-            {appliance.isCoveredByAmc ? (
-              <View style={styles.coveredBadge}>
-                <Text style={styles.coveredBadgeText}>✓ Covered by AMC • ₹0 Labor</Text>
-              </View>
-            ) : (
-              <View style={styles.outOfPlanBadge}>
-                <Text style={styles.outOfPlanBadgeText}>Out-of-Plan • ₹500 Fee</Text>
-              </View>
-            )}
-
-            {videoUri && (
+          {!!videoUri && (
+            <View style={styles.badgesRow}>
               <TouchableOpacity
                 style={styles.watchVideoBtn}
                 onPress={(e) => {
@@ -98,8 +88,8 @@ export default function BookingApplianceCard({ appliance, selected, onPress }) {
                 </svg>
                 <Text style={styles.watchVideoBtnText}>Watch Video</Text>
               </TouchableOpacity>
-            )}
-          </View>
+            </View>
+          )}
         </View>
 
         <Text style={[styles.chevron, selected && styles.chevronOn]}>{selected ? '✓' : '›'}</Text>

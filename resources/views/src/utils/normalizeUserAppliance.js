@@ -27,6 +27,8 @@ export function normalizeUserAppliance(raw) {
     uploadedMediaUri: raw.uploadedMediaUri || media?.url || null,
     media,
     mediaStatus: raw.mediaStatus || (media ? 'PENDING_REVIEW' : 'SKIPPED'),
+    isCoveredByAmc: raw.isCoveredByAmc !== false,
+    is_covered_by_amc: raw.is_covered_by_amc !== false,
     is_immutable: raw.is_immutable ?? false,
     createdAt: raw.createdAt || new Date().toISOString(),
   };

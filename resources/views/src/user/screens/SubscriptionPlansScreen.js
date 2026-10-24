@@ -6,6 +6,7 @@ import api from '../../services/ApiService';
 import { AppIcon } from '../../components/AppIcons';
 import { getPlanTheme } from '../../config/planTheme';
 import ApplianceAddWizard, { buildSavedApplianceRecords } from '../../components/appliances/ApplianceAddWizard';
+import AppliancePaymentPromptModal from '../../components/appliances/AppliancePaymentPromptModal';
 import LiveSupportOptionCard from '../../components/booking/LiveSupportOptionCard';
 import PlanReviewScreen from '../../components/plans/PlanReviewScreen';
 import PlanPurchaseSuccess from '../../components/plans/PlanPurchaseSuccess';
@@ -337,6 +338,8 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [copiedContract, setCopiedContract] = useState(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentPromptTarget, setPaymentPromptTarget] = useState(null);
 
   // History sub-filter
   const [historyFilter, setHistoryFilter] = useState('All');
@@ -598,25 +601,15 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
     }));
   };
 
-  // Active Member: adding appliance directly to active contract (UNLIMITED)
+  // Active Member: adding appliance directly to active contract (Requires ₹500 fee)
   const handleAddActiveAppliance = (appName) => {
     if (!appName || !addUserAppliance) return;
-
-    const newRecord = {
-      id: Date.now() + Math.floor(Math.random() * 1000),
+    setPaymentPromptTarget({
+      type: 'QUICK_ADD',
       name: appName,
-      brand: 'Standard',
-      location: 'Home',
-      category: 'Home Appliance',
-      is_covered_by_amc: true,
-      user_id: activeUser?.id,
-      user_phone: activeUser?.phone,
-    };
-
-    addUserAppliance(newRecord);
-    setActionSuccessMsg(`Added "${appName}" to your active AMC protection!`);
-    setTimeout(() => setActionSuccessMsg(''), 4000);
+    });
     setShowActiveAddModal(false);
+    setShowPaymentModal(true);
   };
 
   // Trigger purchase flow for a plan
@@ -788,14 +781,56 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
       setViewMode('PLAN_REVIEW');
       return;
     } else {
+      // Adding out-of-plan appliance to active contract requires ₹500 fee
+      const first = records[0];
+      setPaymentPromptTarget({
+        type: 'WIZARD_ADD',
+        records,
+        name: first?.name || applianceType?.name || 'Appliance',
+      });
+      setShowPaymentModal(true);
+    }
+  };
+
+  const handleAppliancePaymentSuccess = (paymentResult) => {
+    setShowPaymentModal(false);
+    const payId = paymentResult?.paymentId || `pay_${Date.now()}`;
+    const nowIso = new Date().toISOString();
+
+    if (paymentPromptTarget?.type === 'QUICK_ADD') {
+      const appName = paymentPromptTarget.name;
+      const newRecord = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        name: appName,
+        brand: 'Standard',
+        location: 'Home',
+        category: 'Home Appliance',
+        is_covered_by_amc: true,
+        fee_paid: 500,
+        paymentId: payId,
+        paymentDate: nowIso,
+        user_id: activeUser?.id,
+        user_phone: activeUser?.phone,
+      };
+      if (addUserAppliance) addUserAppliance(newRecord);
+      setActionSuccessMsg(`Added "${appName}" to your active AMC protection!`);
+      setTimeout(() => setActionSuccessMsg(''), 4000);
+    } else if (paymentPromptTarget?.type === 'WIZARD_ADD') {
+      const records = (paymentPromptTarget.records || []).map((rec) => ({
+        ...rec,
+        is_covered_by_amc: true,
+        fee_paid: 500,
+        paymentId: payId,
+        paymentDate: nowIso,
+      }));
       if (addUserAppliance) {
         records.forEach((rec) => addUserAppliance(rec));
       }
       setActionSuccessMsg(`${records.length} appliance(s) registered under your AMC protection!`);
+      setViewMode('DASHBOARD');
+      setTimeout(() => setActionSuccessMsg(''), 4000);
     }
-
-    setViewMode('DASHBOARD');
-    setTimeout(() => setActionSuccessMsg(''), 4000);
+    setPaymentPromptTarget(null);
   };
 
   if (viewMode === 'WIZARD') {
@@ -819,6 +854,17 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
             }
           }}
           onComplete={handleWizardComplete}
+        />
+        <AppliancePaymentPromptModal
+          visible={showPaymentModal}
+          applianceName={paymentPromptTarget?.name || 'Appliance'}
+          activeUser={activeUser}
+          contextLabel="adding appliance to active AMC contract"
+          onPaymentSuccess={handleAppliancePaymentSuccess}
+          onCancel={() => {
+            setShowPaymentModal(false);
+            setPaymentPromptTarget(null);
+          }}
         />
       </View>
     );
@@ -2081,6 +2127,18 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
           </View>
         </View>
       </Modal>
+
+      <AppliancePaymentPromptModal
+        visible={showPaymentModal}
+        applianceName={paymentPromptTarget?.name || 'Appliance'}
+        activeUser={activeUser}
+        contextLabel="adding appliance to active AMC contract"
+        onPaymentSuccess={handleAppliancePaymentSuccess}
+        onCancel={() => {
+          setShowPaymentModal(false);
+          setPaymentPromptTarget(null);
+        }}
+      />
     </ScrollView>
   );
 }

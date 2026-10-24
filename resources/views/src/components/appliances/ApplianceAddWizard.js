@@ -1995,6 +1995,8 @@ export function buildSavedApplianceRecords(units, selectedService, user) {
         ? { type: 'video', url: realVideoUri, uri: realVideoUri, fileName: unit.media?.fileName || 'Appliance_Live_Video.webm' }
         : null,
       mediaStatus: realVideoUri ? 'PENDING_REVIEW' : 'NOT_REQUIRED',
+      isCoveredByAmc: true,
+      is_covered_by_amc: true,
       createdAt: unit.createdAt || new Date().toISOString(),
       is_immutable: false,
     };

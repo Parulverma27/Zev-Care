@@ -26,6 +26,7 @@ import MediaCapturePanel from '../../components/MediaCapturePanel';
 import ApplianceAddWizard, {
   buildSavedApplianceRecords,
 } from '../../components/appliances/ApplianceAddWizard';
+import AppliancePaymentPromptModal from '../../components/appliances/AppliancePaymentPromptModal';
 import { AppIcon } from '../../components/AppIcons';
 import BookingApplianceSelectStep from '../../components/booking/BookingApplianceSelectStep';
 import BookingIssueStep from '../../components/booking/BookingIssueStep';
@@ -65,6 +66,7 @@ export default function BookingFlowScreen({ onNavigate }) {
     validateServiceLocation,
     getAppliancesForUser,
     addUserAppliance,
+    updateUserAppliance,
     userAppliances: allUserAppliances,
   } = useApp();
   const navigate = useNavigate();
@@ -96,6 +98,10 @@ export default function BookingFlowScreen({ onNavigate }) {
   const [issueDescription, setIssueDescription] = useState('');
   const [issueMedia, setIssueMedia] = useState(emptyIssueMedia());
   const [otherError, setOtherError] = useState('');
+
+  // Appliance upfront fee payment modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentPromptTarget, setPaymentPromptTarget] = useState(null);
 
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledDateLabel, setScheduledDateLabel] = useState('');
@@ -310,15 +316,18 @@ export default function BookingFlowScreen({ onNavigate }) {
 
   const selectExistingAppliance = (appliance) => {
     const changed = String(selectedAppliance?.id) !== String(appliance?.id);
-    setSelectedAppliance(appliance);
+    setSelectedAppliance({
+      ...appliance,
+      isCoveredByAmc: true,
+    });
     setIsNewAppliance(false);
-    const isCovered = Boolean(appliance?.isCoveredByAmc);
-    setApplianceRegistrationFee(isConsultation || isCovered ? 0 : APPLIANCE_REGISTRATION_FEE);
+    setApplianceRegistrationFee(0);
     if (changed) clearIssueState();
   };
 
   const confirmExistingAppliance = () => {
     if (!selectedAppliance) return;
+    // An appliance already registered in the user's account is covered at ₹0 fee!
     clearIssueState();
     setStep('ISSUE');
   };
@@ -500,13 +509,68 @@ export default function BookingFlowScreen({ onNavigate }) {
 
   const handleWizardComplete = (units, applianceType) => {
     const records = buildSavedApplianceRecords(units, applianceType, activeUser);
-    records.forEach((r) => addUserAppliance(r));
     const first = records[0];
+    if (!isConsultation) {
+      setPaymentPromptTarget({
+        type: 'NEW_APPLIANCE',
+        records,
+        appliance: first,
+        name: first?.name || applianceType?.name || displayName || 'New Appliance',
+      });
+      setShowPaymentModal(true);
+      return;
+    }
+    records.forEach((r) => addUserAppliance(r));
     setSelectedAppliance(first);
     setIsNewAppliance(true);
-    setApplianceRegistrationFee(isConsultation ? 0 : APPLIANCE_REGISTRATION_FEE);
+    setApplianceRegistrationFee(0);
     clearIssueState();
     setStep('ISSUE');
+  };
+
+  const handleAppliancePaymentSuccess = (paymentResult) => {
+    setShowPaymentModal(false);
+    const payId = paymentResult?.paymentId || `pay_${Date.now()}`;
+    const nowIso = new Date().toISOString();
+
+    if (paymentPromptTarget?.type === 'NEW_APPLIANCE') {
+      const records = (paymentPromptTarget.records || []).map((rec) => ({
+        ...rec,
+        isCoveredByAmc: true,
+        fee_paid: 500,
+        paymentId: payId,
+        paymentDate: nowIso,
+      }));
+      records.forEach((r) => addUserAppliance(r));
+      const first = records[0] || paymentPromptTarget.appliance;
+      setSelectedAppliance(first);
+      setIsNewAppliance(true);
+      setApplianceRegistrationFee(0);
+      clearIssueState();
+      setStep('ISSUE');
+    } else if (paymentPromptTarget?.type === 'EXISTING_APPLIANCE') {
+      const app = paymentPromptTarget.appliance;
+      if (app?.id) {
+        updateUserAppliance(app.id, {
+          isCoveredByAmc: true,
+          fee_paid: 500,
+          paymentId: payId,
+          paymentDate: nowIso,
+        });
+        setSelectedAppliance({
+          ...app,
+          isCoveredByAmc: true,
+          fee_paid: 500,
+          paymentId: payId,
+          paymentDate: nowIso,
+        });
+      }
+      setIsNewAppliance(false);
+      setApplianceRegistrationFee(0);
+      clearIssueState();
+      setStep('ISSUE');
+    }
+    setPaymentPromptTarget(null);
   };
 
   const handleIssueSelect = (item) => {
@@ -906,7 +970,7 @@ export default function BookingFlowScreen({ onNavigate }) {
             )}
           </View>
           {!!selectedAppliance && (
-            selectedAppliance.isCoveredByAmc ? (
+            selectedAppliance.isCoveredByAmc !== false ? (
               <View style={styles.coveredAmcBanner}>
                 <Text style={styles.coveredAmcTitle}>✓ Covered Under AMC Plan</Text>
                 <Text style={styles.coveredAmcSub}>This appliance is protected under your AMC. ₹0 Breakdown inspection & labor included.</Text>
@@ -915,16 +979,6 @@ export default function BookingFlowScreen({ onNavigate }) {
               <View style={styles.consultationAmcBanner}>
                 <Text style={styles.consultationAmcTitle}>✓ Free Doorstep Diagnosis (@ ₹0)</Text>
                 <Text style={styles.consultationAmcSub}>Complimentary inspection visit is active for this appliance. No plan fees apply.</Text>
-              </View>
-            ) : !isConsultation ? (
-              <View style={styles.outOfPlanFeeBanner}>
-                <View style={styles.outOfPlanFeeRow}>
-                  <Text style={styles.outOfPlanFeeTitle}>Out-of-Plan Appliance Service Charge</Text>
-                  <Text style={styles.outOfPlanFeeAmount}>₹{APPLIANCE_REGISTRATION_FEE}</Text>
-                </View>
-                <Text style={styles.outOfPlanFeeSub}>
-                  This appliance was not added during your AMC plan purchase. Standard ₹{APPLIANCE_REGISTRATION_FEE} fee applies for this booking.
-                </Text>
               </View>
             ) : null
           )}
@@ -1020,10 +1074,8 @@ export default function BookingFlowScreen({ onNavigate }) {
                 <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Coverage / Visit Fee</Text>
                 {isConsultation ? (
                   <Text style={[styles.summaryValue, { color: '#16a34a' }]}>✓ Complimentary On-Site Diagnosis (₹0 Visit Fee)</Text>
-                ) : selectedAppliance.isCoveredByAmc ? (
-                  <Text style={[styles.summaryValue, { color: '#15803d' }]}>✓ Covered under AMC (₹0 Labor & Inspection)</Text>
                 ) : (
-                  <Text style={[styles.summaryValue, { color: '#c2410c' }]}>Out-of-Plan (₹{APPLIANCE_REGISTRATION_FEE} Booking Fee Applies)</Text>
+                  <Text style={[styles.summaryValue, { color: '#15803d' }]}>✓ Covered under AMC (₹0 Labor & Inspection)</Text>
                 )}
               </>
             )}
@@ -1070,24 +1122,11 @@ export default function BookingFlowScreen({ onNavigate }) {
               </Text>
             </View>
           ) : (
-            <>
-              {!!selectedAppliance && !selectedAppliance.isCoveredByAmc && (
-                <View style={styles.outOfPlanFeeBanner}>
-                  <View style={styles.outOfPlanFeeRow}>
-                    <Text style={styles.outOfPlanFeeTitle}>Out-of-Plan Appliance Fee</Text>
-                    <Text style={styles.outOfPlanFeeAmount}>₹{APPLIANCE_REGISTRATION_FEE}</Text>
-                  </View>
-                  <Text style={styles.outOfPlanFeeSub}>
-                    Added because this appliance was not registered during AMC plan purchase.
-                  </Text>
-                </View>
-              )}
-              <View style={styles.billNote}>
-                <Text style={styles.billNoteText}>
-                  No payment now. A technician will inspect first, and the bill will be shared with you after that.
-                </Text>
-              </View>
-            </>
+            <View style={styles.billNote}>
+              <Text style={styles.billNoteText}>
+                No payment now. A technician will inspect first, and the bill will be shared with you after that.
+              </Text>
+            </View>
           )}
           {!!formError && <Text style={styles.error}>{formError}</Text>}
           <View style={{ marginVertical: 14 }}>
@@ -1370,6 +1409,17 @@ export default function BookingFlowScreen({ onNavigate }) {
     <View style={styles.rootWrapper}>
       {renderStepContent()}
       {renderGuestModal()}
+      <AppliancePaymentPromptModal
+        visible={showPaymentModal}
+        applianceName={paymentPromptTarget?.name || displayName || 'Appliance'}
+        activeUser={activeUser}
+        contextLabel={isComplaint ? 'complaint resolution and AMC coverage' : 'service booking and AMC coverage'}
+        onPaymentSuccess={handleAppliancePaymentSuccess}
+        onCancel={() => {
+          setShowPaymentModal(false);
+          setPaymentPromptTarget(null);
+        }}
+      />
     </View>
   );
 }

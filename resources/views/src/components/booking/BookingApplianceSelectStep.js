@@ -35,8 +35,8 @@ export default function BookingApplianceSelectStep({
 
       <View style={styles.amcPolicyBanner}>
         <Text style={styles.amcPolicyText}>
-          <Text style={{ fontWeight: '700' }}>🛡️ AMC Coverage Rule: </Text>
-          Appliances added during AMC purchase are covered at ₹0 breakdown labor. Any appliance added after plan purchase incurs a ₹{APPLIANCE_REGISTRATION_FEE} booking fee.
+          <Text style={{ fontWeight: '700' }}>🛡️ AMC Coverage: </Text>
+          All appliances already added to your account are covered at ₹0 breakdown labor. To service an appliance you haven&apos;t added yet, tap &quot;+ Add another&quot; below (one-time ₹{APPLIANCE_REGISTRATION_FEE} registration fee applies).
         </Text>
       </View>
 
@@ -50,7 +50,7 @@ export default function BookingApplianceSelectStep({
             <Text style={styles.primaryBtnText}>+ Add {displayName}</Text>
           </TouchableOpacity>
           <View style={styles.feeBanner}>
-            <Text style={styles.feeTitle}>Out-of-plan appliance registration fee</Text>
+            <Text style={styles.feeTitle}>One-time appliance registration fee</Text>
             <Text style={styles.feeAmount}>₹{APPLIANCE_REGISTRATION_FEE}</Text>
           </View>
         </View>
@@ -68,7 +68,7 @@ export default function BookingApplianceSelectStep({
           <TouchableOpacity style={styles.addCard} onPress={onAddNew} activeOpacity={0.88}>
             <Text style={styles.addTitle}>+ Add another {displayName}</Text>
             <Text style={styles.addSub}>
-              Out-of-plan appliance: ₹{APPLIANCE_REGISTRATION_FEE} service fee applies
+              Appliance not added yet? Add now & pay ₹{APPLIANCE_REGISTRATION_FEE} registration fee to book
             </Text>
           </TouchableOpacity>
         </View>

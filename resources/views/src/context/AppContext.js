@@ -2132,6 +2132,8 @@ export function AppProvider({ children }) {
               capacity: a.capacity || '',
               year: a.year || a.age_range || '',
               applianceTypeId: a.applianceTypeId || '',
+              isCoveredByAmc: true,
+              is_covered_by_amc: true,
             }));
         }
       }
@@ -2162,12 +2164,18 @@ export function AppProvider({ children }) {
     const clean = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
     const cleanUserPhone = clean(userPhone);
 
-    const matches = (userAppliances || []).filter((a) => {
-      if (userId != null && (a.userId === userId || String(a.userId) === String(userId))) return true;
-      if (userId != null && (a.user_id === userId || String(a.user_id) === String(userId))) return true;
-      if (cleanUserPhone && a.user_phone && clean(a.user_phone) === cleanUserPhone) return true;
-      return false;
-    });
+    const matches = (userAppliances || [])
+      .filter((a) => {
+        if (userId != null && (a.userId === userId || String(a.userId) === String(userId))) return true;
+        if (userId != null && (a.user_id === userId || String(a.user_id) === String(userId))) return true;
+        if (cleanUserPhone && a.user_phone && clean(a.user_phone) === cleanUserPhone) return true;
+        return false;
+      })
+      .map((a) => ({
+        ...a,
+        isCoveredByAmc: true,
+        is_covered_by_amc: true,
+      }));
 
     return matches;
   };
@@ -2184,6 +2192,8 @@ export function AppProvider({ children }) {
       createdAt: new Date().toISOString(),
       age_range: applianceData.age_range || applianceData.year || '',
       brand: '',
+      isCoveredByAmc: true,
+      is_covered_by_amc: true,
       ...applianceData,
     };
     setUserAppliances((prev) => [newAppliance, ...prev]);
