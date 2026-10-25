@@ -181,7 +181,7 @@ const AMC_HOME_ACTIONS = [
     key: 'plans',
     badge: 'EXCLUSIVE PASS',
     title: 'My AMC Plan',
-    subtitle: 'Protect your home with premium annual coverage.',
+    subtitle: 'Protect your home with comprehensive annual maintenance.',
     actionLabel: 'Explore Plans',
     route: '/user/plans',
     theme: 'luxury',

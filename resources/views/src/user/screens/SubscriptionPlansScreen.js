@@ -1157,7 +1157,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                             AMC History
                           </Text>
                           <Text style={[styles.cardActionBtnSub, styles.cardActionBtnSubDesktop, { color: activeCardPalette.outlineBtnSub, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
-                            Claims & Ledger →
+                            Service History & Ledger →
                           </Text>
                         </View>
                       </TouchableOpacity>
@@ -1303,7 +1303,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                           AMC History
                         </Text>
                         <Text style={[styles.cardActionBtnSub, { color: activeCardPalette.outlineBtnSub, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }]}>
-                          Claims & Ledger →
+                          Service History & Ledger →
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -1576,7 +1576,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
               {/* Specs Bar: All plans have UNLIMITED appliances */}
               <View style={styles.amcSpecsBox}>
                 <View style={styles.amcSpecItem}>
-                  <Text style={styles.amcSpecLabel}>ANNUAL COVERAGE</Text>
+                  <Text style={styles.amcSpecLabel}>ANNUAL SERVICE CAP</Text>
                   <Text style={[styles.amcSpecVal, { color: '#0f172a' }]}>
                     {theme.coverageLimitText || '₹1 Lakh'}
                   </Text>
@@ -1734,7 +1734,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
             if (navigate) navigate('/user/support');
             else if (onNavigate) onNavigate('/user/support');
           }}
-          subtitle="Have questions about AMC plan benefits or appliance coverage? Chat with us"
+          subtitle="Have questions about AMC plan benefits or appliance maintenance? Chat with us"
         />
       </View>
 
@@ -1933,7 +1933,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
             <View style={styles.historyModalHeader}>
               <View>
                 <Text style={styles.modalTitle}>My AMC History</Text>
-                <Text style={styles.modalSub}>Service claims, ₹0 labor waivers & contracts</Text>
+                <Text style={styles.modalSub}>Service records, ₹0 labor waivers & contracts</Text>
               </View>
               <TouchableOpacity onPress={() => setShowHistoryModal(false)} style={styles.modalCloseCircle}>
                 <Text style={{ fontSize: 16, color: '#64748b', fontWeight: '700' }}>✕</Text>
@@ -1978,7 +1978,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                       ? (tx.plan_name || 'AMC Contract Activation')
                       : isTopUp
                       ? `Parts Allowance Top-Up (+${formatMoney(tx.amount)})`
-                      : (tx.service_name || tx.description || 'AMC Service Claim');
+                      : (tx.service_name || tx.description || 'AMC Service Visit');
 
                     const cleanRef = String(
                       tx.refNumber ||

@@ -579,7 +579,7 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
             <View style={{ flex: 1 }}>
               <Text style={styles.declinedTitle}>Customer Declined Quote at ₹0 Visit Fee</Text>
               <Text style={styles.declinedSub}>
-                Customer chose not to proceed with repair. Per policy, ₹0 was charged. Work order closed.
+                Customer chose not to proceed with repair. Under Free Diagnosis Guarantee, ₹0 was charged. Work order closed.
               </Text>
             </View>
           </View>

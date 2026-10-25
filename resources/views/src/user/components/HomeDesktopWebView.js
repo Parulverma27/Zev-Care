@@ -313,47 +313,122 @@ function Luxury3DMechanicIcon({ size = 20 }) {
   );
 }
 
+/* Real SVG Vector Icons for Perks (Zero Emojis) */
+const renderPerkIcon = (iconName) => {
+  switch (iconName) {
+    case 'flash':
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        </svg>
+      );
+    case 'shield':
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <path d="m9 12 2 2 4-4" />
+        </svg>
+      );
+    case 'wrench':
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
+      );
+    case 'clock':
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      );
+    case 'pin':
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      );
+    case 'check-circle':
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      );
+    case 'tag':
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+          <line x1="7" y1="7" x2="7.01" y2="7" />
+        </svg>
+      );
+    case 'search':
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      );
+    case 'sparkle':
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+};
+
 const AMC_CARDS = [
   {
     key: 'plans',
     badge: 'EXCLUSIVE PASS',
     title: 'My AMC Plan',
-    subtitle: 'Protect your home with premium annual coverage.',
+    subtitle: 'Protect your home with comprehensive annual maintenance.',
     actionLabel: 'Explore Plans',
     route: '/user/plans',
-    cardBg: 'linear-gradient(155deg, #ffffff 0%, #f8faff 45%, #eff6ff 100%)',
-    borderColor: 'rgba(59, 130, 246, 0.32)',
-    boxShadow: '0 8px 24px -4px rgba(37, 99, 235, 0.10), 0 2px 6px rgba(15, 23, 42, 0.04)',
-    accentGradient: 'linear-gradient(90deg, #2563eb, #38bdf8)',
-    iconBg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-    iconBorder: '1.5px solid rgba(59, 130, 246, 0.35)',
-    titleColor: '#0f172a',
-    subColor: '#475569',
-    badgeBg: '#eff6ff',
-    badgeBorder: '#bfdbfe',
-    badgeColor: '#1d4ed8',
-    pillBtnBg: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-    pillBtnColor: '#ffffff',
-    pillArrowBg: 'rgba(255, 255, 255, 0.22)',
-    pillArrowColor: '#ffffff',
-    pillShadow: '0 4px 14px rgba(37, 99, 235, 0.24)',
+    theme: 'sapphire-vip',
+    cardBg: 'linear-gradient(145deg, #091a42 0%, #0f2c6e 50%, #1e40af 100%)',
+    borderColor: 'rgba(147, 197, 253, 0.45)',
+    boxShadow: '0 14px 34px -4px rgba(11, 30, 71, 0.35), 0 3px 8px rgba(15, 23, 42, 0.08)',
+    accentGradient: 'linear-gradient(90deg, #60a5fa, #93c5fd)',
+    iconBg: 'rgba(255, 255, 255, 0.12)',
+    iconBorder: '1.5px solid rgba(255, 255, 255, 0.25)',
+    titleColor: '#ffffff',
+    subColor: '#cbd5e1',
+    badgeBg: 'rgba(255, 255, 255, 0.12)',
+    badgeBorder: 'rgba(147, 197, 253, 0.4)',
+    badgeColor: '#bfdbfe',
+    pillBtnBg: '#ffffff',
+    pillBtnColor: '#1e40af',
+    pillArrowBg: '#eff6ff',
+    pillArrowColor: '#1e40af',
+    pillShadow: '0 4px 14px rgba(0, 0, 0, 0.20)',
     icon: <Luxury3DShieldIcon size={26} />,
+    perks: [
+      { id: 'p1', label: '2-Hour Priority Dispatch', icon: 'flash' },
+      { id: 'p2', label: '₹0 Labour on All Repairs', icon: 'shield' },
+      { id: 'p3', label: 'Free Periodic Inspections', icon: 'wrench' },
+    ],
   },
   {
     key: 'complaints',
     badge: 'PRIORITY',
     title: 'AMC Complaints',
-    subtitle: 'Raise any appliance or home issue.',
-    actionLabel: 'Raise Complaint',
+    subtitle: 'Raise any appliance or home issue in seconds.',
+    actionLabel: 'Raise Issue',
     route: '/user/complains',
-    cardBg: 'linear-gradient(155deg, #ffffff 0%, #fffbf5 45%, #fff7ed 100%)',
-    borderColor: 'rgba(249, 115, 22, 0.32)',
-    boxShadow: '0 8px 24px -4px rgba(234, 88, 12, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    theme: 'warm-frosted',
+    cardBg: 'linear-gradient(155deg, #ffffff 0%, #fffcf8 45%, #fff7ed 100%)',
+    borderColor: 'rgba(249, 115, 22, 0.30)',
+    boxShadow: '0 10px 28px -4px rgba(234, 88, 12, 0.08), 0 2px 6px rgba(15, 23, 42, 0.03)',
     accentGradient: 'linear-gradient(90deg, #ea580c, #f59e0b)',
     iconBg: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
     iconBorder: '1.5px solid rgba(249, 115, 22, 0.35)',
     titleColor: '#0f172a',
-    subColor: '#475569',
+    subColor: '#64748b',
     badgeBg: '#fff7ed',
     badgeBorder: '#fed7aa',
     badgeColor: '#c2410c',
@@ -361,24 +436,30 @@ const AMC_CARDS = [
     pillBtnColor: '#ffffff',
     pillArrowBg: 'rgba(255, 255, 255, 0.22)',
     pillArrowColor: '#ffffff',
-    pillShadow: '0 4px 14px rgba(234, 88, 12, 0.24)',
+    pillShadow: '0 4px 14px rgba(234, 88, 12, 0.22)',
     icon: <Luxury3DWrenchIcon size={22} />,
+    perks: [
+      { id: 'c1', label: 'Fast Ticket Logging', icon: 'clock' },
+      { id: 'c2', label: 'Live Technician Tracking', icon: 'pin' },
+      { id: 'c3', label: '100% Quality Guaranteed', icon: 'check-circle' },
+    ],
   },
   {
     key: 'mechanic',
     badge: '₹0 FREE',
     title: 'My Mechanic',
-    subtitle: 'Free on-site diagnosis & inspection.',
-    actionLabel: 'Book Free',
+    subtitle: 'Free on-site diagnosis & expert inspection.',
+    actionLabel: 'Book Free Visit',
     route: '/user/consultation',
+    theme: 'teal-frosted',
     cardBg: 'linear-gradient(155deg, #ffffff 0%, #f0fdf9 45%, #ecfdf5 100%)',
-    borderColor: 'rgba(16, 185, 129, 0.32)',
-    boxShadow: '0 8px 24px -4px rgba(16, 185, 129, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    borderColor: 'rgba(16, 185, 129, 0.30)',
+    boxShadow: '0 10px 28px -4px rgba(16, 185, 129, 0.08), 0 2px 6px rgba(15, 23, 42, 0.03)',
     accentGradient: 'linear-gradient(90deg, #10b981, #06b6d4)',
     iconBg: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
     iconBorder: '1.5px solid rgba(16, 185, 129, 0.35)',
     titleColor: '#0f172a',
-    subColor: '#475569',
+    subColor: '#64748b',
     badgeBg: '#ecfdf5',
     badgeBorder: '#a7f3d0',
     badgeColor: '#047857',
@@ -386,8 +467,13 @@ const AMC_CARDS = [
     pillBtnColor: '#ffffff',
     pillArrowBg: 'rgba(255, 255, 255, 0.22)',
     pillArrowColor: '#ffffff',
-    pillShadow: '0 4px 14px rgba(5, 150, 105, 0.24)',
+    pillShadow: '0 4px 14px rgba(5, 150, 105, 0.22)',
     icon: <Luxury3DMechanicIcon size={22} />,
+    perks: [
+      { id: 'm1', label: '100% Free Doorstep Visit', icon: 'tag' },
+      { id: 'm2', label: 'Comprehensive Diagnosis', icon: 'search' },
+      { id: 'm3', label: 'Zero Obligation Quotation', icon: 'sparkle' },
+    ],
   },
 ];
 
@@ -929,22 +1015,21 @@ export default function HomeDesktopWebView({
         </div>
       </section>
 
-      {/* 4. COMPLETE CARE FOR YOUR HOME (3 Symmetrical AMC Cards) */}
+      {/* 4. COMPLETE CARE FOR YOUR HOME (Flagship AMC Hero + 2 Action Tiles) */}
       <section style={sectionWrapStyle} aria-label="Complete Care for Your Home">
         <div style={sectionHeaderStyle}>
           <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#eff6ff', border: '1px solid #dbeafe', borderRadius: '999px', padding: '4px 10px', marginBottom: '8px' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2" />
+              </svg>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#1d4ed8', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                Zevota Care Privilege
+              </span>
+            </div>
             <h2 style={sectionTitleStyle}>Complete Care for Your Home</h2>
-            <p style={sectionSubtitleStyle}>Maintenance support designed around your home.</p>
+            <p style={sectionSubtitleStyle}>Comprehensive appliance protection, instant complaints & free on-site inspections.</p>
           </div>
-          <button
-            type="button"
-            className="zc-desktop-btn-secondary"
-            style={viewAllPillBtnStyle}
-            onClick={() => onNavigate('/user/plans')}
-          >
-            <span>Explore Plans</span>
-            <span style={{ fontSize: '14px' }}>→</span>
-          </button>
         </div>
 
         <div style={amcGridStyle}>
@@ -956,16 +1041,16 @@ export default function HomeDesktopWebView({
                 background: card.cardBg,
                 borderColor: card.borderColor,
                 boxShadow: card.boxShadow,
-                borderRadius: '22px',
+                borderRadius: '24px',
                 borderWidth: '1.5px',
                 borderStyle: 'solid',
-                padding: '24px 22px 20px 22px',
+                padding: '24px 22px 22px 22px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 position: 'relative',
                 overflow: 'hidden',
-                minHeight: '235px',
+                minHeight: '290px',
                 cursor: 'pointer',
                 boxSizing: 'border-box',
               }}
@@ -985,81 +1070,128 @@ export default function HomeDesktopWebView({
                 }}
               />
 
-              {/* Top Row: Squircle 3D Icon + Symmetrical Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '12px' }}>
-                <div
-                  className="zc-amc-icon-art"
-                  style={{
-                    background: card.iconBg,
-                    border: card.iconBorder,
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: '0 3px 10px rgba(15, 23, 42, 0.05)',
-                  }}
-                >
-                  {card.icon}
-                </div>
-                <div
-                  style={{
-                    backgroundColor: card.badgeBg,
-                    border: `1px solid ${card.badgeBorder}`,
-                    borderRadius: '999px',
-                    padding: '4px 11px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
-                  }}
-                >
-                  <span
+              <div>
+                {/* Top Row: Squircle 3D Icon + Symmetrical Badge with real vector icon */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '12px' }}>
+                  <div
+                    className="zc-amc-icon-art"
                     style={{
-                      color: card.badgeColor,
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      letterSpacing: '0.4px',
-                      fontFamily: "'Outfit', sans-serif",
+                      background: card.iconBg,
+                      border: card.iconBorder,
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: '0 3px 10px rgba(15, 23, 42, 0.05)',
                     }}
                   >
-                    {card.badge}
-                  </span>
+                    {card.icon}
+                  </div>
+                  <div
+                    style={{
+                      backgroundColor: card.badgeBg,
+                      border: `1px solid ${card.badgeBorder}`,
+                      borderRadius: '999px',
+                      padding: '4px 10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      flexShrink: 0,
+                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+                    }}
+                  >
+                    {card.key === 'plans' && (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    )}
+                    {card.key === 'complaints' && (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={card.badgeColor} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                    )}
+                    {card.key === 'mechanic' && (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={card.badgeColor} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                        <line x1="7" y1="7" x2="7.01" y2="7" />
+                      </svg>
+                    )}
+                    <span
+                      style={{
+                        color: card.badgeColor,
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        letterSpacing: '0.4px',
+                        fontFamily: "'Outfit', sans-serif",
+                      }}
+                    >
+                      {card.badge}
+                    </span>
+                  </div>
                 </div>
+
+                {/* Middle: Title & Subtitle */}
+                <div style={{ margin: '14px 0 12px 0', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <h3
+                    style={{
+                      fontSize: '19.5px',
+                      fontWeight: 800,
+                      color: card.titleColor,
+                      margin: 0,
+                      fontFamily: "'Outfit', sans-serif",
+                      letterSpacing: '-0.2px',
+                      lineHeight: 1.25,
+                    }}
+                  >
+                    {card.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: '12.5px',
+                      color: card.subColor,
+                      lineHeight: 1.45,
+                      margin: 0,
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    }}
+                  >
+                    {card.subtitle}
+                  </p>
+                </div>
+
+                {/* Feature Perks Checklist with real SVG icons (Zero emojis) */}
+                {card.perks && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', margin: '14px 0 18px 0' }}>
+                    {card.perks.map((perk) => (
+                      <div
+                        key={perk.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          color: card.key === 'plans' ? '#e0f2fe' : '#475569',
+                          background: card.key === 'plans' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.75)',
+                          border: `1px solid ${card.key === 'plans' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(226, 232, 240, 0.85)'}`,
+                          borderRadius: '8px',
+                          padding: '5px 9px',
+                        }}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', color: card.key === 'plans' ? '#93c5fd' : (card.key === 'complaints' ? '#ea580c' : '#059669') }}>
+                          {renderPerkIcon(perk.icon)}
+                        </span>
+                        <span>{perk.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Middle: Title & Subtitle */}
-              <div style={{ margin: '14px 0 18px 0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <h3
-                  style={{
-                    fontSize: '19px',
-                    fontWeight: 800,
-                    color: card.titleColor,
-                    margin: 0,
-                    fontFamily: "'Outfit', sans-serif",
-                    letterSpacing: '-0.2px',
-                    lineHeight: 1.25,
-                  }}
-                >
-                  {card.title}
-                </h3>
-                <p
-                  style={{
-                    fontSize: '12.5px',
-                    color: card.subColor,
-                    lineHeight: 1.5,
-                    margin: 0,
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  }}
-                >
-                  {card.subtitle}
-                </p>
-              </div>
-
-              {/* Bottom: Solid Gradient Action Button */}
+              {/* Bottom: Solid/Luminous Action Pill Button */}
               <div
                 style={{
                   background: card.pillBtnBg,
@@ -1074,6 +1206,7 @@ export default function HomeDesktopWebView({
                   boxSizing: 'border-box',
                   boxShadow: card.pillShadow,
                   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  marginTop: 'auto',
                 }}
               >
                 <span

@@ -395,7 +395,7 @@ export default function WalletScreen({ onNavigate }) {
             <View style={[styles.moneySection, { borderTopColor: 'rgba(15, 23, 42, 0.12)' }]}>
               <View style={styles.moneyMetaRow}>
                 <View style={{ gap: 2 }}>
-                  <Text style={[styles.moneyLabel, { color: planTheme.headerTaglineColor || '#475569' }]}>AMC COVERAGE BALANCE</Text>
+                  <Text style={[styles.moneyLabel, { color: planTheme.headerTaglineColor || '#475569' }]}>AMC SERVICE BALANCE</Text>
                   <Text style={[styles.moneyValText, { color: planTheme.headerTextColor || '#0f172a' }]}>
                     {formatMoney(contractDetails.remainingPlanMoney)}
                   </Text>
@@ -491,7 +491,7 @@ export default function WalletScreen({ onNavigate }) {
         >
           <IconDoc size={15} color={activeTab === 'claims' ? (isSilver ? '#e2e8f0' : '#fbbf24') : '#64748b'} />
           <Text style={[styles.tabItemText, activeTab === 'claims' && (isSilver ? { color: '#e2e8f0' } : styles.tabItemTextActive)]}>
-            Claims & History
+            Service History
           </Text>
         </TouchableOpacity>
       </View>
@@ -566,9 +566,9 @@ export default function WalletScreen({ onNavigate }) {
           {filteredTxs.length === 0 ? (
             <View style={styles.emptyClaimsCard}>
               <IconScroll size={36} color="#94a3b8" />
-              <Text style={styles.emptyClaimsTitle}>No Claims Logged Yet</Text>
+              <Text style={styles.emptyClaimsTitle}>No Service Requests Yet</Text>
               <Text style={styles.emptyClaimsSub}>
-                When you book home services under your AMC, all ₹0 labor waivers and covered repair claims will appear here.
+                When you book home services under your AMC, all ₹0 labor waivers and covered repair visits will appear here.
               </Text>
             </View>
           ) : (
@@ -589,7 +589,7 @@ export default function WalletScreen({ onNavigate }) {
                 ? (tx.plan_name || 'AMC Contract Activation')
                 : isTopUp
                 ? `Parts Allowance Top-Up (+${formatMoney(tx.amount)})`
-                : (tx.service_name || tx.description || 'AMC Service Claim');
+                : (tx.service_name || tx.description || 'AMC Service Request');
 
               const badgeStyle = isContractPurchase
                 ? styles.claimStatusActive
@@ -638,7 +638,7 @@ export default function WalletScreen({ onNavigate }) {
                       </View>
                       <View style={styles.claimRow}>
                         <Text style={styles.claimItemLabel}>Coverage Status:</Text>
-                        <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#059669' }}>Active & Available for Claims</Text>
+                        <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#059669' }}>Active & Ready for Service Requests</Text>
                       </View>
                     </View>
                   )}

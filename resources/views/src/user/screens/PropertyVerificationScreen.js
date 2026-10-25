@@ -968,7 +968,7 @@ export default function PropertyVerificationScreen({ onNavigate }) {
               </p>
 
               <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>Coverage Limit:</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>Appliance Quota:</span>
                 <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>{addedAppliances.length} Registered</span>
               </div>
             </div>
@@ -981,7 +981,7 @@ export default function PropertyVerificationScreen({ onNavigate }) {
                   <polyline points="9 12 11 14 15 10" />
                 </svg>
                 <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: 0, fontFamily: 'Inter, sans-serif' }}>
-                  AMC Protection Coverage
+                  AMC Plan Protection
                 </h3>
               </div>
 
@@ -1391,7 +1391,7 @@ export default function PropertyVerificationScreen({ onNavigate }) {
               </svg>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.coverageNoteTitle}>Coverage Policy Note</Text>
+              <Text style={styles.coverageNoteTitle}>Service Guidelines Note</Text>
               <Text style={styles.coverageNoteText}>
                 Please note: Only appliances in active <Text style={{ fontWeight: '700', color: '#1e40af' }}>working condition</Text> are covered under the Care Subscription Package. Pre-existing non-functional units cannot be onboarded.
               </Text>

@@ -10,7 +10,7 @@ const QUICK_REPLIES = [
   'What services do you offer?',
   'How do I reschedule a booking?',
   'Track my technician',
-  'Refund / Cancellation policy',
+  'Cancellation & Refund terms',
   'How to use wallet credits?',
 ];
 
@@ -18,7 +18,7 @@ const BOT_RESPONSES = {
   'What services do you offer?': '🔧 We offer Electrician, Plumbing, Carpentry, Home Appliance Repair, Furniture Repair, and Pest Control services — all across your city, 24/7.',
   'How do I reschedule a booking?': '📅 Please contact Live Support or raise a request from your booking detail screen. Our operations team will help you pick a new slot (up to 2 hours before arrival).',
   'Track my technician': '📍 Once your technician is assigned and sharing GPS, open your booking details to see live tracking on the map.',
-  'Refund / Cancellation policy': '💰 Cancellations before 2 hours get a full wallet credit refund. Within 2 hours, a ₹99 convenience fee applies.',
+  'Cancellation & Refund terms': '💰 Cancellations before 2 hours get a full wallet credit refund. Within 2 hours, a ₹99 convenience fee applies.',
   'How to use wallet credits?': '💳 Your wallet balance auto-applies when you approve a service bill. You can also add credit by purchasing a Care Plan.',
 };
 

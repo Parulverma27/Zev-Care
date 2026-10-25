@@ -404,7 +404,7 @@ export default function BookingDetailScreen() {
               <Text style={{ fontSize: 18 }}>✓</Text>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#166534' }}>
-                  Free Diagnosis Policy Honored (₹0)
+                  Free Diagnosis Guarantee Honored (₹0)
                 </Text>
                 <Text style={{ fontSize: 10.5, color: '#15803d', lineHeight: 14 }}>
                   Inspection visit is completely free. Approve quote below only if you want the technician to perform the repair now.

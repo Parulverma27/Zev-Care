@@ -292,7 +292,7 @@ export default function BookingDetailDesktopWebView({
                   <span style={{ fontSize: '16px' }}>✓</span>
                   <div>
                     <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#166534' }}>
-                      Free Doorstep Diagnosis Policy Honored (₹0)
+                      Free Doorstep Diagnosis Guarantee Honored (₹0)
                     </div>
                     <div style={{ fontSize: '11px', color: '#15803d', marginTop: '2px' }}>
                       The inspection visit is completely free. Approve the quote below only if you want the technician to perform the repair now.

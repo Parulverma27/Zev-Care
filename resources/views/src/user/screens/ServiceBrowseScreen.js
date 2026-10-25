@@ -317,7 +317,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
               if (navigate) navigate('/user/support');
               else if (onNavigate) onNavigate('/user/support');
             }}
-            subtitle="Need assistance with an appliance issue or AMC claim? Chat with our team"
+            subtitle="Need assistance with an appliance issue or AMC service booking? Chat with our team"
           />
         </View>
       </View>

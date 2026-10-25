@@ -820,7 +820,7 @@ export default function AdminBookingsScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
               <Text style={styles.inputLabel}>Service & Inspection Charge (₹)</Text>
               {Boolean(selectedBooking?.isConsultation || selectedBooking?.booking_mode === 'consultation') && (
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a' }}>₹0 Policy (Free Diagnostic Visit)</Text>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a' }}>₹0 Visit Guarantee (Free Diagnostic Visit)</Text>
               )}
             </View>
             <TextInput style={styles.textInput} keyboardType="number-pad" value={serviceCharge} onChangeText={setServiceCharge} placeholder="0" placeholderTextColor="#94a3b8" />

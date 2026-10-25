@@ -35,7 +35,7 @@ export default function BookingApplianceSelectStep({
 
       <View style={styles.amcPolicyBanner}>
         <Text style={styles.amcPolicyText}>
-          <Text style={{ fontWeight: '700' }}>🛡️ AMC Coverage: </Text>
+          <Text style={{ fontWeight: '700' }}>AMC Protection: </Text>
           All appliances already added to your account are covered at ₹0 breakdown labor. To service an appliance you haven&apos;t added yet, tap &quot;+ Add another&quot; below (one-time ₹{APPLIANCE_REGISTRATION_FEE} registration fee applies).
         </Text>
       </View>

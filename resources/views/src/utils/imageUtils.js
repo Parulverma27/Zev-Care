@@ -47,7 +47,7 @@ export const DEFAULT_BANNERS = [
   {
     id: 5,
     title: 'Smart Appliance & Property Verification',
-    description: 'Register appliances for digital invoice backup & instant claims.',
+    description: 'Register appliances for digital invoice backup & instant 1-tap service.',
     image_url: SERVICE_IMAGES.heroBanner2,
     type: 'hero',
     status: 'ACTIVE',

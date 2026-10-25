@@ -1337,7 +1337,7 @@ export default function ApplianceAddWizard({
                 </svg>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.coverageNoteTitle}>Coverage Policy Note</Text>
+                <Text style={styles.coverageNoteTitle}>Service Guidelines Note</Text>
                 <Text style={styles.coverageNoteText}>
                   Please note: Only items in active{' '}
                   <Text style={{ fontWeight: '700', color: '#1e40af' }}>working condition</Text>{' '}
