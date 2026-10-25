@@ -389,27 +389,29 @@ const AMC_CARDS = [
     subtitle: 'Protect your home with comprehensive annual maintenance.',
     actionLabel: 'Explore Plans',
     route: '/user/plans',
-    theme: 'pastel-blue',
-    cardBg: 'linear-gradient(135deg, rgba(186, 215, 253, 0.84) 0%, rgba(147, 197, 253, 0.66) 50%, rgba(191, 219, 254, 0.80) 100%)',
-    borderColor: 'rgba(255, 255, 255, 0.75)',
-    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 2px 0 rgba(37, 99, 235, 0.12), 0 10px 28px -4px rgba(37, 99, 235, 0.22), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    theme: 'frosted-sapphire',
+    glowOrb1: 'radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, rgba(96, 165, 250, 0.3) 55%, transparent 75%)',
+    glowOrb2: 'radial-gradient(circle, rgba(147, 197, 253, 0.65) 0%, rgba(59, 130, 246, 0.25) 55%, transparent 75%)',
+    cardBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(240, 246, 255, 0.52) 50%, rgba(224, 242, 254, 0.38) 100%)',
+    borderColor: 'rgba(255, 255, 255, 0.95)',
+    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 1px 0 rgba(37, 99, 235, 0.08), 0 12px 30px -4px rgba(37, 99, 235, 0.16), 0 2px 6px rgba(15, 23, 42, 0.03)',
     accentGradient: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
-    iconBg: 'rgba(255, 255, 255, 0.88)',
-    iconBorder: '1.5px solid rgba(255, 255, 255, 0.95)',
-    titleColor: '#0a2342',
-    subColor: '#334155',
-    badgeBg: 'rgba(255, 255, 255, 0.85)',
-    badgeBorder: 'rgba(147, 197, 253, 0.9)',
-    badgeColor: '#1e40af',
-    perkBg: 'rgba(255, 255, 255, 0.78)',
-    perkBorder: 'rgba(255, 255, 255, 0.92)',
-    perkColor: '#1e3a8a',
-    pillBtnBg: 'rgba(255, 255, 255, 0.92)',
-    pillBtnBorder: '1.2px solid rgba(255, 255, 255, 0.95)',
+    iconBg: 'rgba(255, 255, 255, 0.94)',
+    iconBorder: '1.5px solid #ffffff',
+    titleColor: '#0f172a',
+    subColor: '#475569',
+    badgeBg: 'rgba(255, 255, 255, 0.9)',
+    badgeBorder: 'rgba(191, 219, 254, 0.9)',
+    badgeColor: '#1d4ed8',
+    perkBg: 'rgba(255, 255, 255, 0.75)',
+    perkBorder: 'rgba(255, 255, 255, 0.95)',
+    perkColor: '#1e40af',
+    pillBtnBg: '#ffffff',
+    pillBtnBorder: '1.2px solid rgba(191, 219, 254, 0.95)',
     pillBtnColor: '#1d4ed8',
-    pillArrowBg: '#dbeafe',
+    pillArrowBg: '#eff6ff',
     pillArrowColor: '#1d4ed8',
-    pillShadow: '0 3px 10px rgba(37, 99, 235, 0.14)',
+    pillShadow: '0 3px 10px rgba(37, 99, 235, 0.12)',
     icon: <Luxury3DShieldIcon size={24} />,
     perks: [
       { id: 'p1', label: '2-Hour Priority Dispatch', icon: 'flash' },
@@ -424,27 +426,29 @@ const AMC_CARDS = [
     subtitle: 'Raise any appliance or home issue with instant technician dispatch.',
     actionLabel: 'Raise Issue',
     route: '/user/complains',
-    theme: 'pastel-peach',
-    cardBg: 'linear-gradient(135deg, rgba(254, 215, 170, 0.86) 0%, rgba(253, 186, 116, 0.70) 50%, rgba(254, 205, 155, 0.82) 100%)',
-    borderColor: 'rgba(255, 255, 255, 0.75)',
-    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 2px 0 rgba(234, 88, 12, 0.12), 0 10px 28px -4px rgba(234, 88, 12, 0.22), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    theme: 'frosted-amber',
+    glowOrb1: 'radial-gradient(circle, rgba(249, 115, 22, 0.55) 0%, rgba(251, 146, 60, 0.28) 55%, transparent 75%)',
+    glowOrb2: 'radial-gradient(circle, rgba(253, 186, 116, 0.65) 0%, rgba(234, 88, 12, 0.22) 55%, transparent 75%)',
+    cardBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 247, 237, 0.52) 50%, rgba(254, 215, 170, 0.38) 100%)',
+    borderColor: 'rgba(255, 255, 255, 0.95)',
+    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 1px 0 rgba(234, 88, 12, 0.08), 0 12px 30px -4px rgba(234, 88, 12, 0.16), 0 2px 6px rgba(15, 23, 42, 0.03)',
     accentGradient: 'linear-gradient(90deg, #ea580c, #f97316)',
-    iconBg: 'rgba(255, 255, 255, 0.88)',
-    iconBorder: '1.5px solid rgba(255, 255, 255, 0.95)',
-    titleColor: '#6c220a',
-    subColor: '#4a2818',
-    badgeBg: 'rgba(255, 255, 255, 0.85)',
-    badgeBorder: 'rgba(253, 186, 116, 0.9)',
-    badgeColor: '#9a3412',
-    perkBg: 'rgba(255, 255, 255, 0.78)',
-    perkBorder: 'rgba(255, 255, 255, 0.92)',
+    iconBg: 'rgba(255, 255, 255, 0.94)',
+    iconBorder: '1.5px solid #ffffff',
+    titleColor: '#0f172a',
+    subColor: '#475569',
+    badgeBg: 'rgba(255, 255, 255, 0.9)',
+    badgeBorder: 'rgba(254, 215, 170, 0.9)',
+    badgeColor: '#c2410c',
+    perkBg: 'rgba(255, 255, 255, 0.75)',
+    perkBorder: 'rgba(255, 255, 255, 0.95)',
     perkColor: '#9a3412',
-    pillBtnBg: 'rgba(255, 255, 255, 0.92)',
-    pillBtnBorder: '1.2px solid rgba(255, 255, 255, 0.95)',
+    pillBtnBg: '#ffffff',
+    pillBtnBorder: '1.2px solid rgba(254, 215, 170, 0.95)',
     pillBtnColor: '#c2410c',
-    pillArrowBg: '#ffedd5',
+    pillArrowBg: '#fff7ed',
     pillArrowColor: '#c2410c',
-    pillShadow: '0 3px 10px rgba(234, 88, 12, 0.14)',
+    pillShadow: '0 3px 10px rgba(234, 88, 12, 0.12)',
     icon: <Luxury3DWrenchIcon size={24} />,
     perks: [
       { id: 'c1', label: 'Instant Ticket Logging', icon: 'clock' },
@@ -459,27 +463,29 @@ const AMC_CARDS = [
     subtitle: 'Free on-site diagnosis & inspection for home appliances.',
     actionLabel: 'Book Free Visit',
     route: '/user/consultation',
-    theme: 'pastel-mint',
-    cardBg: 'linear-gradient(135deg, rgba(167, 243, 208, 0.85) 0%, rgba(110, 231, 183, 0.66) 50%, rgba(153, 246, 228, 0.80) 100%)',
-    borderColor: 'rgba(255, 255, 255, 0.75)',
-    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 2px 0 rgba(16, 185, 129, 0.12), 0 10px 28px -4px rgba(16, 185, 129, 0.22), 0 2px 6px rgba(15, 23, 42, 0.04)',
+    theme: 'frosted-emerald',
+    glowOrb1: 'radial-gradient(circle, rgba(16, 185, 129, 0.52) 0%, rgba(52, 211, 153, 0.28) 55%, transparent 75%)',
+    glowOrb2: 'radial-gradient(circle, rgba(167, 243, 208, 0.65) 0%, rgba(16, 185, 129, 0.22) 55%, transparent 75%)',
+    cardBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(240, 253, 250, 0.52) 50%, rgba(204, 251, 241, 0.38) 100%)',
+    borderColor: 'rgba(255, 255, 255, 0.95)',
+    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 1px 0 rgba(16, 185, 129, 0.08), 0 12px 30px -4px rgba(16, 185, 129, 0.16), 0 2px 6px rgba(15, 23, 42, 0.03)',
     accentGradient: 'linear-gradient(90deg, #059669, #10b981)',
-    iconBg: 'rgba(255, 255, 255, 0.88)',
-    iconBorder: '1.5px solid rgba(255, 255, 255, 0.95)',
-    titleColor: '#053d2e',
-    subColor: '#164e40',
-    badgeBg: 'rgba(255, 255, 255, 0.85)',
-    badgeBorder: 'rgba(110, 231, 183, 0.9)',
+    iconBg: 'rgba(255, 255, 255, 0.94)',
+    iconBorder: '1.5px solid #ffffff',
+    titleColor: '#0f172a',
+    subColor: '#475569',
+    badgeBg: 'rgba(255, 255, 255, 0.9)',
+    badgeBorder: 'rgba(167, 243, 208, 0.9)',
     badgeColor: '#065f46',
-    perkBg: 'rgba(255, 255, 255, 0.78)',
-    perkBorder: 'rgba(255, 255, 255, 0.92)',
+    perkBg: 'rgba(255, 255, 255, 0.75)',
+    perkBorder: 'rgba(255, 255, 255, 0.95)',
     perkColor: '#065f46',
-    pillBtnBg: 'rgba(255, 255, 255, 0.92)',
-    pillBtnBorder: '1.2px solid rgba(255, 255, 255, 0.95)',
+    pillBtnBg: '#ffffff',
+    pillBtnBorder: '1.2px solid rgba(167, 243, 208, 0.95)',
     pillBtnColor: '#047857',
-    pillArrowBg: '#d1fae5',
+    pillArrowBg: '#ecfdf5',
     pillArrowColor: '#047857',
-    pillShadow: '0 3px 10px rgba(16, 185, 129, 0.14)',
+    pillShadow: '0 3px 10px rgba(16, 185, 129, 0.12)',
     icon: <Luxury3DMechanicIcon size={24} variant="teal" />,
     perks: [
       { id: 'm1', label: '100% Free Doorstep Visit', icon: 'tag' },
@@ -1046,32 +1052,68 @@ export default function HomeDesktopWebView({
 
         <div style={amcGridStyle}>
           {AMC_CARDS.map((card) => (
-            <div
-              key={card.key}
-              className="zc-desktop-amc-card"
-              style={{
-                background: card.cardBg,
-                borderColor: card.borderColor,
-                boxShadow: card.boxShadow,
-                borderRadius: '24px',
-                borderWidth: '1.5px',
-                borderStyle: 'solid',
-                padding: '24px 22px 22px 22px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                position: 'relative',
-                overflow: 'hidden',
-                minHeight: '290px',
-                cursor: 'pointer',
-                boxSizing: 'border-box',
-                backdropFilter: 'blur(20px) saturate(190%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(190%)',
-              }}
-              onClick={() => onNavigate(card.route)}
-              role="button"
-              tabIndex={0}
-            >
+            <div key={card.key} style={{ position: 'relative' }}>
+              {/* Luminous Ambient Glow Orbs behind the frosted glass card */}
+              {card.glowOrb1 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    left: '10px',
+                    width: '180px',
+                    height: '110px',
+                    borderRadius: '50%',
+                    background: card.glowOrb1,
+                    filter: 'blur(36px)',
+                    opacity: 0.8,
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                  }}
+                />
+              )}
+              {card.glowOrb2 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '-10px',
+                    right: '12px',
+                    width: '170px',
+                    height: '105px',
+                    borderRadius: '50%',
+                    background: card.glowOrb2,
+                    filter: 'blur(34px)',
+                    opacity: 0.75,
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                  }}
+                />
+              )}
+              <div
+                className="zc-desktop-amc-card"
+                style={{
+                  background: card.cardBg,
+                  borderColor: card.borderColor,
+                  boxShadow: card.boxShadow,
+                  borderRadius: '24px',
+                  borderWidth: '1.5px',
+                  borderStyle: 'solid',
+                  padding: '24px 22px 22px 22px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  position: 'relative',
+                  zIndex: 1,
+                  overflow: 'hidden',
+                  minHeight: '290px',
+                  cursor: 'pointer',
+                  boxSizing: 'border-box',
+                  backdropFilter: 'blur(20px) saturate(190%)',
+                  WebkitBackdropFilter: 'blur(20px) saturate(190%)',
+                }}
+                onClick={() => onNavigate(card.route)}
+                role="button"
+                tabIndex={0}
+              >
               {/* Top Accent Gradient Line */}
               <div
                 style={{
@@ -1256,7 +1298,8 @@ export default function HomeDesktopWebView({
                 </div>
               </div>
             </div>
-          ))}
+          </div>
+        ))}
         </div>
       </section>
 

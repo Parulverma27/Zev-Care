@@ -211,10 +211,15 @@ export default function DesktopUserFooter() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <ZevotaLogo size="large" />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.025em', fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif", lineHeight: 1.15 }}>
-                ZEVOTA CARE
-              </span>
-              <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#2563eb', letterSpacing: '0.3px', marginTop: '3px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', lineHeight: 1.15 }}>
+                <span style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.025em', fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}>
+                  Zevota
+                </span>
+                <span style={{ fontSize: '17px', fontWeight: 800, color: '#2563eb', letterSpacing: '0.06em', fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}>
+                  CARE
+                </span>
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb', letterSpacing: '0.2px', marginTop: '3px', fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}>
                 Home Services & AMC
               </span>
             </div>

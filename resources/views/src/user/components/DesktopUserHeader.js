@@ -147,7 +147,10 @@ export default function DesktopUserHeader() {
           >
             <ZevotaLogo size="header" />
             <div style={brandTextWrapStyle}>
-              <span style={brandNameStyle}>ZEVOTA CARE</span>
+              <div style={brandNameRowStyle}>
+                <span style={brandZevotaStyle}>Zevota</span>
+                <span style={brandCareStyle}>CARE</span>
+              </div>
               <span style={brandTaglineStyle}>Home & Appliance Care</span>
             </div>
           </button>
@@ -669,20 +672,44 @@ const brandTextWrapStyle = {
   lineHeight: 1.15,
 };
 
-const brandNameStyle = {
-  fontSize: '17px',
+const brandNameRowStyle = {
+  display: 'flex',
+  alignItems: 'baseline',
+  gap: '4px',
+  lineHeight: 1.15,
+};
+
+const brandZevotaStyle = {
+  fontSize: '18px',
   fontWeight: 800,
   color: '#0f172a',
   letterSpacing: '-0.025em',
-  fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
+  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+};
+
+const brandCareStyle = {
+  fontSize: '13.5px',
+  fontWeight: 800,
+  color: '#0878f8',
+  letterSpacing: '0.06em',
+  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+};
+
+const brandNameStyle = {
+  fontSize: '18px',
+  fontWeight: 800,
+  color: '#0f172a',
+  letterSpacing: '-0.025em',
+  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
 };
 
 const brandTaglineStyle = {
-  fontSize: '10px',
+  fontSize: '10.5px',
   fontWeight: 600,
   color: '#0878f8',
-  letterSpacing: '0.2px',
-  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  letterSpacing: '0.15px',
+  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  marginTop: '1px',
 };
 
 /* Group B: Primary Navigation */
