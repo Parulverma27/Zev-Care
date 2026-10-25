@@ -1,60 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigate } from 'react-router-dom';
+import { ZEVOTA_COMPANY_NAME, ZEVOTA_TERMS_AND_CONDITIONS } from '../../config/termsAndConditions';
 
 export default function TermsAndConditionsScreen() {
   const navigate = useNavigate();
-
-  const SECTIONS = [
-    {
-      title: '1. Acceptance of Terms',
-      body: 'By accessing or using Zevota Care\'s platform, mobile application, or services, you confirm that you have read, understood, and agree to be bound by these Terms & Conditions and our Privacy Policy. If you do not agree to these terms, you must not use our services.',
-    },
-    {
-      title: '2. Services Description',
-      body: 'Zevota Care is a home services platform that connects registered property owners and tenants with verified service professionals ("Technicians") for repairs, maintenance, and related home services including Electrician, Plumbing, Carpentry, Appliance Repair, Dry Cleaning, and Pest Control services.',
-    },
-    {
-      title: '3. User Eligibility',
-      body: 'You must be at least 18 years of age and a legal resident of India to register and use this platform. By registering, you represent and warrant that all information provided is accurate, current, and complete.',
-    },
-    {
-      title: '4. Service Wallet & Subscription Plans',
-      body: 'Prepaid wallet credits purchased through subscription plans are non-refundable except as required by applicable law. Wallet balances are valid for the duration of the subscription period. Credits are non-transferable between accounts.',
-    },
-    {
-      title: '5. Bookings & Cancellations',
-      body: 'Bookings can be cancelled up to 2 hours before the scheduled technician arrival for a full wallet credit refund. Cancellations within 2 hours of arrival will attract a convenience fee of ₹99 deducted from your wallet balance. No-shows by users will result in a full service charge.',
-    },
-    {
-      title: '6. Service Guarantees',
-      body: 'All work performed by Zevota Care technicians is covered by a 30-day service warranty for the same issue. If the same problem recurs within 30 days of a completed service, Zevota Care will re-dispatch a technician at no additional charge.',
-    },
-    {
-      title: '7. Evidence & Documentation',
-      body: 'For quality and safety assurance, users may be required to capture live photos or videos of the issue using the in-app camera at the time of booking. Gallery uploads are not permitted for issue evidence to ensure authenticity.',
-    },
-    {
-      title: '8. Privacy & Data',
-      body: 'Zevota Care collects your name, phone number, email, address, and booking information for the purpose of providing and improving our services. We do not sell your personal data to third parties. Data is stored securely and in compliance with applicable Indian data protection laws.',
-    },
-    {
-      title: '9. Payments',
-      body: 'All payments are processed through Razorpay, a secure PCI-DSS compliant payment gateway. Zevota Care does not store card or bank details. By initiating a payment, you agree to Razorpay\'s terms of service in addition to these terms.',
-    },
-    {
-      title: '10. Limitation of Liability',
-      body: 'Zevota Care acts as an intermediary platform and is not liable for any damages caused by technician errors, delays, or third-party service failures beyond the agreed service guarantee. Our maximum liability in any event shall be limited to the amount paid for the specific service in question.',
-    },
-    {
-      title: '11. Dispute Resolution',
-      body: 'Any disputes arising from use of this platform shall first be attempted to be resolved through our in-app support channel. Unresolved disputes shall be subject to arbitration under the Arbitration and Conciliation Act, 1996, with proceedings in Mumbai, Maharashtra.',
-    },
-    {
-      title: '12. Changes to Terms',
-      body: 'Zevota Care reserves the right to modify these Terms & Conditions at any time. Continued use of the platform following notification of changes constitutes acceptance of the revised terms. Last updated: September 2026.',
-    },
-  ];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -82,23 +32,28 @@ export default function TermsAndConditionsScreen() {
           </svg>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.heroTitle}>Zevota Care Platform</Text>
-          <Text style={styles.heroSubtitle}>Terms & Conditions &amp; User Agreement</Text>
-          <Text style={styles.heroMeta}>Last Updated: September 2026 • India</Text>
+          <Text style={styles.heroTitle}>{ZEVOTA_COMPANY_NAME}</Text>
+          <Text style={styles.heroSubtitle}>Annual Maintenance Contract (AMC) Terms &amp; Conditions</Text>
+          <Text style={styles.heroMeta}>Official Service Policy • Effective 2026 • India</Text>
         </View>
       </View>
 
       {/* Intro Note */}
       <View style={styles.introCard}>
         <Text style={styles.introText}>
-          Please read these terms carefully before using Zevota Care. By creating an account or placing a service booking, you acknowledge that you have read and agree to the following terms.
+          Please read these terms and conditions carefully before subscribing to an Annual Maintenance Plan or booking home services with <Text style={{ fontWeight: '700' }}>{ZEVOTA_COMPANY_NAME}</Text>. By purchasing a service plan or creating an account, you confirm your acceptance of all 15 clauses detailed below.
         </Text>
       </View>
 
       {/* Sections */}
-      {SECTIONS.map((section, idx) => (
-        <View key={idx} style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
+      {ZEVOTA_TERMS_AND_CONDITIONS.map((section) => (
+        <View key={section.id} style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <View style={styles.clauseBadge}>
+              <Text style={styles.clauseBadgeText}>{section.clauseNumber}</Text>
+            </View>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+          </View>
           <Text style={styles.sectionBody}>{section.body}</Text>
         </View>
       ))}
@@ -200,17 +155,38 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    gap: 8,
+    gap: 10,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  clauseBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  clauseBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#1d4ed8',
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 14.5,
+    fontWeight: '800',
     color: '#0f172a',
+    flex: 1,
   },
   sectionBody: {
     fontSize: 13,
     color: '#475569',
-    lineHeight: 20,
+    lineHeight: 21,
+    whiteSpace: 'pre-line',
   },
 
   contactCard: {

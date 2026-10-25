@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform, useWindowDimensions, Image } from 'react-native';
 import { getApplianceVideoUri, resolveApplianceImage } from '../../utils/applianceMediaHelper';
+import { ZEVOTA_COMPANY_NAME, ZEVOTA_TERMS_AND_CONDITIONS } from '../../config/termsAndConditions';
 
 const EXTRA_APPLIANCE_FEE = 500;
 
@@ -32,6 +33,8 @@ export default function PlanReviewScreen({
   const canPurchase = count > 0;
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [previewVideo, setPreviewVideo] = useState(null);
 
   const getValidVideoUri = (app) => {
@@ -43,8 +46,10 @@ export default function PlanReviewScreen({
     setShowConfirm(true);
   };
 
+  const canProceedToPayment = confirmChecked && termsAccepted;
+
   const handleConfirmPay = () => {
-    if (!confirmChecked) return;
+    if (!canProceedToPayment) return;
     setShowConfirm(false);
     onPurchase?.();
   };
@@ -175,6 +180,43 @@ export default function PlanReviewScreen({
             <TouchableOpacity onPress={onAddMore} style={styles.addMoreBtn} activeOpacity={0.85}>
               <Text style={styles.addMoreBtnText}>+ {count === 0 ? 'Add Appliance' : 'Add Another Appliance'}</Text>
             </TouchableOpacity>
+
+            {/* Mobile Terms & Conditions Acceptance Card */}
+            {!isDesktopWeb && (
+              <View style={styles.mobileTermsCard}>
+                <TouchableOpacity
+                  style={[styles.summaryTermsCheckRow, termsAccepted && styles.summaryTermsCheckRowActive]}
+                  onPress={() => setTermsAccepted((v) => !v)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.checkBox, termsAccepted && styles.checkBoxOn]}>
+                    {termsAccepted ? <Text style={styles.checkBoxTick}>✓</Text> : null}
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.summaryTermsCheckText}>
+                      I accept the{' '}
+                      <Text
+                        style={styles.termsLinkUnderline}
+                        onPress={(e) => {
+                          e?.stopPropagation?.();
+                          setShowTermsModal(true);
+                        }}
+                      >
+                        Terms and Conditions
+                      </Text>{' '}
+                      of {ZEVOTA_COMPANY_NAME}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.viewTermsLinkBtn}
+                  onPress={() => setShowTermsModal(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.viewTermsLinkBtnText}>Read all 15 Terms &amp; Conditions clauses →</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </div>
 
           {/* Right Column: Desktop Sticky Summary */}
@@ -207,6 +249,40 @@ export default function PlanReviewScreen({
                   <Text style={styles.summaryTotalValue}>₹{price.toLocaleString('en-IN')}</Text>
                 </View>
 
+                {/* Desktop Mandatory Terms Agreement Checkbox */}
+                <TouchableOpacity
+                  style={[styles.summaryTermsCheckRow, termsAccepted && styles.summaryTermsCheckRowActive]}
+                  onPress={() => setTermsAccepted((v) => !v)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.checkBox, termsAccepted && styles.checkBoxOn]}>
+                    {termsAccepted ? <Text style={styles.checkBoxTick}>✓</Text> : null}
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.summaryTermsCheckText}>
+                      I accept the{' '}
+                      <Text
+                        style={styles.termsLinkUnderline}
+                        onPress={(e) => {
+                          e?.stopPropagation?.();
+                          setShowTermsModal(true);
+                        }}
+                      >
+                        Terms and Conditions
+                      </Text>{' '}
+                      of {ZEVOTA_COMPANY_NAME}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.viewTermsLinkBtn}
+                  onPress={() => setShowTermsModal(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.viewTermsLinkBtnText}>Read 15 Terms &amp; Conditions clauses →</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity
                   style={[styles.desktopPurchaseBtn, !canPurchase && styles.purchaseBtnDisabled]}
                   onPress={canPurchase ? openConfirm : undefined}
@@ -219,7 +295,7 @@ export default function PlanReviewScreen({
                 </TouchableOpacity>
 
                 <Text style={styles.summaryGuaranteeText}>
-                  🛡️ 100% Satisfaction Guaranteed • Verified Technicians • Digital Warranty
+                  100% Satisfaction Guaranteed • Verified Technicians • Digital Warranty
                 </Text>
               </View>
             </div>
@@ -254,9 +330,9 @@ export default function PlanReviewScreen({
             <View style={styles.modalIconCircle}>
               <Text style={styles.modalIconText}>!</Text>
             </View>
-            <Text style={styles.modalTitle}>Have you added all your appliances?</Text>
+            <Text style={styles.modalTitle}>Confirm Plan &amp; Accept Terms</Text>
             <Text style={styles.modalSub}>
-              Please check every appliance listed below. After you buy the {plan?.name}, booking a service for any
+              Please check your registered appliances below. After you buy the {plan?.name}, booking a service for any
               appliance that is <Text style={{ fontWeight: '800', color: '#0f172a' }}>not on this list</Text> will cost an
               extra <Text style={{ fontWeight: '800', color: '#b45309' }}>₹{EXTRA_APPLIANCE_FEE} per appliance</Text>.
             </Text>
@@ -272,6 +348,7 @@ export default function PlanReviewScreen({
               ))}
             </ScrollView>
 
+            {/* Checkbox 1: Appliances Checked */}
             <TouchableOpacity
               style={styles.checkRow}
               onPress={() => setConfirmChecked((v) => !v)}
@@ -281,8 +358,48 @@ export default function PlanReviewScreen({
                 {confirmChecked ? <Text style={styles.checkBoxTick}>✓</Text> : null}
               </View>
               <Text style={styles.checkLabel}>
-                I have added and checked all my appliances ({count})
+                I have added and verified all my appliances ({count})
               </Text>
+            </TouchableOpacity>
+
+            {/* Checkbox 2: Mandatory Terms Acceptance */}
+            <TouchableOpacity
+              style={[styles.checkRow, !termsAccepted && styles.checkRowPending]}
+              onPress={() => setTermsAccepted((v) => !v)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.checkBox, termsAccepted && styles.checkBoxOn]}>
+                {termsAccepted ? <Text style={styles.checkBoxTick}>✓</Text> : null}
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.checkLabel}>
+                  I accept all 15 clauses of the{' '}
+                  <Text
+                    style={{ color: '#0052e0', fontWeight: '800', textDecorationLine: 'underline' }}
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      setShowTermsModal(true);
+                    }}
+                  >
+                    Terms &amp; Conditions
+                  </Text>{' '}
+                  of {ZEVOTA_COMPANY_NAME}.
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.viewTermsModalLinkBtn}
+              onPress={() => setShowTermsModal(true)}
+              activeOpacity={0.75}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+              <Text style={styles.viewTermsModalLinkText}>Read full 15 Terms &amp; Conditions clauses</Text>
             </TouchableOpacity>
 
             <View style={styles.modalBtnRow}>
@@ -294,16 +411,84 @@ export default function PlanReviewScreen({
                 }}
                 activeOpacity={0.85}
               >
-                <Text style={styles.modalSecondaryBtnText}>Go Back & Add More</Text>
+                <Text style={styles.modalSecondaryBtnText}>Add More Appliances</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalPrimaryBtn, !confirmChecked && styles.purchaseBtnDisabled]}
+                style={[styles.modalPrimaryBtn, !canProceedToPayment && styles.purchaseBtnDisabled]}
                 onPress={handleConfirmPay}
-                disabled={!confirmChecked}
+                disabled={!canProceedToPayment}
                 activeOpacity={0.88}
               >
-                <Text style={[styles.modalPrimaryBtnText, !confirmChecked && { color: '#94a3b8' }]}>
-                  Confirm & Pay ₹{price.toLocaleString('en-IN')}
+                <Text style={[styles.modalPrimaryBtnText, !canProceedToPayment && { color: '#94a3b8' }]}>
+                  {!canProceedToPayment
+                    ? 'Accept Terms to Pay'
+                    : `Confirm & Pay ₹${price.toLocaleString('en-IN')}`}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Full Terms & Conditions Modal */}
+      <Modal
+        visible={showTermsModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowTermsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.termsModalCard}>
+            <View style={styles.termsModalHeader}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.termsModalTitle} numberOfLines={1}>
+                  {ZEVOTA_COMPANY_NAME}
+                </Text>
+                <Text style={styles.termsModalSub}>
+                  Annual Maintenance Contract (AMC) Terms &amp; Conditions (15 Clauses)
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.videoCloseBtn}
+                onPress={() => setShowTermsModal(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.videoCloseBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.termsModalList} showsVerticalScrollIndicator={true} contentContainerStyle={{ gap: 12, paddingBottom: 16 }}>
+              {ZEVOTA_TERMS_AND_CONDITIONS.map((clause) => (
+                <View key={clause.id} style={styles.termsClauseCard}>
+                  <View style={styles.termsClauseHeader}>
+                    <View style={styles.termsClauseNumberBadge}>
+                      <Text style={styles.termsClauseNumberText}>{clause.clauseNumber}</Text>
+                    </View>
+                    <Text style={styles.termsClauseTitle}>{clause.title}</Text>
+                  </View>
+                  <Text style={styles.termsClauseBody}>{clause.body}</Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={styles.termsModalFooter}>
+              <TouchableOpacity
+                style={styles.termsModalCloseBtn}
+                onPress={() => setShowTermsModal(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.termsModalCloseBtnText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.termsModalAcceptBtn}
+                onPress={() => {
+                  setTermsAccepted(true);
+                  setShowTermsModal(false);
+                }}
+                activeOpacity={0.88}
+              >
+                <Text style={styles.termsModalAcceptBtnText}>
+                  I Understand &amp; Accept All 15 Terms ✓
                 </Text>
               </TouchableOpacity>
             </View>
@@ -712,4 +897,190 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563eb', boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)',
   },
   modalPrimaryBtnText: { fontSize: 13, fontWeight: '800', color: '#ffffff' },
+
+  /* Terms & Conditions Agreement Checkbox & Links */
+  mobileTermsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    padding: 14,
+    marginTop: 14,
+    gap: 6,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+  },
+  summaryTermsCheckRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    padding: 11,
+    marginTop: 2,
+    cursor: 'pointer',
+  },
+  summaryTermsCheckRowActive: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#86efac',
+  },
+  summaryTermsCheckText: {
+    fontSize: 12,
+    color: '#334155',
+    lineHeight: 18,
+    fontWeight: '600',
+  },
+  termsLinkUnderline: {
+    color: '#0878f8',
+    fontWeight: '800',
+    textDecorationLine: 'underline',
+    cursor: 'pointer',
+  },
+  viewTermsLinkBtn: {
+    alignSelf: 'flex-start',
+    paddingVertical: 2,
+    marginTop: -4,
+    marginBottom: 4,
+    cursor: 'pointer',
+  },
+  viewTermsLinkBtnText: {
+    fontSize: 11.5,
+    color: '#0878f8',
+    fontWeight: '700',
+  },
+  checkRowPending: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fca5a5',
+  },
+  viewTermsModalLinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'center',
+    paddingVertical: 4,
+    cursor: 'pointer',
+  },
+  viewTermsModalLinkText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2563eb',
+    textDecorationLine: 'underline',
+  },
+
+  /* Terms & Conditions Modal Styles */
+  termsModalCard: {
+    width: '100%',
+    maxWidth: 680,
+    maxHeight: '88vh',
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 20,
+    gap: 14,
+    boxShadow: '0 24px 60px rgba(15, 23, 42, 0.35)',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  termsModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    gap: 12,
+  },
+  termsModalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  termsModalSub: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  termsModalList: {
+    flex: 1,
+    maxHeight: 460,
+    paddingRight: 6,
+  },
+  termsClauseCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    gap: 8,
+  },
+  termsClauseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  termsClauseNumberBadge: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  termsClauseNumberText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#1d4ed8',
+  },
+  termsClauseTitle: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#0f172a',
+    flex: 1,
+  },
+  termsClauseBody: {
+    fontSize: 12.5,
+    color: '#475569',
+    lineHeight: 19,
+    whiteSpace: 'pre-line',
+  },
+  termsModalFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 10,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  termsModalCloseBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  termsModalCloseBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  termsModalAcceptBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: '#16a34a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    boxShadow: '0 4px 12px rgba(22, 163, 74, 0.25)',
+  },
+  termsModalAcceptBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
 });
