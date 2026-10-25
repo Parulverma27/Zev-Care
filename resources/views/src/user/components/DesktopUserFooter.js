@@ -210,23 +210,18 @@ export default function DesktopUserFooter() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <ZevotaLogo size="large" />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', lineHeight: 1.15 }}>
-                <span style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.025em', fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}>
-                  Zevota
-                </span>
-                <span style={{ fontSize: '17px', fontWeight: 800, color: '#2563eb', letterSpacing: '0.06em', fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}>
-                  CARE
-                </span>
-              </div>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb', letterSpacing: '0.2px', marginTop: '3px', fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}>
-                Home Services & AMC
+            <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', width: 'fit-content', lineHeight: 1 }}>
+              <span style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.035em', fontFamily: "'Outfit', sans-serif", lineHeight: 1 }}>
+                Zevota
+              </span>
+              <span style={{ fontSize: '11px', fontWeight: 500, color: '#0f172a', letterSpacing: '0.24em', fontFamily: "'Outfit', sans-serif", lineHeight: 1, marginTop: '3px', marginRight: '1px' }}>
+                CARE
               </span>
             </div>
           </div>
 
           <p style={{ fontSize: '13.5px', lineHeight: '22px', color: '#64748b', margin: 0, maxWidth: '300px' }}>
-            Reliable home maintenance, repair, and annual protection coverage designed to make everyday living effortless.
+            Reliable home maintenance, repair, and annual protection plans designed to make everyday living effortless.
           </p>
 
           {/* Quick Helpline Card */}

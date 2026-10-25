@@ -146,12 +146,9 @@ export default function DesktopUserHeader() {
             title="Zevota Care - Home"
           >
             <ZevotaLogo size="header" />
-            <div style={brandTextWrapStyle}>
-              <div style={brandNameRowStyle}>
-                <span style={brandZevotaStyle}>Zevota</span>
-                <span style={brandCareStyle}>CARE</span>
-              </div>
-              <span style={brandTaglineStyle}>Home & Appliance Care</span>
+            <div style={brandLogoLockupStyle}>
+              <span style={brandZevotaStyle}>Zevota</span>
+              <span style={brandCareStyle}>CARE</span>
             </div>
           </button>
         </div>
@@ -665,51 +662,37 @@ const brandBtnStyle = {
   textAlign: 'left',
 };
 
-const brandTextWrapStyle = {
-  display: 'flex',
+const brandLogoLockupStyle = {
+  display: 'inline-flex',
   flexDirection: 'column',
-  marginLeft: '10px',
-  lineHeight: 1.15,
-};
-
-const brandNameRowStyle = {
-  display: 'flex',
-  alignItems: 'baseline',
-  gap: '4px',
-  lineHeight: 1.15,
+  alignItems: 'flex-end',
+  justifyContent: 'center',
+  width: 'fit-content',
+  marginLeft: '12px',
+  lineHeight: 1,
+  userSelect: 'none',
 };
 
 const brandZevotaStyle = {
-  fontSize: '18px',
+  fontSize: '23px',
   fontWeight: 800,
   color: '#0f172a',
-  letterSpacing: '-0.025em',
-  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  letterSpacing: '-0.035em',
+  fontFamily: "'Outfit', sans-serif",
+  lineHeight: 1,
+  display: 'block',
 };
 
 const brandCareStyle = {
-  fontSize: '13.5px',
-  fontWeight: 800,
-  color: '#0878f8',
-  letterSpacing: '0.06em',
-  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
-};
-
-const brandNameStyle = {
-  fontSize: '18px',
-  fontWeight: 800,
+  fontSize: '9.5px',
+  fontWeight: 500,
   color: '#0f172a',
-  letterSpacing: '-0.025em',
-  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
-};
-
-const brandTaglineStyle = {
-  fontSize: '10.5px',
-  fontWeight: 600,
-  color: '#0878f8',
-  letterSpacing: '0.15px',
-  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
-  marginTop: '1px',
+  letterSpacing: '0.24em',
+  fontFamily: "'Outfit', sans-serif",
+  lineHeight: 1,
+  marginTop: '2.5px',
+  marginRight: '1px',
+  display: 'block',
 };
 
 /* Group B: Primary Navigation */
