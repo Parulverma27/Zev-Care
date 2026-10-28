@@ -640,7 +640,7 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
 
             <View style={styles.modalNoticeBanner}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
-                <ProviderIcon name="info" color="#1e40af" size={14} />
+                <ProviderIcon name="info" color="#dc2626" size={14} />
                 <Text style={[styles.modalNoticeText, { flex: 1 }]}>
                   {isConsultationBk ? 'Free On-Site Inspection (₹0). ' : ''}Record your technical findings and required spare parts. Admin will review your report, decide the charges, and transmit the official quote to the customer.
                 </Text>
@@ -993,8 +993,8 @@ const styles = StyleSheet.create({
   approvedQuoteText: { fontSize: 11.5, fontWeight: '700', color: '#065f46', flex: 1 },
 
   actionBtnSubtext: { color: '#bfdbfe', fontSize: 10.5, fontWeight: '600', marginTop: 2 },
-  modalNoticeBanner: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', borderRadius: 8, padding: 8, marginBottom: 8 },
-  modalNoticeText: { fontSize: 11, color: '#1e40af', lineHeight: 15, fontWeight: '600' },
+  modalNoticeBanner: { backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fca5a5', borderRadius: 8, padding: 8, marginBottom: 8 },
+  modalNoticeText: { fontSize: 11, color: '#b91c1c', lineHeight: 15, fontWeight: '600' },
   quoteSummaryCard: { backgroundColor: '#f8fafc', borderRadius: 8, padding: 10, borderWidth: 1, borderColor: '#e2e8f0', gap: 4, marginVertical: 6 },
   quoteSummaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   quoteSummaryLabel: { fontSize: 11, color: '#64748b', fontWeight: '500' },

@@ -420,18 +420,18 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   noteBox: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: '#fef2f2',
     borderRadius: 10,
     padding: 10,
     marginTop: 12,
     borderWidth: 1,
-    borderColor: '#dbeafe',
+    borderColor: '#fca5a5',
   },
   noteText: {
     fontSize: 11.5,
-    color: '#1e40af',
+    color: '#b91c1c',
     lineHeight: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   errorBox: {
     backgroundColor: '#fef2f2',

@@ -1455,11 +1455,11 @@ const styles = StyleSheet.create({
   billNote: {
     padding: 14,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    backgroundColor: '#eff6ff',
+    borderWidth: 1.2,
+    borderColor: '#fca5a5',
+    backgroundColor: '#fef2f2',
   },
-  billNoteText: { fontSize: 13, color: '#1e3a8a', fontWeight: '600', lineHeight: 19 },
+  billNoteText: { fontSize: 13, color: '#b91c1c', fontWeight: '600', lineHeight: 19 },
   container: { flex: 1, backgroundColor: '#ffffff' },
   pad: {
     padding: 20,

@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
   infoLabel: { fontSize: 12, color: '#64748b', fontWeight: '600' },
   infoVal: { fontSize: 13, color: '#0f172a', fontWeight: '800' },
   note: {
-    fontSize: 11.5, color: '#92400e', backgroundColor: '#fffbeb', borderRadius: 10, padding: 10,
-    borderWidth: 1, borderColor: '#fde68a', lineHeight: 17,
+    fontSize: 11.5, color: '#b91c1c', backgroundColor: '#fef2f2', borderRadius: 10, padding: 10,
+    borderWidth: 1, borderColor: '#fca5a5', lineHeight: 17, fontWeight: '500',
   },
   primaryBtn: {
     backgroundColor: '#2563eb', borderRadius: 12, paddingVertical: 14, alignItems: 'center',

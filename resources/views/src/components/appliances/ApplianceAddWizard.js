@@ -1330,7 +1330,7 @@ export default function ApplianceAddWizard({
             {/* Coverage Policy Note */}
             <View style={styles.coverageNoteCard}>
               <View style={styles.coverageNoteIconWrap}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="16" x2="12" y2="12" />
                   <line x1="12" y1="8" x2="12.01" y2="8" />
@@ -1340,7 +1340,7 @@ export default function ApplianceAddWizard({
                 <Text style={styles.coverageNoteTitle}>Service Guidelines Note</Text>
                 <Text style={styles.coverageNoteText}>
                   Please note: Only items in active{' '}
-                  <Text style={{ fontWeight: '700', color: '#1e40af' }}>working condition</Text>{' '}
+                  <Text style={{ fontWeight: '700', color: '#b91c1c' }}>working condition</Text>{' '}
                   are covered under the Care Subscription Package. Pre-existing non-functional units cannot be onboarded.
                 </Text>
               </View>
@@ -1510,7 +1510,7 @@ export default function ApplianceAddWizard({
 
               <View style={styles.finalityWarningBox}>
                 <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
@@ -2358,17 +2358,17 @@ const styles = StyleSheet.create({
   discardText: { color: '#dc2626', fontWeight: '700', fontSize: 14 },
   coverageNoteCard: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10,
-    backgroundColor: '#eff6ff', borderWidth: 1.2,
-    borderColor: '#bfdbfe', borderRadius: 14,
+    backgroundColor: '#fef2f2', borderWidth: 1.2,
+    borderColor: '#fca5a5', borderRadius: 14,
     padding: 12, marginTop: 4, marginBottom: 4,
   },
   coverageNoteIconWrap: {
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#dbeafe', alignItems: 'center',
+    backgroundColor: '#fee2e2', alignItems: 'center',
     justifyContent: 'center', flexShrink: 0, marginTop: 1,
   },
-  coverageNoteTitle: { fontSize: 12, fontWeight: '700', color: '#1e40af', marginBottom: 2 },
-  coverageNoteText: { fontSize: 11.5, color: '#334155', lineHeight: 16 },
+  coverageNoteTitle: { fontSize: 12, fontWeight: '700', color: '#b91c1c', marginBottom: 2 },
+  coverageNoteText: { fontSize: 11.5, color: '#7f1d1d', lineHeight: 16 },
   confirmIconCircle: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: '#eff6ff', borderWidth: 1.5,
@@ -2420,15 +2420,15 @@ const styles = StyleSheet.create({
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   finalityWarningBox: {
-    backgroundColor: '#fffbeb', borderWidth: 1.2,
-    borderColor: '#fde68a', borderRadius: 10, padding: 10, gap: 4,
+    backgroundColor: '#fef2f2', borderWidth: 1.2,
+    borderColor: '#fca5a5', borderRadius: 10, padding: 10, gap: 4,
   },
   finalityWarningTitle: {
-    fontSize: 11.5, fontWeight: '700', color: '#92400e',
+    fontSize: 11.5, fontWeight: '700', color: '#b91c1c',
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   finalityWarningText: {
-    fontSize: 10.5, color: '#78350f', lineHeight: 14.5,
+    fontSize: 10.5, color: '#7f1d1d', lineHeight: 14.5,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   reviewEditBtn: {

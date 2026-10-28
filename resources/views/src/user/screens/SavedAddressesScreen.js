@@ -8,18 +8,14 @@ import { normalizeSavedAddresses } from '../../utils/savedAddresses';
 
 const TAG_ICONS = {
   Home: 'home',
-  Office: 'building',
-  Other: 'map-pin',
-  Parents: 'users',
-  Gym: 'dumbbell',
+  Villa: 'villa',
+  PG: 'pg',
 };
 
 const TAG_COLORS = {
-  'Home': '#3b82f6',
-  'Office': '#10b981',
-  'Other': '#6366f1',
-  'Parents': '#f59e0b',
-  'Gym': '#ec4899'
+  Home: '#3b82f6',
+  Villa: '#8b5cf6',
+  PG: '#10b981',
 };
 
 export default function SavedAddressesScreen({ onNavigate }) {
@@ -43,7 +39,11 @@ export default function SavedAddressesScreen({ onNavigate }) {
   );
 
   // Guest accounts have no saved addresses and cannot edit
-  const addresses = isGuest ? [] : (activeUser?.saved_addresses || []);
+  const addresses = (isGuest ? [] : (activeUser?.saved_addresses || [])).map((a) => {
+    const rawTag = String(a.tag || '').trim().toLowerCase();
+    const tag = rawTag === 'villa' ? 'Villa' : rawTag === 'pg' ? 'PG' : 'Home';
+    return { ...a, tag };
+  });
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
@@ -51,6 +51,71 @@ export default function SavedAddressesScreen({ onNavigate }) {
   const [newAddress, setNewAddress] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [showMapPicker, setShowMapPicker] = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [locationStatus, setLocationStatus] = useState({ type: '', text: '' });
+
+  const fallbackOsm = (lat, lng) => {
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`, {
+      headers: { 'Accept-Language': 'en' },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setDetectingLocation(false);
+        if (data && data.display_name) {
+          setNewAddress(data.display_name);
+          setLocationStatus({ type: 'success', text: 'Current GPS location detected & filled!' });
+        } else {
+          setLocationStatus({ type: 'error', text: 'Unable to reverse-geocode coordinates. Please enter address manually.' });
+        }
+      })
+      .catch(() => {
+        setDetectingLocation(false);
+        setLocationStatus({ type: 'error', text: 'Unable to reverse-geocode coordinates. Please enter address manually.' });
+      });
+  };
+
+  const handleUseCurrentLocation = () => {
+    setLocationStatus({ type: '', text: '' });
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocationStatus({ type: 'error', text: 'Geolocation is not supported by your browser or device.' });
+      return;
+    }
+
+    setDetectingLocation(true);
+    setLocationStatus({ type: 'info', text: 'Detecting your GPS coordinates...' });
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        if (window.google?.maps?.Geocoder) {
+          const geocoder = new window.google.maps.Geocoder();
+          geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+            if (status === 'OK' && results?.[0]) {
+              setDetectingLocation(false);
+              const formatted = results[0].formatted_address;
+              setNewAddress(formatted);
+              setLocationStatus({ type: 'success', text: 'Current GPS location detected & filled!' });
+            } else {
+              fallbackOsm(lat, lng);
+            }
+          });
+        } else {
+          fallbackOsm(lat, lng);
+        }
+      },
+      (err) => {
+        setDetectingLocation(false);
+        if (err.code === 1) {
+          setLocationStatus({ type: 'error', text: 'Location permission was denied. Please allow location access in your browser settings.' });
+        } else {
+          setLocationStatus({ type: 'error', text: 'Unable to retrieve location. Please use map picker or type address manually.' });
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   const handleNav = (path) => {
     if (navigate) navigate(path);
@@ -99,7 +164,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
         ...addresses,
         {
           id: Date.now(),
-          tag: newTag || 'Other',
+          tag: newTag || 'Home',
           address: newAddress,
           isDefault: isFirst
         }
@@ -148,7 +213,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
     setShowAddForm(true);
   };
 
-  const TAG_OPTIONS = ['Home', 'Office', 'Other', 'Parents', 'Gym'];
+  const TAG_OPTIONS = ['Home', 'Villa', 'PG'];
 
   if (isDesktopWeb) {
     return (
@@ -272,8 +337,8 @@ export default function SavedAddressesScreen({ onNavigate }) {
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
                 {addresses.map((item) => {
-                  const iconName = TAG_ICONS[item.tag] || 'map-pin';
-                  const themeColor = TAG_COLORS[item.tag] || '#6366f1';
+                  const iconName = TAG_ICONS[item.tag] || 'home';
+                  const themeColor = TAG_COLORS[item.tag] || '#3b82f6';
                   const cov = validateServiceLocation ? validateServiceLocation(item.address) : { isSupported: true };
 
                   return (
@@ -453,6 +518,40 @@ export default function SavedAddressesScreen({ onNavigate }) {
                   })}
                 </div>
 
+                {/* Use Current Location Button */}
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  disabled={detectingLocation}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: 10,
+                    backgroundColor: '#0f172a',
+                    border: '1.5px solid #0f172a',
+                    color: '#ffffff',
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    cursor: detectingLocation ? 'wait' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    marginBottom: 8,
+                    boxShadow: '0 2px 6px rgba(15,23,42,0.15)',
+                  }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="2" x2="12" y2="6" />
+                    <line x1="12" y1="18" x2="12" y2="22" />
+                    <line x1="2" y1="12" x2="6" y2="12" />
+                    <line x1="18" y1="12" x2="22" y2="12" />
+                    <circle cx="12" cy="12" r="3" fill="#38bdf8" />
+                  </svg>
+                  <span>{detectingLocation ? 'Detecting GPS Location...' : 'Use My Current Location'}</span>
+                </button>
+
                 {/* Map button */}
                 <button
                   type="button"
@@ -471,12 +570,29 @@ export default function SavedAddressesScreen({ onNavigate }) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
-                    marginBottom: 14,
+                    marginBottom: locationStatus.text ? 8 : 14,
                   }}
                 >
                   <AppIcon name="map-pin" size={14} color="#2563eb" />
                   <span>{showMapPicker ? 'Hide Google Map' : 'Detect / Pick Location on Map'}</span>
                 </button>
+
+                {locationStatus.text ? (
+                  <div style={{
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    marginBottom: 12,
+                    backgroundColor: locationStatus.type === 'error' ? '#fef2f2' : locationStatus.type === 'success' ? '#f0fdf4' : '#eff6ff',
+                    border: `1px solid ${locationStatus.type === 'error' ? '#fca5a5' : locationStatus.type === 'success' ? '#bbf7d0' : '#bfdbfe'}`,
+                    color: locationStatus.type === 'error' ? '#dc2626' : locationStatus.type === 'success' ? '#15803d' : '#1e40af',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    textAlign: 'center',
+                  }}>
+                    {locationStatus.type === 'error' ? '⚠ ' : locationStatus.type === 'success' ? '✓ ' : 'ℹ '}
+                    {locationStatus.text}
+                  </div>
+                ) : null}
 
                 {showMapPicker && (
                   <div style={{ marginBottom: 14 }}>
@@ -715,8 +831,8 @@ export default function SavedAddressesScreen({ onNavigate }) {
       {/* Address Cards */}
       <div style={isDesktopWeb ? desktopAddressGridStyle : { display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {addresses.map((item) => {
-          const iconName = TAG_ICONS[item.tag] || 'map-pin';
-          const themeColor = TAG_COLORS[item.tag] || '#6366f1';
+          const iconName = TAG_ICONS[item.tag] || 'home';
+          const themeColor = TAG_COLORS[item.tag] || '#3b82f6';
 
           return (
             <View key={item.id} style={[styles.addrCard, item.isDefault && styles.addrCardDefault]}>
@@ -836,6 +952,26 @@ export default function SavedAddressesScreen({ onNavigate }) {
             })}
           </View>
 
+          {/* Use Current Location Button */}
+          <TouchableOpacity
+            style={styles.currentLocationBtn}
+            onPress={handleUseCurrentLocation}
+            disabled={detectingLocation}
+            activeOpacity={0.85}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="2" x2="12" y2="6" />
+              <line x1="12" y1="18" x2="12" y2="22" />
+              <line x1="2" y1="12" x2="6" y2="12" />
+              <line x1="18" y1="12" x2="22" y2="12" />
+              <circle cx="12" cy="12" r="3" fill="#38bdf8" />
+            </svg>
+            <Text style={styles.currentLocationBtnText}>
+              {detectingLocation ? 'Detecting GPS Location...' : 'Use My Current Location'}
+            </Text>
+          </TouchableOpacity>
+
           {/* Map Location Picker Trigger */}
           <TouchableOpacity
             style={styles.mapPickerBtn}
@@ -845,6 +981,23 @@ export default function SavedAddressesScreen({ onNavigate }) {
             <AppIcon name="map-pin" size={14} color="#2563eb" />
             <Text style={styles.mapPickerBtnText}>{showMapPicker ? 'Hide Google Map' : 'Detect / Pick Location on Google Map'}</Text>
           </TouchableOpacity>
+
+          {locationStatus.text ? (
+            <View style={[
+              styles.locStatusBox,
+              locationStatus.type === 'error' && styles.locStatusBoxError,
+              locationStatus.type === 'success' && styles.locStatusBoxSuccess
+            ]}>
+              <Text style={[
+                styles.locStatusText,
+                locationStatus.type === 'error' && styles.locStatusTextError,
+                locationStatus.type === 'success' && styles.locStatusTextSuccess
+              ]}>
+                {locationStatus.type === 'error' ? '⚠ ' : locationStatus.type === 'success' ? '✓ ' : 'ℹ '}
+                {locationStatus.text}
+              </Text>
+            </View>
+          ) : null}
 
           {showMapPicker && (
             <GoogleMapsLocationPicker
@@ -1049,6 +1202,58 @@ const styles = StyleSheet.create({
     borderColor: '#cbd5e1',
     borderRadius: 12,
     padding: 4,
+  },
+  currentLocationBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    paddingVertical: 10.5,
+    paddingHorizontal: 14,
+    cursor: 'pointer',
+    marginTop: 6,
+    marginBottom: 4,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  currentLocationBtnText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#ffffff',
+    fontFamily: 'Inter, sans-serif',
+  },
+  locStatusBox: {
+    padding: 8,
+    borderRadius: 8,
+    marginVertical: 4,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  locStatusBoxError: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fca5a5',
+  },
+  locStatusBoxSuccess: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+  },
+  locStatusText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: '#1e40af',
+    textAlign: 'center',
+  },
+  locStatusTextError: {
+    color: '#dc2626',
+  },
+  locStatusTextSuccess: {
+    color: '#15803d',
   },
   mapPickerBtn: {
     flexDirection: 'row',

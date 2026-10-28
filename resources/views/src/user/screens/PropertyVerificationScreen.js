@@ -1384,7 +1384,7 @@ export default function PropertyVerificationScreen({ onNavigate }) {
           {/* Professional Policy Note */}
           <View style={styles.coverageNoteCard}>
             <View style={styles.coverageNoteIconWrap}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="16" x2="12" y2="12" />
                 <line x1="12" y1="8" x2="12.01" y2="8" />
@@ -1393,7 +1393,7 @@ export default function PropertyVerificationScreen({ onNavigate }) {
             <View style={{ flex: 1 }}>
               <Text style={styles.coverageNoteTitle}>Service Guidelines Note</Text>
               <Text style={styles.coverageNoteText}>
-                Please note: Only appliances in active <Text style={{ fontWeight: '700', color: '#1e40af' }}>working condition</Text> are covered under the Care Subscription Package. Pre-existing non-functional units cannot be onboarded.
+                Please note: Only appliances in active <Text style={{ fontWeight: '700', color: '#b91c1c' }}>working condition</Text> are covered under the Care Subscription Package. Pre-existing non-functional units cannot be onboarded.
               </Text>
             </View>
           </View>
@@ -2957,9 +2957,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    backgroundColor: '#eff6ff',
+    backgroundColor: '#fef2f2',
     borderWidth: 1.2,
-    borderColor: '#bfdbfe',
+    borderColor: '#fca5a5',
     borderRadius: 14,
     padding: 12,
     marginVertical: 10,
@@ -2970,7 +2970,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#dbeafe',
+    backgroundColor: '#fee2e2',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -2979,13 +2979,13 @@ const styles = StyleSheet.create({
   coverageNoteTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#1e40af',
+    color: '#b91c1c',
     marginBottom: 2,
     fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif",
   },
   coverageNoteText: {
     fontSize: 11.5,
-    color: '#334155',
+    color: '#7f1d1d',
     lineHeight: 16,
     fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif",
   },

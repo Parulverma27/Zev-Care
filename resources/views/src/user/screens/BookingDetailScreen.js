@@ -128,61 +128,61 @@ export default function BookingDetailScreen() {
     {
       key: 'PENDING_ADMIN_REVIEW',
       title: 'Booking Created & Admin Review',
-      detail: 'Work order registered and queued in Zevota-Care dispatch system.',
+      detail: 'Work order received and queued for technician dispatch.',
       time: '10 mins ago',
     },
     {
       key: 'PROVIDER_ASSIGNED',
       title: 'Technician Assigned',
-      detail: `Certified Technician ${bk?.provider_name || 'Not yet assigned'} assigned to your work order.`,
+      detail: bk?.provider_name ? `Technician ${bk.provider_name} assigned.` : 'Certified technician being assigned.',
       time: '8 mins ago',
     },
     {
       key: 'PROVIDER_ACCEPTED',
       title: 'Technician Accepted Work Order',
-      detail: 'Technician confirmed work order schedule and details.',
+      detail: 'Technician confirmed schedule.',
       time: '6 mins ago',
     },
     {
       key: 'PROVIDER_ON_THE_WAY',
       title: 'Technician On The Way',
-      detail: `Technician en route to premises (${bk?.address_text || 'Bandra West'}). Live ETA 15 Mins.`,
+      detail: 'Technician en route to premises. Live ETA available.',
       time: '4 mins ago',
     },
     {
       key: 'PROVIDER_ARRIVED',
       title: 'Technician Arrived At Premises',
-      detail: 'Technician arrived on site and initiated diagnostic inspection.',
+      detail: 'Technician arrived on site for inspection.',
       time: '2 mins ago',
     },
     {
       key: 'ISSUE_INSPECTED',
       title: 'Inspection Completed & Estimate Built',
-      detail: 'Inspection complete. Parts required & estimate bill prepared by technician.',
+      detail: 'Inspection complete and estimate prepared.',
       time: 'Just now',
     },
     {
       key: 'ASSIGNED_TO_ADMIN',
       title: 'Inspection Sent to Admin',
-      detail: 'Estimate sent to Admin for price verification & membership discount calculation.',
+      detail: 'Estimate sent for admin verification.',
       time: 'Just now',
     },
     {
       key: 'AWAITING_USER_APPROVAL',
       title: 'Estimate Sent — Awaiting User Approval',
-      detail: 'Estimate bill verified by Admin. Please review breakdown and approve below.',
+      detail: 'Please review estimate breakdown and approve below.',
       time: 'Action Required',
     },
     {
       key: 'SERVICE_IN_PROGRESS',
       title: 'Bill Approved & Service In Progress',
-      detail: 'Estimate approved & payment deducted. Technician currently executing repair work.',
+      detail: 'Estimate approved. Technician executing service.',
       time: 'In Progress',
     },
     {
       key: 'BOOKING_COMPLETED',
       title: 'Completion OTP Verified & Completed',
-      detail: `Work completed and verified via OTP. 30-Day warranty active.`,
+      detail: 'Work completed and verified via OTP.',
       time: 'Completed',
     },
   ];
@@ -449,19 +449,6 @@ export default function BookingDetailScreen() {
               </View>
             </View>
           ) : null}
-
-          {/* 30-Day Urban Company Warranty Guarantee */}
-          {isConsultationBk && (
-            <View style={styles.warrantyBox}>
-              <AppIcon name="shield" size={16} color="#2563eb" />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.warrantyTitle}>30-Day Service & Parts Warranty</Text>
-                <Text style={styles.warrantySub}>
-                  All replacement components and technician labor are backed by our 30-day rework guarantee.
-                </Text>
-              </View>
-            </View>
-          )}
 
           <View style={styles.billBreakdownTable}>
             <View style={styles.billRow}>
@@ -809,9 +796,33 @@ export default function BookingDetailScreen() {
 
       {/* 10-Stage Connected Visual Timeline */}
       <View style={styles.timelineCard}>
-        <View style={styles.timelineHeaderRow}>
-          <Text style={styles.timelineTitle}>Work Order Lifecycle Progress</Text>
-          <Text style={styles.timelineMeta}>Stage {activeStageIndex + 1} of 10</Text>
+        <View style={styles.timelineHeaderBlock}>
+          <View style={styles.timelineHeaderRow}>
+            <View style={styles.timelineTitleWrap}>
+              <View style={styles.timelineIconBubble}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+              </View>
+              <View style={styles.timelineTitleCol}>
+                <Text style={styles.timelineTitle}>Work Order Lifecycle</Text>
+                <Text style={styles.timelineSubtitle}>Real-time milestone tracking</Text>
+              </View>
+            </View>
+            <View style={styles.timelineMetaWrap}>
+              <Text style={styles.timelineMeta}>Stage {activeStageIndex + 1} of {stages.length}</Text>
+            </View>
+          </View>
+
+          {/* Visual Mini Progress Bar */}
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressBar,
+                { width: `${Math.round(((activeStageIndex + 1) / stages.length) * 100)}%` },
+              ]}
+            />
+          </View>
         </View>
 
         <View style={styles.timelineList}>
@@ -821,44 +832,62 @@ export default function BookingDetailScreen() {
             const isLast = idx === stages.length - 1;
 
             return (
-              <View key={idx} style={styles.timelineStepRow}>
+              <View key={idx} style={[styles.timelineStepRow, isCurrent && styles.timelineStepRowCurrent]}>
                 {/* Left Node & Vertical Connector Line */}
                 <View style={styles.nodeColumn}>
-                  <View style={[
-                    styles.nodeDot,
-                    isDone && styles.nodeDotDone,
-                    isCurrent && styles.nodeDotCurrent
-                  ]}>
+                  <View
+                    style={[
+                      styles.nodeDot,
+                      isDone && styles.nodeDotDone,
+                      isCurrent && styles.nodeDotCurrent,
+                      !isDone && !isCurrent && styles.nodeDotPending,
+                    ]}
+                  >
                     {isDone ? (
-                      <Text style={styles.checkIcon}>✓</Text>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
                     ) : isCurrent ? (
                       <View style={styles.currentInnerDot} />
-                    ) : null}
+                    ) : (
+                      <Text style={styles.pendingStepNum}>{idx + 1}</Text>
+                    )}
                   </View>
                   {!isLast && (
-                    <View style={[styles.connectingLine, isDone && styles.connectingLineDone]} />
+                    <View
+                      style={[
+                        styles.connectingLine,
+                        isDone && styles.connectingLineDone,
+                        isCurrent && styles.connectingLineFromCurrent,
+                      ]}
+                    />
                   )}
                 </View>
 
                 {/* Right Step Details */}
-                <View style={styles.stepContent}>
+                <View style={[styles.stepContent, isCurrent && styles.stepContentActiveCard]}>
                   <View style={styles.stepHeader}>
-                    <Text style={[
-                      styles.stepTitle,
-                      isDone && styles.stepTitleDone,
-                      isCurrent && styles.stepTitleCurrent
-                    ]}>
+                    <Text
+                      style={[
+                        styles.stepTitle,
+                        isDone && styles.stepTitleDone,
+                        isCurrent && styles.stepTitleCurrent,
+                      ]}
+                    >
                       {st.title}
                     </Text>
                     {isCurrent && (
                       <View style={styles.currentBadge}>
+                        <View style={styles.pulsingDot} />
                         <Text style={styles.currentBadgeText}>ACTIVE NOW</Text>
                       </View>
                     )}
                   </View>
-                  <Text style={[styles.stepDetail, isCurrent && styles.stepDetailCurrent]}>
-                    {st.detail}
-                  </Text>
+                  {isCurrent && !!st.detail ? (
+                    <Text style={[styles.stepDetail, styles.stepDetailCurrent]}>
+                      {st.detail}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
             );
@@ -1245,33 +1274,88 @@ const styles = StyleSheet.create({
   timelineCard: {
     backgroundColor: '#ffffff',
     borderRadius: 20,
-    padding: 18,
-    borderWidth: 1,
+    padding: 16,
+    borderWidth: 1.2,
     borderColor: '#e2e8f0',
-    gap: 16,
-    boxShadow: '0 4px 14px rgba(0,0,0,0.03)',
+    gap: 14,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  timelineHeaderBlock: {
+    gap: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    paddingBottom: 12,
   },
   timelineHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingBottom: 12,
+    gap: 8,
+    width: '100%',
+  },
+  timelineTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    flex: 1,
+    minWidth: 0,
+  },
+  timelineIconBubble: {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  timelineTitleCol: {
+    flex: 1,
+    minWidth: 0,
   },
   timelineTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
     color: '#0f172a',
+    letterSpacing: -0.2,
+  },
+  timelineSubtitle: {
+    fontSize: 10.5,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  timelineMetaWrap: {
+    flexShrink: 0,
   },
   timelineMeta: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#2563eb',
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#1d4ed8',
     backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: 99,
+    letterSpacing: 0.1,
+  },
+  progressTrack: {
+    height: 5,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 99,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#2563eb',
+    borderRadius: 99,
   },
   timelineList: {
     gap: 0,
@@ -1279,44 +1363,66 @@ const styles = StyleSheet.create({
   timelineStepRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 14,
+    gap: 12,
     position: 'relative',
-    minHeight: 52,
+    minHeight: 46,
+  },
+  timelineStepRowCurrent: {
+    minHeight: 64,
   },
   nodeColumn: {
     alignItems: 'center',
     width: 24,
+    paddingTop: 2,
   },
   nodeDot: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#f1f5f9',
-    borderWidth: 2,
-    borderColor: '#cbd5e1',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
   },
+  nodeDotPending: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+  },
+  pendingStepNum: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#64748b',
+    lineHeight: 12,
+  },
   nodeDotDone: {
     backgroundColor: '#10b981',
-    borderColor: '#10b981',
+    borderWidth: 0,
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
   },
   nodeDotCurrent: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#ffffff',
+    borderWidth: 2.5,
     borderColor: '#2563eb',
-    borderWidth: 3,
-    boxShadow: '0 0 0 3px rgba(37,99,235,0.2)',
-  },
-  checkIcon: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontWeight: '900',
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3,
   },
   currentInnerDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
     backgroundColor: '#2563eb',
   },
   connectingLine: {
@@ -1324,15 +1430,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#e2e8f0',
     marginVertical: 2,
-    minHeight: 28,
+    minHeight: 22,
   },
   connectingLineDone: {
     backgroundColor: '#10b981',
   },
+  connectingLineFromCurrent: {
+    backgroundColor: '#cbd5e1',
+  },
   stepContent: {
     flex: 1,
-    paddingBottom: 14,
+    paddingBottom: 12,
+    paddingTop: 2,
     gap: 2,
+  },
+  stepContentActiveCard: {
+    backgroundColor: '#f0f7ff',
+    borderWidth: 1.2,
+    borderColor: '#bfdbfe',
+    borderRadius: 12,
+    padding: 10,
+    paddingBottom: 10,
+    marginBottom: 6,
+    gap: 4,
   },
   stepHeader: {
     flexDirection: 'row',
@@ -1343,37 +1463,48 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 12.5,
     fontWeight: '600',
-    color: '#94a3b8',
+    color: '#475569',
+    lineHeight: 17,
   },
   stepTitleDone: {
     color: '#0f172a',
     fontWeight: '700',
   },
   stepTitleCurrent: {
-    color: '#2563eb',
+    color: '#1d4ed8',
     fontWeight: '800',
-    fontSize: 13.5,
+    fontSize: 13,
   },
   currentBadge: {
-    backgroundColor: '#eff6ff',
-    paddingHorizontal: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 7,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 99,
+  },
+  pulsingDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#ffffff',
   },
   currentBadgeText: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: '800',
-    color: '#2563eb',
+    color: '#ffffff',
     letterSpacing: 0.5,
   },
   stepDetail: {
-    fontSize: 11.5,
-    color: '#94a3b8',
-    lineHeight: 16,
+    fontSize: 11,
+    color: '#64748b',
+    lineHeight: 15,
   },
   stepDetailCurrent: {
     color: '#334155',
     fontWeight: '500',
+    marginTop: 2,
   },
 
   backBtn: {

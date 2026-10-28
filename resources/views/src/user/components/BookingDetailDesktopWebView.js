@@ -204,8 +204,23 @@ export default function BookingDetailDesktopWebView({
           {/* 10-Stage Lifecycle Progress */}
           <div style={cardWrapStyle}>
             <div style={cardHeaderRowStyle}>
-              <span style={cardHeaderTitleStyle}>WORK ORDER LIFECYCLE PROGRESS</span>
-              <span style={stageCounterStyle}>Stage {activeStageIndex + 1} of 10</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '9px', flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', backgroundColor: '#eff6ff', border: '1px solid #dbeafe', color: '#2563eb', flexShrink: 0 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                  </svg>
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={cardHeaderTitleStyle}>WORK ORDER LIFECYCLE</div>
+                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '500' }}>Real-time milestone tracking</div>
+                </div>
+              </div>
+              <span style={stageCounterStyle}>Stage {activeStageIndex + 1} of {stages.length}</span>
+            </div>
+
+            {/* Visual Mini Progress Bar */}
+            <div style={{ height: '5px', backgroundColor: '#f1f5f9', borderRadius: '99px', overflow: 'hidden', margin: '4px 0 14px 0' }}>
+              <div style={{ height: '100%', width: `${Math.round(((activeStageIndex + 1) / stages.length) * 100)}%`, backgroundColor: '#2563eb', borderRadius: '99px', transition: 'width 0.3s ease' }} />
             </div>
 
             <div style={timelineContainerStyle}>
@@ -215,35 +230,54 @@ export default function BookingDetailDesktopWebView({
                 const isLast = idx === stages.length - 1;
 
                 return (
-                  <div key={idx} style={timelineRowStyle}>
+                  <div key={idx} style={{ ...timelineRowStyle, marginBottom: isCurrent ? '4px' : '0' }}>
                     <div style={timelineLeftColStyle}>
                       <div
                         style={{
                           ...timelineDotStyle,
-                          backgroundColor: isDone ? '#16a34a' : isCurrent ? '#2563eb' : '#ffffff',
-                          borderColor: isDone ? '#16a34a' : isCurrent ? '#2563eb' : '#cbd5e1',
-                          color: isDone || isCurrent ? '#ffffff' : '#64748b',
+                          backgroundColor: isDone ? '#10b981' : isCurrent ? '#ffffff' : '#f8fafc',
+                          borderColor: isDone ? '#10b981' : isCurrent ? '#2563eb' : '#cbd5e1',
+                          borderWidth: isCurrent ? '2.5px' : '1.5px',
+                          color: isDone ? '#ffffff' : isCurrent ? '#2563eb' : '#64748b',
+                          boxShadow: isCurrent ? '0 0 0 4px rgba(37,99,235,0.18)' : 'none',
                         }}
                       >
-                        {isDone ? '✓' : idx + 1}
+                        {isDone ? (
+                          <span style={{ fontSize: '11px', fontWeight: '900' }}>✓</span>
+                        ) : isCurrent ? (
+                          <span style={{ width: '8px', height: '8px', borderRadius: '4px', backgroundColor: '#2563eb' }} />
+                        ) : (
+                          <span style={{ fontSize: '9.5px', fontWeight: '700', color: '#64748b' }}>{idx + 1}</span>
+                        )}
                       </div>
                       {!isLast && (
                         <div
                           style={{
                             ...timelineConnectorStyle,
-                            backgroundColor: isDone ? '#16a34a' : '#e2e8f0',
+                            backgroundColor: isDone ? '#10b981' : '#e2e8f0',
+                            width: '2px',
                           }}
                         />
                       )}
                     </div>
 
-                    <div style={{ flex: 1, paddingBottom: isLast ? '0' : '22px' }}>
+                    <div style={{
+                      flex: 1,
+                      paddingBottom: isLast ? '0' : '14px',
+                      ...(isCurrent ? {
+                        backgroundColor: '#f0f7ff',
+                        border: '1.2px solid #bfdbfe',
+                        borderRadius: '12px',
+                        padding: '10px 12px',
+                        marginBottom: '6px',
+                      } : {}),
+                    }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span
                           style={{
-                            fontSize: '14px',
-                            fontWeight: isCurrent ? '800' : isDone ? '700' : '500',
-                            color: isCurrent ? '#1d4ed8' : isDone ? '#0f172a' : '#64748b',
+                            fontSize: isCurrent ? '13.5px' : '13px',
+                            fontWeight: isCurrent ? '800' : isDone ? '700' : '600',
+                            color: isCurrent ? '#1d4ed8' : isDone ? '#0f172a' : '#475569',
                           }}
                         >
                           {st.title}
@@ -252,9 +286,11 @@ export default function BookingDetailDesktopWebView({
                           <span style={activeNowBadgeStyle}>ACTIVE NOW</span>
                         )}
                       </div>
-                      <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#64748b', lineHeight: '18px' }}>
-                        {st.detail}
-                      </p>
+                      {isCurrent && !!st.detail && (
+                        <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#334155', lineHeight: '17px', fontWeight: '500' }}>
+                          {st.detail}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
@@ -493,20 +529,6 @@ export default function BookingDetailDesktopWebView({
                   <div style={detailValueStyle}>{bk?.issue || bk?.issue_description || 'Standard repair & maintenance'}</div>
                 </div>
               </div>
-
-              {bk?.status === 'BOOKING_COMPLETED' && (
-                <div style={warrantyGuaranteeBoxStyle}>
-                  <span style={{ fontSize: '18px' }}>🛡️</span>
-                  <div>
-                    <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#1e40af' }}>
-                      30-Day Service Guarantee Active
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#3b82f6', marginTop: '2px' }}>
-                      If the same problem recurs within 30 days, we will re-dispatch a technician at ₹0 charge.
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -874,9 +896,15 @@ const chatTechBtnStyle = {
 };
 
 const stageCounterStyle = {
-  fontSize: '12px',
-  fontWeight: '700',
-  color: '#64748b',
+  fontSize: '11px',
+  fontWeight: '800',
+  color: '#1d4ed8',
+  backgroundColor: '#eff6ff',
+  border: '1px solid #bfdbfe',
+  padding: '3px 9px',
+  borderRadius: '99px',
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
 };
 
 const timelineContainerStyle = {
@@ -898,10 +926,9 @@ const timelineLeftColStyle = {
 };
 
 const timelineDotStyle = {
-  width: '24px',
-  height: '24px',
-  borderRadius: '12px',
-  borderWidth: '2px',
+  width: '22px',
+  height: '22px',
+  borderRadius: '11px',
   borderStyle: 'solid',
   display: 'flex',
   alignItems: 'center',
@@ -914,18 +941,19 @@ const timelineDotStyle = {
 const timelineConnectorStyle = {
   width: '2px',
   flex: 1,
-  minHeight: '26px',
+  minHeight: '22px',
 };
 
 const activeNowBadgeStyle = {
-  fontSize: '9.5px',
+  fontSize: '8.5px',
   fontWeight: '800',
-  color: '#1d4ed8',
-  backgroundColor: '#eff6ff',
-  border: '1px solid #bfdbfe',
-  padding: '2px 6px',
-  borderRadius: '4px',
-  letterSpacing: '0.4px',
+  color: '#ffffff',
+  backgroundColor: '#2563eb',
+  padding: '2px 7px',
+  borderRadius: '99px',
+  letterSpacing: '0.5px',
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
 };
 
 const estimateCardWrapStyle = {

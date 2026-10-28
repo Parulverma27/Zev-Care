@@ -138,6 +138,28 @@ export function AppIcon({ name, size = 16, color = '#64748b', strokeWidth = 2, s
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         );
+      case 'villa':
+        return (
+          <svg {...p}>
+            <path d="M19 10.5V20a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9.5" />
+            <path d="M2 10l10-8 10 8" />
+            <path d="M9 22v-6h6v6" />
+            <line x1="12" y1="2" x2="12" y2="5" />
+          </svg>
+        );
+      case 'pg':
+        return (
+          <svg {...p}>
+            <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+            <line x1="9" y1="6" x2="9" y2="6.01" />
+            <line x1="15" y1="6" x2="15" y2="6.01" />
+            <line x1="9" y1="10" x2="9" y2="10.01" />
+            <line x1="15" y1="10" x2="15" y2="10.01" />
+            <line x1="9" y1="14" x2="9" y2="14.01" />
+            <line x1="15" y1="14" x2="15" y2="14.01" />
+            <line x1="9" y1="18" x2="15" y2="18" />
+          </svg>
+        );
       case 'building':
         return (
           <svg {...p}>

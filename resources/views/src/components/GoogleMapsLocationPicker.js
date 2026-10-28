@@ -116,7 +116,9 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
   };
 
   const reverseGeocodeOsm = (lat, lng) => {
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`, {
+      headers: { 'Accept-Language': 'en' },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data && data.display_name) {
@@ -132,7 +134,9 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
 
   const forwardGeocodeOsm = (addressText) => {
     if (!addressText || !addressText.trim()) return;
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressText.trim())}`)
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressText.trim())}&accept-language=en`, {
+      headers: { 'Accept-Language': 'en' },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data && data.length > 0) {

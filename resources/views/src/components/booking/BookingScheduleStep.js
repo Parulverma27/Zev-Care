@@ -1,5 +1,5 @@
-import React, { useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useMemo, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import BookingProgress from './BookingProgress';
 import LiveSupportOptionCard from './LiveSupportOptionCard';
 
@@ -9,7 +9,40 @@ export const DEFAULT_TIME_SLOTS = [
   '2:00 PM - 4:00 PM',
   '4:00 PM - 6:00 PM',
   '6:00 PM - 8:00 PM',
+  '8:00 PM - 10:00 PM',
+  '10:00 PM - 11:30 PM',
 ];
+
+export const QUICK_CUSTOM_PRESETS = [
+  '08:30 PM',
+  '09:00 PM',
+  '09:30 PM',
+  '10:00 PM',
+  '10:30 PM',
+  '11:00 PM',
+];
+
+export function getSlotPeriodText(slot, index) {
+  if (!slot) return '';
+  const s = slot.toUpperCase();
+  if (s.includes('CUSTOM')) return 'Custom preferred window';
+  if (s.includes('10:00 PM') || s.includes('11:00 PM') || s.includes('11:30 PM')) {
+    return 'Late Night window (Priority / Emergency)';
+  }
+  if (s.includes('8:00 PM') || s.includes('08:00 PM') || s.includes('9:00 PM') || s.includes('09:00 PM')) {
+    return 'Night window (After 8 PM)';
+  }
+  if (s.includes('6:00 PM') || s.includes('06:00 PM') || s.includes('4:00 PM') || s.includes('04:00 PM')) {
+    return 'Evening window';
+  }
+  if (s.includes('12:00 PM') || s.includes('2:00 PM') || s.includes('02:00 PM')) {
+    return 'Afternoon window';
+  }
+  if (s.includes('10:00 AM') || s.includes('AM')) {
+    return 'Morning window';
+  }
+  return index <= 2 ? 'Day window' : 'Evening window';
+}
 
 function buildDateOptions(count = 7) {
   const out = [];
@@ -47,6 +80,18 @@ export default function BookingScheduleStep({
   onLiveSupport,
 }) {
   const dates = useMemo(() => buildDateOptions(7), []);
+
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [customHour, setCustomHour] = useState('08');
+  const [customMinute, setCustomMinute] = useState('30');
+  const [customPeriod, setCustomPeriod] = useState('PM');
+  const [customInputText, setCustomInputText] = useState('');
+
+  // Check if current scheduledTime is a custom slot
+  const isCustomTimeSelected = useMemo(() => {
+    if (!scheduledTime) return false;
+    return !timeSlots.includes(scheduledTime);
+  }, [scheduledTime, timeSlots]);
 
   // Pre-select today if no date has been selected yet
   useEffect(() => {
@@ -234,7 +279,10 @@ export default function BookingScheduleStep({
                 styles.slotCard,
                 isSelected && styles.slotCardActive,
               ]}
-              onPress={() => onChangeTime?.(slot)}
+              onPress={() => {
+                onChangeTime?.(slot);
+                setShowCustomPicker(false);
+              }}
               activeOpacity={0.85}
             >
               <View style={styles.slotCardLeft}>
@@ -259,11 +307,7 @@ export default function BookingScheduleStep({
                     {slot}
                   </Text>
                   <Text style={styles.slotPeriodText}>
-                    {index === 0
-                      ? 'Morning window'
-                      : index <= 2
-                        ? 'Afternoon window'
-                        : 'Evening window'}
+                    {getSlotPeriodText(slot, index)}
                   </Text>
                 </View>
               </View>
@@ -278,6 +322,181 @@ export default function BookingScheduleStep({
             </TouchableOpacity>
           );
         })}
+      </View>
+
+      {/* SECTION: CUSTOMISE TIMING (Flexible & After 8 PM Booking) */}
+      <View style={[styles.customSlotCard, isCustomTimeSelected && styles.customSlotCardActive]}>
+        <TouchableOpacity
+          style={styles.customSlotHeader}
+          onPress={() => setShowCustomPicker((prev) => !prev)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.slotCardLeft}>
+            <View style={[styles.slotIconBox, isCustomTimeSelected && styles.slotIconBoxActive]}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={isCustomTimeSelected ? '#2563eb' : '#64748b'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+                <path d="M12 2v2M12 20v2M2 12h2M20 12h2" />
+              </svg>
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <View style={styles.customTitleRow}>
+                <Text style={[styles.slotTimeText, isCustomTimeSelected && styles.slotTimeTextActive]}>
+                  {isCustomTimeSelected ? scheduledTime : 'Customise Timing'}
+                </Text>
+                <View style={styles.customBadge}>
+                  <Text style={styles.customBadgeText}>Any Time / After 8 PM</Text>
+                </View>
+              </View>
+              <Text style={styles.slotPeriodText}>
+                {isCustomTimeSelected
+                  ? 'Custom timing selected • Technician scheduled for your chosen time'
+                  : 'Tap to choose your own specific time window'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {isCustomTimeSelected && (
+              <View style={styles.editPillBtn}>
+                <Text style={styles.editPillBtnText}>{showCustomPicker ? 'Close' : 'Change'}</Text>
+              </View>
+            )}
+            <View style={[styles.slotRadioCircle, isCustomTimeSelected && styles.slotRadioCircleActive]}>
+              {isCustomTimeSelected && (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/* Expandable Custom Timing Controls — only open when showCustomPicker is true */}
+        {showCustomPicker && (
+          <View style={styles.customPickerContent}>
+            <View style={styles.customDivider} />
+
+            {/* Quick Popular After-8 PM & Evening Chips */}
+            <Text style={styles.customSectionSubtitle}>
+              Quick Late-Evening & Night Slots:
+            </Text>
+            <View style={styles.quickPresetRow}>
+              {QUICK_CUSTOM_PRESETS.map((preset) => {
+                const isPresetActive = scheduledTime === preset || scheduledTime === `${preset} (Custom)`;
+                return (
+                  <TouchableOpacity
+                    key={preset}
+                    style={[
+                      styles.presetChip,
+                      isPresetActive && styles.presetChipActive,
+                    ]}
+                    onPress={() => {
+                      onChangeTime?.(preset);
+                      setShowCustomPicker(false);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.presetChipText, isPresetActive && styles.presetChipTextActive]}>
+                      {preset}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Manual Custom Time Selector */}
+            <Text style={[styles.customSectionSubtitle, { marginTop: 10 }]}>
+              Or Pick Exact Arrival Time:
+            </Text>
+
+            <View style={styles.pickerBlock}>
+              {/* Hour Selection - 2 rows of 6 */}
+              <View style={styles.pickerSectionRow}>
+                <Text style={styles.timeFieldLabel}>HOUR</Text>
+                <View style={styles.hourGrid}>
+                  {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map((h) => (
+                    <TouchableOpacity
+                      key={h}
+                      style={[styles.compactChip, customHour === h && styles.compactChipActive]}
+                      onPress={() => setCustomHour(h)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.compactChipText, customHour === h && styles.compactChipTextActive]}>{h}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Minute & AM/PM Row */}
+              <View style={styles.minutePeriodRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.timeFieldLabel}>MINUTE</Text>
+                  <View style={styles.compactRow}>
+                    {['00', '15', '30', '45'].map((m) => (
+                      <TouchableOpacity
+                        key={m}
+                        style={[styles.compactChip, customMinute === m && styles.compactChipActive]}
+                        onPress={() => setCustomMinute(m)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.compactChipText, customMinute === m && styles.compactChipTextActive]}>:{m}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={{ width: 100 }}>
+                  <Text style={styles.timeFieldLabel}>PERIOD</Text>
+                  <View style={styles.compactRow}>
+                    {['PM', 'AM'].map((p) => (
+                      <TouchableOpacity
+                        key={p}
+                        style={[styles.compactChip, styles.periodBtn, customPeriod === p && styles.compactChipActive]}
+                        onPress={() => setCustomPeriod(p)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.compactChipText, customPeriod === p && styles.compactChipTextActive]}>{p}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Direct text input fallback for custom descriptions */}
+            <View style={styles.customInputRow}>
+              <TextInput
+                style={styles.customTextInput}
+                placeholder="e.g. After 8:30 PM or 9:15 PM"
+                placeholderTextColor="#94a3b8"
+                value={customInputText}
+                onChangeText={setCustomInputText}
+              />
+            </View>
+
+            {/* PROMINENT CONFIRM & APPLY BUTTON */}
+            <TouchableOpacity
+              style={styles.confirmCustomTimeBtn}
+              onPress={() => {
+                const finalTime = customInputText.trim()
+                  ? customInputText.trim()
+                  : `${customHour}:${customMinute} ${customPeriod}`;
+                onChangeTime?.(finalTime);
+                setShowCustomPicker(false);
+              }}
+              activeOpacity={0.88}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <Text style={styles.confirmCustomTimeBtnText}>
+                Apply & Confirm {customInputText.trim() || `${customHour}:${customMinute} ${customPeriod}`}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* Real-Icon Quality & Reassurance Strip */}
@@ -822,5 +1041,233 @@ const styles = StyleSheet.create({
   },
   primaryBtnTextDisabled: {
     color: '#94a3b8',
+  },
+
+  // Custom Slot Card & Picker
+  customSlotCard: {
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
+    overflow: 'hidden',
+  },
+  customSlotCardActive: {
+    borderColor: '#2563eb',
+    backgroundColor: '#ffffff',
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  customSlotHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    cursor: 'pointer',
+  },
+  customTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  customBadge: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 99,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+  },
+  customBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#2563eb',
+    letterSpacing: 0.1,
+  },
+  customPickerContent: {
+    paddingHorizontal: 12,
+    paddingBottom: 14,
+    gap: 8,
+    backgroundColor: '#f8fafc',
+  },
+  customDivider: {
+    height: 1,
+    backgroundColor: '#e2e8f0',
+    marginBottom: 4,
+  },
+  customSectionSubtitle: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#475569',
+    letterSpacing: 0.2,
+  },
+  quickPresetRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  presetChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1.2,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#ffffff',
+    cursor: 'pointer',
+  },
+  presetChipActive: {
+    borderColor: '#2563eb',
+    backgroundColor: '#2563eb',
+  },
+  presetChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  presetChipTextActive: {
+    color: '#ffffff',
+  },
+  timeBuilderRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'flex-start',
+  },
+  timeCol: {
+    flex: 1,
+    gap: 4,
+  },
+  timeFieldLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  miniChip: {
+    paddingVertical: 4.5,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    minWidth: 26,
+  },
+  miniChipActive: {
+    borderColor: '#2563eb',
+    backgroundColor: '#2563eb',
+  },
+  miniChipText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  miniChipTextActive: {
+    color: '#ffffff',
+  },
+  editPillBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  editPillBtnText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+  pickerBlock: {
+    gap: 8,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  pickerSectionRow: {
+    gap: 4,
+  },
+  hourGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  minutePeriodRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
+  },
+  compactRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  compactChip: {
+    paddingVertical: 5,
+    paddingHorizontal: 7,
+    borderRadius: 6,
+    borderWidth: 1.2,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    minWidth: 28,
+  },
+  compactChipActive: {
+    borderColor: '#2563eb',
+    backgroundColor: '#2563eb',
+  },
+  compactChipText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  compactChipTextActive: {
+    color: '#ffffff',
+  },
+  periodBtn: {
+    flex: 1,
+    paddingVertical: 6,
+  },
+  confirmCustomTimeBtn: {
+    backgroundColor: '#2563eb',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    cursor: 'pointer',
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 2,
+    marginTop: 4,
+  },
+  confirmCustomTimeBtnText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
   },
 });

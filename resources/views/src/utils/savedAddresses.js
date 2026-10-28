@@ -1,5 +1,12 @@
+export function normalizeTag(tag) {
+  const t = String(tag || '').trim().toLowerCase();
+  if (t === 'villa') return 'Villa';
+  if (t === 'pg') return 'PG';
+  return 'Home';
+}
+
 /**
- * Keep saved address lists consistent: at most one default.
+ * Keep saved address lists consistent: at most one default, valid tags only (Home, Villa, PG).
  */
 export function normalizeSavedAddresses(list = []) {
   if (!Array.isArray(list) || list.length === 0) return [];
@@ -12,7 +19,11 @@ export function normalizeSavedAddresses(list = []) {
     const key = String(addr.address).trim().toLowerCase().replace(/\s+/g, ' ');
     if (!key || seen.has(key)) continue;
     seen.add(key);
-    deduped.push({ ...addr, address: String(addr.address).trim() });
+    deduped.push({
+      ...addr,
+      tag: normalizeTag(addr.tag),
+      address: String(addr.address).trim(),
+    });
   }
 
   const defaultIdx = deduped.findIndex((a) => a.isDefault);

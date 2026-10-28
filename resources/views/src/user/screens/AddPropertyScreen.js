@@ -38,6 +38,71 @@ export default function AddPropertyScreen() {
   const [address, setAddress] = useState(activeUser?.address || '');
   const [contact, setContact] = useState(activeUser?.phone || '');
   const [error, setError] = useState('');
+  const [detectingLoc, setDetectingLoc] = useState(false);
+  const [locFeedback, setLocFeedback] = useState('');
+
+  const handleUseCurrentLocation = () => {
+    setLocFeedback('');
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocFeedback('Geolocation is not supported by your browser or device.');
+      return;
+    }
+
+    setDetectingLoc(true);
+    setLocFeedback('Detecting your GPS location...');
+
+    const fallbackOsm = (lat, lng) => {
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`, {
+        headers: { 'Accept-Language': 'en' },
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          setDetectingLoc(false);
+          if (data && data.display_name) {
+            setAddress(data.display_name);
+            setLocFeedback('✓ Current GPS location detected & filled!');
+          } else {
+            setLocFeedback('Unable to reverse-geocode coordinates. Please enter manually.');
+          }
+        })
+        .catch(() => {
+          setDetectingLoc(false);
+          setLocFeedback('Unable to reverse-geocode coordinates.');
+        });
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        if (window.google?.maps?.Geocoder) {
+          const geocoder = new window.google.maps.Geocoder();
+          geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+            if (status === 'OK' && results?.[0]) {
+              setDetectingLoc(false);
+              const formatted = results[0].formatted_address;
+              setAddress(formatted);
+              setLocFeedback('✓ Current GPS location detected & filled!');
+            } else {
+              fallbackOsm(lat, lng);
+            }
+          });
+        } else {
+          fallbackOsm(lat, lng);
+        }
+      },
+      (err) => {
+        setDetectingLoc(false);
+        if (err.code === 1) {
+          setLocFeedback('Location permission denied. Please allow access in browser settings.');
+        } else {
+          setLocFeedback('Unable to retrieve location. Please use map picker or enter manually.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   const isFormValid =
     Boolean(propertyType) &&
@@ -193,6 +258,35 @@ export default function AddPropertyScreen() {
               </View>
             </View>
 
+            {/* Quick Location Action Button */}
+            <View style={{ marginBottom: 10 }}>
+              <TouchableOpacity
+                onPress={handleUseCurrentLocation}
+                disabled={detectingLoc}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  backgroundColor: '#0f172a',
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 10,
+                }}
+                activeOpacity={0.85}
+              >
+                <AppIcon name="map-pin" size={14} color="#38bdf8" />
+                <Text style={{ color: '#ffffff', fontSize: 13, fontWeight: '700' }}>
+                  {detectingLoc ? 'Detecting GPS Location...' : 'Use My Current Location'}
+                </Text>
+              </TouchableOpacity>
+              {locFeedback ? (
+                <Text style={{ fontSize: 11.5, color: locFeedback.includes('✓') ? '#15803d' : '#dc2626', marginTop: 4, textAlign: 'center' }}>
+                  {locFeedback}
+                </Text>
+              ) : null}
+            </View>
+
             <Field label="Full Address / Landmark" value={address} onChangeText={setAddress} placeholder="e.g. 123, Green Park, Near City Center, Jaipur" multiline />
 
             {/* Embedded Google Map */}
@@ -279,6 +373,35 @@ export default function AddPropertyScreen() {
         <View style={styles.halfField}>
           <Field label="BHK" value={bhk} onChangeText={setBhk} placeholder="3 BHK" />
         </View>
+      </View>
+
+      {/* Quick Location Action Button */}
+      <View style={{ marginBottom: 10 }}>
+        <TouchableOpacity
+          onPress={handleUseCurrentLocation}
+          disabled={detectingLoc}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            backgroundColor: '#0f172a',
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            borderRadius: 10,
+          }}
+          activeOpacity={0.85}
+        >
+          <AppIcon name="map-pin" size={14} color="#38bdf8" />
+          <Text style={{ color: '#ffffff', fontSize: 12.5, fontWeight: '700' }}>
+            {detectingLoc ? 'Detecting GPS Location...' : 'Use My Current Location'}
+          </Text>
+        </TouchableOpacity>
+        {locFeedback ? (
+          <Text style={{ fontSize: 11.5, color: locFeedback.includes('✓') ? '#15803d' : '#dc2626', marginTop: 4, textAlign: 'center' }}>
+            {locFeedback}
+          </Text>
+        ) : null}
       </View>
 
       <Field label="Address" value={address} onChangeText={setAddress} placeholder="123, Green Park, Jaipur" multiline />

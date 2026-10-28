@@ -57,7 +57,7 @@ export default function AuthScreen() {
 
   const returnTarget = location.state?.from || '/user/home';
 
-  const { findUserByPhone, registerUser, loginUser, loginGuestUser, skipAuth, activeUser, setActiveUser } = useApp();
+  const { findUserByPhone, registerUser, loginUser, loginGuestUser, skipAuth, activeUser, setActiveUser, updateProfile } = useApp();
 
   const handleSkipLogin = () => {
     if (typeof skipAuth === 'function') {
@@ -89,8 +89,23 @@ export default function AuthScreen() {
   };
 
   const enterAsGuest = (guestPhone = '') => {
+    let preloginLoc = '';
+    try {
+      preloginLoc = sessionStorage.getItem('zevota_prelogin_location') || '';
+    } catch (e) {}
+
     if (typeof loginGuestUser === 'function') {
       loginGuestUser(guestPhone || phone);
+    }
+    if (preloginLoc) {
+      try {
+        const u = JSON.parse(localStorage.getItem('zevota_active_user') || '{}');
+        if (u && typeof u === 'object') {
+          u.address = preloginLoc;
+          localStorage.setItem('zevota_active_user', JSON.stringify(u));
+          setActiveUser(u);
+        }
+      } catch (e) {}
     }
     navigate(returnTarget, { replace: true });
   };
@@ -108,6 +123,94 @@ export default function AuthScreen() {
   const [nameFocused, setNameFocused] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+
+  // Doorstep Location Detection for Pre-Login & Login
+  const [detectedLocation, setDetectedLocation] = useState(() => {
+    try {
+      return sessionStorage.getItem('zevota_prelogin_location') || '';
+    } catch (e) {
+      return '';
+    }
+  });
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [locFeedback, setLocFeedback] = useState('');
+
+  const handleUseCurrentLocation = () => {
+    setLocFeedback('');
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocFeedback('Geolocation is not supported by your browser or device.');
+      return;
+    }
+
+    setDetectingLocation(true);
+    setLocFeedback('Detecting your GPS location...');
+
+    const fallbackOsm = (lat, lng) => {
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`, {
+        headers: { 'Accept-Language': 'en' },
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          setDetectingLocation(false);
+          if (data && data.display_name) {
+            setDetectedLocation(data.display_name);
+            setLocFeedback('✓ Current GPS location detected & linked!');
+            try {
+              sessionStorage.setItem('zevota_prelogin_location', data.display_name);
+            } catch (e) {}
+          } else {
+            setLocFeedback('Unable to reverse-geocode coordinates. You can continue.');
+          }
+        })
+        .catch(() => {
+          setDetectingLocation(false);
+          setLocFeedback('Unable to reverse-geocode coordinates.');
+        });
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        if (window.google?.maps?.Geocoder) {
+          const geocoder = new window.google.maps.Geocoder();
+          geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+            if (status === 'OK' && results?.[0]) {
+              setDetectingLocation(false);
+              const formatted = results[0].formatted_address;
+              setDetectedLocation(formatted);
+              setLocFeedback('✓ Current GPS location detected & linked!');
+              try {
+                sessionStorage.setItem('zevota_prelogin_location', formatted);
+              } catch (e) {}
+            } else {
+              fallbackOsm(lat, lng);
+            }
+          });
+        } else {
+          fallbackOsm(lat, lng);
+        }
+      },
+      (err) => {
+        setDetectingLocation(false);
+        if (err.code === 1) {
+          setLocFeedback('Location permission was denied. Please allow location access in your browser.');
+        } else {
+          setLocFeedback('Unable to retrieve location. Please check your GPS permissions.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  const handleClearLocation = () => {
+    setDetectedLocation('');
+    setLocFeedback('');
+    try {
+      sessionStorage.removeItem('zevota_prelogin_location');
+    } catch (e) {}
+  };
 
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
@@ -214,9 +317,17 @@ export default function AuthScreen() {
       isNew = sessionStorage.getItem(OTP_IS_NEW_KEY) === 'true';
     } catch (e) {}
 
+    let preloginLoc = detectedLocation;
+    try {
+      if (!preloginLoc) preloginLoc = sessionStorage.getItem('zevota_prelogin_location') || '';
+    } catch (e) {}
+
     const existing = findUserByPhone(phone);
     if (existing && !isNew) {
       loginUser(phone);
+      if (preloginLoc && typeof updateProfile === 'function') {
+        updateProfile({ ...existing, address: preloginLoc });
+      }
       navigate(returnTarget, { replace: true });
       return;
     }
@@ -231,7 +342,7 @@ export default function AuthScreen() {
         name: draft.name,
         email: draft.email,
         phone: draft.phone,
-        address: '',
+        address: preloginLoc || '',
       });
       try {
         sessionStorage.removeItem(REG_DRAFT_KEY);
@@ -243,6 +354,9 @@ export default function AuthScreen() {
 
     if (existing) {
       loginUser(phone);
+      if (preloginLoc && typeof updateProfile === 'function') {
+        updateProfile({ ...existing, address: preloginLoc });
+      }
       navigate(returnTarget, { replace: true });
     } else {
       enterAsGuest();
@@ -522,6 +636,56 @@ export default function AuthScreen() {
                     </div>
                   </div>
 
+                  {/* Use Current Location Option */}
+                  <div style={desktopStyles.locationContainer}>
+                    <button
+                      type="button"
+                      onClick={handleUseCurrentLocation}
+                      disabled={detectingLocation}
+                      style={{
+                        ...desktopStyles.locationBtn,
+                        backgroundColor: detectedLocation ? '#f0fdf4' : '#eff6ff',
+                        borderColor: detectedLocation ? '#86efac' : '#bfdbfe',
+                        color: detectedLocation ? '#15803d' : '#0878f8',
+                      }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={detectedLocation ? '#16a34a' : '#0878f8'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="2" x2="12" y2="6" />
+                        <line x1="12" y1="18" x2="12" y2="22" />
+                        <line x1="2" y1="12" x2="6" y2="12" />
+                        <line x1="18" y1="12" x2="22" y2="12" />
+                        <circle cx="12" cy="12" r="3" fill={detectedLocation ? '#16a34a' : '#0878f8'} />
+                      </svg>
+                      <span>
+                        {detectingLocation
+                          ? 'Detecting GPS Location...'
+                          : detectedLocation
+                          ? 'Current Location Detected'
+                          : 'Use My Current Location'}
+                      </span>
+                    </button>
+                    {detectedLocation ? (
+                      <div style={desktopStyles.locationBadgeRow}>
+                        <span style={desktopStyles.locationBadgeText} title={detectedLocation}>
+                          📍 {detectedLocation}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleClearLocation}
+                          style={desktopStyles.clearLocBtn}
+                          title="Clear Location"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : locFeedback ? (
+                      <span style={{ fontSize: 11.5, color: locFeedback.includes('✓') ? '#15803d' : '#dc2626', marginTop: 2, display: 'block' }}>
+                        {locFeedback}
+                      </span>
+                    ) : null}
+                  </div>
+
                   {/* Terms & Conditions Checkbox */}
                   <div style={desktopStyles.termsRow}>
                     <input
@@ -639,6 +803,56 @@ export default function AuthScreen() {
                         style={desktopStyles.mainInput}
                       />
                     </div>
+                  </div>
+
+                  {/* Use Current Location Option */}
+                  <div style={desktopStyles.locationContainer}>
+                    <button
+                      type="button"
+                      onClick={handleUseCurrentLocation}
+                      disabled={detectingLocation}
+                      style={{
+                        ...desktopStyles.locationBtn,
+                        backgroundColor: detectedLocation ? '#f0fdf4' : '#eff6ff',
+                        borderColor: detectedLocation ? '#86efac' : '#bfdbfe',
+                        color: detectedLocation ? '#15803d' : '#0878f8',
+                      }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={detectedLocation ? '#16a34a' : '#0878f8'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="2" x2="12" y2="6" />
+                        <line x1="12" y1="18" x2="12" y2="22" />
+                        <line x1="2" y1="12" x2="6" y2="12" />
+                        <line x1="18" y1="12" x2="22" y2="12" />
+                        <circle cx="12" cy="12" r="3" fill={detectedLocation ? '#16a34a' : '#0878f8'} />
+                      </svg>
+                      <span>
+                        {detectingLocation
+                          ? 'Detecting GPS Location...'
+                          : detectedLocation
+                          ? 'Current Location Detected'
+                          : 'Use My Current Location'}
+                      </span>
+                    </button>
+                    {detectedLocation ? (
+                      <div style={desktopStyles.locationBadgeRow}>
+                        <span style={desktopStyles.locationBadgeText} title={detectedLocation}>
+                          📍 {detectedLocation}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleClearLocation}
+                          style={desktopStyles.clearLocBtn}
+                          title="Clear Location"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : locFeedback ? (
+                      <span style={{ fontSize: 11.5, color: locFeedback.includes('✓') ? '#15803d' : '#dc2626', marginTop: 2, display: 'block' }}>
+                        {locFeedback}
+                      </span>
+                    ) : null}
                   </div>
 
                   {/* Terms & Conditions Checkbox */}
@@ -929,6 +1143,51 @@ export default function AuthScreen() {
                 Registered? You&apos;ll get an OTP. New here? You&apos;ll enter as a guest.
               </p>
 
+              {/* Use Current Location Option */}
+              <div style={css.locContainer}>
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  disabled={detectingLocation}
+                  style={detectedLocation ? css.locBtnActive : css.locBtn}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={detectedLocation ? '#16a34a' : '#0052e0'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="2" x2="12" y2="6" />
+                    <line x1="12" y1="18" x2="12" y2="22" />
+                    <line x1="2" y1="12" x2="6" y2="12" />
+                    <line x1="18" y1="12" x2="22" y2="12" />
+                    <circle cx="12" cy="12" r="3" fill={detectedLocation ? '#16a34a' : '#0052e0'} />
+                  </svg>
+                  <span>
+                    {detectingLocation
+                      ? 'Detecting GPS Location...'
+                      : detectedLocation
+                      ? 'Current Location Linked'
+                      : 'Use My Current Location'}
+                  </span>
+                </button>
+                {detectedLocation ? (
+                  <div style={css.locBadgeRow}>
+                    <span style={css.locBadgeText} title={detectedLocation}>
+                      📍 {detectedLocation}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleClearLocation}
+                      style={css.clearLocBtn}
+                      title="Clear location"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : locFeedback ? (
+                  <span style={{ fontSize: 11, color: locFeedback.includes('✓') ? '#15803d' : '#dc2626', marginTop: 2, display: 'block' }}>
+                    {locFeedback}
+                  </span>
+                ) : null}
+              </div>
+
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, margin: '8px 0 12px' }}>
                 <input
                   id="tc-login"
@@ -1028,6 +1287,51 @@ export default function AuthScreen() {
                   style={css.phoneInput}
                 />
               </Field>
+
+              {/* Use Current Location Option */}
+              <div style={css.locContainer}>
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  disabled={detectingLocation}
+                  style={detectedLocation ? css.locBtnActive : css.locBtn}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={detectedLocation ? '#16a34a' : '#0052e0'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="2" x2="12" y2="6" />
+                    <line x1="12" y1="18" x2="12" y2="22" />
+                    <line x1="2" y1="12" x2="6" y2="12" />
+                    <line x1="18" y1="12" x2="22" y2="12" />
+                    <circle cx="12" cy="12" r="3" fill={detectedLocation ? '#16a34a' : '#0052e0'} />
+                  </svg>
+                  <span>
+                    {detectingLocation
+                      ? 'Detecting GPS Location...'
+                      : detectedLocation
+                      ? 'Current Location Linked'
+                      : 'Use My Current Location'}
+                  </span>
+                </button>
+                {detectedLocation ? (
+                  <div style={css.locBadgeRow}>
+                    <span style={css.locBadgeText} title={detectedLocation}>
+                      📍 {detectedLocation}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleClearLocation}
+                      style={css.clearLocBtn}
+                      title="Clear location"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : locFeedback ? (
+                  <span style={{ fontSize: 11, color: locFeedback.includes('✓') ? '#15803d' : '#dc2626', marginTop: 2, display: 'block' }}>
+                    {locFeedback}
+                  </span>
+                ) : null}
+              </div>
 
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, margin: '8px 0 12px' }}>
                 <input
@@ -1614,6 +1918,61 @@ const desktopStyles = {
     fontSize: 11.5,
     color: '#64748b',
   },
+  locationContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    margin: '4px 0 10px',
+  },
+  locationBtn: {
+    width: '100%',
+    padding: '9.5px 14px',
+    borderRadius: 10,
+    borderWidth: '1.5px',
+    borderStyle: 'solid',
+    fontSize: 12.5,
+    fontWeight: 700,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+    fontFamily: "'Inter', sans-serif",
+  },
+  locationBadgeRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#eff6ff',
+    border: '1px solid #bfdbfe',
+    borderRadius: 8,
+    padding: '6px 10px',
+    gap: 8,
+  },
+  locationBadgeText: {
+    fontSize: 12,
+    color: '#1e40af',
+    fontWeight: 600,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    flex: 1,
+  },
+  clearLocBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#64748b',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer',
+    padding: '0 4px',
+  },
+  locationHelper: {
+    fontSize: 11,
+    color: '#64748b',
+    lineHeight: 1.35,
+  },
 };
 
 // ==============================================================
@@ -1894,6 +2253,75 @@ const css = {
     flexShrink: 0,
   },
   secureTxt: { fontSize: 12, color: '#102a63', lineHeight: '16px' },
+  locContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    margin: '6px 0 10px',
+  },
+  locBtn: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    backgroundColor: '#eff6ff',
+    border: '1.2px solid #bfdbfe',
+    borderRadius: 10,
+    padding: '9px 12px',
+    color: '#0052e0',
+    fontSize: 12,
+    fontWeight: 650,
+    cursor: 'pointer',
+    width: '100%',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  locBtnActive: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    backgroundColor: '#f0fdf4',
+    border: '1.2px solid #86efac',
+    borderRadius: 10,
+    padding: '9px 12px',
+    color: '#15803d',
+    fontSize: 12,
+    fontWeight: 650,
+    cursor: 'pointer',
+    width: '100%',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  locBadgeRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8fafc',
+    border: '1px solid #e2e8f0',
+    borderRadius: 8,
+    padding: '5px 8px',
+    gap: 6,
+  },
+  locBadgeText: {
+    fontSize: 11.5,
+    color: '#334155',
+    fontWeight: 500,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    flex: 1,
+  },
+  clearLocBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#64748b',
+    fontSize: 11.5,
+    fontWeight: 700,
+    cursor: 'pointer',
+    padding: '0 4px',
+  },
 };
 
 function SvgPhone({ active }) {

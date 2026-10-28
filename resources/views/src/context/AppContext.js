@@ -198,6 +198,13 @@ export function AppProvider({ children }) {
             parsed.guestId = guestId;
           }
         }
+        if (Array.isArray(parsed?.saved_addresses)) {
+          parsed.saved_addresses = parsed.saved_addresses.map(a => {
+            const rawTag = String(a.tag || '').trim().toLowerCase();
+            const tag = rawTag === 'villa' ? 'Villa' : rawTag === 'pg' ? 'PG' : 'Home';
+            return { ...a, tag };
+          });
+        }
         return parsed;
       }
     } catch (e) {}
@@ -212,7 +219,7 @@ export function AppProvider({ children }) {
       property_verification_status: 'APPROVED',
       saved_addresses: [
         { id: 1, tag: 'Home', address: 'Flat 402, Sea Breeze Towers, Hill Road, Bandra West, Mumbai - 400050', isDefault: true, latitude: 19.0596, longitude: 72.8295 },
-        { id: 2, tag: 'Office', address: 'Unit 12B, Zevota Corporate Park, BKC, Mumbai - 400051', isDefault: false, latitude: 19.066, longitude: 72.869 },
+        { id: 2, tag: 'Villa', address: 'Villa 12B, Palm Meadows, Whitefield, Bengaluru - 560066', isDefault: false, latitude: 19.066, longitude: 72.869 },
       ],
     };
   });
@@ -811,7 +818,7 @@ export function AppProvider({ children }) {
         property_verification_status: 'PENDING',
         saved_addresses: [
           { id: 1, tag: 'Home', address: 'Flat 402, Sea Breeze Towers, Hill Road, Bandra West, Mumbai - 400050', isDefault: true, latitude: 19.0596, longitude: 72.8295 },
-          { id: 2, tag: 'Office', address: 'Unit 12B, Zevota Corporate Park, BKC, Mumbai - 400051', isDefault: false, latitude: 19.066, longitude: 72.869 },
+          { id: 2, tag: 'Villa', address: 'Villa 12B, Palm Meadows, Whitefield, Bengaluru - 560066', isDefault: false, latitude: 19.066, longitude: 72.869 },
         ]
       },
       {

@@ -9,6 +9,19 @@ const viewsDir = path.join(rootDir, 'resources', 'views');
 const distDir = path.join(viewsDir, 'dist');
 const targetDir = path.join(rootDir, 'public');
 
+function safeCopyFile(src, dest) {
+  try {
+    fs.copyFileSync(src, dest);
+  } catch (err) {
+    try {
+      const data = fs.readFileSync(src);
+      fs.writeFileSync(dest, data);
+    } catch (e) {
+      // file might be open by dev server
+    }
+  }
+}
+
 function copyRecursive(src, dest) {
   if (!fs.existsSync(src)) {
     console.error(`Build output not found: ${src}`);
@@ -25,7 +38,7 @@ function copyRecursive(src, dest) {
     if (entry.isDirectory()) {
       copyRecursive(srcPath, destPath);
     } else {
-      fs.copyFileSync(srcPath, destPath);
+      safeCopyFile(srcPath, destPath);
     }
   }
 }
@@ -86,46 +99,46 @@ for (const f of bannerFiles) {
     // Top-level /assets/
     fs.mkdirSync(path.join(distDir, 'assets'), { recursive: true });
     fs.mkdirSync(path.join(targetDir, 'assets'), { recursive: true });
-    fs.copyFileSync(src, path.join(distDir, 'assets', f));
-    fs.copyFileSync(src, path.join(targetDir, 'assets', f));
+    safeCopyFile(src, path.join(distDir, 'assets', f));
+    safeCopyFile(src, path.join(targetDir, 'assets', f));
 
     // Nested /assets/assets/ for bundle-style fallback
     fs.mkdirSync(path.join(distDir, 'assets', 'assets'), { recursive: true });
     fs.mkdirSync(path.join(targetDir, 'assets', 'assets'), { recursive: true });
-    fs.copyFileSync(src, path.join(distDir, 'assets', 'assets', f));
-    fs.copyFileSync(src, path.join(targetDir, 'assets', 'assets', f));
+    safeCopyFile(src, path.join(distDir, 'assets', 'assets', f));
+    safeCopyFile(src, path.join(targetDir, 'assets', 'assets', f));
   }
 }
 
 const serveJsonSrc = path.join(viewsDir, 'serve.json');
 if (fs.existsSync(serveJsonSrc)) {
-  fs.copyFileSync(serveJsonSrc, path.join(distDir, 'serve.json'));
-  fs.copyFileSync(serveJsonSrc, path.join(targetDir, 'serve.json'));
+  safeCopyFile(serveJsonSrc, path.join(distDir, 'serve.json'));
+  safeCopyFile(serveJsonSrc, path.join(targetDir, 'serve.json'));
 }
 
 const faviconSrc = path.join(viewsDir, 'assets', 'favicon.png');
 const faviconDest = path.join(targetDir, 'favicon.png');
 if (fs.existsSync(faviconSrc)) {
-  fs.copyFileSync(faviconSrc, faviconDest);
+  safeCopyFile(faviconSrc, faviconDest);
 }
 
 const silverSilkSrc = path.join(viewsDir, 'assets', 'silver_silk_bg.jpg');
 if (fs.existsSync(silverSilkSrc)) {
-  fs.copyFileSync(silverSilkSrc, path.join(distDir, 'silver_silk_bg.jpg'));
-  fs.copyFileSync(silverSilkSrc, path.join(targetDir, 'silver_silk_bg.jpg'));
+  safeCopyFile(silverSilkSrc, path.join(distDir, 'silver_silk_bg.jpg'));
+  safeCopyFile(silverSilkSrc, path.join(targetDir, 'silver_silk_bg.jpg'));
 }
 
 const goldSilkSrc = path.join(viewsDir, 'assets', 'gold_silk_bg.jpg');
 if (fs.existsSync(goldSilkSrc)) {
-  fs.copyFileSync(goldSilkSrc, path.join(distDir, 'gold_silk_bg.jpg'));
-  fs.copyFileSync(goldSilkSrc, path.join(targetDir, 'gold_silk_bg.jpg'));
+  safeCopyFile(goldSilkSrc, path.join(distDir, 'gold_silk_bg.jpg'));
+  safeCopyFile(goldSilkSrc, path.join(targetDir, 'gold_silk_bg.jpg'));
 }
 
 
 const platinumSilkSrc = path.join(viewsDir, 'assets', 'platinum_silk_bg.jpg');
 if (fs.existsSync(platinumSilkSrc)) {
-  fs.copyFileSync(platinumSilkSrc, path.join(distDir, 'platinum_silk_bg.jpg'));
-  fs.copyFileSync(platinumSilkSrc, path.join(targetDir, 'platinum_silk_bg.jpg'));
+  safeCopyFile(platinumSilkSrc, path.join(distDir, 'platinum_silk_bg.jpg'));
+  safeCopyFile(platinumSilkSrc, path.join(targetDir, 'platinum_silk_bg.jpg'));
 }
 
 const indexPath = path.join(targetDir, 'index.html');
