@@ -74,31 +74,30 @@ export default function UserAppLayout() {
           <TouchableOpacity
             style={styles.tabItem}
             onPress={() => navigate('/user/home')}
-            activeOpacity={0.7}
+            activeOpacity={0.75}
           >
             <View style={[styles.tabPill, isHomeTab && styles.activeTabPill]}>
               <VectorTabIcon
                 name="home"
                 active={isHomeTab}
-                activeColor="#2563eb"
+                activeColor="#0052e0"
                 inactiveColor="#64748b"
               />
             </View>
             <Text style={[styles.tabLabel, isHomeTab && styles.activeTabLabel]}>Home</Text>
-            {isHomeTab && <View style={styles.activeIndicatorDot} />}
           </TouchableOpacity>
 
           {/* TAB 1: Bookings */}
           <TouchableOpacity
             style={styles.tabItem}
             onPress={() => navigate('/user/bookings')}
-            activeOpacity={0.7}
+            activeOpacity={0.75}
           >
             <View style={[styles.tabPill, isBookingsTab && styles.activeTabPill]}>
               <VectorTabIcon
                 name="bookings"
                 active={isBookingsTab}
-                activeColor="#2563eb"
+                activeColor="#0052e0"
                 inactiveColor="#64748b"
               />
               {activeBookingsCount > 0 && (
@@ -110,25 +109,23 @@ export default function UserAppLayout() {
               )}
             </View>
             <Text style={[styles.tabLabel, isBookingsTab && styles.activeTabLabel]}>Bookings</Text>
-            {isBookingsTab && <View style={styles.activeIndicatorDot} />}
           </TouchableOpacity>
 
           {/* TAB 2: Profile */}
           <TouchableOpacity
             style={styles.tabItem}
             onPress={() => navigate('/user/profile')}
-            activeOpacity={0.7}
+            activeOpacity={0.75}
           >
             <View style={[styles.tabPill, isProfileTab && styles.activeTabPill]}>
               <VectorTabIcon
                 name="profile"
                 active={isProfileTab}
-                activeColor="#2563eb"
+                activeColor="#0052e0"
                 inactiveColor="#64748b"
               />
             </View>
             <Text style={[styles.tabLabel, isProfileTab && styles.activeTabLabel]}>Profile</Text>
-            {isProfileTab && <View style={styles.activeIndicatorDot} />}
           </TouchableOpacity>
         </View>
       )}
@@ -143,30 +140,30 @@ const styles = StyleSheet.create({
 
   bottomBar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(226, 232, 240, 0.85)',
-    paddingTop: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.97)',
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    borderTopWidth: 1.2,
+    borderTopColor: '#e2e8f0',
+    paddingTop: 8,
     paddingHorizontal: 16,
     justifyContent: 'space-around',
     alignItems: 'center',
     width: '100%',
     position: 'relative',
-    boxShadow: '0 -8px 28px rgba(15, 23, 42, 0.07), 0 -1px 3px rgba(15, 23, 42, 0.02)',
+    boxShadow: '0 -10px 30px rgba(15, 23, 42, 0.07), 0 -2px 6px rgba(15, 23, 42, 0.02)',
     ...(typeof window !== 'undefined'
       ? {
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
         }
       : {}),
   },
   topHairline: {
     position: 'absolute',
     top: 0,
-    left: '10%',
-    right: '10%',
+    left: '12%',
+    right: '12%',
     height: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     pointerEvents: 'none',
@@ -180,7 +177,7 @@ const styles = StyleSheet.create({
     cursor: 'pointer',
   },
   tabPill: {
-    width: 52,
+    width: 56,
     height: 32,
     borderRadius: 16,
     alignItems: 'center',
@@ -189,54 +186,47 @@ const styles = StyleSheet.create({
     transition: 'all 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   activeTabPill: {
-    backgroundColor: 'rgba(37, 99, 235, 0.12)',
-    boxShadow: '0 2px 10px rgba(37, 99, 235, 0.16)',
-    borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.25)',
+    backgroundColor: '#eff6ff',
+    boxShadow: '0 2px 10px rgba(0, 82, 224, 0.14)',
+    borderWidth: 1.2,
+    borderColor: 'rgba(0, 82, 224, 0.24)',
     transform: [{ translateY: -1 }],
   },
   badgeContainer: {
     position: 'absolute',
-    top: -2,
-    right: 4,
+    top: -3,
+    right: 5,
     backgroundColor: '#ef4444',
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
+    minWidth: 17,
+    height: 17,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 3,
-    borderWidth: 1.5,
+    paddingHorizontal: 4,
+    borderWidth: 2,
     borderColor: '#ffffff',
-    boxShadow: '0 2px 5px rgba(239, 68, 68, 0.4)',
+    boxShadow: '0 2px 6px rgba(239, 68, 68, 0.45)',
   },
   badgeText: {
     color: '#ffffff',
-    fontSize: 9,
-    fontWeight: '800',
-    lineHeight: 10,
+    fontSize: 9.5,
+    fontWeight: '850',
+    lineHeight: 11,
     textAlign: 'center',
-  },
-  activeIndicatorDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#2563eb',
-    marginTop: 3,
-    boxShadow: '0 1px 4px rgba(37, 99, 235, 0.6)',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 11.5,
     color: '#64748b',
     fontWeight: '600',
-    marginTop: 2,
-    letterSpacing: 0.2,
+    marginTop: 4,
+    letterSpacing: -0.1,
     whiteSpace: 'nowrap',
-    fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif",
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif",
     transition: 'color 0.2s ease, font-weight 0.2s ease',
   },
   activeTabLabel: {
-    color: '#1d4ed8',
+    color: '#0052e0',
     fontWeight: '800',
   },
 });
