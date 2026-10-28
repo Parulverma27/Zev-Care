@@ -525,12 +525,12 @@ export default function SavedAddressesScreen({ onNavigate }) {
                   disabled={detectingLocation}
                   style={{
                     width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: 10,
+                    padding: '11px 16px',
+                    borderRadius: 12,
                     backgroundColor: '#0f172a',
                     border: '1.5px solid #0f172a',
                     color: '#ffffff',
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: 700,
                     cursor: detectingLocation ? 'wait' : 'pointer',
                     display: 'flex',
@@ -538,10 +538,12 @@ export default function SavedAddressesScreen({ onNavigate }) {
                     justifyContent: 'center',
                     gap: 8,
                     marginBottom: 8,
-                    boxShadow: '0 2px 6px rgba(15,23,42,0.15)',
+                    boxShadow: '0 2px 8px rgba(15,23,42,0.12)',
+                    fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif",
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                     <circle cx="12" cy="12" r="10" />
                     <line x1="12" y1="2" x2="12" y2="6" />
                     <line x1="12" y1="18" x2="12" y2="22" />
@@ -558,12 +560,12 @@ export default function SavedAddressesScreen({ onNavigate }) {
                   onClick={() => setShowMapPicker(!showMapPicker)}
                   style={{
                     width: '100%',
-                    padding: '9px 14px',
-                    borderRadius: 10,
-                    backgroundColor: '#eff6ff',
-                    border: '1.5px solid #bfdbfe',
-                    color: '#2563eb',
-                    fontSize: 12.5,
+                    padding: '11px 16px',
+                    borderRadius: 12,
+                    backgroundColor: showMapPicker ? '#0f172a' : '#ffffff',
+                    border: showMapPicker ? '1.5px solid #0f172a' : '1.5px solid #bfdbfe',
+                    color: showMapPicker ? '#ffffff' : '#0052e0',
+                    fontSize: 13,
                     fontWeight: 700,
                     cursor: 'pointer',
                     display: 'flex',
@@ -571,10 +573,16 @@ export default function SavedAddressesScreen({ onNavigate }) {
                     justifyContent: 'center',
                     gap: 8,
                     marginBottom: locationStatus.text ? 8 : 14,
+                    boxShadow: showMapPicker ? '0 2px 8px rgba(15,23,42,0.12)' : '0 2px 8px rgba(0, 82, 224, 0.06)',
+                    fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif",
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <AppIcon name="map-pin" size={14} color="#2563eb" />
-                  <span>{showMapPicker ? 'Hide Google Map' : 'Detect / Pick Location on Map'}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={showMapPicker ? '#38bdf8' : '#0052e0'} strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span>{showMapPicker ? 'Close Google Map' : 'Pinpoint on Google Map'}</span>
                 </button>
 
                 {locationStatus.text ? (
@@ -952,35 +960,41 @@ export default function SavedAddressesScreen({ onNavigate }) {
             })}
           </View>
 
-          {/* Use Current Location Button */}
-          <TouchableOpacity
-            style={styles.currentLocationBtn}
-            onPress={handleUseCurrentLocation}
-            disabled={detectingLocation}
-            activeOpacity={0.85}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="2" x2="12" y2="6" />
-              <line x1="12" y1="18" x2="12" y2="22" />
-              <line x1="2" y1="12" x2="6" y2="12" />
-              <line x1="18" y1="12" x2="22" y2="12" />
-              <circle cx="12" cy="12" r="3" fill="#38bdf8" />
-            </svg>
-            <Text style={styles.currentLocationBtnText}>
-              {detectingLocation ? 'Detecting GPS Location...' : 'Use My Current Location'}
-            </Text>
-          </TouchableOpacity>
+          {/* Action Buttons: Current GPS & Google Map Picker */}
+          <View style={styles.locButtonsWrap}>
+            <TouchableOpacity
+              style={styles.currentLocationBtn}
+              onPress={handleUseCurrentLocation}
+              disabled={detectingLocation}
+              activeOpacity={0.85}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="2" x2="12" y2="6" />
+                <line x1="12" y1="18" x2="12" y2="22" />
+                <line x1="2" y1="12" x2="6" y2="12" />
+                <line x1="18" y1="12" x2="22" y2="12" />
+                <circle cx="12" cy="12" r="3" fill="#38bdf8" />
+              </svg>
+              <Text style={styles.currentLocationBtnText}>
+                {detectingLocation ? 'Detecting GPS Location...' : 'Use My Current Location'}
+              </Text>
+            </TouchableOpacity>
 
-          {/* Map Location Picker Trigger */}
-          <TouchableOpacity
-            style={styles.mapPickerBtn}
-            onPress={() => setShowMapPicker(!showMapPicker)}
-            activeOpacity={0.8}
-          >
-            <AppIcon name="map-pin" size={14} color="#2563eb" />
-            <Text style={styles.mapPickerBtnText}>{showMapPicker ? 'Hide Google Map' : 'Detect / Pick Location on Google Map'}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.mapPickerBtn, showMapPicker && styles.mapPickerBtnActive]}
+              onPress={() => setShowMapPicker(!showMapPicker)}
+              activeOpacity={0.85}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={showMapPicker ? '#38bdf8' : '#0052e0'} strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <Text style={[styles.mapPickerBtnText, showMapPicker && styles.mapPickerBtnTextActive]}>
+                {showMapPicker ? 'Close Google Map' : 'Pinpoint on Google Map'}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {locationStatus.text ? (
             <View style={[
@@ -1203,29 +1217,32 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 4,
   },
+  locButtonsWrap: {
+    gap: 8,
+    marginTop: 4,
+    marginBottom: 4,
+  },
   currentLocationBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     backgroundColor: '#0f172a',
-    borderRadius: 10,
-    paddingVertical: 10.5,
-    paddingHorizontal: 14,
+    borderRadius: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
     cursor: 'pointer',
-    marginTop: 6,
-    marginBottom: 4,
     shadowColor: '#0f172a',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
     elevation: 2,
   },
   currentLocationBtnText: {
-    fontSize: 12.5,
+    fontSize: 13,
     fontWeight: '700',
     color: '#ffffff',
-    fontFamily: 'Inter, sans-serif',
+    fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif",
   },
   locStatusBox: {
     padding: 8,
@@ -1260,19 +1277,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#eff6ff',
+    backgroundColor: '#ffffff',
     borderWidth: 1.5,
     borderColor: '#bfdbfe',
-    borderRadius: 10,
-    paddingVertical: 10,
+    borderRadius: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
     cursor: 'pointer',
-    marginVertical: 4,
+    shadowColor: '#0052e0',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  mapPickerBtnActive: {
+    backgroundColor: '#0f172a',
+    borderColor: '#0f172a',
   },
   mapPickerBtnText: {
-    fontSize: 12.5,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#2563eb',
-    fontFamily: 'Inter, sans-serif',
+    color: '#0052e0',
+    fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif",
+  },
+  mapPickerBtnTextActive: {
+    color: '#ffffff',
   },
   textInput: { fontSize: 13, color: '#0F1F3D', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif", outlineStyle: 'none', minHeight: 80, lineHeight: 18 },
 
