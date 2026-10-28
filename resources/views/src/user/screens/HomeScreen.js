@@ -214,7 +214,7 @@ const AMC_HOME_ACTIONS = [
     pillBtnColor: '#1d4ed8',
     pillArrowBg: '#eff6ff',
     pillArrowColor: '#1d4ed8',
-    icon: <Luxury3DShieldIcon size={16} />,
+    icon: <Luxury3DShieldIcon size={21} />,
     perks: [
       {
         label: '2-Hr Priority',
@@ -280,7 +280,7 @@ const AMC_HOME_ACTIONS = [
     pillBtnColor: '#c2410c',
     pillArrowBg: '#fff7ed',
     pillArrowColor: '#c2410c',
-    icon: <Luxury3DWrenchIcon size={16} />,
+    icon: <Luxury3DWrenchIcon size={20} />,
     perks: [
       {
         label: 'Instant Ticket',
@@ -347,7 +347,7 @@ const AMC_HOME_ACTIONS = [
     pillBtnColor: '#047857',
     pillArrowBg: '#ecfdf5',
     pillArrowColor: '#047857',
-    icon: <Luxury3DMechanicIcon size={16} variant="teal" />,
+    icon: <Luxury3DMechanicIcon size={20} variant="teal" />,
     perks: [
       {
         label: 'Zero Inspection Fee',
@@ -1140,7 +1140,7 @@ export default function HomeScreen({ onNavigate }) {
           .amc-cards-container {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             width: 100%;
             box-sizing: border-box;
           }
@@ -1157,20 +1157,6 @@ export default function HomeScreen({ onNavigate }) {
           .amc-card-press:hover {
             transform: translateY(-2px);
           }
-          .amc-perks-scroll-row {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            flex: 1;
-            min-width: 0;
-            padding-right: 6px;
-          }
-          .amc-perks-scroll-row::-webkit-scrollbar {
-            display: none;
-          }
         `}</style>
         <div className="amc-cards-container">
           {AMC_HOME_ACTIONS.map((item) => (
@@ -1182,11 +1168,11 @@ export default function HomeScreen({ onNavigate }) {
                     position: 'absolute',
                     top: '-6px',
                     left: '14px',
-                    width: '130px',
-                    height: '50px',
+                    width: '160px',
+                    height: '80px',
                     borderRadius: '50%',
                     background: item.glowOrb1,
-                    filter: 'blur(22px)',
+                    filter: 'blur(28px)',
                     opacity: 0.82,
                     pointerEvents: 'none',
                     zIndex: 0,
@@ -1199,11 +1185,11 @@ export default function HomeScreen({ onNavigate }) {
                     position: 'absolute',
                     bottom: '-6px',
                     right: '16px',
-                    width: '120px',
-                    height: '45px',
+                    width: '150px',
+                    height: '75px',
                     borderRadius: '50%',
                     background: item.glowOrb2,
-                    filter: 'blur(20px)',
+                    filter: 'blur(26px)',
                     opacity: 0.78,
                     pointerEvents: 'none',
                     zIndex: 0,
@@ -1240,28 +1226,22 @@ export default function HomeScreen({ onNavigate }) {
                 />
 
                 <View style={styles.amcPlansBannerContent}>
-                  {/* Row 1: Header - Icon + Title on left, Badge on right (Zero truncation) */}
-                  <View style={styles.amcCompactHeaderRow}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, flex: 1, minWidth: 0 }}>
-                      <View
-                        style={[
-                          styles.amcLuxuryIconCircle,
-                          {
-                            background: item.iconBg,
-                            border: item.iconBorder,
-                            width: 26,
-                            height: 26,
-                            borderRadius: 13,
-                          },
-                        ]}
-                      >
-                        {item.icon}
-                      </View>
-                      <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 15, letterSpacing: -0.2, fontWeight: '800' }]}>
-                        {item.title}
-                      </Text>
+                  {/* Top Row: Icon on left, Badge on right */}
+                  <View style={styles.amcPlansTopRow}>
+                    <View
+                      style={[
+                        styles.amcLuxuryIconCircle,
+                        {
+                          background: item.iconBg,
+                          border: item.iconBorder,
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                        },
+                      ]}
+                    >
+                      {item.icon}
                     </View>
-
                     {item.badge ? (
                       <View
                         style={[
@@ -1272,57 +1252,57 @@ export default function HomeScreen({ onNavigate }) {
                             borderWidth: 1,
                             flexDirection: 'row',
                             alignItems: 'center',
-                            paddingHorizontal: 7,
-                            paddingVertical: 2.5,
-                            flexShrink: 0,
+                            paddingHorizontal: 8,
+                            paddingVertical: 3,
                           },
                         ]}
                       >
                         {item.badgeIcon}
-                        <Text style={[styles.amcBadgePillText, { color: item.badgeColor, fontSize: 9 }]}>{item.badge}</Text>
+                        <Text style={[styles.amcBadgePillText, { color: item.badgeColor, fontSize: 9.5 }]}>{item.badge}</Text>
                       </View>
                     ) : null}
                   </View>
 
-                  {/* Row 2: Tagline & Subtitle on left, Action Pill Button on right */}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, width: '100%', gap: 8 }}>
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={{ color: item.taglineColor || '#2563eb', fontSize: 11, fontWeight: '700', letterSpacing: 0.1 }}>
+                  {/* Title & Tagline in compact row */}
+                  <View style={styles.amcPlansTitleBlock}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+                      <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 15.5, letterSpacing: -0.3 }]}>
+                        {item.title}
+                      </Text>
+                      <Text style={{ color: item.taglineColor || '#2563eb', fontSize: 10.5, fontWeight: '700', letterSpacing: 0.1 }}>
                         {item.tagline}
                       </Text>
-                      <Text style={[styles.amcLuxurySub, { color: item.subColor, fontSize: 10, lineHeight: 13, marginTop: 1 }]} numberOfLines={1}>
-                        {item.subtitle}
-                      </Text>
                     </View>
+                  </View>
 
+                  {/* Middle: Description */}
+                  <Text style={[styles.amcLuxurySub, { color: item.subColor, marginTop: 2, marginBottom: 6, fontSize: 11, lineHeight: 14.5 }]}>
+                    {item.subtitle}
+                  </Text>
+
+                  {/* Perk chips strip (REAL ICONS ONLY, NO EMOJIS) */}
+                  <View style={styles.amcPerksStrip}>
+                    {item.perks && item.perks.map((perk, pIdx) => (
+                      <View key={pIdx} style={[styles.amcPerkChip, item.perkBorder ? { borderColor: item.perkBorder } : {}, item.perkBg ? { backgroundColor: item.perkBg } : {}]}>
+                        {perk.icon}
+                        <Text style={[styles.amcPerkChipText, item.perkColor ? { color: item.perkColor } : {}]}>{perk.label}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Bottom: Right-aligned Action Pill Button */}
+                  <View style={styles.amcPlansFooterRow}>
                     <View style={[styles.amcPlansActionPill, item.pillBtnBorder ? { borderWidth: 1.2, borderColor: item.pillBtnBorder } : {}]}>
                       <Text style={[styles.amcPlansActionPillText, { color: item.pillBtnColor }]}>
                         {item.actionLabel}
                       </Text>
                       <View style={[styles.amcPlansActionPillArrow, { backgroundColor: item.pillArrowBg }]}>
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={item.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={item.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                           <line x1="5" y1="12" x2="19" y2="12" />
                           <polyline points="12 5 19 12 12 19" />
                         </svg>
                       </View>
                     </View>
-                  </View>
-
-                  {/* Row 3: All 3 Perks full-width strip (No clipping) */}
-                  <View style={styles.amcPerksStrip}>
-                    {item.perks && item.perks.map((perk, pIdx) => (
-                      <View
-                        key={pIdx}
-                        style={[
-                          styles.amcPerkChip,
-                          item.perkBorder ? { borderColor: item.perkBorder } : {},
-                          item.perkBg ? { backgroundColor: item.perkBg } : {},
-                        ]}
-                      >
-                        {perk.icon}
-                        <Text style={[styles.amcPerkChipText, item.perkColor ? { color: item.perkColor } : {}]}>{perk.label}</Text>
-                      </View>
-                    ))}
                   </View>
                 </View>
               </TouchableOpacity>
@@ -1974,8 +1954,8 @@ const styles = StyleSheet.create({
   },
   amcLuxuryCard: {
     width: '100%',
-    borderRadius: 16,
-    borderWidth: 1.2,
+    borderRadius: 18,
+    borderWidth: 1.5,
     position: 'relative',
     cursor: 'pointer',
     transition: 'transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s ease',
@@ -1985,24 +1965,9 @@ const styles = StyleSheet.create({
     WebkitBackdropFilter: 'blur(20px) saturate(190%)',
   },
   amcLuxuryCardFeatured: {
-    paddingVertical: 9,
-    paddingHorizontal: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 13,
     justifyContent: 'center',
-  },
-  amcCompactHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    gap: 8,
-  },
-  amcCompactBottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 6,
-    gap: 8,
   },
   amcLuxuryCardCompact: {
     minHeight: 120,
@@ -2041,13 +2006,11 @@ const styles = StyleSheet.create({
   },
   amcPerksStrip: {
     flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 4.5,
-    marginTop: 5,
+    marginTop: 2,
+    marginBottom: 7,
     width: '100%',
-    flexWrap: 'nowrap',
-    overflowX: 'auto',
-    ...(Platform.OS === 'web' ? { scrollbarWidth: 'none', msOverflowStyle: 'none' } : {}),
   },
   amcPerkChip: {
     flexDirection: 'row',
@@ -2056,13 +2019,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.78)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.92)',
-    paddingHorizontal: 6.5,
+    paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 999,
     backdropFilter: 'blur(10px)',
     WebkitBackdropFilter: 'blur(10px)',
     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.9)',
-    flexShrink: 0,
   },
   amcPerkChipText: {
     color: '#e0f2fe',
@@ -2070,7 +2032,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.1,
     fontFamily: "'Plus Jakarta Sans', sans-serif",
-    whiteSpace: 'nowrap',
   },
   amcPlansFooterRow: {
     flexDirection: 'row',
@@ -2081,36 +2042,35 @@ const styles = StyleSheet.create({
   },
   amcPlansActionPill: {
     borderRadius: 999,
-    height: 26,
-    paddingLeft: 9,
-    paddingRight: 3,
+    height: 29,
+    paddingLeft: 11,
+    paddingRight: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.92)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.95)',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.95)',
+    boxShadow: '0 3px 10px rgba(0, 0, 0, 0.07), inset 0 1px 1px rgba(255, 255, 255, 0.95)',
     backdropFilter: 'blur(10px)',
     WebkitBackdropFilter: 'blur(10px)',
     boxSizing: 'border-box',
-    flexShrink: 0,
   },
   amcPlansActionPillText: {
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: '700',
     color: '#1e40af',
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
     ...(Platform.OS === 'web' ? { whiteSpace: 'nowrap' } : {}),
   },
   amcPlansActionPillArrow: {
-    width: 17,
-    height: 17,
-    borderRadius: 8.5,
+    width: 19,
+    height: 19,
+    borderRadius: 9.5,
     backgroundColor: '#eff6ff',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 5,
+    marginLeft: 6,
   },
   amcCardTopRow: {
     flexDirection: 'row',
