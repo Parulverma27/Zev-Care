@@ -240,6 +240,27 @@ export default function SupportDesktopWebView({
             </div>
 
             <div style={chatTopBarRightStyle}>
+              <button
+                type="button"
+                onClick={() => handleQuickSend('Speak with Live Executive')}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontSize: '11.5px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>🎧</span>
+                <span>Human Desk</span>
+              </button>
+
               <div style={encryptionChipStyle}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -352,7 +373,61 @@ export default function SupportDesktopWebView({
                         </div>
                       </div>
                     ) : (
-                      <div style={bubbleTextStyle(isMe)}>{msg.text}</div>
+                      <div>
+                        <div style={{ whiteSpace: 'pre-line', ...bubbleTextStyle(isMe) }}>{msg.text}</div>
+
+                        {/* Action Link Button */}
+                        {Boolean(msg.actionLink) && (
+                          <div style={{ marginTop: '8px' }}>
+                            <button
+                              type="button"
+                              onClick={() => onNavigate && onNavigate(msg.actionLink)}
+                              style={{
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                backgroundColor: '#0f172a',
+                                color: '#ffffff',
+                                border: 'none',
+                                fontSize: '11.5px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {msg.actionText || 'Open →'}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Follow-up Suggestion Chips */}
+                        {Array.isArray(msg.suggestedQuestions) && msg.suggestedQuestions.length > 0 && (
+                          <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                            <div style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                              Related questions:
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                              {msg.suggestedQuestions.map((sq, sIdx) => (
+                                <button
+                                  key={sIdx}
+                                  type="button"
+                                  onClick={() => handleQuickSend(sq)}
+                                  style={{
+                                    padding: '4px 10px',
+                                    borderRadius: '12px',
+                                    backgroundColor: '#ffffff',
+                                    border: '1px solid #cbd5e1',
+                                    color: '#1e293b',
+                                    fontSize: '11px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  {sq}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     <div style={bubbleMetaRowStyle(isMe)}>

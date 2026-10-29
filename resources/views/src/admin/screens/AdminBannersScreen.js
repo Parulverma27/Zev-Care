@@ -6,6 +6,7 @@ import ConfirmDeleteModal from '../../components/ConfirmDeleteModal';
 import ImageUploadField from '../components/ImageUploadField';
 import UserProfileModal from '../components/UserProfileModal';
 import mammoth from 'mammoth';
+import { SUPPORT_CATEGORIES, PRETRAINED_INTENTS } from '../../config/supportKnowledgeBase';
 
 export function AdminBannersScreen() {
   const { banners, setBanners } = useApp();
@@ -201,10 +202,23 @@ export function AdminChatScreen() {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [inputText, setInputText] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
+  const [sidebarFilter, setSidebarFilter] = useState('all'); // 'all' | 'escalated'
   const [modalUserVisible, setModalUserVisible] = useState(false);
   const [modalUser, setModalUser] = useState(null);
+  const [knowledgeModalVisible, setKnowledgeModalVisible] = useState(false);
+  const [selectedKbCategory, setSelectedKbCategory] = useState('all');
+  const [kbSearch, setKbSearch] = useState('');
   const scrollRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Detect escalation request or urgent inquiry
+  const hasEscalation = (userId) => {
+    const userMsgs = chats.filter((m) => m.user_id === userId || (!m.user_id && userId === 1));
+    return userMsgs.some((m) =>
+      m.isEscalation === true ||
+      (m.senderType === 'user' && /(human|agent|talk to (someone|person)|representative|fraud|complaint|emergency|not resolved|escalat)/i.test(m.text || ''))
+    );
+  };
 
   // Collect all users and guests with active chat threads
   const allConversationUsers = [...users];
@@ -230,10 +244,18 @@ export function AdminChatScreen() {
     return bLastTime - aLastTime;
   });
 
-  const filteredUsers = sortedUsers.filter((u) =>
-    (u.name || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
-    (u.phone || '').includes(searchFilter)
-  );
+  const escalatedUserCount = sortedUsers.filter(u => hasEscalation(u.id)).length;
+
+  const filteredUsers = sortedUsers.filter((u) => {
+    const matchesSearch =
+      (u.name || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
+      (u.phone || '').includes(searchFilter);
+    if (!matchesSearch) return false;
+    if (sidebarFilter === 'escalated') {
+      return hasEscalation(u.id);
+    }
+    return true;
+  });
 
   const selectedUser =
     (selectedUserId !== null && sortedUsers.find((u) => u.id === selectedUserId)) ||
@@ -453,7 +475,7 @@ export function AdminChatScreen() {
       <View style={styles.sidebar}>
         <View style={styles.sidebarHeader}>
           <Text style={styles.sidebarTitle}>Live Support Desk</Text>
-          <Text style={styles.sidebarSub}>{users.length} Active Conversations</Text>
+          <Text style={styles.sidebarSub}>{sortedUsers.length} Active Conversations</Text>
           
           <View style={styles.searchCapsule}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -468,6 +490,28 @@ export function AdminChatScreen() {
               placeholderTextColor="#94a3b8"
             />
           </View>
+
+          {/* Priority / All Filter Switch */}
+          <View style={styles.filterPillsRow}>
+            <TouchableOpacity
+              style={[styles.filterPill, sidebarFilter === 'all' && styles.filterPillActive]}
+              onPress={() => setSidebarFilter('all')}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.filterPillText, sidebarFilter === 'all' && styles.filterPillTextActive]}>
+                All ({sortedUsers.length})
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.filterPill, sidebarFilter === 'escalated' && styles.filterPillEscalatedActive]}
+              onPress={() => setSidebarFilter('escalated')}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.filterPillText, sidebarFilter === 'escalated' && styles.filterPillTextEscalatedActive]}>
+                🚨 Priority ({escalatedUserCount})
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView style={styles.threadScroll} showsVerticalScrollIndicator={false}>
@@ -478,6 +522,7 @@ export function AdminChatScreen() {
             const lastMsg = isLastDoc ? `📎 Document: ${lastMsgObj.fileName || lastMsgObj.text}` : (lastMsgObj?.text || 'No messages yet');
             const lastTime = lastMsgObj?.time || '';
             const isActive = effectiveUserId === u.id;
+            const isUserEscalated = hasEscalation(u.id);
 
             return (
               <TouchableOpacity
@@ -488,14 +533,19 @@ export function AdminChatScreen() {
               >
                 <View style={styles.threadAvatar}>
                   <Text style={styles.threadAvatarText}>{getInitials(u.name)}</Text>
-                  <View style={styles.onlineDot} />
+                  <View style={[styles.onlineDot, isUserEscalated && { backgroundColor: '#ef4444' }]} />
                 </View>
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, minWidth: 0 }}>
                   <View style={styles.threadRowTop}>
-                    <Text style={styles.threadName}>{u.name}</Text>
+                    <Text style={styles.threadName} numberOfLines={1}>{u.name}</Text>
                     <Text style={styles.threadTime}>{lastTime}</Text>
                   </View>
                   <Text style={styles.threadSnippet} numberOfLines={1}>{lastMsg}</Text>
+                  {isUserEscalated && (
+                    <View style={styles.threadEscalatedBadge}>
+                      <Text style={styles.threadEscalatedBadgeText}>🚨 Needs Agent</Text>
+                    </View>
+                  )}
                 </View>
               </TouchableOpacity>
             );
@@ -520,18 +570,33 @@ export function AdminChatScreen() {
                       {selectedUser.subscription_plan ? `${selectedUser.subscription_plan.toUpperCase()} MEMBER` : 'USER'}
                     </Text>
                   </View>
+                  {hasEscalation(effectiveUserId) && (
+                    <View style={styles.headerEscalationBadge}>
+                      <Text style={styles.headerEscalationBadgeText}>🚨 ESCALATION ATTENTION</Text>
+                    </View>
+                  )}
                 </View>
                 <Text style={styles.windowStatus}>{selectedUser.phone} • {selectedUser.email || 'customer@zevotacare.com'}</Text>
               </View>
             </View>
 
-            <TouchableOpacity
-              style={styles.viewProfileBtn}
-              onPress={() => { setModalUser(selectedUser); setModalUserVisible(true); }}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.viewProfileBtnText}>Review Profile</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <TouchableOpacity
+                style={styles.knowledgeEngineBtn}
+                onPress={() => setKnowledgeModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.knowledgeEngineBtnText}>🧠 Pre-Trained Engine ({PRETRAINED_INTENTS.length})</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.viewProfileBtn}
+                onPress={() => { setModalUser(selectedUser); setModalUserVisible(true); }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.viewProfileBtnText}>Review Profile</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Messages Area */}
@@ -546,11 +611,34 @@ export function AdminChatScreen() {
               const isBot = m.sender === 'Zeva Bot' || m.text?.includes('Zeva AI');
 
               if (isBot) {
+                const isEscalationMsg = m.isEscalation === true || m.text?.toLowerCase().includes('escalat') || m.text?.toLowerCase().includes('desk');
                 return (
-                  <View key={m.id} style={styles.systemNoticeRow}>
-                    <View style={styles.systemNoticePill}>
-                      <Text style={styles.systemNoticeText}>🤖 {m.text}</Text>
+                  <View key={m.id} style={styles.botMessageCard}>
+                    <View style={styles.botMessageHeader}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <Text style={{ fontSize: 13 }}>🤖</Text>
+                        <Text style={styles.botMessageTitle}>Zeva AI Assistant</Text>
+                        <View style={[styles.botTag, isEscalationMsg ? styles.botTagEscalated : styles.botTagAuto]}>
+                          <Text style={[styles.botTagText, isEscalationMsg ? styles.botTagTextEscalated : styles.botTagTextAuto]}>
+                            {isEscalationMsg ? '🚨 Human Escalation' : '⚡ Auto-Answered'}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={styles.botMessageTime}>{m.time}</Text>
                     </View>
+                    <Text style={styles.botMessageBody}>{m.text}</Text>
+                    {m.suggestedQuestions && m.suggestedQuestions.length > 0 && (
+                      <View style={styles.botSuggestedWrap}>
+                        <Text style={styles.botSuggestedTitle}>Offered Inquiries:</Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 3 }}>
+                          {m.suggestedQuestions.map((q, idx) => (
+                            <View key={idx} style={styles.botSuggestedChip}>
+                              <Text style={styles.botSuggestedChipText}>💡 {q}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
                   </View>
                 );
               }
@@ -643,18 +731,29 @@ export function AdminChatScreen() {
             })}
           </ScrollView>
 
-          {/* Quick Replies Bar */}
+          {/* Quick AI Presets & Quick Replies Bar */}
           <View style={styles.quickRepliesBar}>
-            <Text style={styles.quickReplyTag}>QUICK RESPONSES:</Text>
+            <Text style={styles.quickReplyTag}>AI PRESETS:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-              {quickReplies.map((qr, idx) => (
+              <TouchableOpacity
+                style={styles.quickReplyAiBtn}
+                onPress={() => setKnowledgeModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.quickReplyAiBtnText}>🧠 Browse All 30+ Answers</Text>
+              </TouchableOpacity>
+              {PRETRAINED_INTENTS.slice(0, 8).map((intent) => (
                 <TouchableOpacity
-                  key={idx}
+                  key={intent.id}
                   style={styles.quickReplyPill}
-                  onPress={() => handleSend(qr)}
+                  onPress={() => {
+                    const cleanAnswer = intent.answerTemplate.replace(/\{\{[^}]+\}\}/g, 'Verified Customer Record');
+                    setInputText(cleanAnswer);
+                  }}
                   activeOpacity={0.8}
+                  title={intent.title}
                 >
-                  <Text style={styles.quickReplyText} numberOfLines={1}>{qr}</Text>
+                  <Text style={styles.quickReplyText} numberOfLines={1}>⚡ {intent.title}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -865,6 +964,168 @@ export function AdminChatScreen() {
         user={modalUser}
         onClose={() => { setModalUserVisible(false); setModalUser(null); }}
       />
+
+      {/* PRE-TRAINED KNOWLEDGE ENGINE MODAL */}
+      <Modal
+        visible={knowledgeModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setKnowledgeModalVisible(false)}
+      >
+        <View style={styles.kbModalOverlay}>
+          <View style={styles.kbModalCard}>
+            {/* Header */}
+            <View style={styles.kbModalHeader}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <Text style={{ fontSize: 20 }}>🧠</Text>
+                  <Text style={styles.kbModalTitle}>Pre-Trained Knowledge Engine</Text>
+                  <View style={styles.kbCountBadge}>
+                    <Text style={styles.kbCountBadgeText}>{PRETRAINED_INTENTS.length} Intents Active</Text>
+                  </View>
+                </View>
+                <Text style={styles.kbModalSub}>
+                  Browse 8 pre-trained categories & 30+ validated answer templates to quickly respond or review bot automated coverage.
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.docModalCloseBtn}
+                onPress={() => setKnowledgeModalVisible(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ fontSize: 16, color: '#64748b', fontWeight: '700' }}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Search & Categories */}
+            <View style={styles.kbControlsWrap}>
+              <View style={styles.kbSearchCapsule}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <TextInput
+                  style={styles.kbSearchInput}
+                  value={kbSearch}
+                  onChangeText={setKbSearch}
+                  placeholder="Search by keyword, question, or policy term..."
+                  placeholderTextColor="#94a3b8"
+                />
+              </View>
+
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                <TouchableOpacity
+                  style={[styles.kbCategoryChip, selectedKbCategory === 'all' && styles.kbCategoryChipActive]}
+                  onPress={() => setSelectedKbCategory('all')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.kbCategoryChipText, selectedKbCategory === 'all' && styles.kbCategoryChipTextActive]}>
+                    All ({PRETRAINED_INTENTS.length})
+                  </Text>
+                </TouchableOpacity>
+                {SUPPORT_CATEGORIES.map((cat) => {
+                  const count = PRETRAINED_INTENTS.filter(item => item.category === cat.id).length;
+                  return (
+                    <TouchableOpacity
+                      key={cat.id}
+                      style={[styles.kbCategoryChip, selectedKbCategory === cat.id && styles.kbCategoryChipActive]}
+                      onPress={() => setSelectedKbCategory(cat.id)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.kbCategoryChipText, selectedKbCategory === cat.id && styles.kbCategoryChipTextActive]}>
+                        {cat.icon} {cat.name} ({count})
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* Intents List */}
+            <ScrollView style={styles.kbListScroll} contentContainerStyle={styles.kbListContent} showsVerticalScrollIndicator={false}>
+              {PRETRAINED_INTENTS.filter((item) => {
+                if (selectedKbCategory !== 'all' && item.category !== selectedKbCategory) return false;
+                if (kbSearch.trim()) {
+                  const q = kbSearch.toLowerCase();
+                  const inTitle = item.title.toLowerCase().includes(q);
+                  const inAnswer = item.answerTemplate.toLowerCase().includes(q);
+                  const inTriggers = (item.triggers || []).some(t => t.toLowerCase().includes(q));
+                  return inTitle || inAnswer || inTriggers;
+                }
+                return true;
+              }).map((item) => {
+                const categoryObj = SUPPORT_CATEGORIES.find(c => c.id === item.category);
+                return (
+                  <View key={item.id} style={styles.kbCard}>
+                    <View style={styles.kbCardHeader}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, flexWrap: 'wrap' }}>
+                        <Text style={{ fontSize: 14 }}>{categoryObj?.icon || '📌'}</Text>
+                        <Text style={styles.kbCardTitle}>{item.title}</Text>
+                        <View style={styles.kbCardCategoryTag}>
+                          <Text style={styles.kbCardCategoryText}>{categoryObj?.name || item.category}</Text>
+                        </View>
+                      </View>
+
+                      <View style={{ flexDirection: 'row', gap: 6 }}>
+                        <TouchableOpacity
+                          style={styles.kbInsertBtn}
+                          onPress={() => {
+                            const cleanAnswer = item.answerTemplate.replace(/\{\{[^}]+\}\}/g, 'Verified Customer Record');
+                            setInputText(cleanAnswer);
+                            setKnowledgeModalVisible(false);
+                          }}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.kbInsertBtnText}>📋 Insert Reply</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={styles.kbSendDirectBtn}
+                          onPress={() => {
+                            const cleanAnswer = item.answerTemplate.replace(/\{\{[^}]+\}\}/g, 'Verified Customer Record');
+                            handleSend(cleanAnswer);
+                            setKnowledgeModalVisible(false);
+                          }}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.kbSendDirectBtnText}>⚡ Send Now</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {/* Sample Triggers */}
+                    <View style={styles.kbTriggersRow}>
+                      <Text style={styles.kbTriggersLabel}>Sample Triggers:</Text>
+                      <Text style={styles.kbTriggersText} numberOfLines={1}>
+                        {(item.triggers || []).slice(0, 5).join(' • ')}
+                      </Text>
+                    </View>
+
+                    {/* Answer Template Body */}
+                    <View style={styles.kbAnswerBox}>
+                      <Text style={styles.kbAnswerText}>{item.answerTemplate}</Text>
+                    </View>
+
+                    {/* Related Follow-ups */}
+                    {item.relatedQuestions && item.relatedQuestions.length > 0 && (
+                      <View style={styles.kbFollowupsRow}>
+                        <Text style={styles.kbFollowupsLabel}>Suggested Drill-Downs:</Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
+                          {item.relatedQuestions.map((rq, rqIdx) => (
+                            <View key={rqIdx} style={styles.kbFollowupChip}>
+                              <Text style={styles.kbFollowupChipText}>💡 {rq}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1553,6 +1814,402 @@ const styles = StyleSheet.create({
   },
 
   emptyWindow: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' },
-  emptyText: { color: '#94a3b8', fontSize: 14 }
+  emptyText: { color: '#94a3b8', fontSize: 14 },
+
+  /* ── Live Support Knowledge Engine & Priority Escalation Styles ── */
+  filterPillsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 6,
+  },
+  filterPill: {
+    flex: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    cursor: 'pointer',
+  },
+  filterPillActive: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#93c5fd',
+  },
+  filterPillEscalatedActive: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fca5a5',
+  },
+  filterPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  filterPillTextActive: {
+    color: '#2563eb',
+  },
+  filterPillTextEscalatedActive: {
+    color: '#dc2626',
+  },
+
+  threadEscalatedBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fee2e2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
+  threadEscalatedBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#dc2626',
+  },
+
+  headerEscalationBadge: {
+    backgroundColor: '#fef2f2',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#f87171',
+  },
+  headerEscalationBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#dc2626',
+    letterSpacing: 0.3,
+  },
+
+  knowledgeEngineBtn: {
+    backgroundColor: '#f5f3ff',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd6fe',
+    cursor: 'pointer',
+  },
+  knowledgeEngineBtnText: {
+    color: '#7c3aed',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  // Bot message card inside chat stream
+  botMessageCard: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderLeftWidth: 4,
+    borderLeftColor: '#7c3aed',
+    borderRadius: 12,
+    padding: 12,
+    marginVertical: 4,
+    gap: 6,
+    alignSelf: 'center',
+    width: '92%',
+    maxWidth: 640,
+    boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+  },
+  botMessageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  botMessageTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  botTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  botTagAuto: {
+    backgroundColor: '#e0e7ff',
+  },
+  botTagEscalated: {
+    backgroundColor: '#fee2e2',
+  },
+  botTagText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+  },
+  botTagTextAuto: {
+    color: '#4338ca',
+  },
+  botTagTextEscalated: {
+    color: '#dc2626',
+  },
+  botMessageTime: {
+    fontSize: 10,
+    color: '#94a3b8',
+    fontWeight: '600',
+  },
+  botMessageBody: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: '#334155',
+  },
+  botSuggestedWrap: {
+    marginTop: 4,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  botSuggestedTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#64748b',
+    textTransform: 'uppercase',
+  },
+  botSuggestedChip: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  botSuggestedChipText: {
+    fontSize: 10.5,
+    color: '#475569',
+    fontWeight: '600',
+  },
+
+  quickReplyAiBtn: {
+    backgroundColor: '#7c3aed',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    cursor: 'pointer',
+  },
+  quickReplyAiBtnText: {
+    fontSize: 11,
+    color: '#ffffff',
+    fontWeight: '800',
+  },
+
+  // Knowledge Engine Modal
+  kbModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    zIndex: 1000,
+  },
+  kbModalCard: {
+    backgroundColor: '#ffffff',
+    width: '100%',
+    maxWidth: 820,
+    height: '84vh',
+    borderRadius: 20,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    boxShadow: '0 20px 48px rgba(15,23,42,0.25)',
+  },
+  kbModalHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    backgroundColor: '#ffffff',
+  },
+  kbModalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  kbCountBadge: {
+    backgroundColor: '#f5f3ff',
+    borderWidth: 1,
+    borderColor: '#ddd6fe',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  kbCountBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#7c3aed',
+  },
+  kbModalSub: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  kbControlsWrap: {
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    backgroundColor: '#f8fafc',
+    gap: 10,
+  },
+  kbSearchCapsule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  kbSearchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#0f172a',
+    outlineStyle: 'none',
+  },
+  kbCategoryChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    cursor: 'pointer',
+  },
+  kbCategoryChipActive: {
+    backgroundColor: '#7c3aed',
+    borderColor: '#7c3aed',
+  },
+  kbCategoryChipText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  kbCategoryChipTextActive: {
+    color: '#ffffff',
+  },
+
+  kbListScroll: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  kbListContent: {
+    padding: 16,
+    gap: 12,
+  },
+  kbCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 14,
+    gap: 8,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+  },
+  kbCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  kbCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  kbCardCategoryTag: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  kbCardCategoryText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  kbInsertBtn: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    cursor: 'pointer',
+  },
+  kbInsertBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+  kbSendDirectBtn: {
+    backgroundColor: '#7c3aed',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    cursor: 'pointer',
+  },
+  kbSendDirectBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  kbTriggersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  kbTriggersLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+  },
+  kbTriggersText: {
+    fontSize: 11,
+    color: '#64748b',
+    flex: 1,
+    fontStyle: 'italic',
+  },
+  kbAnswerBox: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    padding: 10,
+  },
+  kbAnswerText: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: '#334155',
+  },
+  kbFollowupsRow: {
+    gap: 4,
+    marginTop: 2,
+  },
+  kbFollowupsLabel: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+  },
+  kbFollowupChip: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  kbFollowupChipText: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: '#475569',
+  }
 });
 

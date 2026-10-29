@@ -5,25 +5,12 @@ import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcons';
 import SupportDesktopWebView from '../components/SupportDesktopWebView';
 import mammoth from 'mammoth';
+import { classifySupportQuery, getQuickStartQuestions } from '../../utils/supportBot';
 
-const QUICK_REPLIES = [
-  'What services do you offer?',
-  'How do I reschedule a booking?',
-  'Track my technician',
-  'Cancellation & Refund terms',
-  'How to use wallet credits?',
-];
-
-const BOT_RESPONSES = {
-  'What services do you offer?': '🔧 We offer Electrician, Plumbing, Carpentry, Home Appliance Repair, Furniture Repair, and Pest Control services — all across your city, 24/7.',
-  'How do I reschedule a booking?': '📅 Please contact Live Support or raise a request from your booking detail screen. Our operations team will help you pick a new slot (up to 2 hours before arrival).',
-  'Track my technician': '📍 Once your technician is assigned and sharing GPS, open your booking details to see live tracking on the map.',
-  'Cancellation & Refund terms': '💰 Cancellations before 2 hours get a full wallet credit refund. Within 2 hours, a ₹99 convenience fee applies.',
-  'How to use wallet credits?': '💳 Your wallet balance auto-applies when you approve a service bill. You can also add credit by purchasing a Care Plan.',
-};
+const QUICK_REPLIES = getQuickStartQuestions();
 
 export default function LiveSupportScreen({ onNavigate }) {
-  const { activeUser, chats, setChats, bookings } = useApp();
+  const { activeUser, chats, setChats, bookings, activeAmc, wallet } = useApp();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const navigate = useNavigate();
@@ -272,31 +259,48 @@ export default function LiveSupportScreen({ onNavigate }) {
     setChats(prev => [...prev, newMsg]);
     setInputText('');
 
-    // 2. Bot/Agent auto response simulation
+    // 2. Intelligent Auto-Support Classification & Dynamic Context
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
-      let replyText = '';
+      let botMsg;
+
       if (type === 'voice') {
-        replyText = '🎙️ Agent Voice Reply: Received your voice message! Give us a minute to review and get back to you.';
+        botMsg = {
+          id: Date.now() + 1,
+          user_id: userId,
+          sender: 'Senior Operations Desk',
+          senderType: 'admin',
+          text: '🎙️ Operations Desk: Received your voice recording. A support specialist is reviewing it and will follow up immediately.',
+          time: getFmtTime(),
+          timestamp: Date.now(),
+          isEscalation: true,
+        };
       } else {
-        const isBotResponse = BOT_RESPONSES[text] || text.includes('?') || text.toLowerCase().includes('hello') || text.toLowerCase().includes('hi');
-        replyText = isBotResponse
-          ? (BOT_RESPONSES[text] || '🤖 Zeva AI: I am here to help! Our operations team has also been notified and will reply shortly.')
-          : '📥 Operations Agent: Got your request! We are checking your active bookings and will update you right here.';
+        const classified = classifySupportQuery(text, {
+          activeUser,
+          bookings,
+          activeAmc,
+          wallet,
+        });
+
+        botMsg = {
+          id: Date.now() + 1,
+          user_id: userId,
+          sender: classified.isEscalation ? 'Senior Operations Desk' : 'Zeva AI',
+          senderType: classified.isEscalation ? 'admin' : 'bot',
+          text: classified.replyText,
+          suggestedQuestions: classified.suggestedQuestions,
+          actionLink: classified.actionLink,
+          actionText: classified.actionText,
+          isEscalation: classified.isEscalation,
+          time: getFmtTime(),
+          timestamp: Date.now(),
+        };
       }
 
-      const botMsg = {
-        id: Date.now() + 1,
-        user_id: userId,
-        sender: type === 'voice' ? 'Zevota Operations' : 'Zeva Bot',
-        senderType: type === 'voice' ? 'admin' : 'bot',
-        text: replyText,
-        time: getFmtTime(),
-        timestamp: Date.now()
-      };
-      setChats(prev => [...prev, botMsg]);
-    }, 1200);
+      setChats((prev) => [...prev, botMsg]);
+    }, 800);
   };
 
   // Timer for Voice Recording simulation
@@ -619,9 +623,17 @@ export default function LiveSupportScreen({ onNavigate }) {
           </View>
           <View style={styles.headerInfo}>
             <Text style={styles.headerTitle} numberOfLines={1}>Zevota Operations Helpdesk</Text>
-            <Text style={styles.headerStatus}>online</Text>
+            <Text style={styles.headerStatus}>Zeva AI + Live Agent Standby</Text>
           </View>
         </View>
+
+        <TouchableOpacity
+          style={styles.humanHandoverBtn}
+          onPress={() => sendMessage('Speak with Live Executive')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.humanHandoverBtnText}>🎧 Human Agent</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Quick Replies Carousel */}
@@ -685,7 +697,39 @@ export default function LiveSupportScreen({ onNavigate }) {
                     </View>
                   </TouchableOpacity>
                 ) : (
-                  <Text style={styles.bubbleText}>{msg.text}</Text>
+                  <View>
+                    <Text style={styles.bubbleText}>{msg.text}</Text>
+
+                    {/* Dynamic Action Button */}
+                    {Boolean(msg.actionLink) && (
+                      <TouchableOpacity
+                        style={styles.botActionBtn}
+                        onPress={() => handleNav(msg.actionLink)}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.botActionBtnText}>{msg.actionText || 'Open →'}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+
+                {/* Clickable Follow-up Questions */}
+                {Array.isArray(msg.suggestedQuestions) && msg.suggestedQuestions.length > 0 && (
+                  <View style={styles.followUpWrap}>
+                    <Text style={styles.followUpHeading}>Related questions:</Text>
+                    <View style={styles.followUpGrid}>
+                      {msg.suggestedQuestions.map((sq) => (
+                        <TouchableOpacity
+                          key={sq}
+                          style={styles.followUpChip}
+                          onPress={() => sendMessage(sq)}
+                          activeOpacity={0.75}
+                        >
+                          <Text style={styles.followUpChipText}>{sq}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
                 )}
 
                 <View style={styles.metaRow}>
@@ -1255,5 +1299,72 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: '#1e293b',
     fontFamily: 'monospace',
+  },
+  humanHandoverBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+  },
+  humanHandoverBtnText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  botActionBtn: {
+    marginTop: 8,
+    backgroundColor: '#0f172a',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  botActionBtnText: {
+    color: '#ffffff',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  followUpWrap: {
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.06)',
+    paddingTop: 8,
+  },
+  followUpHeading: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#64748b',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  followUpGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  followUpChip: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+  },
+  followUpChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#1e293b',
   },
 });
