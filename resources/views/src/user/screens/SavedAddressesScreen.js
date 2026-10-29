@@ -1,22 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Platform, useWindowDimensions } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcons';
 import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker';
-import { normalizeSavedAddresses } from '../../utils/savedAddresses';
+import { normalizeSavedAddresses, upsertDefaultAddress, ADDRESS_CATEGORIES, isAddressEditable, normalizeTag } from '../../utils/savedAddresses';
 
 const TAG_ICONS = {
-  Home: 'home',
+  'Independent house/floor': 'home',
   Villa: 'villa',
   PG: 'pg',
+  'Rented home/floor': 'home',
 };
 
 const TAG_COLORS = {
-  Home: '#3b82f6',
-  Villa: '#8b5cf6',
-  PG: '#10b981',
+  'Independent house/floor': '#2563eb',
+  Villa: '#7c3aed',
+  PG: '#059669',
+  'Rented home/floor': '#d97706',
 };
+
+const CATEGORY_DISPLAY_NAMES = {
+  'Independent house/floor': 'Independent House/Floor',
+  Villa: 'Private Villa',
+  PG: 'Paying Guest (PG)',
+  'Rented home/floor': 'Rented Home/Floor',
+};
+
+const CATEGORY_BG_COLORS = {
+  'Independent house/floor': '#EFF6FF',
+  Villa: '#F5F3FF',
+  PG: '#ECFDF5',
+  'Rented home/floor': '#FFFBEB',
+};
+
+const CATEGORY_BORDER_COLORS = {
+  'Independent house/floor': '#BFDBFE',
+  Villa: '#DDD6FE',
+  PG: '#A7F3D0',
+  'Rented home/floor': '#FDE68A',
+};
+
+function formatAddressParts(addrStr) {
+  if (!addrStr) return { premise: '', locality: '' };
+  const parts = addrStr.split(',').map((s) => s.trim()).filter(Boolean);
+  if (parts.length <= 2) {
+    return { premise: addrStr, locality: '' };
+  }
+  const premise = parts.slice(0, 2).join(', ');
+  const locality = parts.slice(2).join(', ');
+  return { premise, locality };
+}
 
 export default function SavedAddressesScreen({ onNavigate }) {
   const { activeUser, updateProfile, validateServiceLocation } = useApp();
@@ -27,23 +61,62 @@ export default function SavedAddressesScreen({ onNavigate }) {
   const isAnonymous = Boolean(
     !activeUser ||
     activeUser.isAnonymous ||
-    (activeUser.isGuest && !activeUser.phone) ||
-    (!activeUser.phone && !activeUser.guestId)
+    (!activeUser.phone && !activeUser.guestId && !activeUser.name)
   );
 
   const isGuest = Boolean(
     activeUser?.isGuest ||
     activeUser?.id === 0 ||
-    activeUser?.name === 'Guest User' ||
-    isAnonymous
+    activeUser?.name === 'Guest User'
   );
 
-  // Guest accounts have no saved addresses and cannot edit
-  const addresses = (isGuest ? [] : (activeUser?.saved_addresses || [])).map((a) => {
-    const rawTag = String(a.tag || '').trim().toLowerCase();
-    const tag = rawTag === 'villa' ? 'Villa' : rawTag === 'pg' ? 'PG' : 'Home';
-    return { ...a, tag };
+  // Derive addresses list, always including default address if saved in activeUser
+  const rawAddresses = useMemo(() => {
+    let list = Array.isArray(activeUser?.saved_addresses) ? [...activeUser.saved_addresses] : [];
+    const fallbackAddr = (activeUser?.address || activeUser?.property?.address || '').trim();
+    if (fallbackAddr) {
+      const exists = list.some(
+        (a) => (a.address || '').trim().toLowerCase() === fallbackAddr.toLowerCase()
+      );
+      if (!exists) {
+        list = upsertDefaultAddress(list, fallbackAddr, {
+          latitude: activeUser?.latitude,
+          longitude: activeUser?.longitude,
+        });
+      }
+    }
+    return normalizeSavedAddresses(list);
+  }, [activeUser?.saved_addresses, activeUser?.address, activeUser?.property?.address, activeUser?.latitude, activeUser?.longitude]);
+
+  const addresses = rawAddresses.map((a) => {
+    return { ...a, tag: normalizeTag(a.tag) };
   });
+
+  // Users with permanent addresses (Independent house/floor, Villa, PG) cannot add additional addresses
+  const hasPermanentAddress = addresses.some((a) => !isAddressEditable(a.tag));
+  const canCreateNewAddress = !hasPermanentAddress;
+
+  // Auto-sync fallback address into activeUser.saved_addresses if missing
+  useEffect(() => {
+    if (!activeUser || !updateProfile) return;
+    const fallbackAddr = (activeUser?.address || activeUser?.property?.address || '').trim();
+    if (!fallbackAddr) return;
+    const currentSaved = Array.isArray(activeUser.saved_addresses) ? activeUser.saved_addresses : [];
+    const alreadySaved = currentSaved.some(
+      (a) => (a.address || '').trim().toLowerCase() === fallbackAddr.toLowerCase()
+    );
+    if (!alreadySaved) {
+      const updated = upsertDefaultAddress(currentSaved, fallbackAddr, {
+        latitude: activeUser?.latitude,
+        longitude: activeUser?.longitude,
+      });
+      updateProfile({
+        ...activeUser,
+        saved_addresses: updated,
+        address: fallbackAddr,
+      });
+    }
+  }, [activeUser, updateProfile]);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
@@ -91,10 +164,14 @@ export default function SavedAddressesScreen({ onNavigate }) {
 
         if (window.google?.maps?.Geocoder) {
           const geocoder = new window.google.maps.Geocoder();
-          geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+          geocoder.geocode({ location: { lat, lng }, language: 'en' }, (results, status) => {
             if (status === 'OK' && results?.[0]) {
-              setDetectingLocation(false);
               const formatted = results[0].formatted_address;
+              if (/[\u0900-\u097F]/.test(formatted)) {
+                fallbackOsm(lat, lng);
+                return;
+              }
+              setDetectingLocation(false);
               setNewAddress(formatted);
               setLocationStatus({ type: 'success', text: 'Current GPS location detected & filled!' });
             } else {
@@ -132,8 +209,9 @@ export default function SavedAddressesScreen({ onNavigate }) {
   };
 
   const updateSavedAddresses = (updatedList) => {
-    if (isGuest || !activeUser || !updateProfile) {
-      if (isGuest) setShowGuestModal(true);
+    if (!activeUser || !updateProfile) return;
+    if (isAnonymous) {
+      setShowGuestModal(true);
       return;
     }
     const normalized = normalizeSavedAddresses(updatedList);
@@ -146,8 +224,12 @@ export default function SavedAddressesScreen({ onNavigate }) {
   };
 
   const handleAddOrSave = () => {
-    if (isGuest) {
+    if (isAnonymous) {
       setShowGuestModal(true);
+      return;
+    }
+    if (editingId === null && !canCreateNewAddress) {
+      alert('Additional addresses cannot be created for permanent residences (Independent house/floor, Villa, PG).');
       return;
     }
     if (!newAddress.trim()) return;
@@ -164,7 +246,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
         ...addresses,
         {
           id: Date.now(),
-          tag: newTag || 'Home',
+          tag: normalizeTag(newTag || 'Independent house/floor'),
           address: newAddress,
           isDefault: isFirst
         }
@@ -178,7 +260,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
   };
 
   const handleSetDefault = (id) => {
-    if (isGuest) {
+    if (isAnonymous) {
       setShowGuestModal(true);
       return;
     }
@@ -190,8 +272,13 @@ export default function SavedAddressesScreen({ onNavigate }) {
   };
 
   const handleDelete = (id) => {
-    if (isGuest) {
+    if (isAnonymous) {
       setShowGuestModal(true);
+      return;
+    }
+    const target = addresses.find(a => a.id === id);
+    if (target && !isAddressEditable(target.tag)) {
+      alert('Permanent addresses (Independent house/floor, Villa, PG) cannot be deleted.');
       return;
     }
     const updatedList = addresses.filter(a => a.id !== id);
@@ -203,17 +290,21 @@ export default function SavedAddressesScreen({ onNavigate }) {
   };
 
   const handleEdit = (item) => {
-    if (isGuest) {
+    if (isAnonymous) {
       setShowGuestModal(true);
       return;
     }
+    if (!isAddressEditable(item.tag)) {
+      alert('Permanent addresses (Independent house/floor, Villa, PG) cannot be edited once saved. Only Rented home/floor addresses can be modified.');
+      return;
+    }
     setEditingId(item.id);
-    setNewTag(item.tag);
+    setNewTag(normalizeTag(item.tag));
     setNewAddress(item.address);
     setShowAddForm(true);
   };
 
-  const TAG_OPTIONS = ['Home', 'Villa', 'PG'];
+  const TAG_OPTIONS = ADDRESS_CATEGORIES;
 
   if (isDesktopWeb) {
     return (
@@ -254,7 +345,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
             </div>
           </div>
 
-          {!showAddForm && !isGuest && (
+          {!showAddForm && !isGuest && canCreateNewAddress && (
             <button
               type="button"
               onClick={() => { setShowAddForm(true); setEditingId(null); setNewTag('Home'); setNewAddress(''); }}
@@ -290,7 +381,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 380px', gap: 28, alignItems: 'start' }}>
           {/* Left Column: Address Cards List / Grid */}
           <div>
-            {isGuest ? (
+            {isAnonymous && addresses.length === 0 ? (
               <div style={{ backgroundColor: '#ffffff', borderRadius: 20, padding: 36, textAlign: 'center', border: '1.5px dashed #cbd5e1' }}>
                 <div style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                   <AppIcon name="lock" size={28} color="#b45309" strokeWidth={2.2} />
@@ -324,7 +415,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
                   Register your home, office, or parents’ address for instant technician dispatch and zero-hassle AMC servicing.
                 </p>
                 <button
-                  onClick={() => { setShowAddForm(true); setEditingId(null); setNewTag('Home'); setNewAddress(''); }}
+                  onClick={() => { setShowAddForm(true); setEditingId(null); setNewTag('Independent house/floor'); setNewAddress(''); }}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', backgroundColor: '#0052cc', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 14, boxShadow: '0 4px 12px rgba(0,82,204,0.2)' }}
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -366,7 +457,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
                             </div>
                             <div>
                               <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', fontFamily: 'Inter, sans-serif' }}>
-                                {item.tag}
+                                {CATEGORY_DISPLAY_NAMES[item.tag] || item.tag}
                               </span>
                               {item.isDefault && (
                                 <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 6, backgroundColor: '#2563eb', color: '#ffffff', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -426,51 +517,53 @@ export default function SavedAddressesScreen({ onNavigate }) {
                         </p>
                       </div>
 
-                      {/* Card Actions */}
-                      <div style={{ display: 'flex', gap: 10, paddingTop: 12, borderTop: '1px solid #f1f5f9' }}>
-                        <button
-                          onClick={() => handleEdit(item)}
-                          style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            borderRadius: 10,
-                            backgroundColor: '#f8fafc',
-                            border: '1px solid #e2e8f0',
-                            color: '#2563eb',
-                            fontSize: 12.5,
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 6,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <AppIcon name="edit" size={13} color="#2563eb" />
-                          <span>Edit</span>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            borderRadius: 10,
-                            backgroundColor: '#fef2f2',
-                            border: '1px solid #fee2e2',
-                            color: '#dc2626',
-                            fontSize: 12.5,
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 6,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <AppIcon name="trash" size={13} color="#dc2626" />
-                          <span>Delete</span>
-                        </button>
-                      </div>
+                      {/* Card Actions: Only show options for Rented home/floor */}
+                      {isAddressEditable(item.tag) && (
+                        <div style={{ display: 'flex', gap: 10, paddingTop: 12, borderTop: '1px solid #f1f5f9' }}>
+                          <button
+                            onClick={() => handleEdit(item)}
+                            style={{
+                              flex: 1,
+                              padding: '8px 12px',
+                              borderRadius: 10,
+                              backgroundColor: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              color: '#2563eb',
+                              fontSize: 12.5,
+                              fontWeight: 700,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 6,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <AppIcon name="edit" size={13} color="#2563eb" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            style={{
+                              flex: 1,
+                              padding: '8px 12px',
+                              borderRadius: 10,
+                              backgroundColor: '#fef2f2',
+                              border: '1px solid #fee2e2',
+                              color: '#dc2626',
+                              fontSize: 12.5,
+                              fontWeight: 700,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 6,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <AppIcon name="trash" size={13} color="#dc2626" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -822,106 +915,151 @@ export default function SavedAddressesScreen({ onNavigate }) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, isDesktopWeb && styles.contentDesktop]} showsVerticalScrollIndicator={false}>
-      {/* Header */}
+      {/* Luxury Header */}
       <View style={styles.topHeader}>
-        <TouchableOpacity style={styles.backBtn} onPress={handleGoBack} activeOpacity={0.7}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F1F3D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <TouchableOpacity style={styles.backBtn} onPress={handleGoBack} activeOpacity={0.7} accessibilityLabel="Back">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 19 5 12 12 5" />
           </svg>
         </TouchableOpacity>
-        <View style={{ flex: 1, paddingLeft: 14 }}>
+        <View style={{ flex: 1, paddingLeft: 12 }}>
           <Text style={styles.headerTitle}>Saved Addresses</Text>
           <Text style={styles.headerSubtitle}>Manage your verified service locations</Text>
         </View>
+        {addresses.length > 0 && (
+          <View style={styles.headerCountPill}>
+            <View style={styles.headerCountDot} />
+            <Text style={styles.headerCountText}>{addresses.length} Verified</Text>
+          </View>
+        )}
       </View>
 
       {/* Address Cards */}
-      <div style={isDesktopWeb ? desktopAddressGridStyle : { display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div style={isDesktopWeb ? desktopAddressGridStyle : { display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {addresses.map((item) => {
           const iconName = TAG_ICONS[item.tag] || 'home';
-          const themeColor = TAG_COLORS[item.tag] || '#3b82f6';
+          const themeColor = TAG_COLORS[item.tag] || '#2563eb';
+          const bgTheme = CATEGORY_BG_COLORS[item.tag] || '#EFF6FF';
+          const borderTheme = CATEGORY_BORDER_COLORS[item.tag] || '#BFDBFE';
+          const displayName = CATEGORY_DISPLAY_NAMES[item.tag] || item.tag;
+          const { premise, locality } = formatAddressParts(item.address);
+          const cov = validateServiceLocation ? validateServiceLocation(item.address) : { isSupported: true };
 
           return (
             <View key={item.id} style={[styles.addrCard, item.isDefault && styles.addrCardDefault]}>
-              
-              {/* Absolute Star Action on Top-Right */}
-              <TouchableOpacity
-                style={[styles.starActionBtn, item.isDefault && styles.starActionBtnActive]}
-                onPress={() => !item.isDefault && handleSetDefault(item.id)}
-                activeOpacity={0.7}
-                disabled={item.isDefault}
-              >
-                {item.isDefault ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1.5">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                )}
-              </TouchableOpacity>
-
+              {/* Top Row: Icon + Title & Badges + Star Button */}
               <View style={styles.addrCardTop}>
-                <View style={[styles.pinIconWrap, { backgroundColor: item.isDefault ? '#eff6ff' : '#f8fafc' }]}>
-                  <AppIcon name={iconName} size={18} color={themeColor} />
+                {/* Dual-tone Squircle Icon */}
+                <View style={[styles.pinIconWrap, { backgroundColor: bgTheme, borderColor: borderTheme }]}>
+                  <AppIcon name={iconName} size={20} color={themeColor} strokeWidth={2.2} />
                 </View>
-                <View style={{ flex: 1, paddingRight: 44 }}>
+
+                {/* Title & Badges */}
+                <View style={styles.addrTitleWrap}>
+                  <Text style={styles.addrTag}>{displayName}</Text>
+                  
                   <View style={styles.tagRow}>
-                    <Text style={[styles.addrTag, { color: themeColor }]}>{item.tag}</Text>
                     {item.isDefault && (
                       <View style={styles.defaultBadge}>
-                        <Text style={styles.defaultBadgeText}>Primary</Text>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" strokeWidth="1" style={{ marginRight: 3 }}>
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        <Text style={styles.defaultBadgeText}>PRIMARY</Text>
                       </View>
                     )}
-                    {(() => {
-                      const cov = validateServiceLocation ? validateServiceLocation(item.address) : { isSupported: true };
-                      return cov.isSupported ? (
-                        <View style={{ backgroundColor: '#f0fdf4', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#bbf7d0', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                          <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#16a34a' }}>Coverage Verified</Text>
-                        </View>
-                      ) : (
-                        <View style={{ backgroundColor: '#fef2f2', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#fecaca', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                            <line x1="12" y1="9" x2="12" y2="13"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17"/>
-                          </svg>
-                          <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#dc2626' }}>Out of Coverage</Text>
-                        </View>
-                      );
-                    })()}
+                    {cov.isSupported ? (
+                      <View style={styles.coverageBadge}>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <Text style={styles.coverageBadgeText}>Coverage Verified</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.outOfCoverageBadge}>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
+                          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                          <line x1="12" y1="9" x2="12" y2="13"/>
+                          <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <Text style={styles.outOfCoverageBadgeText}>Out of Coverage</Text>
+                      </View>
+                    )}
                   </View>
-                  <Text style={styles.addrText}>{item.address}</Text>
+                </View>
+
+                {/* Star Bookmark Pill (Flex sibling on the right) */}
+                <TouchableOpacity
+                  style={[styles.starActionBtn, item.isDefault && styles.starActionBtnActive]}
+                  onPress={() => !item.isDefault && handleSetDefault(item.id)}
+                  activeOpacity={0.7}
+                  disabled={item.isDefault}
+                  title={item.isDefault ? "Primary Service Address" : "Set as Primary Destination"}
+                >
+                  {item.isDefault ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" stroke="#D97706" strokeWidth="1.2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {/* Physical Address Presentation */}
+              <View style={styles.addressBlock}>
+                <View style={styles.addressPinIcon}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" fill="#2563EB" />
+                  </svg>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.addrStreetText}>{premise || item.address}</Text>
+                  {locality ? <Text style={styles.addrLocalityText}>{locality}</Text> : null}
                 </View>
               </View>
 
-              {/* Both edit and delete buttons are now perfectly aligned under every card */}
-              <View style={styles.addrActions}>
-                <TouchableOpacity style={styles.actionBtn} onPress={() => handleEdit(item)} activeOpacity={0.7}>
-                  <View style={styles.actionBtnInner}>
-                    <AppIcon name="edit" size={14} color="#2563eb" />
-                    <Text style={styles.actionBtnText}>Edit</Text>
+              {/* Card Footer: Ribbon or Editable Actions */}
+              {!isAddressEditable(item.tag) ? (
+                <View style={styles.cardRibbon}>
+                  <View style={styles.ribbonLeft}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <Text style={styles.ribbonText}>Fixed Household Location</Text>
                   </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)} activeOpacity={0.7}>
-                  <View style={styles.actionBtnInner}>
-                    <AppIcon name="trash" size={14} color="#dc2626" />
-                    <Text style={styles.deleteBtnText}>Delete</Text>
+                  <View style={styles.ribbonRight}>
+                    <View style={styles.greenPulseDot} />
+                    <Text style={styles.doorstepReadyText}>Doorstep Ready</Text>
                   </View>
-                </TouchableOpacity>
-              </View>
+                </View>
+              ) : (
+                <View style={styles.addrActions}>
+                  <TouchableOpacity style={styles.actionBtn} onPress={() => handleEdit(item)} activeOpacity={0.7}>
+                    <View style={styles.actionBtnInner}>
+                      <AppIcon name="edit" size={13} color="#2563eb" strokeWidth={2.2} />
+                      <Text style={styles.actionBtnText}>Edit Address</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)} activeOpacity={0.7}>
+                    <View style={styles.actionBtnInner}>
+                      <AppIcon name="trash" size={13} color="#dc2626" strokeWidth={2.2} />
+                      <Text style={styles.deleteBtnText}>Remove</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           );
         })}
       </div>
 
-      {/* If guest or no addresses, show message */}
-      {isGuest ? (
+      {/* If anonymous with no addresses, show message */}
+      {isAnonymous && addresses.length === 0 ? (
         <View style={styles.guestLockedCard}>
           <View style={styles.guestIconCircle}>
             <AppIcon name="lock" size={26} color="#B45309" strokeWidth={2.2} />
@@ -1046,26 +1184,27 @@ export default function SavedAddressesScreen({ onNavigate }) {
             </TouchableOpacity>
           </View>
         </View>
-      ) : (
-        <TouchableOpacity style={styles.addNewBtn} onPress={() => { setShowAddForm(true); setEditingId(null); setNewTag('Home'); setNewAddress(''); }} activeOpacity={0.85}>
+      ) : canCreateNewAddress ? (
+        <TouchableOpacity style={styles.addNewBtn} onPress={() => { setShowAddForm(true); setEditingId(null); setNewTag('Independent house/floor'); setNewAddress(''); }} activeOpacity={0.85}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
           <Text style={styles.addNewBtnText}>Create New Verified Location</Text>
         </TouchableOpacity>
-      )}
+      ) : null}
 
-      {/* Info Banner */}
-      <View style={styles.infoBanner}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
+      {/* Verified Dispatch Notice */}
+      <View style={styles.securityNoticeCard}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <polyline points="9 12 11 14 15 10" />
           </svg>
-          <Text style={styles.infoBannerText}>Locations saved here are shared securely with verified technician dispatchers for prompt servicing.</Text>
-        </View>
+        </div>
+        <Text style={styles.securityNoticeText}>
+          Locations saved here are shared securely with verified technician dispatchers for prompt servicing.
+        </Text>
       </View>
 
       {/* Registration Required Modal */}
@@ -1139,7 +1278,7 @@ const desktopAddressGridStyle = {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F3F7FF' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 18, gap: 16 },
   contentDesktop: {
     maxWidth: 1120,
@@ -1151,52 +1290,84 @@ const styles = StyleSheet.create({
     boxSizing: 'border-box',
   },
 
-  topHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, marginBottom: 8 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#ffffff', borderWidth: 1.2, borderColor: '#D7E3F5', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(15,31,61,0.04)' },
+  topHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, marginBottom: 4 },
+  backBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#ffffff', borderWidth: 1.2, borderColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(15,23,42,0.04)' },
   backArrow: { fontSize: 20, color: '#0F1F3D', fontWeight: '700', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: '#0F1F3D', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif", letterSpacing: -0.4 },
-  headerSubtitle: { fontSize: 12, color: '#64748B', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif", marginTop: 1 },
+  headerTitle: { fontSize: 21, fontWeight: '800', color: '#0F172A', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif", letterSpacing: -0.4 },
+  headerSubtitle: { fontSize: 12.5, color: '#64748B', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif", marginTop: 2 },
+  headerCountPill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F0FDF4', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: '#BBF7D0' },
+  headerCountDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#16A34A' },
+  headerCountText: { fontSize: 11, fontWeight: '700', color: '#16A34A', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
 
   cardGroup: { gap: 14 },
-  addrCard: { backgroundColor: '#ffffff', borderRadius: 20, padding: 16, borderWidth: 1.2, borderColor: '#E2E8F0', boxShadow: '0 2px 10px rgba(15,31,61,0.02)', position: 'relative' },
-  addrCardDefault: { borderColor: '#BFDBFE', backgroundColor: '#F5F9FF', boxShadow: '0 4px 12px rgba(37,99,235,0.04)' },
+  addrCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 22,
+    padding: 18,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    boxShadow: '0 4px 18px rgba(15,23,42,0.04)',
+    position: 'relative',
+  },
+  addrCardDefault: {
+    borderColor: '#93C5FD',
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 3.5,
+    borderTopColor: '#2563EB',
+    boxShadow: '0 8px 24px rgba(37,99,235,0.08), 0 2px 6px rgba(15,23,42,0.02)',
+  },
 
-  // Top Right Star button to toggle/set primary address
   starActionBtn: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#f8fafc',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#E2E8F0',
     display: 'flex',
-    zIndex: 10,
+    flexShrink: 0,
   },
   starActionBtnActive: {
-    backgroundColor: '#fffbeb',
-    borderColor: '#fde68a',
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+    boxShadow: '0 2px 8px rgba(245,158,11,0.2)',
   },
 
-  addrCardTop: { flexDirection: 'row', gap: 14, marginBottom: 14 },
-  pinIconWrap: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', display: 'flex', flexShrink: 0, borderWidth: 1, borderColor: '#E2E8F0' },
-  tagRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, rowGap: 4, marginBottom: 6 },
-  addrTag: { fontSize: 14, fontWeight: '800', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif", textTransform: 'uppercase', letterSpacing: 0.3 },
-  defaultBadge: { backgroundColor: '#2563EB', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  defaultBadgeText: { color: '#ffffff', fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.2, fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
-  addrText: { fontSize: 13, color: '#334155', lineHeight: 20, fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif", fontWeight: '500' },
+  addrCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12, width: '100%' },
+  pinIconWrap: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', display: 'flex', flexShrink: 0, borderWidth: 1.2 },
+  addrTitleWrap: { flex: 1, minWidth: 0, justifyContent: 'center' },
+  addrTag: { fontSize: 13.5, fontWeight: '800', color: '#0F172A', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif", letterSpacing: -0.2, marginBottom: 3 },
+  tagRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
+  defaultBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0F172A', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  defaultBadgeText: { color: '#FFFFFF', fontSize: 9, fontWeight: '800', letterSpacing: 0.5, fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
+  coverageBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0FDF4', borderWidth: 1, borderColor: '#BBF7D0', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  coverageBadgeText: { color: '#16A34A', fontSize: 9.5, fontWeight: '700', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
+  outOfCoverageBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  outOfCoverageBadgeText: { color: '#DC2626', fontSize: 9.5, fontWeight: '700', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
+
+  addressBlock: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 4 },
+  addressPinIcon: { marginTop: 2, flexShrink: 0 },
+  addrStreetText: { fontSize: 13.5, fontWeight: '650', color: '#1E293B', lineHeight: 19, fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
+  addrLocalityText: { fontSize: 12, color: '#64748B', lineHeight: 17, fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif", marginTop: 2 },
+
+  cardRibbon: { width: '100%', alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 12, marginTop: 14, boxSizing: 'border-box' },
+  ribbonLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0, marginRight: 8 },
+  ribbonText: { fontSize: 11.5, color: '#64748B', fontWeight: '600', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
+  ribbonRight: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 },
+  greenPulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#16A34A', flexShrink: 0 },
+  doorstepReadyText: { fontSize: 11, color: '#16A34A', fontWeight: '700', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
 
   // Bottom action buttons: exactly 2 aligned buttons per card now
-  addrActions: { flexDirection: 'row', gap: 10, borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 12 },
-  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: 12, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
-  actionBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  actionBtnText: { fontSize: 12, fontWeight: '750', color: '#475569', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
+  addrActions: { flexDirection: 'row', gap: 10, borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 12, marginTop: 10 },
+  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0' },
+  actionBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  actionBtnText: { fontSize: 12, fontWeight: '700', color: '#2563EB', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
+  lockedBtn: { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', opacity: 0.85 },
+  lockedBtnText: { fontSize: 11.5, fontWeight: '700', color: '#64748b', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
   deleteBtn: { backgroundColor: '#FEF2F2', borderColor: '#FEE2E2' },
-  deleteBtnText: { fontSize: 12, fontWeight: '750', color: '#DC2626', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
+  deleteBtnText: { fontSize: 12, fontWeight: '700', color: '#DC2626', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
 
   addNewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#ffffff', borderRadius: 16, paddingVertical: 15, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed' },
   addNewBtnText: { fontSize: 13.5, fontWeight: '800', color: '#2563EB', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
@@ -1311,8 +1482,25 @@ const styles = StyleSheet.create({
   saveBtn: { flex: 2, backgroundColor: '#2563EB', paddingVertical: 13, borderRadius: 14, alignItems: 'center' },
   saveBtnText: { fontSize: 13, fontWeight: '800', color: '#ffffff', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" },
 
-  infoBanner: { backgroundColor: '#EFF6FF', borderRadius: 16, padding: 14, borderWidth: 1.2, borderColor: '#BFDBFE' },
-  infoBannerText: { fontSize: 12, color: '#1E40AF', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif", lineHeight: 18, fontWeight: '500' },
+  securityNoticeCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1.2,
+    borderColor: '#E2E8F0',
+    boxShadow: '0 2px 10px rgba(15,23,42,0.02)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  securityNoticeText: {
+    flex: 1,
+    fontSize: 12.5,
+    color: '#334155',
+    lineHeight: 18,
+    fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif",
+    fontWeight: '500',
+  },
 
   guestLockedCard: {
     backgroundColor: '#ffffff',

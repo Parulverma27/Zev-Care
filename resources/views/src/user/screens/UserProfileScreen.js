@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, useWindowDimensions } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
@@ -37,6 +37,34 @@ export default function UserProfileScreen({ onNavigate }) {
     isAnonymous
   );
 
+  const resolvedUserName = useMemo(() => {
+    let name = (activeUser?.name || '').trim();
+    if (!name || name.toLowerCase() === 'guest user' || name.toLowerCase() === 'guest') {
+      try {
+        const savedDraft = sessionStorage.getItem('zevota_reg_draft');
+        if (savedDraft) {
+          const parsed = JSON.parse(savedDraft);
+          if (parsed?.name && parsed.name.trim()) {
+            name = parsed.name.trim();
+          }
+        }
+      } catch (e) {}
+    }
+    return name;
+  }, [activeUser?.name]);
+
+  const hasCustomName = Boolean(
+    resolvedUserName &&
+    resolvedUserName.toLowerCase() !== 'guest user' &&
+    resolvedUserName.toLowerCase() !== 'guest'
+  );
+
+  useEffect(() => {
+    if (hasCustomName && activeUser && activeUser.name !== resolvedUserName && typeof updateProfile === 'function') {
+      updateProfile({ ...activeUser, name: resolvedUserName });
+    }
+  }, [hasCustomName, resolvedUserName, activeUser, updateProfile]);
+
   const guestIdDisplay = useMemo(() => {
     if (isAnonymous) return '';
     if (activeUser?.guestId && activeUser.guestId !== 'GUEST') return activeUser.guestId;
@@ -65,7 +93,8 @@ export default function UserProfileScreen({ onNavigate }) {
       setShowGuestModal(true);
       return;
     }
-    setEditName(activeUser?.name === 'Guest User' ? '' : (activeUser?.name || ''));
+    const existingName = hasCustomName ? resolvedUserName : (activeUser?.name === 'Guest User' ? '' : (activeUser?.name || ''));
+    setEditName(existingName);
     setEditEmail(activeUser?.email || '');
     const cleanDigits = (activeUser?.phone || '').replace(/\D/g, '').slice(-10);
     setEditPhone(cleanDigits);
@@ -145,13 +174,18 @@ export default function UserProfileScreen({ onNavigate }) {
 
   const userInitials = useMemo(() => {
     if (isAnonymous) return '';
+    const nameToUse = hasCustomName ? resolvedUserName : (activeUser?.name?.trim() || '');
+    if (hasCustomName && nameToUse) {
+      const parts = nameToUse.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+      return parts[0].slice(0, 2).toUpperCase();
+    }
     if (isGuest) return 'GU';
-    const name = activeUser?.name?.trim();
-    if (!name) return 'U';
-    const parts = name.split(/\s+/);
+    if (!nameToUse) return 'U';
+    const parts = nameToUse.split(/\s+/).filter(Boolean);
     if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return parts[0].slice(0, 2).toUpperCase();
-  }, [activeUser?.name, isAnonymous, isGuest]);
+  }, [resolvedUserName, hasCustomName, activeUser?.name, isAnonymous, isGuest]);
 
   const MENU_ITEMS = [
     {
@@ -223,6 +257,8 @@ export default function UserProfileScreen({ onNavigate }) {
         activeUser={activeUser}
         isAnonymous={isAnonymous}
         isGuest={isGuest}
+        hasCustomName={hasCustomName}
+        resolvedUserName={resolvedUserName}
         guestIdDisplay={guestIdDisplay}
         hasPlan={hasPlan}
         userPlanTheme={userPlanTheme}
@@ -295,7 +331,7 @@ export default function UserProfileScreen({ onNavigate }) {
           <View style={styles.profileMainInfo}>
             <View style={styles.userNameBlock}>
               <Text style={styles.userName} numberOfLines={1}>
-                {isAnonymous ? 'Welcome' : isGuest ? 'Guest User' : (activeUser?.name || '—')}
+                {isAnonymous ? 'Welcome' : (hasCustomName ? resolvedUserName : (isGuest ? 'Guest User' : (activeUser?.name || '—')))}
               </Text>
               {isAnonymous ? (
                 <Text style={styles.userSub}>Browsing mode • Not logged in</Text>
@@ -337,13 +373,15 @@ export default function UserProfileScreen({ onNavigate }) {
                       <AppIcon name="lock" size={11} color="#1d4ed8" strokeWidth={2.2} />
                       <Text style={styles.guestModeBadgeText}>Guest Access</Text>
                     </View>
-                    <View style={styles.guestIdChip}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="2" y="5" width="20" height="14" rx="2" />
-                        <line x1="2" y1="10" x2="22" y2="10" />
-                      </svg>
-                      <Text style={styles.guestIdChipText}>{guestIdDisplay}</Text>
-                    </View>
+                    {!hasCustomName && Boolean(guestIdDisplay) && (
+                      <View style={styles.guestIdChip}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="5" width="20" height="14" rx="2" />
+                          <line x1="2" y1="10" x2="22" y2="10" />
+                        </svg>
+                        <Text style={styles.guestIdChipText}>{guestIdDisplay}</Text>
+                      </View>
+                    )}
                     <TouchableOpacity style={styles.editProfileChip} onPress={handleOpenEditModal} activeOpacity={0.8}>
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />

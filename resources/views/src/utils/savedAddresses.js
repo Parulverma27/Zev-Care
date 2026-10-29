@@ -1,12 +1,25 @@
+export const ADDRESS_CATEGORIES = [
+  'Independent house/floor',
+  'Villa',
+  'PG',
+  'Rented home/floor',
+];
+
+export function isAddressEditable(tag) {
+  const t = String(tag || '').trim().toLowerCase();
+  return t.includes('rented');
+}
+
 export function normalizeTag(tag) {
   const t = String(tag || '').trim().toLowerCase();
+  if (t.includes('rented')) return 'Rented home/floor';
   if (t === 'villa') return 'Villa';
   if (t === 'pg') return 'PG';
-  return 'Home';
+  return 'Independent house/floor';
 }
 
 /**
- * Keep saved address lists consistent: at most one default, valid tags only (Home, Villa, PG).
+ * Keep saved address lists consistent: at most one default, valid tags only (Independent house/floor, Villa, PG, Rented home/floor).
  */
 export function normalizeSavedAddresses(list = []) {
   if (!Array.isArray(list) || list.length === 0) return [];
@@ -46,12 +59,12 @@ export function upsertDefaultAddress(existing = [], nextAddress, extras = {}) {
     (a) => String(a.address || '').trim().toLowerCase().replace(/\s+/g, ' ') === key
   );
   const defaultIdx = list.findIndex((a) => a.isDefault);
-  const homeIdx = list.findIndex((a) => /home/i.test(String(a.tag || '')));
+  const homeIdx = list.findIndex((a) => /(home|independent|rented)/i.test(String(a.tag || '')));
   const replaceIdx = exactIdx >= 0 ? exactIdx : defaultIdx >= 0 ? defaultIdx : homeIdx;
 
   const entry = {
     id: replaceIdx >= 0 ? list[replaceIdx].id : Date.now(),
-    tag: extras.tag || (replaceIdx >= 0 ? list[replaceIdx].tag : 'Home') || 'Home',
+    tag: normalizeTag(extras.tag || (replaceIdx >= 0 ? list[replaceIdx].tag : 'Independent house/floor')),
     address: full,
     isDefault: true,
     ...(extras.latitude != null ? { latitude: extras.latitude } : {}),

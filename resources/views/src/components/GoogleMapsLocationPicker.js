@@ -17,6 +17,7 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
   const leafletMapObj = useRef(null);
   const leafletMarkerObj = useRef(null);
   const mapTypeRef = useRef('google'); // 'google' | 'leaflet'
+  const searchTimeoutRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -45,6 +46,9 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
     return () => {
       isMounted = false;
       clearTimeout(timer);
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
       if (leafletMapObj.current) {
         try { leafletMapObj.current.remove(); } catch (e) {}
       }
@@ -104,6 +108,15 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
           reverseGeocodeOsm(pos.lat, pos.lng);
         });
 
+        map.on('click', (e) => {
+          const { lat: clickLat, lng: clickLng } = e.latlng;
+          setCoords({ lat: clickLat, lng: clickLng });
+          if (leafletMarkerObj.current) {
+            leafletMarkerObj.current.setLatLng([clickLat, clickLng]);
+          }
+          reverseGeocodeOsm(clickLat, clickLng);
+        });
+
         setLoading(false);
 
         if (initialAddress && initialAddress.trim()) {
@@ -124,9 +137,6 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
         if (data && data.display_name) {
           setSelectedAddress(data.display_name);
           setSearchQuery(data.display_name);
-          if (onSelectLocation) {
-            onSelectLocation({ address: data.display_name, lat, lng });
-          }
         }
       })
       .catch(() => {});
@@ -134,7 +144,8 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
 
   const forwardGeocodeOsm = (addressText) => {
     if (!addressText || !addressText.trim()) return;
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressText.trim())}&accept-language=en`, {
+    const q = addressText.trim();
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=in&accept-language=en`, {
       headers: { 'Accept-Language': 'en' },
     })
       .then((res) => res.json())
@@ -146,10 +157,40 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
           setCoords({ lat, lng });
           setSelectedAddress(formatted);
 
-          if (leafletMapObj.current && leafletMarkerObj.current) {
+          if (mapTypeRef.current === 'google' && googleMapObj.current && markerObj.current) {
+            const newPos = { lat, lng };
+            googleMapObj.current.setCenter(newPos);
+            googleMapObj.current.setZoom(15);
+            markerObj.current.setPosition(newPos);
+          } else if (leafletMapObj.current && leafletMarkerObj.current) {
             leafletMapObj.current.setView([lat, lng], 15);
             leafletMarkerObj.current.setLatLng([lat, lng]);
           }
+        } else {
+          // If no result in India, search without country restriction
+          fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&accept-language=en`, {
+            headers: { 'Accept-Language': 'en' },
+          })
+            .then((r2) => r2.json())
+            .then((data2) => {
+              if (data2 && data2.length > 0) {
+                const lat = parseFloat(data2[0].lat);
+                const lng = parseFloat(data2[0].lon);
+                const formatted = data2[0].display_name;
+                setCoords({ lat, lng });
+                setSelectedAddress(formatted);
+                if (mapTypeRef.current === 'google' && googleMapObj.current && markerObj.current) {
+                  const newPos = { lat, lng };
+                  googleMapObj.current.setCenter(newPos);
+                  googleMapObj.current.setZoom(15);
+                  markerObj.current.setPosition(newPos);
+                } else if (leafletMapObj.current && leafletMarkerObj.current) {
+                  leafletMapObj.current.setView([lat, lng], 15);
+                  leafletMarkerObj.current.setLatLng([lat, lng]);
+                }
+              }
+            })
+            .catch(() => {});
         }
       })
       .catch(() => {});
@@ -163,10 +204,14 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
       return;
     }
 
-    if (!isGoogleMapsLoaded()) return;
+    if (!isGoogleMapsLoaded() || !window.google?.maps?.Geocoder) {
+      forwardGeocodeOsm(addressText);
+      return;
+    }
+
     const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ address: addressText.trim() }, (results, status) => {
-      if (status === 'OK' && results[0]) {
+    geocoder.geocode({ address: addressText.trim(), componentRestrictions: { country: 'IN' } }, (results, status) => {
+      if (status === 'OK' && results?.[0]) {
         const location = results[0].geometry.location;
         const lat = location.lat();
         const lng = location.lng();
@@ -182,8 +227,25 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
           markerObj.current.setPosition(newPos);
         }
       } else {
-        // Fallback to OSM search if Google geocoder fails
-        forwardGeocodeOsm(addressText);
+        // Fallback without country restriction if specific search failed
+        geocoder.geocode({ address: addressText.trim() }, (fallbackResults, fallbackStatus) => {
+          if (fallbackStatus === 'OK' && fallbackResults?.[0]) {
+            const loc = fallbackResults[0].geometry.location;
+            const lat = loc.lat();
+            const lng = loc.lng();
+            const formatted = fallbackResults[0].formatted_address;
+            setCoords({ lat, lng });
+            setSelectedAddress(formatted);
+            if (googleMapObj.current && markerObj.current) {
+              const newPos = { lat, lng };
+              googleMapObj.current.setCenter(newPos);
+              googleMapObj.current.setZoom(15);
+              markerObj.current.setPosition(newPos);
+            }
+          } else {
+            forwardGeocodeOsm(addressText);
+          }
+        });
       }
     });
   };
@@ -233,6 +295,16 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
       reverseGeocode(newLat, newLng);
     });
 
+    googleMapObj.current.addListener('click', (event) => {
+      const clickLat = event.latLng.lat();
+      const clickLng = event.latLng.lng();
+      setCoords({ lat: clickLat, lng: clickLng });
+      if (markerObj.current) {
+        markerObj.current.setPosition({ lat: clickLat, lng: clickLng });
+      }
+      reverseGeocode(clickLat, clickLng);
+    });
+
     if (initialAddress && initialAddress.trim()) {
       forwardGeocode(initialAddress);
     }
@@ -243,16 +315,20 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
       reverseGeocodeOsm(lat, lng);
       return;
     }
-    if (!isGoogleMapsLoaded()) return;
+    if (!isGoogleMapsLoaded() || !window.google?.maps?.Geocoder) {
+      reverseGeocodeOsm(lat, lng);
+      return;
+    }
     const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-      if (status === 'OK' && results[0]) {
+    geocoder.geocode({ location: { lat, lng }, language: 'en' }, (results, status) => {
+      if (status === 'OK' && results?.[0]) {
         const addr = results[0].formatted_address;
+        if (/[\u0900-\u097F]/.test(addr)) {
+          reverseGeocodeOsm(lat, lng);
+          return;
+        }
         setSelectedAddress(addr);
         setSearchQuery(addr);
-        if (onSelectLocation) {
-          onSelectLocation({ address: addr, lat, lng });
-        }
       } else {
         reverseGeocodeOsm(lat, lng);
       }
@@ -309,6 +385,17 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
     if (onClose) onClose();
   };
 
+  const handleSearchTextChange = (text) => {
+    setSearchQuery(text);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    if (!text || text.trim().length < 2) return;
+    searchTimeoutRef.current = setTimeout(() => {
+      forwardGeocode(text);
+    }, 450);
+  };
+
   return (
     <View style={[styles.container, containerStyle]}>
       {/* Search Header */}
@@ -318,13 +405,26 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
-            onChangeText={(text) => {
-              setSearchQuery(text);
-              forwardGeocode(text);
+            onChangeText={handleSearchTextChange}
+            onSubmitEditing={() => {
+              if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+              forwardGeocode(searchQuery);
             }}
-            placeholder="Search address / area..."
+            placeholder="Search address / area (e.g. Gurugram)..."
             placeholderTextColor="#94a3b8"
+            returnKeyType="search"
           />
+          {Boolean(searchQuery) && (
+            <TouchableOpacity
+              onPress={() => {
+                setSearchQuery('');
+                if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+              }}
+              style={styles.clearSearchBtn}
+            >
+              <Text style={styles.clearSearchBtnText}>✕</Text>
+            </TouchableOpacity>
+          )}
         </View>
         <TouchableOpacity style={styles.gpsBtn} onPress={handleDetectCurrentLocation} disabled={detecting} activeOpacity={0.85}>
           {detecting ? (
@@ -420,6 +520,16 @@ const styles = StyleSheet.create({
     width: '100%',
     boxSizing: 'border-box',
     padding: 0,
+  },
+  clearSearchBtn: {
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    cursor: 'pointer',
+  },
+  clearSearchBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94a3b8',
   },
   gpsBtn: {
     flexDirection: 'row',

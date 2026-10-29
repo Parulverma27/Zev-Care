@@ -117,27 +117,29 @@ function Luxury3DShieldIcon({ size = 26 }) {
   );
 }
 
-function Luxury3DWrenchIcon({ size = 19 }) {
+function Luxury3DWrenchIcon({ size = 19, variant = 'blue' }) {
+  const isBlue = variant === 'blue';
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <defs>
-        <linearGradient id="wrenchLuxGrad_v3" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fb923c" />
-          <stop offset="50%" stopColor="#f97316" />
-          <stop offset="100%" stopColor="#ea580c" />
+        <linearGradient id={isBlue ? 'wrenchLuxGrad_blue' : 'wrenchLuxGrad_v3'} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={isBlue ? '#60a5fa' : '#fb923c'} />
+          <stop offset="50%" stopColor={isBlue ? '#3b82f6' : '#f97316'} />
+          <stop offset="100%" stopColor={isBlue ? '#1d4ed8' : '#ea580c'} />
         </linearGradient>
       </defs>
       <path
         d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
-        stroke="url(#wrenchLuxGrad_v3)"
+        stroke={`url(#${isBlue ? 'wrenchLuxGrad_blue' : 'wrenchLuxGrad_v3'})`}
         strokeWidth="2.1"
         strokeLinecap="round"
         strokeLinejoin="round"
-        fill="rgba(249, 115, 22, 0.15)"
+        fill={isBlue ? 'rgba(37, 99, 235, 0.15)' : 'rgba(249, 115, 22, 0.15)'}
       />
     </svg>
   );
 }
+
 
 function Luxury3DMechanicIcon({ size = 19, variant = 'teal' }) {
   const isTeal = variant === 'teal';
@@ -247,7 +249,7 @@ const AMC_HOME_ACTIONS = [
     key: 'complaints',
     badge: 'PRIORITY SUPPORT',
     badgeIcon: (
-      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#c2410c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
+      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
       </svg>
@@ -257,35 +259,35 @@ const AMC_HOME_ACTIONS = [
     subtitle: 'Raise any appliance or home issue with instant technician dispatch.',
     actionLabel: 'Raise Issue',
     route: '/user/complains',
-    theme: 'frosted-amber',
-    glowOrb1: 'radial-gradient(circle, rgba(249, 115, 22, 0.55) 0%, rgba(251, 146, 60, 0.28) 55%, transparent 75%)',
-    glowOrb2: 'radial-gradient(circle, rgba(253, 186, 116, 0.65) 0%, rgba(234, 88, 12, 0.22) 55%, transparent 75%)',
-    cardBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 247, 237, 0.52) 50%, rgba(254, 215, 170, 0.38) 100%)',
+    theme: 'frosted-sapphire',
+    glowOrb1: 'radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, rgba(96, 165, 250, 0.3) 55%, transparent 75%)',
+    glowOrb2: 'radial-gradient(circle, rgba(147, 197, 253, 0.65) 0%, rgba(59, 130, 246, 0.25) 55%, transparent 75%)',
+    cardBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(240, 246, 255, 0.52) 50%, rgba(224, 242, 254, 0.38) 100%)',
     borderColor: 'rgba(255, 255, 255, 0.95)',
-    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 1px 0 rgba(234, 88, 12, 0.08), 0 12px 30px -4px rgba(234, 88, 12, 0.16), 0 2px 6px rgba(15, 23, 42, 0.03)',
+    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 1px 0 rgba(37, 99, 235, 0.08), 0 12px 30px -4px rgba(37, 99, 235, 0.16), 0 2px 6px rgba(15, 23, 42, 0.03)',
     topSheen: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.95) 30%, rgba(255, 255, 255, 0.95) 70%, transparent 100%)',
-    taglineColor: '#ea580c',
+    taglineColor: '#2563eb',
     iconBg: 'rgba(255, 255, 255, 0.94)',
     iconBorder: '1.5px solid #ffffff',
     titleColor: '#0f172a',
     subColor: '#475569',
     badgeBg: 'rgba(255, 255, 255, 0.9)',
-    badgeBorder: 'rgba(254, 215, 170, 0.9)',
-    badgeColor: '#c2410c',
+    badgeBorder: 'rgba(191, 219, 254, 0.9)',
+    badgeColor: '#1d4ed8',
     perkBg: 'rgba(255, 255, 255, 0.75)',
     perkBorder: 'rgba(255, 255, 255, 0.95)',
-    perkColor: '#9a3412',
+    perkColor: '#1e40af',
     pillBtnBg: '#ffffff',
-    pillBtnBorder: 'rgba(254, 215, 170, 0.95)',
-    pillBtnColor: '#c2410c',
-    pillArrowBg: '#fff7ed',
-    pillArrowColor: '#c2410c',
-    icon: <Luxury3DWrenchIcon size={20} />,
+    pillBtnBorder: 'rgba(191, 219, 254, 0.95)',
+    pillBtnColor: '#1d4ed8',
+    pillArrowBg: '#eff6ff',
+    pillArrowColor: '#1d4ed8',
+    icon: <Luxury3DWrenchIcon size={20} variant="blue" />,
     perks: [
       {
         label: 'Instant Ticket',
         icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>
         ),
@@ -293,7 +295,7 @@ const AMC_HOME_ACTIONS = [
       {
         label: 'Direct Tech Dispatch',
         icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             <path d="m9 12 2 2 4-4" />
           </svg>
@@ -302,7 +304,7 @@ const AMC_HOME_ACTIONS = [
       {
         label: 'Live Tracking',
         icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
@@ -347,7 +349,7 @@ const AMC_HOME_ACTIONS = [
     pillBtnColor: '#047857',
     pillArrowBg: '#ecfdf5',
     pillArrowColor: '#047857',
-    icon: <Luxury3DMechanicIcon size={20} variant="teal" />,
+    icon: <Luxury3DMechanicIcon size={22} variant="teal" />,
     perks: [
       {
         label: 'Zero Inspection Fee',
@@ -633,10 +635,21 @@ export default function HomeScreen({ onNavigate }) {
   };
 
   const displayName = React.useMemo(() => {
-    if (!activeUser || activeUser.isGuest || isAnonymous) return 'Guest';
-    const name = (activeUser.name || '').trim();
-    if (name) return name.split(' ')[0];
-    return 'Member';
+    if (!activeUser || isAnonymous) return 'Guest';
+    let name = (activeUser.name || '').trim();
+    if (!name || name.toLowerCase() === 'guest user' || name.toLowerCase() === 'guest') {
+      try {
+        const draft = sessionStorage.getItem('zevota_reg_draft');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          if (parsed?.name && parsed.name.trim()) name = parsed.name.trim();
+        }
+      } catch (e) {}
+    }
+    if (name && name.toLowerCase() !== 'guest user' && name.toLowerCase() !== 'guest') {
+      return name.split(' ')[0];
+    }
+    return activeUser.isGuest ? 'Guest' : 'Member';
   }, [activeUser, isAnonymous]);
 
   const handleNav = (path, paramObj) => {
@@ -1138,8 +1151,8 @@ export default function HomeScreen({ onNavigate }) {
 
         <style>{`
           .amc-cards-container {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             width: 100%;
             box-sizing: border-box;
@@ -1151,6 +1164,9 @@ export default function HomeScreen({ onNavigate }) {
             min-width: 0;
             box-sizing: border-box;
           }
+          .amc-card-col-full {
+            grid-column: 1 / -1;
+          }
           .amc-card-press {
             transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s ease;
           }
@@ -1159,155 +1175,200 @@ export default function HomeScreen({ onNavigate }) {
           }
         `}</style>
         <div className="amc-cards-container">
-          {AMC_HOME_ACTIONS.map((item) => (
-            <div key={item.key} className="amc-card-col" style={{ position: 'relative' }}>
-              {/* Luminous Ambient Glow Orbs behind the frosted glass */}
-              {item.glowOrb1 && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '-6px',
-                    left: '14px',
-                    width: '160px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: item.glowOrb1,
-                    filter: 'blur(28px)',
-                    opacity: 0.82,
-                    pointerEvents: 'none',
-                    zIndex: 0,
-                  }}
-                />
-              )}
-              {item.glowOrb2 && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '-6px',
-                    right: '16px',
-                    width: '150px',
-                    height: '75px',
-                    borderRadius: '50%',
-                    background: item.glowOrb2,
-                    filter: 'blur(26px)',
-                    opacity: 0.78,
-                    pointerEvents: 'none',
-                    zIndex: 0,
-                  }}
-                />
-              )}
-              <TouchableOpacity
-                className="amc-card-press"
-                style={[
-                  styles.amcLuxuryCard,
-                  styles.amcLuxuryCardFeatured,
-                  {
-                    backgroundImage: item.cardBg,
-                    borderColor: item.borderColor,
-                    boxShadow: item.boxShadow,
-                    position: 'relative',
-                    zIndex: 1,
-                  },
-                ]}
-                onPress={() => handleAmcAction(item)}
-                activeOpacity={0.88}
+          {AMC_HOME_ACTIONS.map((item, idx) => {
+            const isFullWidth = idx === 2;
+            return (
+              <div
+                key={item.key}
+                className={`amc-card-col ${isFullWidth ? 'amc-card-col-full' : ''}`}
+                style={{ position: 'relative' }}
               >
-                {/* Top ambient glass highlight line */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '2px',
-                    background: item.topSheen || 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(147, 197, 253, 0.6) 50%, rgba(255,255,255,0) 100%)',
-                    pointerEvents: 'none',
-                  }}
-                />
+                {/* Luminous Ambient Glow Orbs behind the frosted glass */}
+                {item.glowOrb1 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-6px',
+                      left: '14px',
+                      width: isFullWidth ? '160px' : '100px',
+                      height: isFullWidth ? '80px' : '60px',
+                      borderRadius: '50%',
+                      background: item.glowOrb1,
+                      filter: 'blur(28px)',
+                      opacity: 0.82,
+                      pointerEvents: 'none',
+                      zIndex: 0,
+                    }}
+                  />
+                )}
+                {item.glowOrb2 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '-6px',
+                      right: '16px',
+                      width: isFullWidth ? '150px' : '90px',
+                      height: isFullWidth ? '75px' : '55px',
+                      borderRadius: '50%',
+                      background: item.glowOrb2,
+                      filter: 'blur(26px)',
+                      opacity: 0.78,
+                      pointerEvents: 'none',
+                      zIndex: 0,
+                    }}
+                  />
+                )}
+                <TouchableOpacity
+                  className="amc-card-press"
+                  style={[
+                    styles.amcLuxuryCard,
+                    styles.amcLuxuryCardFeatured,
+                    {
+                      backgroundImage: item.cardBg,
+                      borderColor: item.borderColor,
+                      boxShadow: item.boxShadow,
+                      position: 'relative',
+                      zIndex: 1,
+                      height: '100%',
+                      minHeight: isFullWidth ? 88 : 'auto',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      paddingHorizontal: isFullWidth ? 16 : 12,
+                      paddingVertical: isFullWidth ? 20 : 12,
+                    },
+                  ]}
+                  onPress={() => handleAmcAction(item)}
+                  activeOpacity={0.88}
+                >
+                  {/* Top ambient glass highlight line */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: '2px',
+                      background: item.topSheen || 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(147, 197, 253, 0.6) 50%, rgba(255,255,255,0) 100%)',
+                      pointerEvents: 'none',
+                    }}
+                  />
 
-                <View style={styles.amcPlansBannerContent}>
-                  {/* Top Row: Icon on left, Badge on right */}
-                  <View style={styles.amcPlansTopRow}>
-                    <View
-                      style={[
-                        styles.amcLuxuryIconCircle,
-                        {
-                          background: item.iconBg,
-                          border: item.iconBorder,
-                          width: 36,
-                          height: 36,
-                          borderRadius: 18,
-                        },
-                      ]}
-                    >
-                      {item.icon}
-                    </View>
-                    {item.badge ? (
+                  {isFullWidth ? (
+                    /* Row 2: Full-width clean horizontal card for My Mechanic */
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 14 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+                        <View
+                          style={[
+                            styles.amcLuxuryIconCircle,
+                            {
+                              background: item.iconBg,
+                              border: item.iconBorder,
+                              width: 44,
+                              height: 44,
+                              borderRadius: 22,
+                            },
+                          ]}
+                        >
+                          {item.icon}
+                        </View>
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 16, letterSpacing: -0.3, marginBottom: 2 }]}>
+                            {item.title}
+                          </Text>
+                          <Text style={{ color: item.taglineColor || '#059669', fontSize: 12, fontWeight: '600', lineHeight: 16 }}>
+                            {item.tagline}
+                          </Text>
+                        </View>
+                      </View>
+
                       <View
                         style={[
-                          styles.amcBadgePill,
-                          {
-                            backgroundColor: item.badgeBg,
-                            borderColor: item.badgeBorder,
-                            borderWidth: 1,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            paddingHorizontal: 8,
-                            paddingVertical: 3,
-                          },
+                          styles.amcPlansActionPill,
+                          item.pillBtnBorder ? { borderWidth: 1.2, borderColor: item.pillBtnBorder } : {},
+                          { height: 34, paddingLeft: 14, paddingRight: 6, borderRadius: 999, flexShrink: 0 },
                         ]}
                       >
-                        {item.badgeIcon}
-                        <Text style={[styles.amcBadgePillText, { color: item.badgeColor, fontSize: 9.5 }]}>{item.badge}</Text>
-                      </View>
-                    ) : null}
-                  </View>
-
-                  {/* Title & Tagline in compact row */}
-                  <View style={styles.amcPlansTitleBlock}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
-                      <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 15.5, letterSpacing: -0.3 }]}>
-                        {item.title}
-                      </Text>
-                      <Text style={{ color: item.taglineColor || '#2563eb', fontSize: 10.5, fontWeight: '700', letterSpacing: 0.1 }}>
-                        {item.tagline}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Middle: Description */}
-                  <Text style={[styles.amcLuxurySub, { color: item.subColor, marginTop: 2, marginBottom: 6, fontSize: 11, lineHeight: 14.5 }]}>
-                    {item.subtitle}
-                  </Text>
-
-                  {/* Perk chips strip (REAL ICONS ONLY, NO EMOJIS) */}
-                  <View style={styles.amcPerksStrip}>
-                    {item.perks && item.perks.map((perk, pIdx) => (
-                      <View key={pIdx} style={[styles.amcPerkChip, item.perkBorder ? { borderColor: item.perkBorder } : {}, item.perkBg ? { backgroundColor: item.perkBg } : {}]}>
-                        {perk.icon}
-                        <Text style={[styles.amcPerkChipText, item.perkColor ? { color: item.perkColor } : {}]}>{perk.label}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  {/* Bottom: Right-aligned Action Pill Button */}
-                  <View style={styles.amcPlansFooterRow}>
-                    <View style={[styles.amcPlansActionPill, item.pillBtnBorder ? { borderWidth: 1.2, borderColor: item.pillBtnBorder } : {}]}>
-                      <Text style={[styles.amcPlansActionPillText, { color: item.pillBtnColor }]}>
-                        {item.actionLabel}
-                      </Text>
-                      <View style={[styles.amcPlansActionPillArrow, { backgroundColor: item.pillArrowBg }]}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={item.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="5" y1="12" x2="19" y2="12" />
-                          <polyline points="12 5 19 12 12 19" />
-                        </svg>
+                        <Text style={[styles.amcPlansActionPillText, { color: item.pillBtnColor, fontSize: 12 }]}>
+                          {item.actionLabel}
+                        </Text>
+                        <View
+                          style={[
+                            styles.amcPlansActionPillArrow,
+                            { backgroundColor: item.pillArrowBg, width: 22, height: 22, borderRadius: 11, marginLeft: 6 },
+                          ]}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={item.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                          </svg>
+                        </View>
                       </View>
                     </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </div>
-          ))}
+                  ) : (
+                    /* Row 1: Side-by-side clean vertical cards */
+                    <View style={[styles.amcPlansBannerContent, { flex: 1, justifyContent: 'space-between' }]}>
+                      <View style={{ flexDirection: 'column' }}>
+                        {/* Top: Icon */}
+                        <View style={{ marginBottom: 8 }}>
+                          <View
+                            style={[
+                              styles.amcLuxuryIconCircle,
+                              {
+                                background: item.iconBg,
+                                border: item.iconBorder,
+                                width: 34,
+                                height: 34,
+                                borderRadius: 17,
+                              },
+                            ]}
+                          >
+                            {item.icon}
+                          </View>
+                        </View>
+
+                        {/* Title & Tagline */}
+                        <View style={{ flexDirection: 'column', gap: 2 }}>
+                          <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 14, letterSpacing: -0.3 }]}>
+                            {item.title}
+                          </Text>
+                          <Text style={{ color: item.taglineColor || '#2563eb', fontSize: 10.5, fontWeight: '600', lineHeight: 14 }}>
+                            {item.tagline}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Bottom: Action Pill Button */}
+                      <View style={[styles.amcPlansFooterRow, { marginTop: 12 }]}>
+                        <View
+                          style={[
+                            styles.amcPlansActionPill,
+                            item.pillBtnBorder ? { borderWidth: 1.2, borderColor: item.pillBtnBorder } : {},
+                            { height: 26, paddingLeft: 9, paddingRight: 3 },
+                          ]}
+                        >
+                          <Text style={[styles.amcPlansActionPillText, { color: item.pillBtnColor, fontSize: 10.5 }]}>
+                            {item.actionLabel}
+                          </Text>
+                          <View
+                            style={[
+                              styles.amcPlansActionPillArrow,
+                              { backgroundColor: item.pillArrowBg, width: 17, height: 17, borderRadius: 8.5, marginLeft: 4 },
+                            ]}
+                          >
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={item.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="5" y1="12" x2="19" y2="12" />
+                              <polyline points="12 5 19 12 12 19" />
+                            </svg>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </div>
+            );
+          })}
         </div>
       </View>
 

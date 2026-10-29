@@ -8,19 +8,24 @@ import { upsertDefaultAddress } from '../../utils/savedAddresses';
 
 const PROPERTY_TYPES = [
   {
-    id: 'HOME',
-    label: 'HOME',
+    id: 'Independent house/floor',
+    label: 'Independent house/floor',
     image: require('../../../assets/property_home.png'),
   },
   {
-    id: 'VILLA',
-    label: 'VILLA',
+    id: 'Villa',
+    label: 'Villa',
     image: require('../../../assets/property_villa.png'),
   },
   {
     id: 'PG',
     label: 'PG',
     image: require('../../../assets/property_pg.png'),
+  },
+  {
+    id: 'Rented home/floor',
+    label: 'Rented home/floor',
+    image: require('../../../assets/property_home.png'),
   },
 ];
 
@@ -30,7 +35,7 @@ export default function AddPropertyScreen() {
   const { width } = useWindowDimensions();
   const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
 
-  const [propertyType, setPropertyType] = useState('HOME');
+  const [propertyType, setPropertyType] = useState('Independent house/floor');
   const [propertyName, setPropertyName] = useState('');
   const [houseNo, setHouseNo] = useState('');
   const [floor, setFloor] = useState('');
@@ -78,10 +83,14 @@ export default function AddPropertyScreen() {
 
         if (window.google?.maps?.Geocoder) {
           const geocoder = new window.google.maps.Geocoder();
-          geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+          geocoder.geocode({ location: { lat, lng }, language: 'en' }, (results, status) => {
             if (status === 'OK' && results?.[0]) {
-              setDetectingLoc(false);
               const formatted = results[0].formatted_address;
+              if (/[\u0900-\u097F]/.test(formatted)) {
+                fallbackOsm(lat, lng);
+                return;
+              }
+              setDetectingLoc(false);
               setAddress(formatted);
               setLocFeedback('✓ Current GPS location detected & filled!');
             } else {
@@ -137,7 +146,7 @@ export default function AddPropertyScreen() {
       address: fullAddress,
       property,
       saved_addresses: upsertDefaultAddress(activeUser?.saved_addresses || [], fullAddress, {
-        tag: propertyName.trim() || 'Home',
+        tag: propertyType || 'Independent house/floor',
       }),
     });
 
@@ -239,6 +248,9 @@ export default function AddPropertyScreen() {
                 <Text style={styles.errorText}>⚠ {error}</Text>
               </View>
             )}
+
+            {/* Property Type Dropdown */}
+            <PropertyTypeDropdown value={propertyType} onChange={setPropertyType} />
 
             <View style={styles.formRow}>
               <View style={styles.halfField}>
@@ -472,9 +484,10 @@ function Field({ label, value, onChangeText, placeholder, multiline, keyboardTyp
 
 function PropertyTypeDropdown({ value, onChange }) {
   const options = [
-    { id: 'HOME', label: 'Home' },
-    { id: 'VILLA', label: 'Villa' },
-    { id: 'PG', label: 'PG / Co-Living' },
+    { id: 'Independent house/floor', label: 'Independent house/floor' },
+    { id: 'Villa', label: 'Villa' },
+    { id: 'PG', label: 'PG' },
+    { id: 'Rented home/floor', label: 'Rented home/floor' },
   ];
 
   return (

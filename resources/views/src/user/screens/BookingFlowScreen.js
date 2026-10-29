@@ -60,6 +60,7 @@ export default function BookingFlowScreen({ onNavigate }) {
   const {
     createBooking,
     activeUser,
+    updateProfile,
     categories,
     subCategories,
     services,
@@ -107,7 +108,15 @@ export default function BookingFlowScreen({ onNavigate }) {
   const [scheduledDateLabel, setScheduledDateLabel] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
   const defaultSavedAddress = (activeUser?.saved_addresses || []).find((a) => a.isDefault) || (activeUser?.saved_addresses || [])[0];
-  const [address, setAddress] = useState(defaultSavedAddress?.address || activeUser?.address || '');
+  const [address, setAddress] = useState(() => {
+    if (defaultSavedAddress?.address) return defaultSavedAddress.address;
+    if (activeUser?.address) return activeUser.address;
+    try {
+      const saved = sessionStorage.getItem('zevota_prelogin_location');
+      if (saved && saved.trim() && !/[\u0900-\u097F]/.test(saved)) return saved.trim();
+    } catch (e) {}
+    return '';
+  });
   const [selectedAddressId, setSelectedAddressId] = useState(defaultSavedAddress?.id || null);
   const [latitude, setLatitude] = useState(defaultSavedAddress?.latitude || null);
   const [longitude, setLongitude] = useState(defaultSavedAddress?.longitude || null);
@@ -1036,8 +1045,25 @@ export default function BookingFlowScreen({ onNavigate }) {
               if (a.latitude) setLatitude(a.latitude);
               if (a.longitude) setLongitude(a.longitude);
             }}
+            onChangeAddress={(newAddr, coords = {}) => {
+              setSelectedAddressId(null);
+              setAddress(newAddr);
+              if (coords.latitude != null) setLatitude(coords.latitude);
+              if (coords.longitude != null) setLongitude(coords.longitude);
+            }}
+            onSaveAddress={(savedAddr, coords = {}) => {
+              if (updateProfile && activeUser) {
+                updateProfile({
+                  ...activeUser,
+                  address: savedAddr,
+                  ...(coords.latitude != null ? { latitude: coords.latitude } : {}),
+                  ...(coords.longitude != null ? { longitude: coords.longitude } : {}),
+                });
+              }
+            }}
             locationValidation={locationValidation}
             isConsultation={isConsultation}
+            isGuest={isGuest}
             onBack={handleBack}
             onContinue={() => setStep('REVIEW')}
             onLiveSupport={goLiveSupport}
@@ -1052,74 +1078,166 @@ export default function BookingFlowScreen({ onNavigate }) {
 
     // ── REVIEW ──
     if (step === 'REVIEW') {
+      const displayServiceName =
+        selectedAppliance?.name && selectedAppliance?.name !== service
+          ? `${selectedAppliance.name} • ${service}`
+          : (service || selectedAppliance?.name || category || 'Home Service');
+
       return (
         <ScrollView style={styles.container} contentContainerStyle={[styles.pad, isDesktopWeb && styles.padDesktop]}>
-          <View style={styles.rowHeader}>
-            <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-              <Text style={styles.backChevron}>‹</Text>
+          {/* Header Row */}
+          <View style={styles.reviewTopRow}>
+            <TouchableOpacity style={styles.reviewBackBtn} onPress={handleBack} activeOpacity={0.75} accessibilityLabel="Back">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
               <BookingProgress activeIndex={4} />
             </View>
           </View>
-          <Text style={styles.h1}>{isConsultation ? 'Review Free Consultation' : 'Review booking'}</Text>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Service</Text>
-            <Text style={styles.summaryValue}>{service || category}</Text>
-            {!!selectedAppliance && (
-              <>
-                <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Appliance</Text>
-                <Text style={styles.summaryValue}>{selectedAppliance.name}</Text>
-                {!!applianceSummaryLine && <Text style={styles.summaryMeta}>{applianceSummaryLine}</Text>}
-                <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Coverage / Visit Fee</Text>
-                {isConsultation ? (
-                  <Text style={[styles.summaryValue, { color: '#16a34a' }]}>✓ Complimentary On-Site Diagnosis (₹0 Visit Fee)</Text>
-                ) : (
-                  <Text style={[styles.summaryValue, { color: '#15803d' }]}>✓ Covered under AMC (₹0 Labor & Inspection)</Text>
-                )}
-              </>
-            )}
-            {!!issueLabel && (
-              <>
-                <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Issue / Symptoms</Text>
-                <Text style={styles.summaryValue}>{issueLabel}</Text>
-              </>
-            )}
-            {!!issueDescription && <Text style={styles.summaryMeta}>{issueDescription}</Text>}
-            <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Scheduled Date</Text>
-            <Text style={styles.summaryValue}>{scheduledDateLabel || scheduledDate}</Text>
-            <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Time Slot</Text>
-            <Text style={styles.summaryValue}>{scheduledTime}</Text>
-            <Text style={[styles.summaryLabel, { marginTop: 10 }]}>Doorstep Location</Text>
-            <Text style={styles.summaryMeta}>{address}</Text>
+
+          {/* Title Block */}
+          <View style={styles.reviewTitleBlock}>
+            <Text style={styles.reviewTitle}>
+              {isConsultation ? 'Review Free Consultation' : 'Review Booking'}
+            </Text>
+            <Text style={styles.reviewSub}>
+              {isConsultation
+                ? 'Step 4 of 4 • Final appointment & doorstep confirmation'
+                : 'Step 4 of 4 • Verify details & confirm'}
+            </Text>
           </View>
+
+          {/* Main Booking Summary Card */}
+          <View style={styles.summaryCard}>
+            {/* Service & Coverage Row */}
+            <View style={styles.reviewHeaderRow}>
+              <View style={styles.reviewIconCircle}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                </svg>
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.reviewCategoryLabel}>
+                  {category ? category.toUpperCase() : 'SERVICE APPOINTMENT'}
+                </Text>
+                <Text style={styles.reviewServiceName} numberOfLines={1}>
+                  {displayServiceName}
+                </Text>
+                {!!applianceSummaryLine && (
+                  <Text style={styles.reviewApplianceSub} numberOfLines={1}>{applianceSummaryLine}</Text>
+                )}
+              </View>
+              <View style={isConsultation ? styles.reviewFreeBadge : styles.reviewAmcBadge}>
+                <Text style={isConsultation ? styles.reviewFreeBadgeText : styles.reviewAmcBadgeText}>
+                  {isConsultation ? '✓ ₹0 Free Visit' : '✓ Covered'}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.reviewDivider} />
+
+            {/* Issue / Symptoms */}
+            {!!issueLabel && (
+              <View style={styles.reviewDetailRow}>
+                <View style={styles.reviewDetailIconWrap}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.reviewFieldLabel}>ISSUE REPORTED</Text>
+                  <Text style={styles.reviewFieldValue}>{issueLabel}</Text>
+                  {!!issueDescription && (
+                    <Text style={styles.reviewFieldMeta}>{issueDescription}</Text>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Scheduled Date & Time */}
+            <View style={styles.reviewDetailRow}>
+              <View style={styles.reviewDetailIconWrap}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.reviewFieldLabel}>SCHEDULED APPOINTMENT</Text>
+                <Text style={styles.reviewFieldValue}>
+                  {scheduledDateLabel || scheduledDate} • {scheduledTime}
+                </Text>
+              </View>
+            </View>
+
+            {/* Doorstep Location */}
+            <View style={styles.reviewDetailRow}>
+              <View style={styles.reviewDetailIconWrap}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.reviewFieldLabel}>DOORSTEP LOCATION</Text>
+                <Text style={styles.reviewFieldValue} numberOfLines={2}>
+                  {address || 'Location selected'}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Pricing & Guarantee Card */}
           {isConsultation ? (
             <View style={styles.consultationFeeCard}>
               <View style={styles.consultationFeeHeader}>
-                <Text style={styles.consultationFeeTitle}>Zevota Care ₹0 Free Visit Guarantee</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  <Text style={styles.consultationFeeTitle}>Zevota Care ₹0 Free Visit Guarantee</Text>
+                </View>
                 <View style={styles.freeChip}>
                   <Text style={styles.freeChipText}>₹0 FREE</Text>
                 </View>
               </View>
+
               <View style={styles.feeBreakdownRow}>
                 <Text style={styles.feeBreakdownLabel}>Doorstep Inspection & Diagnostic Visit</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                   <Text style={styles.feeStrike}>₹199</Text>
                   <Text style={styles.feeFree}>₹0</Text>
                 </View>
               </View>
+
               <View style={styles.feeBreakdownRow}>
                 <Text style={styles.feeBreakdownLabel}>Parts & Labor Repair Quote</Text>
                 <Text style={styles.feeQuoteText}>Provided on-site</Text>
               </View>
+
               <View style={styles.feeDivider} />
+
               <View style={styles.feeBreakdownRow}>
                 <Text style={styles.feeTotalLabel}>Amount Payable Today</Text>
                 <Text style={styles.feeTotalValue}>₹0</Text>
               </View>
-              <Text style={styles.consultationSummaryNote}>
-                Zero payment required now. The technician will inspect the issue at your doorstep and provide a clear quote. If you choose not to proceed with the repair, you pay absolutely ₹0.
-              </Text>
+
+              <View style={styles.reviewNoteBox}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <Text style={styles.consultationSummaryNote}>
+                  Zero upfront payment. Technician will inspect at your doorstep and provide a clear repair quote. Pay ₹0 if you choose not to proceed.
+                </Text>
+              </View>
             </View>
           ) : (
             <View style={styles.billNote}>
@@ -1128,24 +1246,28 @@ export default function BookingFlowScreen({ onNavigate }) {
               </Text>
             </View>
           )}
+
           {!!formError && <Text style={styles.error}>{formError}</Text>}
-          <View style={{ marginVertical: 14 }}>
+
+          <View style={{ marginVertical: 6 }}>
             <LiveSupportOptionCard onPress={goLiveSupport} />
           </View>
+
+          {/* Confirm Button */}
           <TouchableOpacity
             style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
             disabled={submitting}
             onPress={handleConfirm}
+            activeOpacity={0.88}
           >
             <Text style={styles.primaryBtnText}>
               {submitting
-                ? isConsultation
-                  ? 'Confirming Free Consultation…'
-                  : 'Confirming booking…'
-                : isConsultation
-                  ? 'Confirm Free Consultation (₹0)'
-                  : 'Confirm Booking'}
+                ? (isConsultation ? 'Confirming Free Consultation…' : 'Confirming Booking…')
+                : (isConsultation ? 'Confirm Free Consultation (₹0)' : 'Confirm Booking')}
             </Text>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </TouchableOpacity>
         </ScrollView>
       );
@@ -1846,36 +1968,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderWidth: 1.5,
     borderColor: '#bfdbfe',
-    borderRadius: 16,
-    padding: 16,
-    gap: 10,
-    boxShadow: '0 4px 14px rgba(37,99,235,0.06)',
+    borderRadius: 14,
+    padding: 13,
+    gap: 8,
+    boxShadow: '0 2px 10px rgba(37,99,235,0.05)',
   },
   consultationFeeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 8,
+    paddingBottom: 2,
   },
   consultationFeeTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '800',
     color: '#0f172a',
-    flex: 1,
+    letterSpacing: -0.1,
   },
   freeChip: {
     backgroundColor: '#dcfce7',
     borderWidth: 1,
     borderColor: '#86efac',
     borderRadius: 99,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 7,
+    paddingVertical: 1.5,
   },
   freeChipText: {
     color: '#15803d',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   feeBreakdownRow: {
     flexDirection: 'row',
@@ -1883,44 +2006,189 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   feeBreakdownLabel: {
-    fontSize: 13,
+    fontSize: 11.5,
     color: '#475569',
     fontWeight: '500',
   },
   feeStrike: {
-    fontSize: 13,
+    fontSize: 11.5,
     color: '#94a3b8',
     textDecorationLine: 'line-through',
   },
   feeFree: {
-    fontSize: 14,
+    fontSize: 12.5,
     color: '#16a34a',
     fontWeight: '800',
   },
   feeQuoteText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#2563eb',
     fontWeight: '700',
   },
   feeDivider: {
     height: 1,
-    backgroundColor: '#e2e8f0',
-    marginVertical: 2,
+    backgroundColor: '#f1f5f9',
+    marginVertical: 1,
   },
   feeTotalLabel: {
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: '800',
     color: '#0f172a',
   },
   feeTotalValue: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '900',
     color: '#16a34a',
   },
-  consultationSummaryNote: {
-    fontSize: 11.5,
-    color: '#64748b',
-    lineHeight: 16,
+  reviewNoteBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    backgroundColor: '#f8fafc',
+    borderRadius: 10,
+    padding: 8,
     marginTop: 2,
+  },
+  consultationSummaryNote: {
+    fontSize: 10,
+    color: '#64748b',
+    lineHeight: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  reviewTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  reviewBackBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)',
+    cursor: 'pointer',
+  },
+  reviewTitleBlock: {
+    gap: 2,
+    marginVertical: 2,
+  },
+  reviewTitle: {
+    fontSize: 16.5,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.3,
+  },
+  reviewSub: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  reviewHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  reviewIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  reviewCategoryLabel: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#2563eb',
+    letterSpacing: 0.5,
+  },
+  reviewServiceName: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.2,
+  },
+  reviewApplianceSub: {
+    fontSize: 10.5,
+    color: '#64748b',
+    marginTop: 1,
+  },
+  reviewFreeBadge: {
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  reviewFreeBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#15803d',
+  },
+  reviewAmcBadge: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  reviewAmcBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#1d4ed8',
+  },
+  reviewDivider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+    marginVertical: 2,
+  },
+  reviewDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 10,
+  },
+  reviewDetailIconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginTop: 1,
+  },
+  reviewFieldLabel: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#64748b',
+    letterSpacing: 0.5,
+  },
+  reviewFieldValue: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginTop: 1,
+    lineHeight: 16,
+  },
+  reviewFieldMeta: {
+    fontSize: 10.5,
+    color: '#64748b',
+    marginTop: 1,
+    lineHeight: 15,
   },
 });

@@ -1,7 +1,7 @@
 /** Inventory appliance wizard constants — easy to change without touching UI. */
 
 export const MIN_QUANTITY = 1;
-export const MAX_QUANTITY = 5;
+export const MAX_QUANTITY = Infinity;
 
 /** Fee when registering a new appliance during booking (post-registration add). Separate from ₹499 unit surcharge. */
 export const APPLIANCE_REGISTRATION_FEE = 500;

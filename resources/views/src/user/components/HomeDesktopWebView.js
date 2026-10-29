@@ -254,23 +254,24 @@ function Luxury3DShieldIcon({ size = 26 }) {
   );
 }
 
-function Luxury3DWrenchIcon({ size = 20 }) {
+function Luxury3DWrenchIcon({ size = 20, variant = 'blue' }) {
+  const isBlue = variant === 'blue';
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <defs>
-        <linearGradient id="wrenchLuxGrad_desktop" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fb923c" />
-          <stop offset="50%" stopColor="#f97316" />
-          <stop offset="100%" stopColor="#ea580c" />
+        <linearGradient id={isBlue ? 'wrenchLuxGrad_desktop_blue' : 'wrenchLuxGrad_desktop'} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={isBlue ? '#60a5fa' : '#fb923c'} />
+          <stop offset="50%" stopColor={isBlue ? '#3b82f6' : '#f97316'} />
+          <stop offset="100%" stopColor={isBlue ? '#1d4ed8' : '#ea580c'} />
         </linearGradient>
       </defs>
       <path
         d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
-        stroke="url(#wrenchLuxGrad_desktop)"
+        stroke={`url(#${isBlue ? 'wrenchLuxGrad_desktop_blue' : 'wrenchLuxGrad_desktop'})`}
         strokeWidth="2.1"
         strokeLinecap="round"
         strokeLinejoin="round"
-        fill="rgba(249, 115, 22, 0.15)"
+        fill={isBlue ? 'rgba(37, 99, 235, 0.15)' : 'rgba(249, 115, 22, 0.15)'}
       />
     </svg>
   );
@@ -426,30 +427,30 @@ const AMC_CARDS = [
     subtitle: 'Raise any appliance or home issue with instant technician dispatch.',
     actionLabel: 'Raise Issue',
     route: '/user/complains',
-    theme: 'frosted-amber',
-    glowOrb1: 'radial-gradient(circle, rgba(249, 115, 22, 0.55) 0%, rgba(251, 146, 60, 0.28) 55%, transparent 75%)',
-    glowOrb2: 'radial-gradient(circle, rgba(253, 186, 116, 0.65) 0%, rgba(234, 88, 12, 0.22) 55%, transparent 75%)',
-    cardBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 247, 237, 0.52) 50%, rgba(254, 215, 170, 0.38) 100%)',
+    theme: 'frosted-sapphire',
+    glowOrb1: 'radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, rgba(96, 165, 250, 0.3) 55%, transparent 75%)',
+    glowOrb2: 'radial-gradient(circle, rgba(147, 197, 253, 0.65) 0%, rgba(59, 130, 246, 0.25) 55%, transparent 75%)',
+    cardBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(240, 246, 255, 0.52) 50%, rgba(224, 242, 254, 0.38) 100%)',
     borderColor: 'rgba(255, 255, 255, 0.95)',
-    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 1px 0 rgba(234, 88, 12, 0.08), 0 12px 30px -4px rgba(234, 88, 12, 0.16), 0 2px 6px rgba(15, 23, 42, 0.03)',
-    accentGradient: 'linear-gradient(90deg, #ea580c, #f97316)',
+    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 1px 0 rgba(37, 99, 235, 0.08), 0 12px 30px -4px rgba(37, 99, 235, 0.16), 0 2px 6px rgba(15, 23, 42, 0.03)',
+    accentGradient: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
     iconBg: 'rgba(255, 255, 255, 0.94)',
     iconBorder: '1.5px solid #ffffff',
     titleColor: '#0f172a',
     subColor: '#475569',
     badgeBg: 'rgba(255, 255, 255, 0.9)',
-    badgeBorder: 'rgba(254, 215, 170, 0.9)',
-    badgeColor: '#c2410c',
+    badgeBorder: 'rgba(191, 219, 254, 0.9)',
+    badgeColor: '#1d4ed8',
     perkBg: 'rgba(255, 255, 255, 0.75)',
     perkBorder: 'rgba(255, 255, 255, 0.95)',
-    perkColor: '#9a3412',
+    perkColor: '#1e40af',
     pillBtnBg: '#ffffff',
-    pillBtnBorder: '1.2px solid rgba(254, 215, 170, 0.95)',
-    pillBtnColor: '#c2410c',
-    pillArrowBg: '#fff7ed',
-    pillArrowColor: '#c2410c',
-    pillShadow: '0 3px 10px rgba(234, 88, 12, 0.12)',
-    icon: <Luxury3DWrenchIcon size={24} />,
+    pillBtnBorder: '1.2px solid rgba(191, 219, 254, 0.95)',
+    pillBtnColor: '#1d4ed8',
+    pillArrowBg: '#eff6ff',
+    pillArrowColor: '#1d4ed8',
+    pillShadow: '0 3px 10px rgba(37, 99, 235, 0.12)',
+    icon: <Luxury3DWrenchIcon size={24} variant="blue" />,
     perks: [
       { id: 'c1', label: 'Instant Ticket Logging', icon: 'clock' },
       { id: 'c2', label: 'Direct Technician Dispatch', icon: 'pin' },

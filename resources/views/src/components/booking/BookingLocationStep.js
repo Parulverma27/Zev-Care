@@ -1,21 +1,48 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import BookingProgress from './BookingProgress';
 import LiveSupportOptionCard from './LiveSupportOptionCard';
+import GoogleMapsLocationPicker from '../GoogleMapsLocationPicker';
 
 export default function BookingLocationStep({
   addresses = [],
   selectedAddressId,
   address,
   onSelectSaved,
+  onChangeAddress,
+  onSaveAddress,
   locationValidation,
   onBack,
   onContinue,
   isConsultation = false,
+  isGuest = false,
   onLiveSupport,
   onManageSavedAddresses,
 }) {
-  const canContinue = Boolean(locationValidation?.isSupported);
+  const [inputAddress, setInputAddress] = useState(address || '');
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [locationFeedback, setLocationFeedback] = useState('');
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [showCustomInput, setShowCustomInput] = useState(addresses.length === 0);
+
+  useEffect(() => {
+    if (address && address !== inputAddress) {
+      setInputAddress(address);
+    }
+  }, [address]);
+
+  useEffect(() => {
+    if (!address && addresses.length === 0) {
+      try {
+        const prelogin = sessionStorage.getItem('zevota_prelogin_location');
+        if (prelogin && prelogin.trim() && !/[\u0900-\u097F]/.test(prelogin)) {
+          const trimmed = prelogin.trim();
+          setInputAddress(trimmed);
+          onChangeAddress?.(trimmed, {});
+        }
+      } catch (e) {}
+    }
+  }, []);
 
   // Automatically ensure default or first saved address is selected
   useEffect(() => {
@@ -30,9 +57,124 @@ export default function BookingLocationStep({
   const activeAddressObj =
     addresses.find((a) => a.id === selectedAddressId) ||
     addresses.find((a) => a.address === address) ||
+    (address && address.trim()
+      ? {
+          id: 'custom-address',
+          tag: isConsultation ? 'Doorstep Inspection' : 'Service Address',
+          address: address.trim(),
+        }
+      : null) ||
+    (inputAddress && inputAddress.trim()
+      ? {
+          id: 'custom-address',
+          tag: isConsultation ? 'Doorstep Inspection' : 'Service Address',
+          address: inputAddress.trim(),
+        }
+      : null) ||
     addresses.find((a) => a.isDefault) ||
     addresses[0] ||
     null;
+
+  const canContinue = Boolean(
+    (activeAddressObj?.address || address || inputAddress)?.trim()?.length >= 4 &&
+    locationValidation?.isSupported !== false
+  );
+
+  const fallbackOsm = (lat, lng) => {
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`, {
+      headers: { 'Accept-Language': 'en' },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setDetectingLocation(false);
+        if (data && data.display_name) {
+          const addr = data.display_name;
+          setInputAddress(addr);
+          onChangeAddress?.(addr, { latitude: lat, longitude: lng });
+          onSaveAddress?.(addr, { latitude: lat, longitude: lng });
+          setLocationFeedback('✓ Current GPS location detected & selected!');
+        } else {
+          setLocationFeedback('Unable to reverse-geocode coordinates. Please enter address manually.');
+        }
+      })
+      .catch(() => {
+        setDetectingLocation(false);
+        setLocationFeedback('Unable to reverse-geocode coordinates. Please enter address manually.');
+      });
+  };
+
+  const handleUseCurrentLocation = () => {
+    setLocationFeedback('');
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocationFeedback('Geolocation is not supported by your browser.');
+      return;
+    }
+    setDetectingLocation(true);
+    setLocationFeedback('Detecting your GPS location...');
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        if (window.google?.maps?.Geocoder) {
+          const geocoder = new window.google.maps.Geocoder();
+          geocoder.geocode({ location: { lat, lng }, language: 'en' }, (results, status) => {
+            if (status === 'OK' && results?.[0]) {
+              const formatted = results[0].formatted_address;
+              if (/[\u0900-\u097F]/.test(formatted)) {
+                fallbackOsm(lat, lng);
+                return;
+              }
+              setDetectingLocation(false);
+              setInputAddress(formatted);
+              onChangeAddress?.(formatted, { latitude: lat, longitude: lng });
+              onSaveAddress?.(formatted, { latitude: lat, longitude: lng });
+              setLocationFeedback('✓ Current GPS location detected & selected!');
+            } else {
+              fallbackOsm(lat, lng);
+            }
+          });
+        } else {
+          fallbackOsm(lat, lng);
+        }
+      },
+      (err) => {
+        setDetectingLocation(false);
+        if (err.code === 1) {
+          setLocationFeedback('Location permission denied. Please allow access or enter address below.');
+        } else {
+          setLocationFeedback('Unable to retrieve location. Please enter address below.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  const handleSelectFromMap = (loc) => {
+    const chosen = loc?.address || '';
+    if (chosen) {
+      setInputAddress(chosen);
+      const coords = { latitude: loc.lat, longitude: loc.lng };
+      onChangeAddress?.(chosen, coords);
+      onSaveAddress?.(chosen, coords);
+      setLocationFeedback('✓ Selected from Map successfully!');
+    }
+    setShowMapPicker(false);
+  };
+
+  const handleInputChange = (text) => {
+    setInputAddress(text);
+    onChangeAddress?.(text, {});
+  };
+
+  const handleContinuePress = () => {
+    const finalAddr = (activeAddressObj?.address || address || inputAddress || '').trim();
+    if (!finalAddr) return;
+    onChangeAddress?.(finalAddr, {});
+    onSaveAddress?.(finalAddr, {});
+    onContinue?.();
+  };
 
   const getAddressTagIcon = (tag = '') => {
     const t = tag.toUpperCase();
@@ -81,7 +223,7 @@ export default function BookingLocationStep({
               <circle cx="12" cy="10" r="3" />
             </svg>
             <Text style={styles.badgeText}>
-              {isConsultation ? 'DOORSTEP INSPECTION' : 'SERVICE LOCATION'}
+              {isConsultation ? 'MY MECHANIC • ₹0 INSPECTION' : 'SERVICE LOCATION'}
             </Text>
           </View>
         </View>
@@ -90,12 +232,14 @@ export default function BookingLocationStep({
           {isConsultation ? 'Doorstep inspection location' : 'Service location'}
         </Text>
         <Text style={styles.subtitle}>
-          Service will be provided at your selected saved address. To update your address, edit it in your Saved Addresses.
+          {isConsultation
+            ? 'Select or enter where the certified mechanic will arrive for your complimentary ₹0 diagnosis.'
+            : 'Service will be provided at your selected address. Choose a saved address or enter a new location.'}
         </Text>
       </View>
 
-      {/* Saved Addresses Section */}
-      {addresses.length > 0 ? (
+      {/* Saved Addresses Section (if available) */}
+      {addresses.length > 0 && (
         <View style={styles.sectionWrap}>
           <View style={styles.savedSectionHeaderRow}>
             <Text style={styles.sectionTitle}>Saved Addresses</Text>
@@ -123,7 +267,10 @@ export default function BookingLocationStep({
                 <TouchableOpacity
                   key={a.id}
                   style={[styles.savedCard, active && styles.savedCardActive]}
-                  onPress={() => onSelectSaved?.(a)}
+                  onPress={() => {
+                    onSelectSaved?.(a);
+                    setInputAddress(a.address);
+                  }}
                   activeOpacity={0.8}
                 >
                   <View style={styles.savedCardTop}>
@@ -151,22 +298,138 @@ export default function BookingLocationStep({
               );
             })}
           </View>
-        </View>
-      ) : (
-        <View style={styles.emptySavedBox}>
-          <Text style={styles.emptySavedTitle}>No saved address found</Text>
-          <Text style={styles.emptySavedSub}>
-            Please add your home address in your saved addresses to continue booking.
-          </Text>
-          {onManageSavedAddresses && (
-            <TouchableOpacity style={styles.addSavedBtn} onPress={onManageSavedAddresses}>
-              <Text style={styles.addSavedBtnText}>+ Add Saved Address</Text>
+
+          {!showCustomInput && (
+            <TouchableOpacity
+              style={styles.useDifferentBtn}
+              onPress={() => setShowCustomInput(true)}
+              activeOpacity={0.8}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <Text style={styles.useDifferentBtnText}>Choose / Enter a Different Service Address</Text>
             </TouchableOpacity>
           )}
         </View>
       )}
 
-      {/* Confirmed Locked Doorstep Card */}
+      {/* Interactive Location Selector Card (When no saved address or user wants different address) */}
+      {(addresses.length === 0 || showCustomInput) && (
+        <View style={styles.customAddressCard}>
+          <View style={styles.customAddressHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.customAddressTitle}>
+                {addresses.length === 0
+                  ? (isConsultation ? 'Select Inspection Doorstep' : 'Select Service Address')
+                  : 'Enter a Different Service Address'}
+              </Text>
+              <Text style={styles.customAddressSub}>
+                {isConsultation
+                  ? 'Select or enter where our mechanic should arrive for your complimentary ₹0 inspection.'
+                  : 'Specify your service doorstep.'}
+              </Text>
+            </View>
+            {addresses.length > 0 && (
+              <TouchableOpacity onPress={() => setShowCustomInput(false)} style={styles.closeCustomBtn}>
+                <Text style={styles.closeCustomBtnText}>✕ Use Saved</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Quick Action Buttons: GPS + Map Picker */}
+          <View style={styles.quickLocationRow}>
+            <TouchableOpacity
+              style={[styles.quickLocBtn, detectingLocation && styles.quickLocBtnActive]}
+              onPress={handleUseCurrentLocation}
+              disabled={detectingLocation}
+              activeOpacity={0.8}
+            >
+              {detectingLocation ? (
+                <ActivityIndicator size="small" color="#2563eb" />
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              )}
+              <Text style={styles.quickLocBtnText}>
+                {detectingLocation ? 'Detecting GPS…' : 'Use Current GPS'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.quickMapBtn, showMapPicker && styles.quickMapBtnActive]}
+              onPress={() => setShowMapPicker((prev) => !prev)}
+              activeOpacity={0.8}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                <line x1="8" y1="2" x2="8" y2="18" />
+                <line x1="16" y1="6" x2="16" y2="22" />
+              </svg>
+              <Text style={styles.quickMapBtnText}>
+                {showMapPicker ? 'Close Map Picker' : 'Choose on Map'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {locationFeedback ? (
+            <View style={[styles.feedbackBadge, locationFeedback.includes('✓') ? styles.feedbackSuccess : styles.feedbackError]}>
+              <Text style={[styles.feedbackText, locationFeedback.includes('✓') ? styles.feedbackSuccessText : styles.feedbackErrorText]}>
+                {locationFeedback}
+              </Text>
+            </View>
+          ) : null}
+
+          {showMapPicker && (
+            <View style={styles.mapPickerWrapper}>
+              <GoogleMapsLocationPicker
+                initialAddress={inputAddress}
+                onSelectLocation={handleSelectFromMap}
+                onClose={() => setShowMapPicker(false)}
+              />
+            </View>
+          )}
+
+          {/* Manual Input Field */}
+          <View style={styles.inputFieldWrap}>
+            <Text style={styles.inputLabel}>Complete Doorstep Address</Text>
+            <View style={styles.inputRow}>
+              <View style={styles.inputIconWrap}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </View>
+              <TextInput
+                style={styles.addressTextInput}
+                placeholder="House / Flat No., Building Name, Street, Area, City"
+                placeholderTextColor="#94a3b8"
+                value={inputAddress}
+                onChangeText={handleInputChange}
+                multiline
+                numberOfLines={2}
+              />
+              {Boolean(inputAddress) && (
+                <TouchableOpacity
+                  style={styles.clearInputBtn}
+                  onPress={() => {
+                    setInputAddress('');
+                    onChangeAddress?.('', {});
+                  }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={styles.clearInputBtnText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Confirmed Doorstep Card */}
       {activeAddressObj && (
         <View style={styles.confirmedDoorstepCard}>
           <View style={styles.confirmedDoorstepTop}>
@@ -188,7 +451,9 @@ export default function BookingLocationStep({
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
             <Text style={styles.lockedNoteText}>
-              Address locked for this service. You can only edit it in your Saved Addresses.
+              {isGuest || activeAddressObj?.id === 'custom-address'
+                ? 'Certified mechanic will arrive at this verified doorstep location.'
+                : 'Address confirmed for this service. You can also edit it in your Saved Addresses.'}
             </Text>
           </View>
         </View>
@@ -226,7 +491,7 @@ export default function BookingLocationStep({
       <TouchableOpacity
         style={[styles.primaryBtn, (!canContinue || !activeAddressObj) && styles.primaryBtnDisabled]}
         disabled={!canContinue || !activeAddressObj}
-        onPress={onContinue}
+        onPress={handleContinuePress}
         activeOpacity={0.88}
       >
         <Text style={[styles.primaryBtnText, (!canContinue || !activeAddressObj) && styles.primaryBtnTextDisabled]}>
@@ -566,5 +831,199 @@ const styles = StyleSheet.create({
   primaryBtnTextDisabled: {
     color: '#94a3b8',
     fontWeight: '700',
+  },
+  customAddressCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    gap: 14,
+    boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
+  },
+  customAddressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  customAddressTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.2,
+  },
+  customAddressSub: {
+    fontSize: 11.5,
+    color: '#64748b',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  closeCustomBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: '#f1f5f9',
+    cursor: 'pointer',
+  },
+  closeCustomBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  quickLocationRow: {
+    flexDirection: 'row',
+    gap: 10,
+    flexWrap: 'wrap',
+  },
+  quickLocBtn: {
+    flex: 1,
+    minWidth: 140,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1.2,
+    borderColor: '#bfdbfe',
+    cursor: 'pointer',
+  },
+  quickLocBtnActive: {
+    backgroundColor: '#dbeafe',
+    borderColor: '#93c5fd',
+  },
+  quickLocBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+  quickMapBtn: {
+    flex: 1,
+    minWidth: 140,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#faf5ff',
+    borderWidth: 1.2,
+    borderColor: '#e9d5ff',
+    cursor: 'pointer',
+  },
+  quickMapBtnActive: {
+    backgroundColor: '#f3e8ff',
+    borderColor: '#d8b4fe',
+  },
+  quickMapBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#7c3aed',
+  },
+  feedbackBadge: {
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  feedbackSuccess: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+  },
+  feedbackError: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fecaca',
+  },
+  feedbackText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    lineHeight: 16,
+  },
+  feedbackSuccessText: {
+    color: '#15803d',
+  },
+  feedbackErrorText: {
+    color: '#dc2626',
+  },
+  mapPickerWrapper: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+  },
+  inputFieldWrap: {
+    gap: 6,
+  },
+  inputLabel: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#475569',
+    letterSpacing: 0.2,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    borderRadius: 12,
+    padding: 10,
+    gap: 8,
+  },
+  inputIconWrap: {
+    marginTop: 2,
+    flexShrink: 0,
+  },
+  addressTextInput: {
+    flex: 1,
+    fontSize: 12.5,
+    color: '#0f172a',
+    lineHeight: 18,
+    fontFamily: 'Inter, sans-serif',
+    outlineStyle: 'none',
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    padding: 0,
+    minHeight: 38,
+  },
+  clearInputBtn: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    cursor: 'pointer',
+  },
+  clearInputBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#64748b',
+    lineHeight: 12,
+  },
+  useDifferentBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#cbd5e1',
+    cursor: 'pointer',
+    marginTop: 4,
+  },
+  useDifferentBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2563eb',
   },
 });

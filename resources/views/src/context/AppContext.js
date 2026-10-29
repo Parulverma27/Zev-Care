@@ -9,7 +9,7 @@ import {
   resolveImageUri
 } from '../utils/imageUtils';
 import { getHardcodedCatalogImage } from '../utils/bundledImages';
-import { normalizeSavedAddresses, upsertDefaultAddress } from '../utils/savedAddresses';
+import { normalizeSavedAddresses, upsertDefaultAddress, normalizeTag } from '../utils/savedAddresses';
 import { getPlanTheme } from '../config/planTheme';
 
 const AppContext = createContext();
@@ -200,9 +200,7 @@ export function AppProvider({ children }) {
         }
         if (Array.isArray(parsed?.saved_addresses)) {
           parsed.saved_addresses = parsed.saved_addresses.map(a => {
-            const rawTag = String(a.tag || '').trim().toLowerCase();
-            const tag = rawTag === 'villa' ? 'Villa' : rawTag === 'pg' ? 'PG' : 'Home';
-            return { ...a, tag };
+            return { ...a, tag: normalizeTag(a.tag) };
           });
         }
         return parsed;
@@ -898,20 +896,46 @@ export function AppProvider({ children }) {
     } catch (e) {}
   }, [users]);
 
-  // Repair duplicate / multi-default saved addresses from older property saves
+  // Repair duplicate / multi-default saved addresses and auto-sync activeUser.address into saved_addresses
   useEffect(() => {
-    if (!activeUser?.id || !Array.isArray(activeUser.saved_addresses)) return;
-    const raw = activeUser.saved_addresses;
-    const defaults = raw.filter((a) => a.isDefault).length;
-    const needsRepair = defaults > 1 || raw.length !== normalizeSavedAddresses(raw).length;
-    if (!needsRepair) return;
-    const normalized = normalizeSavedAddresses(raw);
-    const repaired = { ...activeUser, saved_addresses: normalized };
-    setActiveUser(repaired);
-    setUsers((prev) =>
-      prev.map((u) => (u.id === repaired.id ? { ...u, saved_addresses: normalized } : u))
+    if (!activeUser) return;
+    const raw = Array.isArray(activeUser.saved_addresses) ? activeUser.saved_addresses : [];
+    const mainAddr = (activeUser.address || activeUser.property?.address || '').trim();
+    const hasMainInList = Boolean(
+      mainAddr && raw.some((a) => (a.address || '').trim().toLowerCase() === mainAddr.toLowerCase())
     );
-  }, [activeUser?.id, activeUser?.saved_addresses]);
+    const defaults = raw.filter((a) => a.isDefault).length;
+    const needsRepair =
+      defaults > 1 ||
+      (mainAddr && !hasMainInList) ||
+      (raw.length > 0 && raw.length !== normalizeSavedAddresses(raw).length);
+
+    if (!needsRepair) return;
+
+    let repairedList = raw;
+    if (mainAddr && !hasMainInList) {
+      repairedList = upsertDefaultAddress(raw, mainAddr, {
+        latitude: activeUser.latitude,
+        longitude: activeUser.longitude,
+      });
+    } else {
+      repairedList = normalizeSavedAddresses(raw);
+    }
+
+    const defaultAddress = repairedList.find((a) => a.isDefault)?.address || activeUser.address;
+    const repaired = {
+      ...activeUser,
+      saved_addresses: repairedList,
+      address: defaultAddress,
+    };
+    setActiveUser(repaired);
+    try {
+      localStorage.setItem('zevota_active_user', JSON.stringify(repaired));
+    } catch (e) {}
+    setUsers((prev) =>
+      prev.map((u) => (u.id === repaired.id ? { ...u, saved_addresses: repairedList, address: defaultAddress } : u))
+    );
+  }, [activeUser?.id, activeUser?.address, activeUser?.property?.address, activeUser?.saved_addresses]);
 
   // Repair inflated wallet balances / missing passbook entries from old payment bug
   useEffect(() => {
@@ -1534,11 +1558,12 @@ export function AppProvider({ children }) {
     } catch (e) {
       guestId = 'GUEST-001';
     }
+    const resolvedName = (name || '').trim() || 'Guest User';
     return {
       id: 0,
       isGuest: true,
       guestId,
-      name: 'Guest User',
+      name: resolvedName,
       email: '',
       phone: phone ? `+91 ${String(phone).replace(/\D/g, '').slice(-10)}` : '',
       wallet_balance: 0.0,
@@ -1551,8 +1576,8 @@ export function AppProvider({ children }) {
     };
   };
 
-  const loginGuestUser = (phone = '') => {
-    const guestUser = _makeGuestUser(phone);
+  const loginGuestUser = (phone = '', name = '') => {
+    const guestUser = _makeGuestUser(phone, name);
     setActiveUser(guestUser);
     try {
       localStorage.setItem('zevota_active_user', JSON.stringify(guestUser));
@@ -1620,15 +1645,23 @@ export function AppProvider({ children }) {
       isAnonymous: false,
     };
 
-    if (profileData.address && !profileData.saved_addresses) {
-      next.saved_addresses = upsertDefaultAddress(
-        next.saved_addresses || [],
-        profileData.address,
-        {
-          latitude: profileData.latitude ?? next.latitude,
-          longitude: profileData.longitude ?? next.longitude,
-        }
+    if (profileData.address) {
+      const currentList = Array.isArray(next.saved_addresses) ? next.saved_addresses : [];
+      const hasAddress = currentList.some(
+        (a) => (a.address || '').trim().toLowerCase() === String(profileData.address).trim().toLowerCase()
       );
+      if (!hasAddress || !currentList.length) {
+        next.saved_addresses = upsertDefaultAddress(
+          currentList,
+          profileData.address,
+          {
+            latitude: profileData.latitude ?? next.latitude,
+            longitude: profileData.longitude ?? next.longitude,
+          }
+        );
+      } else {
+        next.saved_addresses = normalizeSavedAddresses(currentList);
+      }
     } else if (Array.isArray(next.saved_addresses)) {
       next.saved_addresses = normalizeSavedAddresses(next.saved_addresses);
     }

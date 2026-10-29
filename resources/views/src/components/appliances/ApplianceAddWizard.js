@@ -426,7 +426,10 @@ export default function ApplianceAddWizard({
   // Desktop web only: wide 2-column layout. Mobile/native keeps the original single-column flow.
   const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
   const columns = width >= 900 ? 5 : width >= 600 ? 4 : 3;
-  const qtyCap = Math.min(MAX_QUANTITY, Math.max(MIN_QUANTITY, Number(maxQuantity) || MAX_QUANTITY));
+  const qtyCap =
+    maxQuantity != null && Number.isFinite(Number(maxQuantity))
+      ? Math.max(MIN_QUANTITY, Number(maxQuantity))
+      : (Number.isFinite(MAX_QUANTITY) ? MAX_QUANTITY : Infinity);
 
   // --- wizard state ---
   const [step, setStep] = useState(() => (initialResolved ? 'details' : 'category'));
@@ -1283,15 +1286,14 @@ export default function ApplianceAddWizard({
               </TouchableOpacity>
               <Text style={styles.qtyValue}>{quantity}</Text>
               <TouchableOpacity
-                style={[styles.qtyBtn, quantity >= qtyCap && styles.qtyBtnDisabled]}
-                disabled={quantity >= qtyCap}
-                onPress={() => setQuantity((q) => Math.min(qtyCap, q + 1))}
+                style={[styles.qtyBtn, Number.isFinite(qtyCap) && quantity >= qtyCap && styles.qtyBtnDisabled]}
+                disabled={Number.isFinite(qtyCap) && quantity >= qtyCap}
+                onPress={() => setQuantity((q) => (Number.isFinite(qtyCap) ? Math.min(qtyCap, q + 1) : q + 1))}
                 accessibilityLabel="Increase quantity"
               >
                 <Text style={styles.qtyBtnText}>+</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.qtyHint}>Add up to {qtyCap} items at a time.</Text>
             <TouchableOpacity style={styles.primaryBtn} onPress={handleQuantityContinue} activeOpacity={0.9}>
               <Text style={styles.primaryBtnText}>Continue</Text>
             </TouchableOpacity>
@@ -1573,7 +1575,7 @@ export default function ApplianceAddWizard({
         item={fastAddItem}
         categoryName={selectedCategory?.name}
         quantity={fastAddQty}
-        onIncrement={() => setFastAddQty((q) => Math.min(qtyCap, q + 1))}
+        onIncrement={() => setFastAddQty((q) => (Number.isFinite(qtyCap) ? Math.min(qtyCap, q + 1) : q + 1))}
         onDecrement={() => setFastAddQty((q) => Math.max(1, q - 1))}
         onConfirm={handleConfirmFastAdd}
         onCancel={() => {

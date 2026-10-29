@@ -18,6 +18,8 @@ export default function ProfileDesktopWebView({
   activeUser,
   isAnonymous,
   isGuest,
+  hasCustomName,
+  resolvedUserName,
   guestIdDisplay,
   hasPlan,
   userPlanTheme,
@@ -217,7 +219,13 @@ export default function ProfileDesktopWebView({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <h2 style={userNameHeadingStyle}>
-                    {isAnonymous ? 'Welcome' : isGuest ? 'Guest User' : (activeUser?.name || 'Rahul Sharma')}
+                    {isAnonymous
+                      ? 'Welcome'
+                      : hasCustomName
+                      ? (resolvedUserName || activeUser?.name)
+                      : isGuest
+                      ? 'Guest User'
+                      : (activeUser?.name || 'Rahul Sharma')}
                   </h2>
                   {hasPlan && (
                     <span style={planBadgePillStyle(userPlanTheme.badgeBg, userPlanTheme.badgeBorder, userPlanTheme.badgeTextColor)}>
@@ -297,7 +305,9 @@ export default function ProfileDesktopWebView({
               <div style={securityRowStyle}>
                 <span style={securityLabelStyle}>Zevota Account ID</span>
                 <span style={securityValueStyle}>
-                  {isGuest ? guestIdDisplay : `ZC-${String(activeUser?.id || 1).padStart(5, '0')}`}
+                  {isGuest
+                    ? (hasCustomName ? 'Guest Profile' : guestIdDisplay)
+                    : `ZC-${String(activeUser?.id || 1).padStart(5, '0')}`}
                 </span>
               </div>
             </div>

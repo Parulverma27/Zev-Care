@@ -163,7 +163,7 @@ if (fs.existsSync(indexPath)) {
   if (!html.includes('maps.googleapis.com')) {
     html = html.replace(
       '</head>',
-      '    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXe2rzucyPoB-lR4Oe8c5DY0ORp7Sq1iU&libraries=places"></script>\n  </head>'
+      '    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXe2rzucyPoB-lR4Oe8c5DY0ORp7Sq1iU&libraries=places&language=en"></script>\n  </head>'
     );
   }
   fs.writeFileSync(indexPath, html);

@@ -57,53 +57,36 @@ export default function AuthScreen() {
 
   const returnTarget = location.state?.from || '/user/home';
 
-  const { findUserByPhone, registerUser, loginUser, loginGuestUser, skipAuth, activeUser, setActiveUser, updateProfile } = useApp();
+  const { findUserByPhone, registerUser, loginUser, loginGuestUser, activeUser, setActiveUser, updateProfile } = useApp();
 
-  const handleSkipLogin = () => {
-    if (typeof skipAuth === 'function') {
-      skipAuth();
-    } else {
-      const anonUser = {
-        id: 0,
-        isGuest: true,
-        isAnonymous: true,
-        guestId: null,
-        name: '',
-        email: '',
-        phone: '',
-        wallet_balance: 0.0,
-        wallet_original_balance: 0.0,
-        subscription_plan: null,
-        subscription_status: 'INACTIVE',
-        property_verification_status: 'PENDING',
-        address: '',
-        saved_addresses: [],
-      };
-      setActiveUser(anonUser);
-      try {
-        localStorage.setItem('zevota_active_user', JSON.stringify(anonUser));
-        sessionStorage.removeItem('zevota_guest_session_id');
-      } catch (e) {}
-    }
-    navigate(returnTarget, { replace: true });
-  };
-
-  const enterAsGuest = (guestPhone = '') => {
+  const enterAsGuest = (guestPhone = '', guestName = '') => {
     let preloginLoc = '';
     try {
       preloginLoc = sessionStorage.getItem('zevota_prelogin_location') || '';
     } catch (e) {}
 
-    if (typeof loginGuestUser === 'function') {
-      loginGuestUser(guestPhone || phone);
+    let resolvedName = (guestName || fullName || '').trim();
+    if (!resolvedName) {
+      try {
+        const saved = sessionStorage.getItem(REG_DRAFT_KEY);
+        if (saved) {
+          const d = JSON.parse(saved);
+          if (d?.name) resolvedName = d.name.trim();
+        }
+      } catch (e) {}
     }
-    if (preloginLoc) {
+
+    if (typeof loginGuestUser === 'function') {
+      loginGuestUser(guestPhone || phone, resolvedName);
+    }
+    if (preloginLoc || resolvedName) {
       try {
         const u = JSON.parse(localStorage.getItem('zevota_active_user') || '{}');
         if (u && typeof u === 'object') {
-          u.address = preloginLoc;
+          if (preloginLoc) u.address = preloginLoc;
+          if (resolvedName) u.name = resolvedName;
           localStorage.setItem('zevota_active_user', JSON.stringify(u));
-          setActiveUser(u);
+          setActiveUser({ ...u });
         }
       } catch (e) {}
     }
@@ -127,7 +110,12 @@ export default function AuthScreen() {
   // Doorstep Location Detection for Pre-Login & Login
   const [detectedLocation, setDetectedLocation] = useState(() => {
     try {
-      return sessionStorage.getItem('zevota_prelogin_location') || '';
+      const saved = sessionStorage.getItem('zevota_prelogin_location') || '';
+      if (/[\u0900-\u097F]/.test(saved)) {
+        sessionStorage.removeItem('zevota_prelogin_location');
+        return '';
+      }
+      return saved;
     } catch (e) {
       return '';
     }
@@ -152,11 +140,19 @@ export default function AuthScreen() {
         .then((r) => r.json())
         .then((data) => {
           setDetectingLocation(false);
-          if (data && data.display_name) {
-            setDetectedLocation(data.display_name);
+          if (data && (data.display_name || data.name)) {
+            const addr = data.address || {};
+            const parts = [
+              addr.road || addr.suburb || addr.neighbourhood || addr.residential,
+              addr.city_district || addr.city || addr.town || addr.village || addr.county,
+              addr.state,
+              addr.postcode,
+            ].filter(Boolean);
+            const englishName = parts.length > 0 ? parts.join(', ') : (data.display_name || '');
+            setDetectedLocation(englishName);
             setLocFeedback('✓ Current GPS location detected & linked!');
             try {
-              sessionStorage.setItem('zevota_prelogin_location', data.display_name);
+              sessionStorage.setItem('zevota_prelogin_location', englishName);
             } catch (e) {}
           } else {
             setLocFeedback('Unable to reverse-geocode coordinates. You can continue.');
@@ -175,10 +171,14 @@ export default function AuthScreen() {
 
         if (window.google?.maps?.Geocoder) {
           const geocoder = new window.google.maps.Geocoder();
-          geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+          geocoder.geocode({ location: { lat, lng }, language: 'en' }, (results, status) => {
             if (status === 'OK' && results?.[0]) {
-              setDetectingLocation(false);
               const formatted = results[0].formatted_address;
+              if (/[\u0900-\u097F]/.test(formatted)) {
+                fallbackOsm(lat, lng);
+                return;
+              }
+              setDetectingLocation(false);
               setDetectedLocation(formatted);
               setLocFeedback('✓ Current GPS location detected & linked!');
               try {
@@ -240,6 +240,11 @@ export default function AuthScreen() {
       try {
         const savedPhone = sessionStorage.getItem(OTP_PHONE_KEY);
         if (savedPhone) setPhone(savedPhone);
+        const savedDraft = sessionStorage.getItem(REG_DRAFT_KEY);
+        if (savedDraft) {
+          const d = JSON.parse(savedDraft);
+          if (d?.name) setFullName(d.name);
+        }
       } catch (e) {}
     }
   }, [page]);
@@ -259,6 +264,10 @@ export default function AuthScreen() {
       setError('Please accept the Terms & Conditions to continue.');
       return;
     }
+    if (!fullName.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
     if (phone.length < 10) {
       setError('Enter a valid 10-digit mobile number.');
       return;
@@ -266,6 +275,7 @@ export default function AuthScreen() {
     try {
       sessionStorage.setItem(OTP_PHONE_KEY, phone);
       sessionStorage.setItem(OTP_IS_NEW_KEY, 'false');
+      sessionStorage.setItem(REG_DRAFT_KEY, JSON.stringify({ name: fullName.trim(), phone }));
     } catch (e) {}
     setOtp('');
     setTimer(60);
@@ -323,10 +333,28 @@ export default function AuthScreen() {
     } catch (e) {}
 
     const existing = findUserByPhone(phone);
+    let enteredName = fullName.trim();
+    if (!enteredName) {
+      try {
+        const saved = sessionStorage.getItem(REG_DRAFT_KEY);
+        if (saved) {
+          const d = JSON.parse(saved);
+          if (d?.name) enteredName = d.name;
+        }
+      } catch (e) {}
+    }
+
     if (existing && !isNew) {
       loginUser(phone);
-      if (preloginLoc && typeof updateProfile === 'function') {
-        updateProfile({ ...existing, address: preloginLoc });
+      if (typeof updateProfile === 'function') {
+        const profileUpdates = { ...existing };
+        if (enteredName && existing.name !== enteredName) {
+          profileUpdates.name = enteredName;
+        }
+        if (preloginLoc) {
+          profileUpdates.address = preloginLoc;
+        }
+        updateProfile(profileUpdates);
       }
       navigate(returnTarget, { replace: true });
       return;
@@ -354,12 +382,19 @@ export default function AuthScreen() {
 
     if (existing) {
       loginUser(phone);
-      if (preloginLoc && typeof updateProfile === 'function') {
-        updateProfile({ ...existing, address: preloginLoc });
+      if (typeof updateProfile === 'function') {
+        const profileUpdates = { ...existing };
+        if (enteredName && existing.name !== enteredName) {
+          profileUpdates.name = enteredName;
+        }
+        if (preloginLoc) {
+          profileUpdates.address = preloginLoc;
+        }
+        updateProfile(profileUpdates);
       }
       navigate(returnTarget, { replace: true });
     } else {
-      enterAsGuest();
+      enterAsGuest(phone, enteredName);
     }
   };
 
@@ -417,15 +452,6 @@ export default function AuthScreen() {
                 <span>← Back to Website</span>
               </button>
 
-              <button
-                type="button"
-                style={desktopStyles.guestPillBtn}
-                onClick={handleSkipLogin}
-                title="Continue as Guest"
-              >
-                <span>Explore as Guest</span>
-                <span style={{ fontSize: 13, fontWeight: 800 }}>→</span>
-              </button>
             </div>
           </div>
         </header>
@@ -610,6 +636,30 @@ export default function AuthScreen() {
               {page === 'login' && (
                 <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} style={desktopStyles.formBody}>
                   <div style={desktopStyles.inputGroup}>
+                    <label style={desktopStyles.inputLabel}>Full Name</label>
+                    <div
+                      style={{
+                        ...desktopStyles.inputContainer,
+                        borderColor: nameFocused ? '#0878f8' : '#cbd5e1',
+                        boxShadow: nameFocused ? '0 0 0 3px rgba(8, 120, 248, 0.12)' : 'none',
+                      }}
+                    >
+                      <input
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => {
+                          setFullName(e.target.value);
+                          setError('');
+                        }}
+                        onFocus={() => setNameFocused(true)}
+                        onBlur={() => setNameFocused(false)}
+                        placeholder="Enter full name"
+                        style={desktopStyles.mainInput}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={desktopStyles.inputGroup}>
                     <label style={desktopStyles.inputLabel}>Mobile Number</label>
                     <div
                       style={{
@@ -618,7 +668,7 @@ export default function AuthScreen() {
                         boxShadow: phoneFocused ? '0 0 0 3px rgba(8, 120, 248, 0.12)' : 'none',
                       }}
                     >
-                      <span style={desktopStyles.countryPrefix}>+91</span>
+                      <span style={desktopStyles.countryPrefix}>🇮🇳 +91</span>
                       <input
                         type="tel"
                         maxLength={10}
@@ -631,7 +681,6 @@ export default function AuthScreen() {
                         onBlur={() => setPhoneFocused(false)}
                         placeholder="Enter 10-digit mobile number"
                         style={desktopStyles.mainInput}
-                        autoFocus
                       />
                     </div>
                   </div>
@@ -649,14 +698,7 @@ export default function AuthScreen() {
                         color: detectedLocation ? '#15803d' : '#0878f8',
                       }}
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={detectedLocation ? '#16a34a' : '#0878f8'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="2" x2="12" y2="6" />
-                        <line x1="12" y1="18" x2="12" y2="22" />
-                        <line x1="2" y1="12" x2="6" y2="12" />
-                        <line x1="18" y1="12" x2="22" y2="12" />
-                        <circle cx="12" cy="12" r="3" fill={detectedLocation ? '#16a34a' : '#0878f8'} />
-                      </svg>
+                      <SvgLocationPin active={Boolean(detectedLocation)} color={detectedLocation ? '#16a34a' : '#0878f8'} size={15} />
                       <span>
                         {detectingLocation
                           ? 'Detecting GPS Location...'
@@ -767,7 +809,7 @@ export default function AuthScreen() {
                         boxShadow: phoneFocused ? '0 0 0 3px rgba(8, 120, 248, 0.12)' : 'none',
                       }}
                     >
-                      <span style={desktopStyles.countryPrefix}>+91</span>
+                      <span style={desktopStyles.countryPrefix}>🇮🇳 +91</span>
                       <input
                         type="tel"
                         maxLength={10}
@@ -818,14 +860,7 @@ export default function AuthScreen() {
                         color: detectedLocation ? '#15803d' : '#0878f8',
                       }}
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={detectedLocation ? '#16a34a' : '#0878f8'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="2" x2="12" y2="6" />
-                        <line x1="12" y1="18" x2="12" y2="22" />
-                        <line x1="2" y1="12" x2="6" y2="12" />
-                        <line x1="18" y1="12" x2="22" y2="12" />
-                        <circle cx="12" cy="12" r="3" fill={detectedLocation ? '#16a34a' : '#0878f8'} />
-                      </svg>
+                      <SvgLocationPin active={Boolean(detectedLocation)} color={detectedLocation ? '#16a34a' : '#0878f8'} size={15} />
                       <span>
                         {detectingLocation
                           ? 'Detecting GPS Location...'
@@ -1060,18 +1095,6 @@ export default function AuthScreen() {
           ))}
         </div>
 
-        {/* Floating Top-Right Skip Button (Only on Login page) */}
-        {page === 'login' && (
-          <button
-            type="button"
-            onClick={handleSkipLogin}
-            aria-label="Skip login"
-            style={css.topSkipButton}
-          >
-            <span>Skip</span>
-            <span style={{ fontSize: 13, fontWeight: 700 }}>→</span>
-          </button>
-        )}
       </div>
 
       {/* Main Form Area */}
@@ -1101,7 +1124,7 @@ export default function AuthScreen() {
 
           {page === 'login' && (
             <div style={css.loginHeader}>
-              <h1 style={css.welcomeTitle}>Enter your mobile number</h1>
+              <h1 style={css.welcomeTitle}>Enter your details</h1>
               <p style={css.welcomeSub}>We'll verify your number with a one-time code.</p>
             </div>
           )}
@@ -1115,6 +1138,24 @@ export default function AuthScreen() {
           {page === 'login' && (
             <>
               <Field
+                icon={<SvgPersonIcon active={nameFocused} />}
+                label="Full Name"
+                focused={nameFocused}
+              >
+                <input
+                  value={fullName}
+                  onFocus={() => setNameFocused(true)}
+                  onBlur={() => setNameFocused(false)}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    setError('');
+                  }}
+                  placeholder="Enter full name"
+                  style={css.phoneInput}
+                />
+              </Field>
+
+              <Field
                 icon={<SvgPhone active={phoneFocused} />}
                 label="Mobile Number"
                 focused={phoneFocused}
@@ -1122,7 +1163,7 @@ export default function AuthScreen() {
                 onBlur={() => setPhoneFocused(false)}
               >
                 <div style={css.phoneRow}>
-                  <span style={css.dialBadge}>+91 ▾</span>
+                  <span style={css.dialBadge}>🇮🇳 +91</span>
                   <input
                     type="tel"
                     maxLength={10}
@@ -1151,14 +1192,7 @@ export default function AuthScreen() {
                   disabled={detectingLocation}
                   style={detectedLocation ? css.locBtnActive : css.locBtn}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={detectedLocation ? '#16a34a' : '#0052e0'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="2" x2="12" y2="6" />
-                    <line x1="12" y1="18" x2="12" y2="22" />
-                    <line x1="2" y1="12" x2="6" y2="12" />
-                    <line x1="18" y1="12" x2="22" y2="12" />
-                    <circle cx="12" cy="12" r="3" fill={detectedLocation ? '#16a34a' : '#0052e0'} />
-                  </svg>
+                  <SvgLocationPin active={Boolean(detectedLocation)} color={detectedLocation ? '#16a34a' : '#0052e0'} size={14} />
                   <span>
                     {detectingLocation
                       ? 'Detecting GPS Location...'
@@ -1256,7 +1290,7 @@ export default function AuthScreen() {
                 focused={phoneFocused}
               >
                 <div style={css.phoneRow}>
-                  <span style={css.dialBadge}>+91 ▾</span>
+                  <span style={css.dialBadge}>🇮🇳 +91</span>
                   <input
                     type="tel"
                     maxLength={10}
@@ -1296,14 +1330,7 @@ export default function AuthScreen() {
                   disabled={detectingLocation}
                   style={detectedLocation ? css.locBtnActive : css.locBtn}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={detectedLocation ? '#16a34a' : '#0052e0'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="2" x2="12" y2="6" />
-                    <line x1="12" y1="18" x2="12" y2="22" />
-                    <line x1="2" y1="12" x2="6" y2="12" />
-                    <line x1="18" y1="12" x2="22" y2="12" />
-                    <circle cx="12" cy="12" r="3" fill={detectedLocation ? '#16a34a' : '#0052e0'} />
-                  </svg>
+                  <SvgLocationPin active={Boolean(detectedLocation)} color={detectedLocation ? '#16a34a' : '#0052e0'} size={14} />
                   <span>
                     {detectingLocation
                       ? 'Detecting GPS Location...'
@@ -1578,21 +1605,6 @@ const desktopStyles = {
     color: '#334155',
     fontSize: 13,
     fontWeight: 600,
-    cursor: 'pointer',
-    fontFamily: "'Inter', sans-serif",
-    transition: 'all 0.15s ease',
-  },
-  guestPillBtn: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 6,
-    padding: '8px 18px',
-    borderRadius: 999,
-    backgroundColor: 'rgba(8, 120, 248, 0.08)',
-    border: '1px solid rgba(8, 120, 248, 0.22)',
-    color: '#0878f8',
-    fontSize: 13,
-    fontWeight: 700,
     cursor: 'pointer',
     fontFamily: "'Inter', sans-serif",
     transition: 'all 0.15s ease',
@@ -2111,11 +2123,18 @@ const css = {
   },
   phoneRow: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' },
   dialBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
     fontSize: 13.5,
     fontWeight: 700,
     color: '#0a1633',
+    paddingRight: 8,
+    borderRight: '1.5px solid #cbd5e1',
     marginRight: 8,
     userSelect: 'none',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
   },
   phoneInput: {
     border: 'none',
@@ -2156,27 +2175,6 @@ const css = {
   switchRow: { display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 4 },
   switchGray: { color: '#8898aa', fontSize: 12.5 },
   switchBlue: { color: '#0052e0', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' },
-  topSkipButton: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
-    color: '#ffffff',
-    border: '1px solid rgba(255, 255, 255, 0.25)',
-    borderRadius: 20,
-    padding: '5px 12px',
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: 'pointer',
-    zIndex: 10,
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-  },
   badges: {
     display: 'flex',
     flexDirection: 'row',
@@ -2390,6 +2388,25 @@ function SvgSecureLock() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0052e0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function SvgLocationPin({ active, color, size = 15 }) {
+  const strokeColor = color || (active ? '#16a34a' : '#0052e0');
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={strokeColor}
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+      <circle cx="12" cy="9" r="2.8" fill={active ? strokeColor : 'none'} stroke={strokeColor} strokeWidth="2" />
     </svg>
   );
 }
