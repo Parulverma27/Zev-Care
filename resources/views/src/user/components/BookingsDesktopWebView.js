@@ -447,6 +447,18 @@ export default function BookingsDesktopWebView({ bookings = [], onNavigate, form
                   </div>
 
                   <div style={cardActionWrapStyle}>
+                    {Boolean(booking.status === 'BOOKING_COMPLETED' && booking.service_review && !booking.provider_review) && (
+                      <button
+                        type="button"
+                        style={{ ...rateBtnStyle, background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigate(`/user/bookings/${booking.booking_id}/rate`);
+                        }}
+                      >
+                        Rate Technician ★
+                      </button>
+                    )}
                     {needsRating && (
                       <button
                         type="button"
@@ -456,13 +468,20 @@ export default function BookingsDesktopWebView({ bookings = [], onNavigate, form
                           onNavigate(`/user/bookings/${booking.booking_id}/rate`);
                         }}
                       >
-                        Rate Service ★
+                        Rate Service & Pro ★
                       </button>
                     )}
-                    {!!booking.user_rating && (
-                      <span style={ratedBadgeStyle}>
-                        Rated {'★'.repeat(booking.user_rating)}
-                      </span>
+                    {Boolean(booking.user_rating || booking.service_review) && (
+                      <button
+                        type="button"
+                        style={{ ...ratedBadgeStyle, cursor: 'pointer', border: 'none', background: '#ecfdf5' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigate(`/user/bookings/${booking.booking_id}/rate`);
+                        }}
+                      >
+                        Rated {'★'.repeat(booking.user_rating || booking.service_review?.rating || 5)} • Review →
+                      </button>
                     )}
                     <span style={viewDetailsBtnStyle}>
                       <span>Track Details</span>

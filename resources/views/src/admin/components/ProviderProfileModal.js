@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { useApp } from '../../context/AppContext';
+import { getProviderRatingStats, getPerformanceTier } from '../../utils/ratings';
 
 export default function ProviderProfileModal({ visible, provider, onClose, onEdit }) {
   const { bookings } = useApp() || {};
@@ -43,14 +44,20 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
     }, 0);
   }, [completedJobs]);
 
+  const providerStats = useMemo(() => {
+    return getProviderRatingStats(provider, bookings || []);
+  }, [provider, bookings]);
+
+  const performanceTier = useMemo(() => {
+    return getPerformanceTier(providerStats);
+  }, [providerStats]);
+
   const realRating = useMemo(() => {
-    const rated = completedJobs.filter((b) => Number(b.user_rating || b.provider_rating || b.rating) > 0);
-    if (rated.length > 0) {
-      const avg = rated.reduce((sum, b) => sum + Number(b.user_rating || b.provider_rating || b.rating), 0) / rated.length;
-      return avg.toFixed(1);
+    if (providerStats.totalRatings > 0) {
+      return providerStats.averageRating.toFixed(1);
     }
     return provider?.rating ? Number(provider.rating).toFixed(1) : '5.0';
-  }, [completedJobs, provider?.rating]);
+  }, [providerStats, provider?.rating]);
 
   // Filtered jobs list for the Jobs tab
   const filteredJobs = useMemo(() => {
@@ -216,10 +223,19 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
                 <View style={styles.metricsGrid}>
                   <View style={styles.metricCard}>
                     <Text style={styles.metricLabel}>AVERAGE RATING</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <Text style={[styles.metricValue, { color: '#d97706' }]}>★ {realRating}</Text>
+                      {performanceTier && (
+                        <View style={{ backgroundColor: performanceTier.bg, borderColor: performanceTier.border, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 }}>
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: performanceTier.color }}>{performanceTier.badge}</Text>
+                        </View>
+                      )}
                     </View>
-                    <Text style={styles.metricSubNote}>From real customer reviews</Text>
+                    <Text style={styles.metricSubNote}>
+                      {providerStats.totalRatings > 0
+                        ? `${providerStats.totalRatings} verified customer reviews`
+                        : 'Baseline starting rating'}
+                    </Text>
                   </View>
 
                   <View style={styles.metricCard}>

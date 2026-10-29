@@ -11,6 +11,7 @@ import {
 import { getHardcodedCatalogImage } from '../utils/bundledImages';
 import { normalizeSavedAddresses, upsertDefaultAddress, normalizeTag } from '../utils/savedAddresses';
 import { getPlanTheme } from '../config/planTheme';
+import { normalizeBookingReviews } from '../utils/ratings';
 
 const AppContext = createContext();
 
@@ -390,7 +391,7 @@ export function AppProvider({ children }) {
         const saved = localStorage.getItem('zevota_bookings');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed.map(normalizeBookingReviews);
         }
       }
     } catch (e) {}
@@ -735,7 +736,7 @@ export function AppProvider({ children }) {
         booking_mode: 'consultation',
         diagnostic_fee: 0,
       },
-    ];
+    ].map(normalizeBookingReviews);
   });
 
   const [wallet, setWallet] = useState(() => {
@@ -1883,57 +1884,185 @@ export function AppProvider({ children }) {
     );
   };
 
-  const submitBookingRating = (bookingId, ratingOrPayload, feedback = '', tags = []) => {
-    const payload =
-      ratingOrPayload && typeof ratingOrPayload === 'object' && !Array.isArray(ratingOrPayload)
-        ? ratingOrPayload
-        : { rating: ratingOrPayload, feedback, tags };
+  const submitServiceReview = (bookingId, servicePayload) => {
+    const rating = Math.min(5, Math.max(1, Number(servicePayload?.rating) || 5));
+    const issueResolved = servicePayload?.issueResolved || 'yes';
+    const aspects = Array.isArray(servicePayload?.aspects) ? servicePayload.aspects : [];
+    const comment = (servicePayload?.comment || '').trim();
+    const photos = Array.isArray(servicePayload?.photos) ? servicePayload.photos.slice(0, 3) : [];
+    const submittedAt = new Date().toISOString();
 
-    const rating = Number(payload.rating) || 0;
-    const feedbackText = payload.feedback || '';
-    const feedbackTags = Array.isArray(payload.tags) ? payload.tags : [];
-    const issueResolved = payload.issueResolved || null;
-    const ratingPhotos = Array.isArray(payload.ratingPhotos)
-      ? payload.ratingPhotos.filter((u) => typeof u === 'string' && u).slice(0, 3)
-      : [];
-
-    let targetProviderName = null;
     setBookings((prev) =>
       prev.map((b) => {
         if (b.booking_id === bookingId) {
-          targetProviderName = b.provider_name;
+          const updatedServiceReview = {
+            rating,
+            issue_resolved: issueResolved,
+            aspects,
+            comment,
+            photos,
+            submitted_at: submittedAt,
+            moderation: { hidden: false, flagged: false, admin_note: '' },
+          };
+          const nextStatus = b.provider_review ? 'completed' : 'service_done';
           return {
             ...b,
+            service_review: updatedServiceReview,
             user_rating: rating,
-            user_feedback: feedbackText,
-            feedback_tags: feedbackTags,
+            user_feedback: comment,
+            feedback_tags: aspects,
             issue_resolved: issueResolved,
-            rating_photos: ratingPhotos,
+            rating_photos: photos,
             rating_skipped: false,
-            rating_submitted_at: new Date().toISOString(),
+            rating_submitted_at: submittedAt,
+            rating_status: nextStatus,
+          };
+        }
+        return b;
+      })
+    );
+  };
+
+  const submitProviderReview = (bookingId, providerPayload) => {
+    const rating = Math.min(5, Math.max(1, Number(providerPayload?.rating) || 5));
+    const attributes = providerPayload?.attributes || {
+      punctuality: rating,
+      professionalism: rating,
+      skill: rating,
+      cleanliness: rating,
+      communication: rating,
+    };
+    const compliments = Array.isArray(providerPayload?.compliments) ? providerPayload.compliments : [];
+    const comment = (providerPayload?.comment || '').trim();
+    const submittedAt = new Date().toISOString();
+
+    let targetProviderId = null;
+    let targetProviderName = null;
+
+    setBookings((prev) =>
+      prev.map((b) => {
+        if (b.booking_id === bookingId) {
+          targetProviderId = b.provider_id;
+          targetProviderName = b.provider_name;
+          const updatedProviderReview = {
+            provider_id: b.provider_id || null,
+            provider_name: b.provider_name || 'Assigned Technician',
+            rating,
+            attributes,
+            compliments,
+            comment,
+            submitted_at: submittedAt,
+            moderation: { hidden: false, flagged: false, admin_note: '' },
+          };
+          const nextStatus = b.service_review ? 'completed' : 'provider_done';
+          return {
+            ...b,
+            provider_review: updatedProviderReview,
+            rating_skipped: false,
+            rating_status: nextStatus,
           };
         }
         return b;
       })
     );
 
-    if (targetProviderName && rating > 0) {
+    // Update provider's real rating without incorrectly incrementing total_jobs
+    if (targetProviderId != null || targetProviderName) {
       setProviders((prev) =>
         prev.map((p) => {
-          if (p.name === targetProviderName) {
-            const currentTotal = p.total_jobs || 1;
-            const currentRating = p.rating || 4.8;
-            const newRating = Number(((currentRating * currentTotal + rating) / (currentTotal + 1)).toFixed(1));
+          const isMatch =
+            (targetProviderId != null && String(p.id) === String(targetProviderId)) ||
+            (targetProviderName && p.name === targetProviderName);
+          if (isMatch) {
             return {
               ...p,
-              rating: newRating,
-              total_jobs: currentTotal + 1,
+              rating: Number(rating.toFixed(1)),
             };
           }
           return p;
         })
       );
     }
+  };
+
+  const submitBookingRating = (bookingId, ratingOrPayload, feedback = '', tags = []) => {
+    const payload =
+      ratingOrPayload && typeof ratingOrPayload === 'object' && !Array.isArray(ratingOrPayload)
+        ? ratingOrPayload
+        : { rating: ratingOrPayload, feedback, tags };
+
+    const rating = Number(payload.rating) || 5;
+    const feedbackText = payload.feedback || '';
+    const feedbackTags = Array.isArray(payload.tags) ? payload.tags : [];
+    const issueResolved = payload.issueResolved || 'yes';
+    const ratingPhotos = Array.isArray(payload.ratingPhotos) ? payload.ratingPhotos.slice(0, 3) : [];
+
+    submitServiceReview(bookingId, {
+      rating,
+      issueResolved,
+      aspects: feedbackTags,
+      comment: feedbackText,
+      photos: ratingPhotos,
+    });
+
+    submitProviderReview(bookingId, {
+      rating,
+      attributes: {
+        punctuality: rating,
+        professionalism: rating,
+        skill: rating,
+        cleanliness: rating,
+        communication: rating,
+      },
+      compliments: rating >= 4 ? ['Courteous & Respectful', 'Expert Craftsperson'] : [],
+      comment: feedbackText,
+    });
+  };
+
+  const moderateReview = (bookingId, target = 'service', moderationUpdate = {}) => {
+    setBookings((prev) =>
+      prev.map((b) => {
+        if (b.booking_id === bookingId) {
+          const field = target === 'provider' ? 'provider_review' : 'service_review';
+          const existing = b[field];
+          if (!existing) return b;
+          return {
+            ...b,
+            [field]: {
+              ...existing,
+              moderation: {
+                ...(existing.moderation || { hidden: false, flagged: false, admin_note: '' }),
+                ...moderationUpdate,
+              },
+            },
+          };
+        }
+        return b;
+      })
+    );
+  };
+
+  const setProviderIncrementDecision = (providerId, decisionData) => {
+    setProviders((prev) =>
+      prev.map((p) => {
+        if (String(p.id) === String(providerId)) {
+          const history = Array.isArray(p.increment_history) ? p.increment_history : [];
+          return {
+            ...p,
+            increment_status: decisionData.status,
+            current_increment: decisionData.incrementPercentage ?? p.current_increment,
+            increment_history: [
+              {
+                ...decisionData,
+                reviewedAt: decisionData.reviewedAt || new Date().toISOString(),
+              },
+              ...history,
+            ],
+          };
+        }
+        return p;
+      })
+    );
   };
 
   const skipBookingRating = (bookingId) => {
@@ -2532,6 +2661,10 @@ export function AppProvider({ children }) {
         toggleServiceAreaStatus,
         deleteServiceArea,
         submitBookingRating,
+        submitServiceReview,
+        submitProviderReview,
+        moderateReview,
+        setProviderIncrementDecision,
         skipBookingRating,
         updateProviderLocation,
         updateProviderProfile,

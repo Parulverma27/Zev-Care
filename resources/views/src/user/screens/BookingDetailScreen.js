@@ -701,9 +701,50 @@ export default function BookingDetailScreen() {
                   ))}
                 </View>
               )}
+
+              <TouchableOpacity
+                style={{ marginTop: 8, alignSelf: 'flex-start' }}
+                onPress={() => navigate(`/user/bookings/${bk.booking_id}/rate`)}
+              >
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#2563eb' }}>
+                  View Full Dual Review Summary →
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : Boolean(bk?.service_review && !bk?.provider_review) ? (
+            <View style={{ gap: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={[ratingStyles.iconCircle, { backgroundColor: '#f5f3ff' }]}>
+                  <AppIcon name="star" size={18} color="#6d28d9" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={ratingStyles.cardTitle}>Complete Technician Rating</Text>
+                  <Text style={ratingStyles.cardSub}>
+                    Service review recorded. Please evaluate technician {bk?.provider_name || 'partner'}.
+                  </Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={[ratingStyles.openRatingBtn, { backgroundColor: '#6d28d9' }]}
+                onPress={() => navigate(`/user/bookings/${bk.booking_id}/rate`)}
+                activeOpacity={0.85}
+              >
+                <Text style={ratingStyles.openRatingBtnText}>Rate Technician ★</Text>
+              </TouchableOpacity>
             </View>
           ) : bk?.rating_skipped ? (
-            <Text style={ratingStyles.cardSub}>You skipped rating this service.</Text>
+            <View style={{ gap: 8 }}>
+              <Text style={ratingStyles.cardSub}>You skipped rating this service.</Text>
+              <TouchableOpacity
+                onPress={() => navigate(`/user/bookings/${bk.booking_id}/rate`)}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#2563eb' }}>
+                  Submit Rating Now →
+                </Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             <View style={{ gap: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -711,9 +752,9 @@ export default function BookingDetailScreen() {
                   <AppIcon name="star" size={18} color="#d97706" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={ratingStyles.cardTitle}>Rate your service</Text>
+                  <Text style={ratingStyles.cardTitle}>Rate Service & Technician</Text>
                   <Text style={ratingStyles.cardSub}>
-                    How was your experience with {bk?.provider_name || 'your provider'}?
+                    How was your experience with {bk?.provider_name || 'your technician'}?
                   </Text>
                 </View>
               </View>
@@ -723,7 +764,7 @@ export default function BookingDetailScreen() {
                 onPress={() => navigate(`/user/bookings/${bk.booking_id}/rate`)}
                 activeOpacity={0.85}
               >
-                <Text style={ratingStyles.openRatingBtnText}>Rate us</Text>
+                <Text style={ratingStyles.openRatingBtnText}>Rate Service & Pro ★</Text>
               </TouchableOpacity>
             </View>
           )}

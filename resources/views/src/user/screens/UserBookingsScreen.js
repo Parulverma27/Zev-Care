@@ -112,6 +112,19 @@ export default function UserBookingsScreen() {
                   </View>
                 )}
 
+                {Boolean(booking.status === 'BOOKING_COMPLETED' && booking.service_review && !booking.provider_review) && (
+                  <TouchableOpacity
+                    style={[styles.rateBtn, { backgroundColor: '#6d28d9' }]}
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      navigate(`/user/bookings/${booking.booking_id}/rate`);
+                    }}
+                    activeOpacity={0.88}
+                  >
+                    <Text style={styles.rateBtnText}>Rate Technician ★ →</Text>
+                  </TouchableOpacity>
+                )}
+
                 {needsRating && (
                   <TouchableOpacity
                     style={styles.rateBtn}
@@ -121,13 +134,21 @@ export default function UserBookingsScreen() {
                     }}
                     activeOpacity={0.88}
                   >
-                    <Text style={styles.rateBtnText}>Rate us ★</Text>
+                    <Text style={styles.rateBtnText}>Rate Service & Pro ★ →</Text>
                   </TouchableOpacity>
                 )}
-                {!!booking.user_rating && (
-                  <Text style={styles.ratedHint}>
-                    Rated {'★'.repeat(booking.user_rating)} ({booking.user_rating}/5)
-                  </Text>
+
+                {Boolean(booking.user_rating || booking.service_review) && (
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      navigate(`/user/bookings/${booking.booking_id}/rate`);
+                    }}
+                  >
+                    <Text style={styles.ratedHint}>
+                      Rated {'★'.repeat(booking.user_rating || booking.service_review?.rating || 5)} ({booking.user_rating || booking.service_review?.rating || 5}/5) • View Review →
+                    </Text>
+                  </TouchableOpacity>
                 )}
               </TouchableOpacity>
             );

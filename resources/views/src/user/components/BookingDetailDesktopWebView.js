@@ -548,19 +548,40 @@ export default function BookingDetailDesktopWebView({
                       &ldquo;{bk.user_feedback}&rdquo;
                     </div>
                   ) : null}
+                  <button
+                    type="button"
+                    style={{ ...openRateBtnStyle, background: '#f59e0b', color: '#ffffff', border: 'none', alignSelf: 'flex-start', marginTop: '6px' }}
+                    onClick={() => navigate(`/user/bookings/${bk.booking_id}/rate`)}
+                  >
+                    View Review Summary →
+                  </button>
+                </div>
+              ) : Boolean(bk?.service_review && !bk?.provider_review) ? (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '13.5px', fontWeight: '800', color: '#581c87' }}>Complete Technician Evaluation</div>
+                    <div style={{ fontSize: '11.5px', color: '#7e22ce' }}>Service review recorded. Please evaluate technician {bk?.provider_name || 'partner'}.</div>
+                  </div>
+                  <button
+                    type="button"
+                    style={{ ...openRateBtnStyle, background: '#7c3aed', color: '#ffffff', border: 'none' }}
+                    onClick={() => navigate(`/user/bookings/${bk.booking_id}/rate`)}
+                  >
+                    Rate Technician ★
+                  </button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: '13.5px', fontWeight: '800', color: '#78350f' }}>Rate Your Experience</div>
-                    <div style={{ fontSize: '11.5px', color: '#92400e' }}>Help us maintain 5-star certified technician standards</div>
+                    <div style={{ fontSize: '11.5px', color: '#92400e' }}>Rate service quality and field technician</div>
                   </div>
                   <button
                     type="button"
                     style={openRateBtnStyle}
                     onClick={() => navigate(`/user/bookings/${bk.booking_id}/rate`)}
                   >
-                    Rate Service ★
+                    Rate Service & Pro ★
                   </button>
                 </div>
               )}
