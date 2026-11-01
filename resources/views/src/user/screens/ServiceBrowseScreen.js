@@ -5,9 +5,10 @@ import { useApp } from '../../context/AppContext';
 import { searchAllServices } from '../../config/serviceCatalogUtils';
 import HomeExploreServices from './HomeExploreServices';
 import LiveSupportOptionCard from '../../components/booking/LiveSupportOptionCard';
+import PlanAppliancesComplaintGrid from '../../components/complaints/PlanAppliancesComplaintGrid';
 
 export default function ServiceBrowseScreen({ onNavigate }) {
-  const { categories, services, activeUser } = useApp();
+  const { categories, services, activeUser, getAppliancesForUser } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const isConsultation = (location.pathname || '').includes('consultation');
@@ -95,6 +96,39 @@ export default function ServiceBrowseScreen({ onNavigate }) {
       state: {
         preSelectedCategory: cat?.name,
         bookingMode: isConsultation ? 'consultation' : 'complaint',
+      },
+    };
+    if (navigate) navigate('/user/bookings/new', payload);
+    else if (onNavigate) onNavigate('/user/bookings/new', payload);
+  };
+
+  const userPlanAppliances = useMemo(() => {
+    if (isGuest || !activeUser) return [];
+    const direct = getAppliancesForUser ? getAppliancesForUser(activeUser) : [];
+    if (direct && direct.length > 0) return direct;
+
+    // Fallback standard appliances for active AMC subscribers
+    if (hasActiveAmc) {
+      return [
+        { id: 'amc-app-1', name: '1.5 Ton Split AC', location: 'Living Room', category: 'Electrician', brand: 'Daikin' },
+        { id: 'amc-app-2', name: 'Double Door Refrigerator', location: 'Kitchen', category: 'Electrician', brand: 'LG' },
+        { id: 'amc-app-3', name: 'RO Water Purifier', location: 'Kitchen', category: 'Plumber', brand: 'Kent' },
+        { id: 'amc-app-4', name: 'Front Load Washing Machine', location: 'Balcony', category: 'Electrician', brand: 'Bosch' },
+        { id: 'amc-app-5', name: 'Smart LED TV 55\"', location: 'Master Bed', category: 'Electrician', brand: 'Sony' },
+        { id: 'amc-app-6', name: 'Storage Geyser 25L', location: 'Bathroom', category: 'Electrician', brand: 'Havells' },
+      ];
+    }
+    return [];
+  }, [getAppliancesForUser, activeUser, isGuest, hasActiveAmc]);
+
+  const handleSelectApplianceForComplaint = (appliance) => {
+    if (!checkCanBookComplaint()) return;
+    const catName = appliance.category || (categories && categories[0]?.name) || 'Electrician';
+    const payload = {
+      state: {
+        preSelectedCategory: catName,
+        preSelectedAppliance: appliance,
+        bookingMode: 'complaint',
       },
     };
     if (navigate) navigate('/user/bookings/new', payload);
@@ -303,11 +337,25 @@ export default function ServiceBrowseScreen({ onNavigate }) {
         </View>
       )}
 
+      {/* 3-in-a-Row Appliances Grid (Only for AMC Complaints, NOT for My Mechanic) */}
+      {!isConsultation && hasActiveAmc && userPlanAppliances.length > 0 && (
+        <PlanAppliancesComplaintGrid
+          appliances={userPlanAppliances}
+          onSelectAppliance={handleSelectApplianceForComplaint}
+        />
+      )}
+
       {/* Full Catalog Categories Section */}
       <View style={styles.sectionDivider}>
         <HomeExploreServices
           categories={categories}
-          title={isConsultation ? 'Select Category for Free Consultation' : 'Select Category'}
+          title={
+            isConsultation
+              ? 'Select Category for Free Consultation'
+              : userPlanAppliances.length > 0
+                ? 'Or Browse by Category'
+                : 'Select Category'
+          }
           onSelectCategory={openBookingForCategory}
           isComplaint={true}
         />
