@@ -123,11 +123,72 @@ export default function ServiceBrowseScreen({ onNavigate }) {
 
   const handleSelectApplianceForComplaint = (appliance) => {
     if (!checkCanBookComplaint()) return;
-    const catName = appliance.category || (categories && categories[0]?.name) || 'Electrician';
+
+    const name = String(appliance?.name || appliance?.displayName || '').toLowerCase();
+    let categoryName = 'Electrician';
+    let subCategoryName = 'Home Appliances';
+    let serviceName = 'AC';
+    let typeId = 'air_conditioner';
+
+    if (name.includes('ac') || name.includes('air conditioner')) {
+      categoryName = 'Electrician';
+      subCategoryName = 'Home Appliances';
+      serviceName = 'AC';
+      typeId = 'air_conditioner';
+    } else if (name.includes('refrigerator') || name.includes('fridge')) {
+      categoryName = 'Electrician';
+      subCategoryName = 'Kitchen Appliances';
+      serviceName = 'Refrigerator';
+      typeId = 'refrigerator';
+    } else if (name.includes('washing')) {
+      categoryName = 'Electrician';
+      subCategoryName = 'Home Appliances';
+      serviceName = 'Washing Machine';
+      typeId = 'washing_machine';
+    } else if (name.includes('ro') || name.includes('purifier') || name.includes('water')) {
+      categoryName = 'Plumber';
+      subCategoryName = 'Kitchen Fittings';
+      serviceName = 'Water Purifiers';
+      typeId = 'water_purifier';
+    } else if (name.includes('tv') || name.includes('television')) {
+      categoryName = 'Electrician';
+      subCategoryName = 'Home Appliances';
+      serviceName = 'TV';
+      typeId = 'television';
+    } else if (name.includes('geyser') || name.includes('water heater')) {
+      categoryName = 'Electrician';
+      subCategoryName = 'Home Appliances';
+      serviceName = 'Geyser';
+      typeId = 'geyser';
+    } else if (name.includes('cooler')) {
+      categoryName = 'Electrician';
+      subCategoryName = 'Home Appliances';
+      serviceName = 'Air Cooler';
+      typeId = 'air_cooler';
+    } else if (name.includes('microwave') || name.includes('oven')) {
+      categoryName = 'Electrician';
+      subCategoryName = 'Kitchen Appliances';
+      serviceName = 'Microwave';
+      typeId = 'microwave';
+    } else if (name.includes('fan')) {
+      categoryName = 'Electrician';
+      subCategoryName = 'Home Appliances';
+      serviceName = 'Fans';
+      typeId = 'fan';
+    }
+
     const payload = {
       state: {
-        preSelectedCategory: catName,
-        preSelectedAppliance: appliance,
+        preSelectedCategory: categoryName,
+        preSelectedSubCategory: subCategoryName,
+        preSelectedService: serviceName,
+        preSelectedAppliance: {
+          ...appliance,
+          applianceTypeId: typeId,
+          type: serviceName,
+          isCoveredByAmc: true,
+          is_covered_by_amc: true,
+        },
         bookingMode: 'complaint',
       },
     };

@@ -75,6 +75,7 @@ export default function BookingFlowScreen({ onNavigate }) {
   const preSelectedCategory = locationState?.state?.preSelectedCategory;
   const preSelectedSubCategory = locationState?.state?.preSelectedSubCategory;
   const preSelectedService = locationState?.state?.preSelectedService;
+  const preSelectedAppliance = locationState?.state?.preSelectedAppliance;
   const bookingMode = locationState?.state?.bookingMode;
   const isConsultation = bookingMode === 'consultation';
   const isComplaint = bookingMode === 'complaint';
@@ -165,6 +166,36 @@ export default function BookingFlowScreen({ onNavigate }) {
   };
 
   useEffect(() => {
+    if (preSelectedAppliance) {
+      if (isComplaint && !hasActiveAmc) {
+        promptGuestRegistration('An active AMC plan is required to raise complaints. Please subscribe to an AMC plan.');
+        return;
+      }
+      const catName = preSelectedCategory || 'Electrician';
+      const subCatName = preSelectedSubCategory || '';
+      const servName = preSelectedService || preSelectedAppliance.name || 'AC';
+      const typeId =
+        preSelectedAppliance.applianceTypeId ||
+        getApplianceTypeIdForService(servName) ||
+        'air_conditioner';
+
+      setCategory(catName);
+      if (subCatName) setSubCategory(subCatName);
+      setService(servName);
+      setApplianceTypeId(typeId);
+      setSelectedAppliance({
+        ...preSelectedAppliance,
+        applianceTypeId: typeId,
+        isCoveredByAmc: true,
+        is_covered_by_amc: true,
+      });
+      setSkippedCategoryStep(true);
+      clearIssueState();
+      // Directly jump to complaint issue reporting for this appliance
+      setStep('ISSUE');
+      return;
+    }
+
     if (isConsultation && isAnonymous) {
       promptGuestRegistration(
         'Please register or log in to book a free My Mechanic consultation.'
@@ -452,6 +483,10 @@ export default function BookingFlowScreen({ onNavigate }) {
       return;
     }
     if (step === 'ISSUE') {
+      if (preSelectedAppliance || skippedCategoryStep || isComplaint) {
+        goBack();
+        return;
+      }
       if (isConsultation) {
         if (skippedCategoryStep) {
           goBack();
@@ -1535,7 +1570,7 @@ export default function BookingFlowScreen({ onNavigate }) {
         visible={showPaymentModal}
         applianceName={paymentPromptTarget?.name || displayName || 'Appliance'}
         activeUser={activeUser}
-        contextLabel={isComplaint ? 'complaint resolution and AMC coverage' : 'service booking and AMC coverage'}
+        contextLabel={isComplaint ? 'complaint resolution and AMC protection' : 'service booking and AMC protection'}
         onPaymentSuccess={handleAppliancePaymentSuccess}
         onCancel={() => {
           setShowPaymentModal(false);
