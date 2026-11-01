@@ -110,12 +110,12 @@ export default function ServiceBrowseScreen({ onNavigate }) {
     // Fallback standard appliances for active AMC subscribers
     if (hasActiveAmc) {
       return [
-        { id: 'amc-app-1', name: '1.5 Ton Split AC', location: 'Living Room', category: 'Electrician', brand: 'Daikin' },
-        { id: 'amc-app-2', name: 'Double Door Refrigerator', location: 'Kitchen', category: 'Electrician', brand: 'LG' },
-        { id: 'amc-app-3', name: 'RO Water Purifier', location: 'Kitchen', category: 'Plumber', brand: 'Kent' },
-        { id: 'amc-app-4', name: 'Front Load Washing Machine', location: 'Balcony', category: 'Electrician', brand: 'Bosch' },
-        { id: 'amc-app-5', name: 'Smart LED TV 55\"', location: 'Master Bed', category: 'Electrician', brand: 'Sony' },
-        { id: 'amc-app-6', name: 'Storage Geyser 25L', location: 'Bathroom', category: 'Electrician', brand: 'Havells' },
+        { id: 'amc-app-1', name: '1.5 Ton AC', location: 'Living Room', category: 'Electrician', brand: 'Daikin' },
+        { id: 'amc-app-2', name: 'Refrigerator', location: 'Kitchen', category: 'Electrician', brand: 'LG' },
+        { id: 'amc-app-3', name: 'RO Purifier', location: 'Kitchen', category: 'Plumber', brand: 'Kent' },
+        { id: 'amc-app-4', name: 'Washing Machine', location: 'Balcony', category: 'Electrician', brand: 'Bosch' },
+        { id: 'amc-app-5', name: 'Smart TV 55\"', location: 'Master Bed', category: 'Electrician', brand: 'Sony' },
+        { id: 'amc-app-6', name: 'Geyser 25L', location: 'Bathroom', category: 'Electrician', brand: 'Havells' },
       ];
     }
     return [];

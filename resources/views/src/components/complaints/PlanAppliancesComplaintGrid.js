@@ -41,14 +41,37 @@ const getApplianceImage = (app) => {
 };
 
 /**
- * Default sample verification video (high-tech inspection loop)
+ * Returns user uploaded video URI if one exists, otherwise null
+ * (Strictly never returns placeholder / stock demo videos)
  */
-const DEFAULT_VERIFICATION_VIDEO = 'https://assets.mixkit.co/videos/preview/mixkit-electronic-technician-soldering-a-circuit-board-42171-large.mp4';
+const getUserUploadedVideo = (app) => {
+  if (!app) return null;
+  const raw =
+    app.videoUri ||
+    app.video_url ||
+    app.uploadedMediaUri ||
+    app.video ||
+    app.videoUrl ||
+    app.video_uri ||
+    (app.media?.type === 'video' ? (app.media?.url || app.media?.uri) : null);
+
+  if (typeof raw === 'string') {
+    const clean = raw.trim();
+    if (
+      clean.length > 0 &&
+      !clean.startsWith('auto-verified') &&
+      !clean.includes('mixkit') &&
+      (clean.startsWith('blob:') || clean.startsWith('data:video') || clean.startsWith('http') || clean.includes('.mp4') || clean.includes('.webm'))
+    ) {
+      return clean;
+    }
+  }
+  return null;
+};
 
 export default function PlanAppliancesComplaintGrid({
   appliances = [],
   onSelectAppliance,
-  onAddAppliance,
 }) {
   const [activeVideoAppliance, setActiveVideoAppliance] = useState(null);
 
@@ -58,18 +81,18 @@ export default function PlanAppliancesComplaintGrid({
 
   return (
     <View style={styles.container}>
-      {/* Section Header */}
-      <View style={styles.sectionHeaderRow}>
-        <View style={styles.titleWithAccent}>
-          <View style={styles.titleAccentBar} />
-          <View>
+      {/* Section Header: Fixed Layout (Row 1: Title + Count Badge, Row 2: Subtitle) */}
+      <View style={styles.sectionHeaderContainer}>
+        <View style={styles.sectionHeaderTopRow}>
+          <View style={styles.titleWithAccent}>
+            <View style={styles.titleAccentBar} />
             <Text style={styles.sectionTitle}>Your Plan Appliances</Text>
-            <Text style={styles.sectionSub}>Select an appliance in your AMC to report an issue</Text>
+          </View>
+          <View style={styles.countBadge}>
+            <Text style={styles.countBadgeText}>{appliances.length} APPLIANCES</Text>
           </View>
         </View>
-        <View style={styles.countBadge}>
-          <Text style={styles.countBadgeText}>{appliances.length} APPLIANCES</Text>
-        </View>
+        <Text style={styles.sectionSub}>Select an appliance in your AMC to report an issue</Text>
       </View>
 
       {/* 3-in-a-Row Responsive Grid */}
@@ -79,7 +102,7 @@ export default function PlanAppliancesComplaintGrid({
           const appName = app.name || app.displayName || 'Appliance';
           const location = app.location || app.room || 'Home';
           const brand = app.brand && app.brand !== 'Standard' ? app.brand : null;
-          const videoSrc = app.videoUri || app.video_url || DEFAULT_VERIFICATION_VIDEO;
+          const userUploadedVideo = getUserUploadedVideo(app);
 
           return (
             <div
@@ -96,42 +119,51 @@ export default function PlanAppliancesComplaintGrid({
                   resizeMode="contain"
                 />
 
-                {/* Video Chip Button (Opens video player modal) */}
-                <button
-                  type="button"
-                  style={videoChipStyle}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveVideoAppliance({ ...app, videoSrc, name: appName, location });
-                  }}
-                  title="Watch verification video"
-                >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="#ffffff">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                  <span>Video</span>
-                </button>
+                {/* Video Chip Button: STRICTLY SHOWN ONLY IF USER UPLOADED VIDEO */}
+                {userUploadedVideo && (
+                  <button
+                    type="button"
+                    style={videoChipStyle}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveVideoAppliance({
+                        ...app,
+                        videoSrc: userUploadedVideo,
+                        name: appName,
+                        location,
+                      });
+                    }}
+                    title="Watch recorded video"
+                  >
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="#ffffff">
+                      <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    <span>Video</span>
+                  </button>
+                )}
               </div>
 
               {/* Info Details */}
               <div style={infoBoxStyle}>
+                {/* Clean 2-line fixed height title to ensure row alignment */}
                 <div style={nameStyle} title={appName}>
                   {appName}
                 </div>
 
-                <div style={subInfoRowStyle}>
+                {/* Location & Brand: Single compact line with ellipsis */}
+                <div style={metaRowStyle}>
                   <span style={locationTagStyle}>{location}</span>
                   {brand && <span style={brandTagStyle}>{brand}</span>}
                 </div>
 
-                {/* Status Indicator */}
+                {/* Status Indicator: Compact single line */}
                 <div style={protectionPillStyle}>
                   <span style={greenDotStyle} />
-                  <span>₹0 Labor Included</span>
+                  <span>₹0 Labor</span>
                 </div>
               </div>
 
-              {/* Action Button */}
+              {/* Action Button: Pinned to bottom of card */}
               <div style={reportActionBtnStyle}>
                 <span>Raise ›</span>
               </div>
@@ -140,7 +172,7 @@ export default function PlanAppliancesComplaintGrid({
         })}
       </div>
 
-      {/* Video Inspection Modal */}
+      {/* Video Inspection Modal (Only launches for real uploaded videos) */}
       {activeVideoAppliance && (
         <Modal
           visible={Boolean(activeVideoAppliance)}
@@ -154,7 +186,7 @@ export default function PlanAppliancesComplaintGrid({
                 <View style={{ flex: 1 }}>
                   <Text style={styles.modalTitle}>{activeVideoAppliance.name}</Text>
                   <Text style={styles.modalSub}>
-                    Verified AMC Appliance • {activeVideoAppliance.location}
+                    Attached Verification Video • {activeVideoAppliance.location}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -202,48 +234,51 @@ export default function PlanAppliancesComplaintGrid({
 const gridStyle = {
   display: 'grid',
   gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-  gap: '10px',
+  gap: '8px',
   width: '100%',
   boxSizing: 'border-box',
 };
 
 const cardStyle = {
   background: '#ffffff',
-  borderRadius: '16px',
+  borderRadius: '14px',
   border: '1.5px solid #e2e8f0',
-  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.05)',
+  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
   display: 'flex',
   flexDirection: 'column',
+  justifyContent: 'space-between',
   overflow: 'hidden',
   cursor: 'pointer',
-  transition: 'transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease',
+  transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
   position: 'relative',
   boxSizing: 'border-box',
+  minHeight: '190px',
 };
 
 const mediaBoxStyle = {
   position: 'relative',
   width: '100%',
-  height: '74px',
-  background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
+  height: '68px',
+  background: '#f8fafc',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   borderBottom: '1px solid #f1f5f9',
+  overflow: 'hidden',
 };
 
 const videoChipStyle = {
   position: 'absolute',
-  top: '6px',
-  right: '6px',
+  top: '5px',
+  right: '5px',
   background: 'rgba(15, 23, 42, 0.78)',
   backdropFilter: 'blur(4px)',
   WebkitBackdropFilter: 'blur(4px)',
   color: '#ffffff',
   border: 'none',
   borderRadius: '999px',
-  padding: '3px 7px',
-  fontSize: '10px',
+  padding: '2px 6px',
+  fontSize: '9px',
   fontWeight: '600',
   display: 'flex',
   alignItems: 'center',
@@ -253,7 +288,7 @@ const videoChipStyle = {
 };
 
 const infoBoxStyle = {
-  padding: '9px 8px 6px 8px',
+  padding: '7px 7px 4px 7px',
   display: 'flex',
   flexDirection: 'column',
   gap: '3px',
@@ -261,53 +296,69 @@ const infoBoxStyle = {
 };
 
 const nameStyle = {
-  fontSize: '12px',
+  fontSize: '11.5px',
   fontWeight: '700',
   color: '#0f172a',
-  lineHeight: '15px',
+  lineHeight: '14px',
+  height: '28px',
   overflow: 'hidden',
+  display: '-webkit-box',
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: 'vertical',
   textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
 };
 
-const subInfoRowStyle = {
+const metaRowStyle = {
   display: 'flex',
   alignItems: 'center',
-  gap: '4px',
-  flexWrap: 'wrap',
+  gap: '3px',
+  overflow: 'hidden',
+  whiteSpace: 'nowrap',
+  textOverflow: 'ellipsis',
 };
 
 const locationTagStyle = {
-  fontSize: '10px',
+  fontSize: '9px',
   color: '#64748b',
-  fontWeight: '500',
+  fontWeight: '600',
   background: '#f1f5f9',
-  padding: '1px 5px',
+  padding: '1px 4px',
   borderRadius: '4px',
+  maxWidth: '65px',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  display: 'inline-block',
 };
 
 const brandTagStyle = {
-  fontSize: '10px',
+  fontSize: '9px',
   color: '#2563eb',
-  fontWeight: '600',
+  fontWeight: '700',
   background: '#eff6ff',
-  padding: '1px 5px',
+  padding: '1px 4px',
   borderRadius: '4px',
+  maxWidth: '45px',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  display: 'inline-block',
 };
 
 const protectionPillStyle = {
   display: 'inline-flex',
   alignItems: 'center',
-  gap: '4px',
-  marginTop: '3px',
+  gap: '3.5px',
+  marginTop: '2px',
   fontSize: '9.5px',
   fontWeight: '600',
   color: '#059669',
+  whiteSpace: 'nowrap',
 };
 
 const greenDotStyle = {
-  width: '6px',
-  height: '6px',
+  width: '5px',
+  height: '5px',
   borderRadius: '50%',
   backgroundColor: '#10b981',
   display: 'inline-block',
@@ -315,12 +366,12 @@ const greenDotStyle = {
 };
 
 const reportActionBtnStyle = {
-  margin: '0 8px 8px 8px',
+  margin: '4px 7px 7px 7px',
   padding: '5px 0',
-  borderRadius: '8px',
-  background: '#f8fafc',
-  border: '1px solid #e2e8f0',
-  color: '#0052cc',
+  borderRadius: '7px',
+  background: '#eff6ff',
+  border: '1px solid #bfdbfe',
+  color: '#1d4ed8',
   fontSize: '11px',
   fontWeight: '700',
   textAlign: 'center',
@@ -344,23 +395,30 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 20,
   },
-  sectionHeaderRow: {
+  sectionHeaderContainer: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  sectionHeaderTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    width: '100%',
   },
   titleWithAccent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     flex: 1,
+    minWidth: 0,
+    paddingRight: 8,
   },
   titleAccentBar: {
     width: 3.5,
-    height: 32,
+    height: 18,
     backgroundColor: '#0052cc',
     borderRadius: 2,
+    flexShrink: 0,
   },
   sectionTitle: {
     fontSize: 15,
@@ -371,7 +429,8 @@ const styles = StyleSheet.create({
   sectionSub: {
     fontSize: 11,
     color: '#64748b',
-    marginTop: 1,
+    marginTop: 4,
+    lineHeight: 15,
   },
   countBadge: {
     backgroundColor: '#eff6ff',
@@ -380,16 +439,17 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: '#bfdbfe',
+    flexShrink: 0,
   },
   countBadgeText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
     color: '#1d4ed8',
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
   },
   applianceThumb: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
   },
   modalOverlay: {
     flex: 1,
