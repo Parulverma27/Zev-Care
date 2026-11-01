@@ -608,22 +608,25 @@ export default function LiveSupportScreen({ onNavigate }) {
     );
   }
 
-  // 100% UNTOUCHED Mobile App Layout
+  // Modern Luxury Web-Inspired Operations Desk Layout
   return (
     <View style={styles.container}>
       
-      {/* WhatsApp Dark Green Header */}
+      {/* Web Style Luxury Operations Desk Header */}
       <View style={styles.topHeader}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity style={styles.backBtn} onPress={handleGoBack} activeOpacity={0.7}>
-            <Text style={styles.backArrow}>←</Text>
+          <TouchableOpacity style={styles.backBtn} onPress={handleGoBack} activeOpacity={0.7} title="Back">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
           </TouchableOpacity>
-          <View style={styles.avatarWrap}>
-            <Text style={{ fontSize: 20 }}>🟢</Text>
-          </View>
           <View style={styles.headerInfo}>
-            <Text style={styles.headerTitle} numberOfLines={1}>Zevota Operations Helpdesk</Text>
-            <Text style={styles.headerStatus}>Zeva AI + Live Agent Standby</Text>
+            <Text style={styles.headerTitle}>Zevota Support</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+              <View style={styles.onlineDot} />
+              <Text style={styles.headerStatus} numberOfLines={1}>Operations Desk • Online</Text>
+            </View>
           </View>
         </View>
 
@@ -632,13 +635,18 @@ export default function LiveSupportScreen({ onNavigate }) {
           onPress={() => sendMessage('Speak with Live Executive')}
           activeOpacity={0.8}
         >
-          <Text style={styles.humanHandoverBtnText}>🎧 Human Agent</Text>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+          </svg>
+          <Text style={styles.humanHandoverBtnText}>Human Desk</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Quick Replies Carousel */}
+      {/* Web Style Quick Inquiries Carousel */}
       <View style={styles.quickRowContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickScrollContent}>
+          <Text style={styles.quickInquiriesLabel}>QUICK INQUIRIES:</Text>
           {QUICK_REPLIES.map((q) => (
             <TouchableOpacity key={q} style={styles.quickReplyChip} onPress={() => sendMessage(q)} activeOpacity={0.85}>
               <Text style={styles.quickReplyText}>{q}</Text>
@@ -647,16 +655,21 @@ export default function LiveSupportScreen({ onNavigate }) {
         </ScrollView>
       </View>
 
-      {/* WhatsApp Chat Area */}
+      {/* Web Style Messages Stream Area */}
       <ScrollView
         ref={scrollRef}
         style={styles.chatBackground}
         contentContainerStyle={styles.chatContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.encryptionNotice, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }]}>
-          <AppIcon name="lock" size={11} color="#594411" strokeWidth={2.2} />
-          <Text style={[styles.encryptionText, { flexShrink: 1 }]}>Messages and calls are end-to-end encrypted. No one outside of this chat, not even ZevotaCare, can read or listen to them.</Text>
+        <View style={styles.encryptionNotice}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0878f8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <Text style={styles.encryptionText}>
+            This conversation is secured and linked to your active Zevota Care account ({activeUser?.name || 'Customer'}).
+          </Text>
         </View>
 
         {userMessages.map((msg) => {
@@ -664,17 +677,30 @@ export default function LiveSupportScreen({ onNavigate }) {
           const isDoc = msg.msgType === 'document' || msg.fileName;
           return (
             <View key={msg.id} style={[styles.messageRow, isMe ? styles.messageRowRight : styles.messageRowLeft]}>
+              {!isMe && (
+                <View style={styles.deskAvatar}>
+                  <Text style={styles.deskAvatarText}>ZO</Text>
+                </View>
+              )}
+
               <View style={[styles.bubble, isMe ? styles.bubbleRight : styles.bubbleLeft]}>
-                {!isMe && <Text style={styles.senderLabel}>{msg.sender}</Text>}
+                {!isMe && (
+                  <View style={styles.senderTagRow}>
+                    <Text style={styles.senderLabel}>{msg.sender || 'Zevota Operations'}</Text>
+                    <View style={styles.opsLeadBadge}>
+                      <Text style={styles.opsLeadText}>Ops Lead</Text>
+                    </View>
+                  </View>
+                )}
                 
                 {isDoc ? (
                   <TouchableOpacity
-                    style={styles.docMessageCard}
+                    style={isMe ? styles.docMessageCardMe : styles.docMessageCardThem}
                     onPress={() => handleOpenDocument(msg)}
                     activeOpacity={0.7}
                   >
-                    <View style={styles.docIconBox}>
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5f63f2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <View style={isMe ? styles.docIconBoxMe : styles.docIconBoxThem}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={isMe ? '#0878f8' : '#2563eb'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                         <polyline points="14 2 14 8 20 8" />
                         <line x1="16" y1="13" x2="8" y2="13" />
@@ -683,13 +709,15 @@ export default function LiveSupportScreen({ onNavigate }) {
                       </svg>
                     </View>
                     <View style={styles.docInfoCol}>
-                      <Text style={styles.docFileName} numberOfLines={2}>{msg.fileName || msg.text}</Text>
-                      <Text style={styles.docMetaText}>
-                        {msg.fileSize || '120 KB'} • {msg.fileExt || 'DOC'}
+                      <Text style={isMe ? styles.docFileNameMe : styles.docFileNameThem} numberOfLines={2}>
+                        {msg.fileName || msg.text}
+                      </Text>
+                      <Text style={isMe ? styles.docMetaTextMe : styles.docMetaTextThem}>
+                        {msg.fileSize || '120 KB'} • {msg.fileExt || 'DOC'} • Click to view
                       </Text>
                     </View>
                     <View style={styles.docOpenIconBox}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#008069" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isMe ? '#ffffff' : '#0878f8'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                         <polyline points="15 3 21 3 21 9" />
                         <line x1="10" y1="14" x2="21" y2="3" />
@@ -698,7 +726,7 @@ export default function LiveSupportScreen({ onNavigate }) {
                   </TouchableOpacity>
                 ) : (
                   <View>
-                    <Text style={styles.bubbleText}>{msg.text}</Text>
+                    <Text style={isMe ? styles.bubbleTextRight : styles.bubbleText}>{msg.text}</Text>
 
                     {/* Dynamic Action Button */}
                     {Boolean(msg.actionLink) && (
@@ -733,11 +761,12 @@ export default function LiveSupportScreen({ onNavigate }) {
                 )}
 
                 <View style={styles.metaRow}>
-                  <Text style={styles.timeText}>{msg.time}</Text>
+                  <Text style={isMe ? styles.timeTextRight : styles.timeText}>{msg.time}</Text>
                   {isMe && (
                     <View style={styles.ticksWrap}>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34b7f1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6L7 17l-5-5" />
+                        <path d="M22 10l-7.5 7.5-2-2" />
                       </svg>
                     </View>
                   )}
@@ -749,7 +778,13 @@ export default function LiveSupportScreen({ onNavigate }) {
 
         {isTyping && (
           <View style={[styles.messageRow, styles.messageRowLeft]}>
-            <View style={[styles.bubble, styles.bubbleLeft]}>
+            <View style={styles.deskAvatar}>
+              <Text style={styles.deskAvatarText}>ZO</Text>
+            </View>
+            <View style={[styles.bubble, styles.bubbleLeft, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+              <View style={styles.typingDot} />
+              <View style={[styles.typingDot, { opacity: 0.7 }]} />
+              <View style={[styles.typingDot, { opacity: 0.4 }]} />
               <Text style={styles.typingIndicator}>Operations is typing...</Text>
             </View>
           </View>
@@ -794,73 +829,88 @@ export default function LiveSupportScreen({ onNavigate }) {
         </View>
       )}
 
-      {/* WhatsApp Input Row */}
+      {/* Web Style Chat Composer Input Bar */}
       <View style={styles.inputOuterContainer}>
         {isRecording ? (
-          // Recording simulated view
           <View style={styles.recordingCapsule}>
             <View style={styles.recordingDot} />
             <Text style={styles.recordingTimer}>
-              Recording Voice Note... {Math.floor(recordingSeconds / 60)}:{(recordingSeconds % 60).toString().padStart(2, '0')}
+              Recording voice inquiry... {Math.floor(recordingSeconds / 60)}:{(recordingSeconds % 60).toString().padStart(2, '0')}
             </Text>
             <TouchableOpacity style={styles.cancelRecordingBtn} onPress={() => setIsRecording(false)}>
               <Text style={styles.cancelRecordingText}>Cancel</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.sendVoiceBtn} onPress={toggleVoiceRecording}>
+              <Text style={styles.sendVoiceBtnText}>Send Voice Note</Text>
+            </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.inputContainerCapsule}>
-            {/* Emoji icon toggles emoji picker tray */}
-            <TouchableOpacity style={styles.inputEmojiBtn} onPress={() => { setShowEmojiPicker(!showEmojiPicker); setShowAttachmentMenu(false); }}>
-              <Text style={{ fontSize: 20 }}>😊</Text>
+          <View style={styles.composerFormRow}>
+            {/* Paperclip attachment button */}
+            <TouchableOpacity
+              style={styles.composerActionIconBtn}
+              onPress={handleDocumentClick}
+              activeOpacity={0.7}
+              title="Attach document"
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+              </svg>
             </TouchableOpacity>
-            
+
+            {/* Emoji toggle */}
+            <TouchableOpacity
+              style={styles.composerActionIconBtn}
+              onPress={() => { setShowEmojiPicker(!showEmojiPicker); setShowAttachmentMenu(false); }}
+              activeOpacity={0.7}
+              title="Add emoji"
+            >
+              <Text style={{ fontSize: 18 }}>😊</Text>
+            </TouchableOpacity>
+
+            {/* Text Input */}
             <TextInput
               style={styles.chatTextInput}
               value={inputText}
               onChangeText={(t) => { setInputText(t); if (t) { setShowEmojiPicker(false); setShowAttachmentMenu(false); } }}
-              placeholder="Message"
-              placeholderTextColor="#7f8c8d"
+              placeholder="Type your message or ask a question..."
+              placeholderTextColor="#94a3b8"
               onSubmitEditing={() => sendMessage(inputText)}
               returnKeyType="send"
             />
 
-            {/* Paperclip toggles attachment drawer */}
-            <TouchableOpacity style={styles.clipBtn} onPress={() => { setShowAttachmentMenu(!showAttachmentMenu); setShowEmojiPicker(false); }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7f8c8d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-              </svg>
+            {/* Blue Web Send Button */}
+            <TouchableOpacity
+              style={styles.webSendBtn}
+              onPress={() => {
+                if (inputText.trim()) {
+                  sendMessage(inputText);
+                } else {
+                  toggleVoiceRecording();
+                }
+              }}
+              activeOpacity={0.85}
+              title={inputText.trim() ? "Send message" : "Voice note"}
+            >
+              {inputText.trim() ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              ) : isRecording ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="23" />
+                </svg>
+              )}
             </TouchableOpacity>
           </View>
         )}
-
-        {/* WhatsApp Round Green Mic / Send Button - Fully Interactive */}
-        <TouchableOpacity
-          style={[styles.micSendCircle, isRecording && styles.micCircleRecording]}
-          onPress={() => {
-            if (inputText.trim()) {
-              sendMessage(inputText);
-            } else {
-              toggleVoiceRecording();
-            }
-          }}
-          activeOpacity={0.85}
-        >
-          {inputText.trim() ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-          ) : isRecording ? (
-            // Stop icon to stop recording
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
-            </svg>
-          ) : (
-            // Microphone icon to record voice note
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
-            </svg>
-          )}
-        </TouchableOpacity>
       </View>
 
       {renderModals()}
@@ -869,77 +919,196 @@ export default function LiveSupportScreen({ onNavigate }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ece5dd', display: 'flex', flexDirection: 'column' },
+  container: { flex: 1, backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column' },
 
-  // WhatsApp Header
+  // Luxury Web Style Header
   topHeader: {
-    height: 64,
-    backgroundColor: '#008069',
+    height: 68,
+    backgroundColor: '#ffffff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8 },
-  backBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  backArrow: { fontSize: 24, color: '#ffffff', fontWeight: '700' },
-  avatarWrap: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#e0e0e0' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 },
+  backBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' },
+  avatarWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: '#0878f8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 6px rgba(8,120,248,0.25)',
+  },
   headerInfo: { justifyContent: 'center', flex: 1, minWidth: 0 },
-  headerTitle: { fontSize: 15, fontWeight: '700', color: '#ffffff', fontFamily: "'Outfit', 'Inter', sans-serif" },
-  headerStatus: { fontSize: 11, color: '#e0f2f1', fontFamily: "'Outfit', 'Inter', sans-serif", marginTop: 1 },
-  headerRight: { flexDirection: 'row', gap: 14, alignItems: 'center' },
-  headerIcon: { padding: 4 },
+  headerTitle: { fontSize: 15, fontWeight: '800', color: '#0f172a', fontFamily: "'Outfit', 'Inter', sans-serif", letterSpacing: -0.2 },
+  verifiedStaffPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e0f2fe',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    flexShrink: 0,
+  },
+  verifiedStaffText: { color: '#0284c7', fontSize: 10, fontWeight: '700', letterSpacing: 0.2 },
+  onlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#16a34a', flexShrink: 0 },
+  headerStatus: { fontSize: 11, color: '#64748b', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  humanHandoverBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: '#0878f8',
+    flexShrink: 0,
+  },
+  humanHandoverBtnText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#ffffff',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
 
-  // Quick replies
-  quickRowContainer: { backgroundColor: '#f6f6f6', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#e0e0e0' },
-  quickScrollContent: { gap: 8, paddingHorizontal: 12 },
-  quickReplyChip: { backgroundColor: '#ffffff', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: '#e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
-  quickReplyText: { fontSize: 12, color: '#008069', fontWeight: '700', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  // Quick inquiries carousel
+  quickRowContainer: { backgroundColor: '#ffffff', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#e2e8f0' },
+  quickScrollContent: { gap: 8, paddingHorizontal: 12, alignItems: 'center' },
+  quickInquiriesLabel: { fontSize: 10, fontWeight: '800', color: '#64748b', letterSpacing: 0.5, marginRight: 2 },
+  quickReplyChip: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    paddingHorizontal: 13,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+  },
+  quickReplyText: { fontSize: 12, color: '#1e293b', fontWeight: '600', fontFamily: "'Outfit', 'Inter', sans-serif" },
 
-  // Wallpaper styling
-  chatBackground: { flex: 1, backgroundColor: '#efeae2' },
-  chatContent: { padding: 12, paddingBottom: 16, gap: 10 },
+  // Modern Web Stream Styling
+  chatBackground: { flex: 1, backgroundColor: '#f8fafc' },
+  chatContent: { padding: 14, paddingBottom: 24, gap: 12 },
 
-  encryptionNotice: { backgroundColor: '#ffe9a2', padding: 8, borderRadius: 8, marginHorizontal: 16, marginVertical: 4, alignSelf: 'center', width: '90%', borderWidth: 1, borderColor: '#ffd073' },
-  encryptionText: { fontSize: 10.5, color: '#594411', textAlign: 'center', fontFamily: "'Outfit', 'Inter', sans-serif", lineHeight: 14 },
+  encryptionNotice: {
+    backgroundColor: '#eff6ff',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    marginHorizontal: 8,
+    marginVertical: 4,
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 440,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  encryptionText: {
+    fontSize: 11,
+    color: '#1e40af',
+    textAlign: 'center',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    fontWeight: '600',
+    lineHeight: 15,
+    flexShrink: 1,
+  },
+
+  deskAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  deskAvatarText: { color: '#0878f8', fontWeight: '800', fontSize: 11 },
 
   messageRow: { flexDirection: 'row', width: '100%' },
   messageRowRight: { justifyContent: 'flex-end' },
-  messageRowLeft: { justifyContent: 'flex-start' },
+  messageRowLeft: { justifyContent: 'flex-start', alignItems: 'flex-start' },
 
-  bubble: { maxWidth: '82%', padding: 8, paddingHorizontal: 10, borderRadius: 8, position: 'relative', minWidth: 60 },
-  bubbleRight: { backgroundColor: '#d9fdd3', borderTopRightRadius: 0, boxShadow: '0 1px 1px rgba(0,0,0,0.1)' },
-  bubbleLeft: { backgroundColor: '#ffffff', borderTopLeftRadius: 0, boxShadow: '0 1px 1px rgba(0,0,0,0.1)' },
-  senderLabel: { fontSize: 11, fontWeight: '800', color: '#128c7e', marginBottom: 2, fontFamily: "'Outfit', 'Inter', sans-serif" },
-  bubbleText: { fontSize: 13.5, color: '#111b21', fontFamily: "'Outfit', 'Inter', sans-serif", lineHeight: 19 },
+  bubble: { maxWidth: '82%', padding: 12, paddingHorizontal: 14, borderRadius: 16, position: 'relative', minWidth: 70 },
+  bubbleRight: {
+    backgroundColor: '#0878f8',
+    borderTopRightRadius: 4,
+    boxShadow: '0 4px 12px rgba(8,120,248,0.22)',
+  },
+  bubbleLeft: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+  },
+
+  senderTagRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  senderLabel: { fontSize: 12, fontWeight: '700', color: '#0f172a', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  opsLeadBadge: { backgroundColor: '#f1f5f9', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1.5, marginLeft: 6 },
+  opsLeadText: { color: '#475569', fontSize: 9.5, fontWeight: '700' },
+
+  bubbleText: { fontSize: 13.5, color: '#0f172a', fontFamily: "'Outfit', 'Inter', sans-serif", lineHeight: 20 },
+  bubbleTextRight: { fontSize: 13.5, color: '#ffffff', fontFamily: "'Outfit', 'Inter', sans-serif", lineHeight: 20 },
+
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 4, alignSelf: 'flex-end' },
-  timeText: { fontSize: 9.5, color: '#667781', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  timeText: { fontSize: 10, color: '#94a3b8', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  timeTextRight: { fontSize: 10, color: '#bfdbfe', fontFamily: "'Outfit', 'Inter', sans-serif" },
   ticksWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
-  // Document Card in Chat Bubble
-  docMessageCard: {
+  // Document Cards in Chat
+  docMessageCardMe: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e2f4ea',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
     borderRadius: 10,
     padding: 10,
     gap: 10,
     minWidth: 200,
-    maxWidth: 280,
+    maxWidth: 290,
     cursor: 'pointer',
     borderWidth: 1,
-    borderColor: '#c6edd7'
+    borderColor: 'rgba(255, 255, 255, 0.28)',
   },
-  docIconBox: { width: 40, height: 40, borderRadius: 8, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' },
+  docMessageCardThem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 10,
+    padding: 10,
+    gap: 10,
+    minWidth: 200,
+    maxWidth: 290,
+    cursor: 'pointer',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  docIconBoxMe: { width: 38, height: 38, borderRadius: 8, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center' },
+  docIconBoxThem: { width: 38, height: 38, borderRadius: 8, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center' },
   docInfoCol: { flex: 1, minWidth: 0 },
-  docFileName: { fontSize: 13, fontWeight: '700', color: '#111b21', fontFamily: "'Outfit', 'Inter', sans-serif", wordBreak: 'break-word' },
-  docMetaText: { fontSize: 10.5, color: '#667781', fontFamily: "'Outfit', 'Inter', sans-serif", marginTop: 2 },
-  docOpenIconBox: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' },
+  docFileNameMe: { fontSize: 12.5, fontWeight: '700', color: '#ffffff', fontFamily: "'Outfit', 'Inter', sans-serif", wordBreak: 'break-word' },
+  docFileNameThem: { fontSize: 12.5, fontWeight: '700', color: '#0f172a', fontFamily: "'Outfit', 'Inter', sans-serif", wordBreak: 'break-word' },
+  docMetaTextMe: { fontSize: 10.5, color: '#bfdbfe', fontFamily: "'Outfit', 'Inter', sans-serif", marginTop: 2 },
+  docMetaTextThem: { fontSize: 10.5, color: '#64748b', fontFamily: "'Outfit', 'Inter', sans-serif", marginTop: 2 },
+  docOpenIconBox: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
 
-  typingIndicator: { fontSize: 12, fontStyle: 'italic', color: '#667781', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  typingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#0878f8' },
+  typingIndicator: { fontSize: 12, fontStyle: 'italic', color: '#64748b', fontFamily: "'Outfit', 'Inter', sans-serif", marginLeft: 4 },
 
-  // Emoji Tray Styling (Floating Popup)
+  // Emoji Tray Styling
   emojiTray: {
     position: 'absolute',
     bottom: 68,
@@ -951,15 +1120,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     padding: 10,
     borderRadius: 16,
-    boxShadow: '0 6px 20px rgba(0,0,0,0.18)',
+    boxShadow: '0 6px 20px rgba(0,0,0,0.14)',
     justifyContent: 'space-around',
     zIndex: 99,
     borderWidth: 1,
-    borderColor: '#e8ecef'
+    borderColor: '#e2e8f0',
   },
   emojiIconCell: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
 
-  // Attachment Drawer Styling - Compact Floating WhatsApp Bubble
+  // Attachment Drawer
   attachmentDrawer: {
     position: 'absolute',
     bottom: 68,
@@ -968,33 +1137,78 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    boxShadow: '0 6px 22px rgba(0,0,0,0.22)',
+    boxShadow: '0 6px 22px rgba(0,0,0,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 100,
     borderWidth: 1,
-    borderColor: '#e8ecef'
+    borderColor: '#e2e8f0',
   },
   attachCell: { alignItems: 'center', gap: 4 },
-  docAttachIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#5f63f2', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 8px rgba(95,99,242,0.35)' },
-  attachLabel: { fontSize: 11, color: '#334155', fontWeight: '700', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  docAttachIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#0878f8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 3px 8px rgba(8,120,248,0.3)',
+  },
+  attachLabel: { fontSize: 11, color: '#0f172a', fontWeight: '700', fontFamily: "'Outfit', 'Inter', sans-serif" },
 
-  // Input Row Styling
-  inputOuterContainer: { flexDirection: 'row', padding: 8, gap: 6, backgroundColor: 'transparent', alignItems: 'center' },
-  inputContainerCapsule: { flex: 1, backgroundColor: '#ffffff', borderRadius: 24, paddingHorizontal: 12, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.1)' },
-  inputEmojiBtn: { padding: 2 },
-  chatTextInput: { flex: 1, minWidth: 0, fontSize: 14.5, color: '#111b21', fontFamily: "'Outfit', 'Inter', sans-serif", outlineStyle: 'none' },
-  clipBtn: { padding: 4 },
-
-  micSendCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#008069', alignItems: 'center', justifyContent: 'center', display: 'flex', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' },
-  micCircleRecording: { backgroundColor: '#dc2626' },
+  // Modern Web Composer
+  inputOuterContainer: {
+    padding: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+  },
+  composerFormRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  composerActionIconBtn: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#f1f5f9' },
+  chatTextInput: {
+    flex: 1,
+    minWidth: 0,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    fontSize: 13.5,
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    outlineStyle: 'none',
+  },
+  webSendBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#0878f8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 8px rgba(8,120,248,0.3)',
+  },
 
   // Voice Note Recording view
-  recordingCapsule: { flex: 1, backgroundColor: '#ffffff', borderRadius: 24, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  recordingCapsule: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+  },
   recordingDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#dc2626' },
   recordingTimer: { fontSize: 13, color: '#334155', fontWeight: '600', flex: 1, fontFamily: "'Outfit', 'Inter', sans-serif" },
   cancelRecordingBtn: { paddingHorizontal: 8 },
-  cancelRecordingText: { fontSize: 12.5, fontWeight: '750', color: '#dc2626', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  cancelRecordingText: { fontSize: 12, fontWeight: '700', color: '#dc2626', fontFamily: "'Outfit', 'Inter', sans-serif" },
+  sendVoiceBtn: { backgroundColor: '#0878f8', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  sendVoiceBtnText: { color: '#ffffff', fontSize: 11, fontWeight: '700' },
 
   // Guest Modal Styles
   guestModalOverlay: {
@@ -1051,7 +1265,7 @@ const styles = StyleSheet.create({
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   guestPrimaryBtn: {
-    backgroundColor: '#008069',
+    backgroundColor: '#0878f8',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
@@ -1059,7 +1273,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 6,
-    boxShadow: '0 2px 6px rgba(0,128,105,0.3)',
+    boxShadow: '0 2px 6px rgba(8,120,248,0.3)',
   },
   guestPrimaryBtnText: {
     color: '#ffffff',
@@ -1138,7 +1352,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#008069',
+    backgroundColor: '#0878f8',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 10,
@@ -1234,7 +1448,7 @@ const styles = StyleSheet.create({
   paperOrgTitle: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#008069',
+    color: '#0878f8',
     letterSpacing: 0.8,
   },
   paperDateText: {
@@ -1260,15 +1474,15 @@ const styles = StyleSheet.create({
   },
   paperCallout: {
     marginTop: 10,
-    backgroundColor: '#f0fdf4',
+    backgroundColor: '#eff6ff',
     borderLeftWidth: 4,
-    borderLeftColor: '#008069',
+    borderLeftColor: '#0878f8',
     padding: 12,
     borderRadius: 6,
   },
   paperCalloutText: {
     fontSize: 11.5,
-    color: '#166534',
+    color: '#1e40af',
     lineHeight: 17,
     fontWeight: '500',
   },

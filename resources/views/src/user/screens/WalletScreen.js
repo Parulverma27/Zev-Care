@@ -472,7 +472,7 @@ export default function WalletScreen({ onNavigate }) {
         </View>
       )}
 
-      {/* Navigation Tabs: Coverage & Benefits vs Claims & Ledger */}
+      {/* Navigation Tabs: Privileges & Benefits vs Service History */}
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tabItem, activeTab === 'coverage' && styles.tabItemActive]}
@@ -481,7 +481,7 @@ export default function WalletScreen({ onNavigate }) {
         >
           <IconShield size={15} color={activeTab === 'coverage' ? (isSilver ? '#e2e8f0' : '#fbbf24') : '#64748b'} />
           <Text style={[styles.tabItemText, activeTab === 'coverage' && (isSilver ? { color: '#e2e8f0' } : styles.tabItemTextActive)]}>
-            Coverage & Perks
+            Privileges & Benefits
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -496,7 +496,7 @@ export default function WalletScreen({ onNavigate }) {
         </TouchableOpacity>
       </View>
 
-      {/* Tab 1: Coverage & Entitlement Details */}
+      {/* Tab 1: Privileges & Entitlement Details */}
       {activeTab === 'coverage' && (
         <View style={styles.tabContentCol}>
           <View style={styles.perksCard}>
@@ -517,7 +517,7 @@ export default function WalletScreen({ onNavigate }) {
                 <IconHome size={16} color="#0284c7" />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.perkTitle}>All Verified Home Appliances Covered</Text>
+                <Text style={styles.perkTitle}>All Verified Home Appliances Included</Text>
                 <Text style={styles.perkSub}>ACs, Refrigerator, RO Water Purifier, Washing Machine, Electrical Wiring, Plumbing Fixtures, and Carpentry.</Text>
               </View>
             </View>
@@ -546,7 +546,7 @@ export default function WalletScreen({ onNavigate }) {
         </View>
       )}
 
-      {/* Tab 2: Claims & Service History Ledger */}
+      {/* Tab 2: Service History Ledger */}
       {activeTab === 'claims' && (
         <View style={styles.tabContentCol}>
           {/* Sub-Filters */}
@@ -568,7 +568,7 @@ export default function WalletScreen({ onNavigate }) {
               <IconScroll size={36} color="#94a3b8" />
               <Text style={styles.emptyClaimsTitle}>No Service Requests Yet</Text>
               <Text style={styles.emptyClaimsSub}>
-                When you book home services under your AMC, all ₹0 labor waivers and covered repair visits will appear here.
+                When you book home services under your AMC, all ₹0 labor waivers and included repair visits will appear here.
               </Text>
             </View>
           ) : (
@@ -601,7 +601,7 @@ export default function WalletScreen({ onNavigate }) {
                 ? 'CONTRACT ACTIVE'
                 : isTopUp
                 ? 'ALLOWANCE CREDITED'
-                : 'COVERED (₹0)';
+                : 'INCLUDED (₹0)';
 
               const badgeTextColor = isContractPurchase
                 ? '#d97706'
@@ -634,16 +634,16 @@ export default function WalletScreen({ onNavigate }) {
                       </View>
                       <View style={styles.claimRow}>
                         <Text style={styles.claimItemLabel}>Allocated To:</Text>
-                        <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#0f172a' }}>Spare Parts Protection Reserve</Text>
+                        <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#0f172a' }}>Spare Parts Allowance Reserve</Text>
                       </View>
                       <View style={styles.claimRow}>
-                        <Text style={styles.claimItemLabel}>Coverage Status:</Text>
+                        <Text style={styles.claimItemLabel}>Service Status:</Text>
                         <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#059669' }}>Active & Ready for Service Requests</Text>
                       </View>
                     </View>
                   )}
 
-                  {/* Service Claim Breakdown Box */}
+                  {/* Service Record Breakdown Box */}
                   {!isContractPurchase && !isTopUp && (
                     <View style={styles.claimBreakdownBox}>
                       <View style={styles.claimRow}>
@@ -666,7 +666,7 @@ export default function WalletScreen({ onNavigate }) {
                       </View>
                       {partsCharge > 0 && (
                         <View style={styles.claimRow}>
-                          <Text style={styles.claimItemLabel}>Parts Covered under Allowance:</Text>
+                          <Text style={styles.claimItemLabel}>Parts Waived under Allowance:</Text>
                           <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0f172a' }}>{formatMoney(partsCharge)}</Text>
                         </View>
                       )}
@@ -677,12 +677,12 @@ export default function WalletScreen({ onNavigate }) {
                   {isContractPurchase && (
                     <View style={styles.claimBreakdownBox}>
                       <View style={styles.claimRow}>
-                        <Text style={styles.claimItemLabel}>Annual Protection Tier:</Text>
+                        <Text style={styles.claimItemLabel}>Annual AMC Tier:</Text>
                         <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0f172a' }}>{tx.plan_name || 'Active AMC Plan'}</Text>
                       </View>
                       <View style={styles.claimRow}>
-                        <Text style={styles.claimItemLabel}>Coverage Validity:</Text>
-                        <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#0f172a' }}>365 Days Protection</Text>
+                        <Text style={styles.claimItemLabel}>Service Validity:</Text>
+                        <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#0f172a' }}>365 Days Active Care</Text>
                       </View>
                       <View style={styles.claimRow}>
                         <Text style={styles.claimItemLabel}>Privileges:</Text>
@@ -704,7 +704,7 @@ export default function WalletScreen({ onNavigate }) {
                         ? formatMoney(tx.amount)
                         : isTopUp
                         ? `+${formatMoney(tx.amount)}`
-                        : '₹0.00 (Fully Covered)'}
+                        : '₹0.00 (Fully Waived)'}
                     </Text>
                   </View>
                 </View>

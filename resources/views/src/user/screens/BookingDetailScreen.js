@@ -638,7 +638,7 @@ export default function BookingDetailScreen() {
         <View style={{ backgroundColor: '#ffffff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#bfdbfe', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={{ fontSize: 13, fontWeight: '700', color: '#1e3a8a' }}>Official Tax Invoice</Text>
-            <Text style={{ fontSize: 11, color: '#64748b' }}>Download official PDF invoice for completed work order & GST claims.</Text>
+            <Text style={{ fontSize: 11, color: '#64748b' }}>Download official PDF invoice for completed work order & GST input tax credits.</Text>
           </View>
           <TouchableOpacity
             style={{ backgroundColor: '#2563eb', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10 }}

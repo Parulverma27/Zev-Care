@@ -200,17 +200,17 @@ export const PRETRAINED_INTENTS = [
   {
     id: 'amc_coverage',
     category: 'AMC_PLANS',
-    title: 'AMC Care Plans & What Is Covered',
+    title: 'AMC Care Plans & What Is Included',
     patterns: [
       /what\s+is\s+amc/i,
-      /amc\s+(coverage|plans?|benefits)/i,
+      /amc\s+(coverage|plans?|benefits|inclusions)/i,
       /annual\s+maintenance/i,
       /silver\s+vs\s+gold/i,
       /care\s+plans?/i,
       /membership/i,
     ],
     answer:
-      '🏆 **Zevota VIP Care AMC Plans:**\n\n• **Silver Plan (₹1,00,000/yr):** 2 Free Preventive Maintenance visits, 100% Free Labor on all breakdown repairs, and ₹15,000 spare parts protection allowance.\n• **Gold Comprehensive (₹5,00,000/yr):** 4 Free Preventive visits, Unlimited 2-Hour Priority breakdown visits, and ₹40,000 spare parts protection cap.\n• **Platinum Villa (₹10,00,000/2yr):** 6 visits, ₹1,00,000 spare parts cap, dedicated relationship manager.',
+      '🏆 **Zevota VIP Care AMC Plans:**\n\n• **Silver Plan (₹1,00,000/yr):** 2 Free Preventive Maintenance visits, 100% Free Labor on all breakdown repairs, and ₹15,000 spare parts maintenance allowance.\n• **Gold Comprehensive (₹5,00,000/yr):** 4 Free Preventive visits, Unlimited 2-Hour Priority breakdown visits, and ₹40,000 spare parts maintenance cap.\n• **Platinum Villa (₹10,00,000/2yr):** 6 visits, ₹1,00,000 spare parts cap, dedicated relationship manager.',
     actionLink: '/user/subscription-plans',
     actionText: 'Explore AMC Care Plans →',
     relatedQuestions: [
@@ -234,12 +234,12 @@ export const PRETRAINED_INTENTS = [
     answer:
       '🛡️ **Your AMC Membership Details ({USER_NAME}):**\n• **Active Plan:** {PLAN_NAME}\n• **Contract No:** {CONTRACT_NO}\n• **Preventive Visits Left:** {VISITS_LEFT} of {TOTAL_VISITS}\n• **Spare Parts Allowance Left:** ₹{PARTS_LEFT}\n• **Priority SLA:** {SLA_HOURS}-Hour Dispatch',
     fallbackAnswer:
-      '🛡️ You currently do not have an active AMC Care Plan. With an Annual Maintenance Contract, you receive free preventive visits, unlimited ₹0 labor breakdown calls, and spare parts protection caps.',
+      '🛡️ You currently do not have an active AMC Care Plan. With an Annual Maintenance Contract, you receive free preventive visits, unlimited ₹0 labor breakdown calls, and spare parts maintenance caps.',
     requiresPlan: true,
     actionLink: '/user/amc',
     actionText: 'View My AMC Dashboard →',
     relatedQuestions: [
-      'What is covered in AMC plans?',
+      'What is included in AMC plans?',
       'Can I register multiple appliances in AMC?',
       'Book a preventive visit',
     ],
@@ -488,7 +488,7 @@ export const PRETRAINED_INTENTS = [
 export const TOP_QUICK_REPLIES = [
   '📍 Track my technician',
   '✨ Is diagnosis really ₹0?',
-  '🏆 What is covered in AMC?',
+  '🏆 What is included in AMC?',
   '💳 Check my wallet balance',
   '📅 Reschedule my appointment',
   '🛑 Cancellation & refund terms',

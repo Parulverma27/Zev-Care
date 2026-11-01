@@ -37,22 +37,22 @@ export const ZEVOTA_TERMS_AND_CONDITIONS = [
   {
     id: 5,
     clauseNumber: '(5)',
-    title: '5. Coverage of Parts & Exclusion of Total Loss / Burnt Units',
-    summary: 'Covers repair and proper upkeep of parts; no brand-new units for total loss or accidental fires.',
-    body: 'In exchange for the annual maintenance charges taken from the customer, Zevota Care Private Limited will only cover repairs and proper upkeep of parts. Zevota Care Private Limited is not responsible for providing a brand-new product or full claims in exchange if a customer’s appliance is completely broken or burnt due to any accident.',
+    title: '5. Maintenance of Spare Parts & Exclusion of Irreparable / Burnt Units',
+    summary: 'Includes repair and proper upkeep of parts; no brand-new units for irreparable or accidental fires.',
+    body: 'In exchange for the annual maintenance charges paid by the customer, Zevota Care Private Limited will only provide repairs and proper upkeep of parts. Zevota Care Private Limited is not responsible for providing brand-new replacement units, monetary payouts, or product exchanges if a customer’s appliance is completely broken or burnt due to any accident.',
   },
   {
     id: 6,
     clauseNumber: '(6)',
     title: '6. Exclusions: Accidents, Breakage & Natural Disasters',
     summary: 'Accidents, breakage, earthquakes, fires, and acts of nature are excluded.',
-    body: 'Zevota Care Private Limited does not cover damages caused by accidents, breakage, natural disasters, earthquakes, or fires under the price charged for annual maintenance. Zevota Care Private Limited only provides repairs.',
+    body: 'Zevota Care Private Limited does not repair or compensate for breakdowns caused by accidents, external physical breakage, natural disasters, earthquakes, or fires under the price charged for annual maintenance. Zevota Care Private Limited only provides routine maintenance and functional breakdown repairs.',
   },
   {
     id: 7,
     clauseNumber: '(7)',
     title: '7. Costs Exceeding Plan Amount',
-    summary: 'Maintenance costs exceeding plan coverage must be borne by the customer.',
+    summary: 'Maintenance costs exceeding plan allowance must be borne by the customer.',
     body: 'If the maintenance cost of a customer exceeds the AMC plan amount, the extra amount will have to be paid by the customer to Zevota Care Private Limited.',
   },
   {
@@ -65,9 +65,9 @@ export const ZEVOTA_TERMS_AND_CONDITIONS = [
   {
     id: 9,
     clauseNumber: '(9)',
-    title: '9. Part Repairs Only — No Body Breakage Coverage',
-    summary: 'Physical breakage of the appliance body is not covered.',
-    body: 'Zevota Care Private Limited only covers part repairs during maintenance; it does not cover the physical breakage of the appliance body.',
+    title: '9. Part Repairs Only — Physical Body Breakage Excluded',
+    summary: 'Physical breakage of the appliance body is excluded from maintenance.',
+    body: 'Zevota Care Private Limited only undertakes functional part repairs during maintenance; it does not repair or replace physical cosmetic breakage of the appliance body.',
   },
   {
     id: 10,
@@ -80,8 +80,8 @@ export const ZEVOTA_TERMS_AND_CONDITIONS = [
     id: 11,
     clauseNumber: '(11)',
     title: '11. Registered Application Items Only',
-    summary: 'Only items added in the Zevota Care app are covered; separate charges apply for unlisted items.',
-    body: 'At the time of purchasing an Annual Maintenance Plan subscription from Zevota Care Private Limited, only the items added by the customer in the Zevota Care application will be covered under the maintenance plan, and Zevota Care Private Limited will charge separately for other items.',
+    summary: 'Only items registered in the Zevota Care app are included in the plan; separate charges apply for unlisted items.',
+    body: 'At the time of purchasing an Annual Maintenance Plan subscription from Zevota Care Private Limited, only the items registered by the customer in the Zevota Care application will be included under the maintenance plan, and Zevota Care Private Limited will charge standard service rates for other items.',
   },
   {
     id: 12,
@@ -93,25 +93,25 @@ export const ZEVOTA_TERMS_AND_CONDITIONS = [
   {
     id: 13,
     clauseNumber: '(13)',
-    title: '13. Trade-Specific Coverage & Initial Working Condition',
+    title: '13. Trade-Specific Service Scope & Initial Working Condition',
     summary: 'Electrical, furniture, plumbing, dry cleaning, and pest control specific conditions.',
-    body: `Zevota Care Private Limited provides maintenance for household electrical appliances, plumbing, carpentry, dry cleaning, and pest control. The maintenance for these items is strictly limited to repairs; there is no provision to claim brand-new items from Zevota Care Private Limited.
+    body: `Zevota Care Private Limited provides maintenance for household electrical appliances, plumbing, carpentry, dry cleaning, and pest control. The maintenance for these items is strictly limited to repairs; there is no provision to demand brand-new replacement units from Zevota Care Private Limited.
 
 • Electrical Appliances: Whichever electrical items the customer adds while taking the AMC plan subscription, the company will repair those items if an internal part goes bad.
-• Furniture: Furniture will also be repaired; physical breakage/tear is not covered.
+• Furniture: Furniture will also be repaired; physical breakage/tear is not included.
 • Plumbing: Leakages will be repaired in plumbing.
 • Dry Cleaning: If an item tears during dry cleaning due to its age, wear and tear, or weakened fabric, the company will not be held liable for compensation.
-• Pest Control: The company will not be responsible for any damage caused by the chemicals used in pest control.
+• Pest Control: The company will not be responsible for any surface reactions caused by the chemicals used in pest control.
 • Subscription Condition: At the time of taking the Zevota Care Company subscription service plan and adding items in the Zevota Care application, all items must be in working condition, and only those items that are in proper condition will be repaired.`,
   },
   {
     id: 14,
     clauseNumber: '(14)',
     title: '14. Service Plan Subscriptions (Silver, Gold, Diamond)',
-    summary: 'Plan fees strictly cover maintenance & labor upkeep; cash payouts or asset replacements are strictly excluded.',
+    summary: 'Plan fees strictly apply to maintenance & labor upkeep; cash payouts or asset replacements are strictly excluded.',
     body: `• Zevota Care Pvt. Ltd. Service Plan Subscription: When a customer purchases an AMC service plan from Zevota Care Pvt. Ltd. by paying the respective plan fee, the company will provide repair and maintenance services under that specific plan.
 • Plan Specifics (Silver, Gold, Diamond Plans): In plans like Silver, Gold, or Diamond, the amount paid is exclusively and strictly towards the provision of maintenance and repair services.
-• Exclusion of Cash Payments and Replacements: This plan does not include the provision of any brand-new items, cash payouts, or financial indemnification/compensation for any kind of damage or loss. The subscription fee is strictly for labor and service upkeep only.`,
+• Exclusion of Cash Payments and Replacements: This plan does not include the provision of any brand-new items, cash payouts, or financial indemnification/compensation for any kind of breakdown or physical wear. The subscription fee is strictly for labor and maintenance service upkeep only.`,
   },
   {
     id: 15,

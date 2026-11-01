@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Platform, useWindowDimensions } from 'react-native';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import api from '../../services/ApiService';
 import { AppIcon } from '../../components/AppIcons';
@@ -297,7 +297,18 @@ const getPlanCtaStyle = (theme) => {
   };
 };
 
-export default function SubscriptionPlansScreen({ onNavigate }) {
+const desktopPlansGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+  gap: '24px',
+  alignItems: 'stretch',
+  width: '100%',
+};
+
+export default function SubscriptionPlansScreen({ onNavigate, isMyAmcOnly = false }) {
+  const { width } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
+
   const {
     subscriptionPlans = [],
     activeUser = {},
@@ -312,9 +323,14 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
   } = useApp();
 
   const navigate = useNavigate();
+  const location = useLocation();
   const scrollRef = useRef(null);
-  const { width } = useWindowDimensions();
-  const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
+
+  const isMyAmcView =
+    Boolean(isMyAmcOnly) ||
+    location?.pathname === '/user/my-amc' ||
+    location?.pathname === '/user/myamc' ||
+    location?.pathname === '/user/wallet';
 
   // Selected appliances map per plan: { [planId]: [ ...appliances ] }
   const [planAppliancesMap, setPlanAppliancesMap] = useState({});
@@ -470,9 +486,9 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
 
     const userTransactions = (wallet.transactions || []).filter((tx) => txBelongsToUser(tx, activeUser));
 
-    // Only genuine AMC claims from wallet transactions
+    // Only genuine AMC service records from wallet transactions
     const serviceTxs = (userTransactions || []).filter((tx) => {
-      return tx.type === 'AMC_SERVICE_CLAIM' || (tx.category === 'Services' && tx.is_amc);
+      return tx.type === 'AMC_SERVICE_REQUEST' || tx.type === 'AMC_SERVICE_CLAIM' || (tx.category === 'Services' && tx.is_amc);
     });
 
     const userBookings = getUserBookings
@@ -484,27 +500,27 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
               (b.user_phone && activeUser?.phone && normalizePhone(b.user_phone) === normalizePhone(activeUser.phone))
         );
 
-    // Only bookings that are actually AMC claims / covered under AMC
+    // Only bookings that are actually AMC service requests / covered under AMC
     const bookingClaims = (userBookings || [])
       .filter((b) => b && (b.is_covered_by_amc === true || b.is_amc === true || Boolean(b.amc_plan_id)))
       .map((b) => {
         const laborCharge = Number(b.labour_charge || b.laborCharge || 0);
         const isCovered = b.is_covered_by_amc !== false;
         return {
-          id: `booking-claim-${b.booking_id || b.id}`,
-          type: 'AMC_SERVICE_CLAIM',
+          id: `booking-service-${b.booking_id || b.id}`,
+          type: 'AMC_SERVICE_REQUEST',
           service_name: b.service_name || `${b.sub_category_name || b.category_name || 'Appliance'} Service`,
           date: b.completed_date || b.scheduled_date || b.created_at || new Date().toISOString(),
           refNumber: b.booking_id ? String(b.booking_id).replace(/^BK-2026-/, 'K-').replace(/^BK-/, 'K-') : String(b.id || ''),
           laborCharge,
           benefit: isCovered ? (laborCharge > 0 ? `-₹${laborCharge} (100% Free)` : '₹0 Labor Free') : '₹0',
-          totalCustomerPaid: isCovered ? '₹0.00 (Fully Covered)' : `₹${b.total_bill || laborCharge}`,
+          totalCustomerPaid: isCovered ? '₹0.00 (Fully Waived)' : `₹${b.total_bill || laborCharge}`,
           category: 'Services',
           createdAt: b.scheduled_date || b.completed_date || b.created_at || new Date().toISOString(),
         };
       });
 
-    // Purely dynamic - never inject hardcoded dummy claims when user has no claims!
+    // Purely dynamic - never inject hardcoded dummy records when user has no records!
     const resolvedServices = [...serviceTxs, ...bookingClaims];
 
     const contractTxs = (userTransactions || []).filter((tx) => {
@@ -760,10 +776,18 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
     }
   };
 
-  const scrollToExplorePlans = () => {
-    const el = document.getElementById('explore-plans-section');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const handleExplorePlans = () => {
+    if (isMyAmcView) {
+      if (navigate) {
+        navigate('/user/plans');
+      } else if (onNavigate) {
+        onNavigate('SUBSCRIPTION');
+      }
+    } else {
+      const el = document.getElementById('explore-plans-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   };
 
@@ -933,15 +957,15 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
         )}
         <View style={{ flex: 1, minWidth: 0, marginLeft: isDesktopWeb ? 16 : 12 }}>
           <Text style={[styles.headerTitle, isDesktopWeb && styles.headerTitleDesktop]} numberOfLines={1}>
-            {hasActiveAmc ? 'My AMC Membership' : 'Annual Maintenance Contracts (AMC)'}
+            {isMyAmcView ? 'My AMC Plan' : 'AMC Protection Plans'}
           </Text>
           <Text style={[styles.headerSubtitle, isDesktopWeb && styles.headerSubtitleDesktop]} numberOfLines={1}>
-            {hasActiveAmc
-              ? `${contractDetails?.planName} • Active Contract Protection`
-              : 'Add appliances & activate ₹0 breakdown labor for your home'}
+            {isMyAmcView
+              ? `${contractDetails?.planName || 'Active VIP'} • Active Contract Protection`
+              : 'Compare plans & choose full home appliance breakdown protection'}
           </Text>
         </View>
-        {hasActiveAmc && (
+        {isMyAmcView && hasActiveAmc && (
           <View style={[styles.vipShieldBadge, { borderColor: activeCardPalette.borderColor }]}>
             <IconShieldCheck color={activeCardPalette.borderColor} size={22} />
           </View>
@@ -956,9 +980,9 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
       )}
 
       {/* ===================================================================== */}
-      {/* CONDITION 1: USER HAS PURCHASED A PLAN (PURCHASED CARD DISPLAY)        */}
+      {/* CONDITION 1: IN MY AMC VIEW, ONLY SHOW THE CURRENT PURCHASED CARD     */}
       {/* ===================================================================== */}
-      {hasActiveAmc && contractDetails && (
+      {isMyAmcView && hasActiveAmc && contractDetails && (
         <View style={styles.purchasedCardWrapper}>
           <div
             style={{
@@ -1209,11 +1233,11 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                           WebkitBackdropFilter: 'blur(12px)',
                         },
                       ]}
-                      onPress={scrollToExplorePlans}
+                      onPress={handleExplorePlans}
                       activeOpacity={0.82}
                     >
                       <Text style={[styles.cardExploreLinkText, styles.cardExploreLinkTextDesktop, { color: activeCardPalette.exploreBtnText, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
-                        Explore All Plans & Upgrades ↓
+                        Explore All Plans & Upgrades →
                       </Text>
                     </TouchableOpacity>
                   </div>
@@ -1353,11 +1377,11 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                         WebkitBackdropFilter: 'blur(8px)',
                       },
                     ]}
-                    onPress={scrollToExplorePlans}
+                    onPress={handleExplorePlans}
                     activeOpacity={0.82}
                   >
                     <Text style={[styles.cardExploreLinkText, { color: activeCardPalette.exploreBtnText, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }]}>
-                      Explore All Plans & Upgrades ↓
+                      Explore All Plans & Upgrades →
                     </Text>
                   </TouchableOpacity>
                 </>
@@ -1367,34 +1391,67 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
         </View>
       )}
 
-      {/* ===================================================================== */}
-      {/* SECTION HEADER: EXPLORE ALL PLANS                                     */}
-      {/* ===================================================================== */}
-      <div id="explore-plans-section" style={{ width: '100%', marginTop: 8 }}>
-        <View style={styles.exploreSectionHeader}>
-          <View style={styles.exploreHeaderLeft}>
-            <View style={styles.exploreAccentBar} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.exploreTitle}>
-                {hasActiveAmc ? 'Explore All Plans' : 'Choose Your Protection Plan'}
-              </Text>
-              <Text style={styles.exploreSub}>
-                {hasActiveAmc
-                  ? 'Compare tiers or upgrade coverage for your home & appliances'
-                  : 'Add appliances to unlock and activate your 365-day AMC contract'}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.exploreBadgePill}>
-            <Text style={styles.exploreBadgeText}>3 TIERS</Text>
-          </View>
+      {/* IN MY AMC VIEW: Show support card when user has active plan */}
+      {isMyAmcView && hasActiveAmc && (
+        <View style={{ marginHorizontal: isDesktopWeb ? 0 : 16, marginTop: 20, marginBottom: 24, width: '100%' }}>
+          <LiveSupportOptionCard
+            onPress={() => {
+              if (navigate) navigate('/user/support');
+              else if (onNavigate) onNavigate('/user/support');
+            }}
+            title="Questions About Your Active AMC?"
+            subtitle="Have questions about covered appliances or breakdown visits? Chat with our desk"
+          />
         </View>
-      </div>
+      )}
 
-      {/* ===================================================================== */}
-      {/* ALL SUBSCRIPTION PLANS LIST                                           */}
-      {/* ===================================================================== */}
-      <View style={[styles.plansContainer, isDesktopWeb && desktopPlansGridStyle]}>
+      {/* IN MY AMC VIEW: Show clean card if user has no active AMC */}
+      {isMyAmcView && !hasActiveAmc && (
+        <View style={[styles.noActiveAmcCard, isDesktopWeb && { maxWidth: 600, margin: '20px auto' }]}>
+          <View style={styles.noActiveAmcIconCircle}>
+            <AppIcon name="shield" size={32} color="#0052cc" />
+          </View>
+          <Text style={styles.noActiveAmcTitle}>No Active AMC Membership</Text>
+          <Text style={styles.noActiveAmcSub}>
+            Protect your household appliances with ₹0 visit fees, free breakdown labor, and unlimited technician visits.
+          </Text>
+          <TouchableOpacity
+            style={styles.explorePlansCtaBtn}
+            onPress={handleExplorePlans}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.explorePlansCtaBtnText}>Explore All AMC Plans →</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* ONLY RENDER ALL PLANS WHEN NOT ON MY AMC SCREEN */}
+      {!isMyAmcView && (
+        <>
+          {/* ===================================================================== */}
+          {/* SECTION HEADER: EXPLORE ALL PLANS                                     */}
+          {/* ===================================================================== */}
+          <div id="explore-plans-section" style={{ width: '100%', marginTop: 8 }}>
+            <View style={styles.exploreSectionHeader}>
+              <View style={styles.exploreHeaderLeft}>
+                <View style={styles.exploreAccentBar} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.exploreTitle}>Choose Your Protection Plan</Text>
+                  <Text style={styles.exploreSub}>
+                    Compare tiers, select covered appliances, and activate 365-day ₹0 breakdown labor
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.exploreBadgePill}>
+                <Text style={styles.exploreBadgeText}>{subscriptionPlans.length} TIERS</Text>
+              </View>
+            </View>
+          </div>
+
+          {/* ===================================================================== */}
+          {/* ALL SUBSCRIPTION PLANS LIST                                           */}
+          {/* ===================================================================== */}
+          <View style={[styles.plansContainer, isDesktopWeb && desktopPlansGridStyle]}>
         {subscriptionPlans.map((plan) => {
           const isCurrent = isCurrentPlan(plan);
           const features = JSON.parse(plan.features_json || '[]');
@@ -1578,7 +1635,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                 <View style={styles.amcSpecItem}>
                   <Text style={styles.amcSpecLabel}>ANNUAL SERVICE CAP</Text>
                   <Text style={[styles.amcSpecVal, { color: '#0f172a' }]}>
-                    {theme.coverageLimitText || '₹1 Lakh'}
+                    {theme.annualServiceCapText || theme.coverageLimitText || '₹1 Lakh'}
                   </Text>
                 </View>
                 <View style={styles.amcSpecDivider} />
@@ -1737,6 +1794,8 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
           subtitle="Have questions about AMC plan benefits or appliance maintenance? Chat with us"
         />
       </View>
+        </>
+      )}
 
       {/* ===================================================================== */}
       {/* MODAL 1: APPLIANCE SELECTION MODAL (UNLIMITED APPLIANCE ALLOWANCE)    */}
@@ -1924,7 +1983,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
       </Modal>
 
       {/* ===================================================================== */}
-      {/* MODAL 3: AMC HISTORY & CLAIMS LEDGER                                   */}
+      {/* MODAL 3: AMC HISTORY & SERVICE LEDGER                                  */}
       {/* ===================================================================== */}
       <Modal visible={showHistoryModal} transparent animationType="slide">
         <View style={styles.historyModalOverlay}>
@@ -2034,7 +2093,7 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
                             {isContractPurchase ? 'Status:' : 'Customer Paid:'}
                           </Text>
                           <Text style={styles.claimCoveredVal}>
-                            {isContractPurchase ? 'Active & Protected' : (tx.totalCustomerPaid || '₹0.00 (Fully Covered)')}
+                            {isContractPurchase ? 'Active & Maintained' : (tx.totalCustomerPaid || '₹0.00 (Fully Waived)')}
                           </Text>
                         </View>
                       </View>
@@ -2142,14 +2201,6 @@ export default function SubscriptionPlansScreen({ onNavigate }) {
     </ScrollView>
   );
 }
-
-const desktopPlansGridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-  gap: '24px',
-  alignItems: 'stretch',
-  width: '100%',
-};
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
@@ -3185,7 +3236,58 @@ const styles = StyleSheet.create({
     borderColor: '#cbd5e1',
     alignItems: 'center',
   },
-  guestOutlineBtnText: { color: '#0f172a', fontWeight: '700', fontSize: 12.5 },
+  noActiveAmcCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 22,
+    padding: 32,
+    alignItems: 'center',
+    textAlign: 'center',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    marginTop: 10,
+    boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+  },
+  noActiveAmcIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  noActiveAmcTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  noActiveAmcSub: {
+    fontSize: 13.5,
+    color: '#64748b',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 320,
+    marginBottom: 20,
+  },
+  explorePlansCtaBtn: {
+    backgroundColor: '#0052cc',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 4px 14px rgba(0,82,204,0.25)',
+  },
+  explorePlansCtaBtnText: {
+    color: '#ffffff',
+    fontSize: 13.5,
+    fontWeight: '700',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
   wizardContainer: {
     flex: 1,
     backgroundColor: '#ffffff',

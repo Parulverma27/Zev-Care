@@ -40,7 +40,7 @@ export function AdminFinanceScreen() {
   const getUserSubtext = (tx) => {
     if (tx.user_phone) return tx.user_phone;
     const u = resolveUserObj(tx);
-    return u?.phone || u?.email || 'Premium Customer';
+    return u?.phone || u?.email || 'VIP Member';
   };
 
   const handleOpenUserModal = (tx) => {

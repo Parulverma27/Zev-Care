@@ -97,7 +97,7 @@ export default function AppRouter() {
         <Route path="/provider" element={<ProviderAppLayout />}>
           <Route index element={<ProviderIndexRedirect />} />
           <Route path="login" element={<ProviderAuthScreen />} />
-          <Route path="register" element={<ProviderAuthScreen />} />
+          <Route path="register" element={<Navigate to="/provider/login" replace />} />
           <Route path="dashboard" element={<ProviderProtected><ProviderDashboardScreen /></ProviderProtected>} />
           <Route path="bookings" element={<ProviderProtected><ProviderWorkOrdersScreen /></ProviderProtected>} />
           <Route path="bookings/:bookingId" element={<ProviderProtected><ProviderJobDetailScreen /></ProviderProtected>} />

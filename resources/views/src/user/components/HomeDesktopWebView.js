@@ -567,9 +567,9 @@ const TRUST_PILLARS = [
   },
   {
     icon: (color) => <IconBadgeGuarantee size={26} color={color} />,
-    badgeText: 'ASSURANCE',
+    badgeText: 'GUARANTEE',
     title: 'Post-Service Warranty',
-    desc: 'Every completed repair is covered by our service warranty with free revisit and rework support if unsatisfied.',
+    desc: 'Every completed repair is backed by our service warranty with free revisit and rework support if unsatisfied.',
     chipText: 'Service Warranty',
     accentColor: '#d97706',
     bgColor: '#fffbeb',

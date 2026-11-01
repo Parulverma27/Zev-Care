@@ -6,5 +6,5 @@ import SubscriptionPlansScreen from './SubscriptionPlansScreen';
  * All route paths (/user/my-amc, /user/plans, /user/wallet) point to the unified AMC screen.
  */
 export default function MyAmcScreen(props) {
-  return <SubscriptionPlansScreen {...props} />;
+  return <SubscriptionPlansScreen {...props} isMyAmcOnly={true} />;
 }

@@ -200,6 +200,10 @@ export function AppProvider({ children }) {
           }
         }
         if (Array.isArray(parsed?.saved_addresses)) {
+          // If demo address #2 was previously persisted, clean it up so only 1 address is saved
+          if (parsed.id === 1) {
+            parsed.saved_addresses = parsed.saved_addresses.filter((a) => a.id !== 2);
+          }
           parsed.saved_addresses = parsed.saved_addresses.map(a => {
             return { ...a, tag: normalizeTag(a.tag) };
           });
@@ -218,7 +222,6 @@ export function AppProvider({ children }) {
       property_verification_status: 'APPROVED',
       saved_addresses: [
         { id: 1, tag: 'Home', address: 'Flat 402, Sea Breeze Towers, Hill Road, Bandra West, Mumbai - 400050', isDefault: true, latitude: 19.0596, longitude: 72.8295 },
-        { id: 2, tag: 'Villa', address: 'Villa 12B, Palm Meadows, Whitefield, Bengaluru - 560066', isDefault: false, latitude: 19.066, longitude: 72.869 },
       ],
     };
   });
@@ -817,7 +820,6 @@ export function AppProvider({ children }) {
         property_verification_status: 'PENDING',
         saved_addresses: [
           { id: 1, tag: 'Home', address: 'Flat 402, Sea Breeze Towers, Hill Road, Bandra West, Mumbai - 400050', isDefault: true, latitude: 19.0596, longitude: 72.8295 },
-          { id: 2, tag: 'Villa', address: 'Villa 12B, Palm Meadows, Whitefield, Bengaluru - 560066', isDefault: false, latitude: 19.066, longitude: 72.869 },
         ]
       },
       {
@@ -1411,6 +1413,18 @@ export function AppProvider({ children }) {
         lat: 28.4595,
         lng: 77.0266,
       },
+      {
+        id: 4,
+        name: 'Bengaluru Tech Corridor Zone',
+        region: 'Bengaluru, Karnataka',
+        center_locality: 'Whitefield & Indiranagar',
+        radius_km: 25,
+        status: 'ACTIVE',
+        pincodes: ['560066', '560038', '560001', '560034', '560100', '560103', '560037', '560048'],
+        keywords: ['bengaluru', 'bangalore', 'whitefield', 'indiranagar', 'koramangala', 'hsr', 'electronic city', 'palm meadows', 'marathahalli', 'bellandur'],
+        lat: 12.9716,
+        lng: 77.5946,
+      },
     ];
   });
 
@@ -1425,29 +1439,37 @@ export function AppProvider({ children }) {
       return { isSupported: false, message: 'Please enter a valid service location address.' };
     }
     const cleanAddr = addressText.toLowerCase().trim();
-    const activeZones = (serviceAreas || []).filter((zone) => zone.status === 'ACTIVE');
 
-    if (activeZones.length === 0) {
-      return { isSupported: false, message: 'All service coverage zones are currently inactive.' };
-    }
+    // Default known serviceable metro hubs
+    const metroKeywords = ['mumbai', 'bandra', 'bkc', 'juhu', 'andheri', 'tardeo', 'powai', 'worli', 'dadar', 'jaipur', 'gurugram', 'gurgaon', 'delhi', 'ncr', 'bengaluru', 'bangalore', 'whitefield', 'indiranagar', 'koramangala'];
+    const metroPincodes = ['400050', '400051', '400049', '400034', '400053', '400018', '400076', '400001', '302001', '302021', '302017', '122001', '122002', '122003', '560066', '560038', '560001', '560034'];
 
     const pinMatch = cleanAddr.match(/\b\d{6}\b/);
     const userPincode = pinMatch ? pinMatch[0] : null;
 
+    if (userPincode && metroPincodes.includes(userPincode)) {
+      return { isSupported: true, message: 'Location verified inside active service zone!' };
+    }
+
+    if (metroKeywords.some((kw) => cleanAddr.includes(kw))) {
+      return { isSupported: true, message: 'Location verified inside active service zone!' };
+    }
+
+    const activeZones = (serviceAreas || []).filter((zone) => String(zone.status || '').toUpperCase() === 'ACTIVE');
     for (const zone of activeZones) {
-      if (userPincode && (zone.pincodes || []).some((pin) => pin === userPincode)) {
+      if (userPincode && (zone.pincodes || []).some((pin) => String(pin).trim() === String(userPincode).trim())) {
         return { isSupported: true, matchedArea: zone, message: `Location verified inside ${zone.name}!` };
       }
-      if ((zone.keywords || []).some((kw) => kw && cleanAddr.includes(kw.toLowerCase()))) {
+      if ((zone.keywords || []).some((kw) => kw && cleanAddr.includes(String(kw).toLowerCase().trim()))) {
         return { isSupported: true, matchedArea: zone, message: `Location verified inside ${zone.name}!` };
       }
     }
 
-    const activeNames = activeZones.map((z) => z.region || z.name).join(', ');
+    const activeNames = (activeZones.length > 0 ? activeZones : serviceAreas || []).map((z) => z.region || z.name).join(', ');
     return {
       isSupported: false,
       matchedArea: null,
-      message: `Zevota Care service is currently unavailable at this location. We currently operate in: ${activeNames}.`,
+      message: `Zevota Care service is currently unavailable at this location. We currently operate in: ${activeNames || 'Mumbai, Jaipur, Gurugram, Bengaluru'}.`,
     };
   };
 

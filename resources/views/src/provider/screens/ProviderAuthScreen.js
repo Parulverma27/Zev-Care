@@ -8,36 +8,15 @@ import { useApp } from '../../context/AppContext';
 
 export default function ProviderAuthScreen({ onAuthComplete }) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { setActiveProvider, setProviders, providers } = useApp();
+  const { setActiveProvider, providers } = useApp();
 
-  // Sync login/signup with URL: /provider/login vs /provider/register
-  const [authMode, setAuthMode] = useState(
-    location.pathname.includes('/register') ? 'signup' : 'login'
-  );
-
-  // Steps: 'MOBILE' | 'OTP' | 'PROFILE'
+  // Steps: 'MOBILE' | 'OTP'
   const [step, setStep] = useState('MOBILE');
-
   const [phone, setPhone] = useState('9988776655');
   const [otp, setOtp] = useState('');
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [error, setError] = useState('');
-
-  // Provider Profile Form (Sign Up only)
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [trade, setTrade] = useState('');
-  const [experience, setExperience] = useState('');
-  const [city, setCity] = useState('');
-
-  useEffect(() => {
-    setAuthMode(location.pathname.includes('/register') ? 'signup' : 'login');
-    setStep('MOBILE');
-    setError('');
-    setOtp('');
-  }, [location.pathname]);
 
   useEffect(() => {
     let interval = null;
@@ -48,14 +27,6 @@ export default function ProviderAuthScreen({ onAuthComplete }) {
     }
     return () => clearInterval(interval);
   }, [step, timer]);
-
-  const switchMode = (mode) => {
-    navigate(mode === 'signup' ? '/provider/register' : '/provider/login');
-    setError('');
-    setOtp('');
-    setTimer(60);
-    setCanResend(false);
-  };
 
   const handleSendOtp = () => {
     if (phone.length < 10) {
@@ -72,63 +43,26 @@ export default function ProviderAuthScreen({ onAuthComplete }) {
     const code = otp?.trim() || '';
     if (code === '4829') {
       setError('');
-      if (authMode === 'signup') {
-        setStep('PROFILE');
-      } else {
-        const matched = (providers || []).find(
-          (p) => String(p.phone).replace(/\D/g, '').slice(-10) === phone.replace(/\D/g, '').slice(-10)
-        ) || {
-          id: Date.now(),
-          name: fullName || 'Provider',
-          phone: `+91 ${phone}`,
-          email: email || '',
-          rating: 0,
-          total_jobs: 0,
-          earnings: 0.0,
-          is_online: true,
-          status: 'APPROVED',
-          location: city || 'Bandra West, Mumbai',
-        };
-        if (setActiveProvider) setActiveProvider(matched);
-        if (onAuthComplete) onAuthComplete(matched);
-        navigate('/provider/dashboard');
-      }
+      const matched = (providers || []).find(
+        (p) => String(p.phone).replace(/\D/g, '').slice(-10) === phone.replace(/\D/g, '').slice(-10)
+      ) || {
+        id: Date.now(),
+        name: 'Rajesh Sharma',
+        phone: `+91 ${phone}`,
+        email: 'rajesh.electrician@zevotacare.com',
+        rating: 4.9,
+        total_jobs: 142,
+        earnings: 128500.0,
+        is_online: true,
+        status: 'APPROVED',
+        location: 'Bandra West, Mumbai',
+      };
+      if (setActiveProvider) setActiveProvider(matched);
+      if (onAuthComplete) onAuthComplete(matched);
+      navigate('/provider/dashboard');
     } else {
       setError('Invalid OTP. Please enter the 4-digit code sent to your mobile.');
     }
-  };
-
-  const handleProfileSubmit = () => {
-    if (!fullName || !trade) {
-      setError('Please fill in required fields.');
-      return;
-    }
-    setError('');
-    const newProv = {
-      id: Date.now(),
-      name: fullName,
-      phone: `+91 ${phone}`,
-      email: email || `${fullName.toLowerCase().replace(/\s+/g, '.')}@zevotacare.com`,
-      trade,
-      experience,
-      location: city || 'Mumbai, Maharashtra',
-      rating: 5.0,
-      total_jobs: 0,
-      earnings: 0.0,
-      is_online: true,
-      status: 'APPROVED',
-    };
-    if (setActiveProvider) setActiveProvider(newProv);
-    if (typeof setProviders === 'function') {
-      setProviders((prev) => {
-        const exists = (prev || []).some(
-          (p) => String(p.phone).replace(/\D/g, '').slice(-10) === phone.replace(/\D/g, '').slice(-10)
-        );
-        return exists ? prev : [newProv, ...(prev || [])];
-      });
-    }
-    if (onAuthComplete) onAuthComplete(newProv);
-    navigate('/provider/dashboard');
   };
 
   return (
@@ -144,42 +78,16 @@ export default function ProviderAuthScreen({ onAuthComplete }) {
           </View>
         </View>
 
-        {/* LOGIN / SIGN UP TOGGLE */}
-        <View style={styles.toggleWrapper}>
-          <TouchableOpacity
-            style={[styles.toggleBtn, authMode === 'login' && styles.toggleBtnActive]}
-            onPress={() => switchMode('login')}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.toggleBtnText, authMode === 'login' && styles.toggleBtnTextActive]}>
-              Login
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.toggleBtn, authMode === 'signup' && styles.toggleBtnActive]}
-            onPress={() => switchMode('signup')}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.toggleBtnText, authMode === 'signup' && styles.toggleBtnTextActive]}>
-              Register as Provider
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* STEP 1: MOBILE NUMBER */}
         {step === 'MOBILE' && (
           <View style={styles.formBox}>
             <View style={styles.titleRow}>
-              <Text style={styles.formTitle}>
-                {authMode === 'login' ? 'Provider Login' : 'Join as a Provider'}
-              </Text>
-              <ProviderIcon name={authMode === 'login' ? 'shield' : 'send'} color="#2563eb" size={18} />
+              <Text style={styles.formTitle}>Login</Text>
+              <ProviderIcon name="shield" color="#2563eb" size={18} />
             </View>
 
             <Text style={styles.formSub}>
-              {authMode === 'login'
-                ? 'Enter your registered mobile number to access your work orders.'
-                : 'Register to start receiving service assignments in your area.'}
+              Enter your registered mobile number to access your work orders.
             </Text>
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -249,85 +157,13 @@ export default function ProviderAuthScreen({ onAuthComplete }) {
             </View>
 
             <TouchableOpacity style={styles.primaryBtn} onPress={handleVerifyOtp}>
-              <Text style={styles.primaryBtnText}>
-                {authMode === 'login' ? 'Verify & Login' : 'Verify & Continue'}
-              </Text>
+              <Text style={styles.primaryBtnText}>Verify & Login</Text>
               <ProviderIcon name="arrowRight" color="#ffffff" size={14} />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.backLink} onPress={() => setStep('MOBILE')}>
               <ProviderIcon name="back" color="#64748b" size={14} />
               <Text style={styles.backLinkText}>Change Number</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* STEP 3: PROVIDER PROFILE SETUP (Sign Up Only) */}
-        {step === 'PROFILE' && (
-          <View style={styles.formBox}>
-            <View style={styles.titleRow}>
-              <Text style={styles.formTitle}>Provider Profile</Text>
-              <ProviderIcon name="user" color="#2563eb" size={18} />
-            </View>
-
-            <Text style={styles.formSub}>Tell us about your skills & service area to get matched with the right jobs.</Text>
-
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-            <Text style={styles.inputLabel}>Full Name *</Text>
-            <TextInput
-              style={styles.textInput}
-              value={fullName}
-              onChangeText={setFullName}
-              placeholder="Rajesh Sharma"
-              placeholderTextColor="#94a3b8"
-            />
-
-            <Text style={styles.inputLabel}>Email Address</Text>
-            <TextInput
-              style={styles.textInput}
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="rajesh@example.com"
-              placeholderTextColor="#94a3b8"
-            />
-
-            <View style={styles.rowTwo}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.inputLabel}>Trade / Skill *</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={trade}
-                  onChangeText={setTrade}
-                  placeholder="Electrician"
-                  placeholderTextColor="#94a3b8"
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.inputLabel}>Experience</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={experience}
-                  onChangeText={setExperience}
-                  placeholder="5 Years"
-                  placeholderTextColor="#94a3b8"
-                />
-              </View>
-            </View>
-
-            <Text style={styles.inputLabel}>Service City / Area *</Text>
-            <TextInput
-              style={styles.textInput}
-              value={city}
-              onChangeText={setCity}
-              placeholder="Mumbai, Maharashtra"
-              placeholderTextColor="#94a3b8"
-            />
-
-            <TouchableOpacity style={styles.primaryBtn} onPress={handleProfileSubmit}>
-              <Text style={styles.primaryBtnText}>Save & Access Dashboard</Text>
-              <ProviderIcon name="arrowRight" color="#ffffff" size={14} />
             </TouchableOpacity>
           </View>
         )}
@@ -361,40 +197,6 @@ const styles = StyleSheet.create({
   brandHeader: { alignItems: 'center', gap: 8 },
   providerBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#dbeafe', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: '#93c5fd' },
   providerBadgeText: { fontSize: 10, fontWeight: '800', color: '#1d4ed8', letterSpacing: 0.5 },
-
-  toggleWrapper: {
-    flexDirection: 'row',
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
-    padding: 4,
-    width: '100%',
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  toggleBtnActive: {
-    backgroundColor: '#2563eb',
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  toggleBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748b',
-    textAlign: 'center',
-  },
-  toggleBtnTextActive: {
-    color: '#ffffff',
-    fontWeight: '800',
-  },
 
   formBox: { gap: 10, width: '100%' },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },

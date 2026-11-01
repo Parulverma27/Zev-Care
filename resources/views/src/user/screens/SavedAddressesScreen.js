@@ -277,8 +277,12 @@ export default function SavedAddressesScreen({ onNavigate }) {
       return;
     }
     const target = addresses.find(a => a.id === id);
-    if (target && !isAddressEditable(target.tag)) {
+    if (!target) return;
+    if (!isAddressEditable(target.tag)) {
       alert('Permanent addresses (Independent house/floor, Villa, PG) cannot be deleted.');
+      return;
+    }
+    if (typeof window !== 'undefined' && window.confirm && !window.confirm('Are you sure you want to remove this service address?')) {
       return;
     }
     const updatedList = addresses.filter(a => a.id !== id);
@@ -295,7 +299,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
       return;
     }
     if (!isAddressEditable(item.tag)) {
-      alert('Permanent addresses (Independent house/floor, Villa, PG) cannot be edited once saved. Only Rented home/floor addresses can be modified.');
+      alert('Permanent addresses (Independent house/floor, Villa, PG) cannot be edited once saved.');
       return;
     }
     setEditingId(item.id);
@@ -930,7 +934,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
         {addresses.length > 0 && (
           <View style={styles.headerCountPill}>
             <View style={styles.headerCountDot} />
-            <Text style={styles.headerCountText}>{addresses.length} Verified</Text>
+            <Text style={styles.headerCountText}>{addresses.length} {addresses.length === 1 ? 'Location' : 'Locations'}</Text>
           </View>
         )}
       </View>
@@ -960,14 +964,6 @@ export default function SavedAddressesScreen({ onNavigate }) {
                   <Text style={styles.addrTag}>{displayName}</Text>
                   
                   <View style={styles.tagRow}>
-                    {item.isDefault && (
-                      <View style={styles.defaultBadge}>
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" strokeWidth="1" style={{ marginRight: 3 }}>
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                        <Text style={styles.defaultBadgeText}>PRIMARY</Text>
-                      </View>
-                    )}
                     {cov.isSupported ? (
                       <View style={styles.coverageBadge}>
                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
@@ -988,7 +984,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
                   </View>
                 </View>
 
-                {/* Star Bookmark Pill (Flex sibling on the right) */}
+                {/* Star / Primary Status Button */}
                 <TouchableOpacity
                   style={[styles.starActionBtn, item.isDefault && styles.starActionBtnActive]}
                   onPress={() => !item.isDefault && handleSetDefault(item.id)}
@@ -997,13 +993,19 @@ export default function SavedAddressesScreen({ onNavigate }) {
                   title={item.isDefault ? "Primary Service Address" : "Set as Primary Destination"}
                 >
                   {item.isDefault ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" stroke="#D97706" strokeWidth="1.2">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#D97706" strokeWidth="1.2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                      <Text style={{ fontSize: 11, fontWeight: '800', color: '#B45309', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" }}>PRIMARY</Text>
+                    </View>
                   ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B', fontFamily: "'Outfit', 'Inter', -apple-system, sans-serif" }}>Set Primary</Text>
+                    </View>
                   )}
                 </TouchableOpacity>
               </View>
@@ -1011,7 +1013,7 @@ export default function SavedAddressesScreen({ onNavigate }) {
               {/* Physical Address Presentation */}
               <View style={styles.addressBlock}>
                 <View style={styles.addressPinIcon}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                     <circle cx="12" cy="10" r="3" fill="#2563EB" />
                   </svg>
@@ -1022,22 +1024,10 @@ export default function SavedAddressesScreen({ onNavigate }) {
                 </View>
               </View>
 
-              {/* Card Footer: Ribbon or Editable Actions */}
-              {!isAddressEditable(item.tag) ? (
-                <View style={styles.cardRibbon}>
-                  <View style={styles.ribbonLeft}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                    <Text style={styles.ribbonText}>Fixed Household Location</Text>
-                  </View>
-                  <View style={styles.ribbonRight}>
-                    <View style={styles.greenPulseDot} />
-                    <Text style={styles.doorstepReadyText}>Doorstep Ready</Text>
-                  </View>
-                </View>
-              ) : (
+
+
+              {/* Editable Actions Row: Only shown for editable (Rented) addresses */}
+              {isAddressEditable(item.tag) && (
                 <View style={styles.addrActions}>
                   <TouchableOpacity style={styles.actionBtn} onPress={() => handleEdit(item)} activeOpacity={0.7}>
                     <View style={styles.actionBtnInner}>
@@ -1185,12 +1175,14 @@ export default function SavedAddressesScreen({ onNavigate }) {
           </View>
         </View>
       ) : canCreateNewAddress ? (
-        <TouchableOpacity style={styles.addNewBtn} onPress={() => { setShowAddForm(true); setEditingId(null); setNewTag('Independent house/floor'); setNewAddress(''); }} activeOpacity={0.85}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          <Text style={styles.addNewBtnText}>Create New Verified Location</Text>
+        <TouchableOpacity style={styles.addNewBtn} onPress={() => { setShowAddForm(true); setEditingId(null); setNewTag('Rented home/floor'); setNewAddress(''); }} activeOpacity={0.85}>
+          <div style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </div>
+          <Text style={styles.addNewBtnText}>Add New Address</Text>
         </TouchableOpacity>
       ) : null}
 
@@ -1318,9 +1310,9 @@ const styles = StyleSheet.create({
   },
 
   starActionBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
     backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1332,7 +1324,11 @@ const styles = StyleSheet.create({
   starActionBtnActive: {
     backgroundColor: '#FFFBEB',
     borderColor: '#FDE68A',
-    boxShadow: '0 2px 8px rgba(245,158,11,0.2)',
+    boxShadow: '0 2px 8px rgba(245,158,11,0.15)',
+  },
+  cardRibbonOut: {
+    backgroundColor: '#FFF5F5',
+    borderTopColor: '#FECACA',
   },
 
   addrCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12, width: '100%' },

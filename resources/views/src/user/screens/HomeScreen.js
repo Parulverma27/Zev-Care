@@ -192,7 +192,7 @@ const AMC_HOME_ACTIONS = [
     tagline: 'Annual Maintenance Pass',
     subtitle: 'Protect your home with comprehensive annual maintenance.',
     actionLabel: 'Explore Plans',
-    route: '/user/plans',
+    route: '/user/my-amc',
     theme: 'frosted-sapphire',
     glowOrb1: 'radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, rgba(96, 165, 250, 0.3) 55%, transparent 75%)',
     glowOrb2: 'radial-gradient(circle, rgba(147, 197, 253, 0.65) 0%, rgba(59, 130, 246, 0.25) 55%, transparent 75%)',
@@ -662,7 +662,7 @@ export default function HomeScreen({ onNavigate }) {
 
   const handleAmcAction = (item) => {
     if (item.key === 'plans') {
-      handleNav('/user/plans');
+      handleNav('/user/my-amc');
       return;
     }
     if (item.key === 'mechanic') {
