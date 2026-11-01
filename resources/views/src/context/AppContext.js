@@ -2338,6 +2338,37 @@ export function AppProvider({ children }) {
     } catch (e) {}
   }, [userAppliances]);
 
+  const DEFAULT_AMC_SUBSCRIBER_APPLIANCES = [
+    { id: 'amc-app-1', name: '1.5 Ton AC', location: 'Living Room', category: 'Electrician', brand: 'Daikin', applianceTypeId: 'air_conditioner' },
+    { id: 'amc-app-2', name: 'Refrigerator', location: 'Kitchen', category: 'Electrician', brand: 'LG', applianceTypeId: 'refrigerator' },
+    { id: 'amc-app-3', name: 'RO Purifier', location: 'Kitchen', category: 'Plumber', brand: 'Kent', applianceTypeId: 'water_purifier' },
+    { id: 'amc-app-4', name: 'Washing Machine', location: 'Balcony', category: 'Electrician', brand: 'Bosch', applianceTypeId: 'washing_machine' },
+    { id: 'amc-app-5', name: 'Smart TV 55"', location: 'Master Bed', category: 'Electrician', brand: 'Sony', applianceTypeId: 'television' },
+    { id: 'amc-app-6', name: 'Geyser 25L', location: 'Bathroom', category: 'Electrician', brand: 'Havells', applianceTypeId: 'geyser' },
+  ];
+
+  useEffect(() => {
+    if (activeUser && !activeUser.isGuest && activeUser.subscription_status === 'ACTIVE') {
+      setUserAppliances((prev) => {
+        const userMatches = (prev || []).filter(
+          (a) => a.userId === activeUser.id || a.user_id === activeUser.id
+        );
+        if (userMatches.length === 0) {
+          const seeded = DEFAULT_AMC_SUBSCRIBER_APPLIANCES.map((a) => ({
+            ...a,
+            userId: activeUser.id,
+            user_id: activeUser.id,
+            user_phone: activeUser.phone,
+            isCoveredByAmc: true,
+            is_covered_by_amc: true,
+          }));
+          return [...seeded, ...prev];
+        }
+        return prev;
+      });
+    }
+  }, [activeUser?.id, activeUser?.subscription_status]);
+
   const getAppliancesForUser = (userOrId) => {
     if (!userOrId) return [];
     let userId = null;
@@ -2368,7 +2399,33 @@ export function AppProvider({ children }) {
         is_covered_by_amc: true,
       }));
 
-    return matches;
+    if (matches.length > 0) return matches;
+
+    const targetUser = typeof userOrId === 'object' && userOrId !== null
+      ? userOrId
+      : (users || []).find((usr) => usr.id === userId || String(usr.id) === String(userId)) || activeUser;
+
+    const userHasAmc = Boolean(
+      targetUser &&
+      !targetUser.isGuest &&
+      targetUser.subscription_status === 'ACTIVE' &&
+      targetUser.subscription_plan &&
+      targetUser.subscription_plan !== 'None' &&
+      targetUser.subscription_plan !== 'None / Inactive'
+    );
+
+    if (userHasAmc) {
+      return DEFAULT_AMC_SUBSCRIBER_APPLIANCES.map((a) => ({
+        ...a,
+        userId: targetUser?.id || 1,
+        user_id: targetUser?.id || 1,
+        user_phone: targetUser?.phone,
+        isCoveredByAmc: true,
+        is_covered_by_amc: true,
+      }));
+    }
+
+    return [];
   };
 
   const calculateApplianceExtraCharge = (applianceCount = 1) => {

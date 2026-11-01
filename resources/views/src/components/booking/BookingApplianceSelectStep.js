@@ -9,6 +9,7 @@ export default function BookingApplianceSelectStep({
   displayName = 'Appliance',
   appliances = [],
   selectedId,
+  hasActiveAmc = false,
   onSelect,
   onContinue,
   onAddNew,
@@ -33,10 +34,12 @@ export default function BookingApplianceSelectStep({
         Choose a registered {displayName.toLowerCase()} or add a new one.
       </Text>
 
-      <View style={styles.amcPolicyBanner}>
-        <Text style={styles.amcPolicyText}>
+      <View style={styles.amcProtectionBanner}>
+        <Text style={styles.amcProtectionText}>
           <Text style={{ fontWeight: '700' }}>AMC Protection: </Text>
-          All appliances already added to your account are covered at ₹0 breakdown labor. To service an appliance you haven&apos;t added yet, tap &quot;+ Add another&quot; below (one-time ₹{APPLIANCE_REGISTRATION_FEE} registration fee applies).
+          {hasActiveAmc
+            ? 'All appliances in your AMC plan receive ₹0 breakdown maintenance labor.'
+            : `All appliances already added to your account receive ₹0 breakdown maintenance labor. To service an appliance you haven't added yet, tap "+ Add another" below (one-time ₹${APPLIANCE_REGISTRATION_FEE} registration fee applies).`}
         </Text>
       </View>
 
@@ -50,8 +53,12 @@ export default function BookingApplianceSelectStep({
             <Text style={styles.primaryBtnText}>+ Add {displayName}</Text>
           </TouchableOpacity>
           <View style={styles.feeBanner}>
-            <Text style={styles.feeTitle}>One-time appliance registration fee</Text>
-            <Text style={styles.feeAmount}>₹{APPLIANCE_REGISTRATION_FEE}</Text>
+            <Text style={styles.feeTitle}>
+              {hasActiveAmc ? 'AMC Plan Appliance Registration' : 'One-time appliance registration fee'}
+            </Text>
+            <Text style={styles.feeAmount}>
+              {hasActiveAmc ? '₹0 Free' : `₹${APPLIANCE_REGISTRATION_FEE}`}
+            </Text>
           </View>
         </View>
       ) : (
@@ -68,7 +75,9 @@ export default function BookingApplianceSelectStep({
           <TouchableOpacity style={styles.addCard} onPress={onAddNew} activeOpacity={0.88}>
             <Text style={styles.addTitle}>+ Add another {displayName}</Text>
             <Text style={styles.addSub}>
-              Appliance not added yet? Add now & pay ₹{APPLIANCE_REGISTRATION_FEE} registration fee to book
+              {hasActiveAmc
+                ? 'Add another unit to your active AMC plan at ₹0 registration fee'
+                : `Appliance not added yet? Add now & pay ₹${APPLIANCE_REGISTRATION_FEE} registration fee to book`}
             </Text>
           </TouchableOpacity>
         </View>
@@ -103,14 +112,14 @@ const styles = StyleSheet.create({
   backChevron: { fontSize: 28, color: '#0f172a', marginTop: -2 },
   title: { fontSize: 22, fontWeight: '800', color: '#0f172a', letterSpacing: -0.3 },
   subtitle: { fontSize: 14, color: '#64748b', lineHeight: 20, marginTop: -6 },
-  amcPolicyBanner: {
+  amcProtectionBanner: {
     backgroundColor: '#eff6ff',
     borderWidth: 1,
     borderColor: '#bfdbfe',
     borderRadius: 12,
     padding: 10,
   },
-  amcPolicyText: {
+  amcProtectionText: {
     fontSize: 12,
     color: '#1e40af',
     lineHeight: 17,

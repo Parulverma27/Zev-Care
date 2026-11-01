@@ -237,7 +237,47 @@ export default function BookingFlowScreen({ onNavigate }) {
         }
         const typeId = getApplianceTypeIdForService(preSelectedService);
         resetApplianceDraftForType(typeId);
-        setStep('APPLIANCE_SELECT');
+
+        // Check if user already has matching registered appliance
+        const userApps = getAppliancesForUser ? getAppliancesForUser(activeUser) : [];
+        const matching = filterAppliancesByType(userApps, typeId);
+
+        if (matching.length === 1) {
+          // Exactly 1 appliance of this type in plan (e.g. 1 refrigerator): select it and jump directly to ISSUE
+          setSelectedAppliance({
+            ...matching[0],
+            applianceTypeId: typeId,
+            isCoveredByAmc: true,
+            is_covered_by_amc: true,
+          });
+          setApplianceRegistrationFee(0);
+          clearIssueState();
+          setStep('ISSUE');
+        } else if (matching.length > 1) {
+          // Multiple appliances (e.g. 2 ACs): let user choose which specific unit to service
+          setStep('APPLIANCE_SELECT');
+        } else if (hasActiveAmc) {
+          // User has active AMC plan: auto-provision covered appliance record and jump directly to ISSUE
+          const newCoveredApp = {
+            id: `amc-${typeId}-${Date.now()}`,
+            name: preSelectedService,
+            applianceTypeId: typeId,
+            type: preSelectedService,
+            location: 'Home',
+            isCoveredByAmc: true,
+            is_covered_by_amc: true,
+            userId: activeUser?.id,
+            user_id: activeUser?.id,
+            user_phone: activeUser?.phone,
+          };
+          if (addUserAppliance) addUserAppliance(newCoveredApp);
+          setSelectedAppliance(newCoveredApp);
+          setApplianceRegistrationFee(0);
+          clearIssueState();
+          setStep('ISSUE');
+        } else {
+          setStep('APPLIANCE_SELECT');
+        }
       } else {
         resetApplianceDraftForType(null);
         setCustomIssueText('');
@@ -262,7 +302,7 @@ export default function BookingFlowScreen({ onNavigate }) {
       if (navigate) navigate('/user/complains', { replace: true });
       else if (onNavigate) onNavigate('/user/complains');
     }
-  }, [preSelectedCategory, preSelectedSubCategory, preSelectedService, isGuest, isComplaint]);
+  }, [preSelectedCategory, preSelectedSubCategory, preSelectedService, preSelectedAppliance, isGuest, isComplaint, hasActiveAmc]);
 
   const userAppliances = useMemo(
     () => (getAppliancesForUser ? getAppliancesForUser(activeUser) : []),
@@ -403,6 +443,22 @@ export default function BookingFlowScreen({ onNavigate }) {
     if (isApplianceLinkedService(serviceName)) {
       const typeId = getApplianceTypeIdForService(serviceName);
       resetApplianceDraftForType(typeId);
+
+      const userApps = getAppliancesForUser ? getAppliancesForUser(activeUser) : [];
+      const matching = filterAppliancesByType(userApps, typeId);
+
+      if (matching.length === 1) {
+        setSelectedAppliance({
+          ...matching[0],
+          applianceTypeId: typeId,
+          isCoveredByAmc: true,
+          is_covered_by_amc: true,
+        });
+        setApplianceRegistrationFee(0);
+        clearIssueState();
+        setStep('ISSUE');
+        return;
+      }
       setStep('APPLIANCE_SELECT');
       return;
     }
@@ -554,7 +610,7 @@ export default function BookingFlowScreen({ onNavigate }) {
   const handleWizardComplete = (units, applianceType) => {
     const records = buildSavedApplianceRecords(units, applianceType, activeUser);
     const first = records[0];
-    if (!isConsultation) {
+    if (!isConsultation && !hasActiveAmc) {
       setPaymentPromptTarget({
         type: 'NEW_APPLIANCE',
         records,
@@ -564,7 +620,11 @@ export default function BookingFlowScreen({ onNavigate }) {
       setShowPaymentModal(true);
       return;
     }
-    records.forEach((r) => addUserAppliance(r));
+    records.forEach((r) => addUserAppliance({
+      ...r,
+      isCoveredByAmc: true,
+      is_covered_by_amc: true,
+    }));
     setSelectedAppliance(first);
     setIsNewAppliance(true);
     setApplianceRegistrationFee(0);
@@ -899,6 +959,7 @@ export default function BookingFlowScreen({ onNavigate }) {
             displayName={displayName}
             appliances={matchedAppliances}
             selectedId={selectedAppliance?.id}
+            hasActiveAmc={hasActiveAmc}
             onSelect={selectExistingAppliance}
             onContinue={() => {
               if (isGuest) {
@@ -1146,7 +1207,7 @@ export default function BookingFlowScreen({ onNavigate }) {
 
           {/* Main Booking Summary Card */}
           <View style={styles.summaryCard}>
-            {/* Service & Coverage Row */}
+            {/* Service & Plan Protection Row */}
             <View style={styles.reviewHeaderRow}>
               <View style={styles.reviewIconCircle}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

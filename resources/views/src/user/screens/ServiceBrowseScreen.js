@@ -198,6 +198,32 @@ export default function ServiceBrowseScreen({ onNavigate }) {
 
   const openBookingForService = (item) => {
     if (!checkCanBookComplaint()) return;
+
+    // If raising complaint on an appliance linked service, automatically link to user's plan appliance if present
+    if (!isConsultation && userPlanAppliances && userPlanAppliances.length > 0) {
+      const sName = String(item.name || '').toLowerCase();
+      const matchingAppliance = userPlanAppliances.find((a) => {
+        const aName = String(a.name || a.displayName || '').toLowerCase();
+        const aType = String(a.applianceTypeId || '').toLowerCase();
+        return (
+          aName.includes(sName) ||
+          sName.includes(aName) ||
+          (sName.includes('refrigerator') && (aName.includes('fridge') || aType.includes('refrigerator'))) ||
+          (sName.includes('fridge') && (aName.includes('refrigerator') || aType.includes('refrigerator'))) ||
+          (sName.includes('ac') && (aName.includes('ac') || aType.includes('air_conditioner'))) ||
+          (sName.includes('geyser') && aName.includes('geyser')) ||
+          (sName.includes('purifier') && (aName.includes('ro') || aName.includes('purifier'))) ||
+          (sName.includes('washing') && aName.includes('washing')) ||
+          (sName.includes('tv') && (aName.includes('tv') || aName.includes('television')))
+        );
+      });
+
+      if (matchingAppliance) {
+        handleSelectApplianceForComplaint(matchingAppliance);
+        return;
+      }
+    }
+
     const payload = {
       state: {
         preSelectedCategory: item.category_name,
