@@ -241,6 +241,28 @@ export default function ServiceBrowseScreen({ onNavigate }) {
     return searchAllServices(searchQuery, services).slice(0, 8);
   }, [searchQuery, services]);
 
+  const matchedPlanAppliances = useMemo(() => {
+    if (!searchQuery.trim() || !userPlanAppliances || userPlanAppliances.length === 0) return [];
+    const q = searchQuery.trim().toLowerCase();
+    return userPlanAppliances.filter((a) => {
+      const aName = String(a.name || a.displayName || '').toLowerCase();
+      const aBrand = String(a.brand || '').toLowerCase();
+      const aLoc = String(a.location || '').toLowerCase();
+      const aType = String(a.applianceTypeId || '').toLowerCase();
+      return (
+        aName.includes(q) ||
+        aBrand.includes(q) ||
+        aLoc.includes(q) ||
+        aType.includes(q) ||
+        (q === 'r' && (aName.includes('refrigerator') || aType.includes('refrigerator') || aName.includes('ro'))) ||
+        (q.includes('refrig') && (aName.includes('fridge') || aType.includes('refrigerator'))) ||
+        (q.includes('fridge') && (aName.includes('refrigerator') || aType.includes('refrigerator'))) ||
+        (q.includes('purif') && (aName.includes('ro') || aType.includes('water_purifier'))) ||
+        (q === 'ac' && (aName.includes('ac') || aType.includes('air_conditioner')))
+      );
+    });
+  }, [searchQuery, userPlanAppliances]);
+
   return (
     <ScrollView
       style={styles.container}
@@ -391,6 +413,14 @@ export default function ServiceBrowseScreen({ onNavigate }) {
           placeholderTextColor="#94a3b8"
           value={searchQuery}
           onChangeText={setSearchQuery}
+          returnKeyType="search"
+          onSubmitEditing={() => {
+            if (matchedPlanAppliances.length > 0) {
+              handleSelectApplianceForComplaint(matchedPlanAppliances[0]);
+            } else if (searchResults.length > 0) {
+              openBookingForService(searchResults[0]);
+            }
+          }}
         />
         {searchQuery.trim().length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearBtn}>
@@ -398,6 +428,36 @@ export default function ServiceBrowseScreen({ onNavigate }) {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Matched Plan Appliances in Search Results */}
+      {!isConsultation && matchedPlanAppliances.length > 0 && (
+        <View style={styles.searchResultsCard}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <Text style={styles.searchResultsTitle}>Your Plan Appliances ({matchedPlanAppliances.length})</Text>
+            <View style={styles.amcTagPill}>
+              <Text style={styles.amcTagPillText}>₹0 Breakdown Labor</Text>
+            </View>
+          </View>
+          {matchedPlanAppliances.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.searchResultRow}
+              onPress={() => handleSelectApplianceForComplaint(item)}
+              activeOpacity={0.7}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.searchResultName}>{item.name || item.displayName}</Text>
+                <Text style={styles.searchResultCat}>
+                  {[item.location, item.brand, 'Included in AMC Plan'].filter(Boolean).join(' • ')}
+                </Text>
+              </View>
+              <View style={styles.bookFreeBtn}>
+                <Text style={styles.bookFreeBtnText}>Raise ›</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {/* Live Search Results */}
       {searchResults.length > 0 && (
@@ -755,6 +815,19 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 2,
+  },
+  amcTagPill: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    borderRadius: 99,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  amcTagPillText: {
+    color: '#059669',
+    fontSize: 10.5,
+    fontWeight: '700',
   },
   searchResultRow: {
     flexDirection: 'row',
