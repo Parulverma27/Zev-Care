@@ -5,6 +5,7 @@ import { getPlanTheme } from '../../config/planTheme';
 import { normalizeSavedAddresses } from '../../utils/savedAddresses';
 import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
 import { hasGeneratedBill } from '../../utils/billing';
+import { getApplianceVideoUri, resolveApplianceImage } from '../../utils/applianceMediaHelper';
 import AdminVideoPlayer from './AdminVideoPlayer';
 
 const SECTIONS = [
@@ -82,6 +83,24 @@ export default function UserProfileModal({ visible, user, onClose }) {
     () => (user ? getAppliancesForUser(user) : []),
     [user, getAppliancesForUser]
   );
+
+  const userVideo = useMemo(() => {
+    if (!user) return null;
+    const direct =
+      user.property_video_url ||
+      user.property_video ||
+      user.propertyVideo ||
+      user.videoUri ||
+      user.property?.video_url ||
+      user.property?.video ||
+      user.property?.videoUri;
+    if (typeof direct === 'string' && direct.trim() && !direct.includes('sample-video')) {
+      return direct.trim();
+    }
+    const firstAppVideo = (appliances || []).map(getApplianceVideoUri).find(Boolean);
+    if (firstAppVideo) return firstAppVideo;
+    return null;
+  }, [user, appliances]);
 
   const planMeta = useMemo(() => {
     if (!user?.subscription_plan) return null;
@@ -547,106 +566,154 @@ export default function UserProfileModal({ visible, user, onClose }) {
                       <Text style={styles.emptyInfoText}>No appliances registered yet.</Text>
                     </View>
                   ) : (
-                    appliances.map((appliance) => (
-                      <View key={appliance.id} style={styles.applianceReviewCard}>
-                        <View style={styles.applianceReviewHeader}>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.applianceReviewName}>{appliance.name}</Text>
-                            <Text style={styles.applianceReviewMeta}>
-                              {appliance.category || appliance.typeName || 'Appliance'}
-                              {appliance.brand ? ` · ${appliance.brand}` : ''}
-                              {appliance.location ? ` · ${appliance.location}` : ''}
-                              {` · ${formatDate(appliance.createdAt || appliance.created_at)}`}
-                            </Text>
-                          </View>
-                          <View
-                            style={[
-                              styles.statusPill,
-                              appliance.mediaStatus === 'APPROVED'
-                                ? styles.greenPill
-                                : appliance.mediaStatus === 'REJECTED'
-                                  ? { backgroundColor: '#fef2f2' }
-                                  : appliance.mediaStatus === 'PENDING_REVIEW'
-                                    ? styles.yellowPill
-                                    : { backgroundColor: '#f1f5f9' },
-                            ]}
-                          >
-                            <Text
+                    appliances.map((appliance) => {
+                      const appVideo = getApplianceVideoUri(appliance);
+                      const appPhoto = appliance.media?.type === 'photo'
+                        ? appliance.media.url
+                        : (appliance.uploadedPhotoUri || (typeof appliance.img === 'string' && !appVideo && !appliance.img.includes('sample-video') && (appliance.img.startsWith('data:image/') || appliance.img.startsWith('blob:') || appliance.img.startsWith('http')) && !appliance.img.includes('127.0.0.1:3000') ? appliance.img : null));
+                      const catalogImg = resolveApplianceImage(appliance);
+                      const isPendingReview = appliance.mediaStatus === 'PENDING_REVIEW';
+                      const isApproved = appliance.mediaStatus === 'APPROVED';
+                      const isRejected = appliance.mediaStatus === 'REJECTED';
+
+                      return (
+                        <View key={appliance.id} style={styles.applianceReviewCard}>
+                          <View style={styles.applianceReviewHeader}>
+                            <View style={{ flex: 1 }}>
+                              <Text style={styles.applianceReviewName}>{appliance.name}</Text>
+                              <Text style={styles.applianceReviewMeta}>
+                                {appliance.category || appliance.typeName || 'Appliance'}
+                                {appliance.brand ? ` · ${appliance.brand}` : ''}
+                                {appliance.location ? ` · ${appliance.location}` : ''}
+                                {` · ${formatDate(appliance.createdAt || appliance.created_at)}`}
+                              </Text>
+                            </View>
+                            <View
                               style={[
-                                styles.statusPillText,
-                                appliance.mediaStatus === 'APPROVED'
-                                  ? styles.greenPillText
-                                  : appliance.mediaStatus === 'REJECTED'
-                                    ? { color: '#dc2626' }
-                                    : appliance.mediaStatus === 'PENDING_REVIEW'
-                                      ? styles.yellowPillText
-                                      : { color: '#64748b' },
+                                styles.statusPill,
+                                isApproved
+                                  ? styles.greenPill
+                                  : isRejected
+                                    ? { backgroundColor: '#fef2f2' }
+                                    : isPendingReview
+                                      ? styles.yellowPill
+                                      : { backgroundColor: '#f1f5f9' },
                               ]}
                             >
-                              {appliance.mediaStatus || 'NO MEDIA'}
-                            </Text>
+                              <Text
+                                style={[
+                                  styles.statusPillText,
+                                  isApproved
+                                    ? styles.greenPillText
+                                    : isRejected
+                                      ? { color: '#dc2626' }
+                                      : isPendingReview
+                                        ? styles.yellowPillText
+                                        : { color: '#64748b' },
+                                ]}
+                              >
+                                {isApproved
+                                  ? (appVideo ? 'VIDEO APPROVED' : 'MEDIA APPROVED')
+                                  : isRejected
+                                    ? (appVideo ? 'VIDEO REJECTED' : 'MEDIA REJECTED')
+                                    : isPendingReview
+                                      ? (appVideo ? 'VIDEO PENDING AUDIT' : 'MEDIA PENDING AUDIT')
+                                      : (appVideo ? 'ORIGINAL VIDEO' : appPhoto ? 'PHOTO ATTACHED' : 'PLAN PROTECTED')}
+                              </Text>
+                            </View>
                           </View>
-                        </View>
 
-                        {appliance.media ? (
-                          <TouchableOpacity
-                            style={styles.applianceMediaPreview}
-                            onPress={() => setPreviewAppliance(appliance)}
-                            activeOpacity={0.9}
-                          >
-                            {appliance.media.type === 'photo' ? (
+                          {appVideo ? (
+                            <TouchableOpacity
+                              style={styles.applianceMediaPreview}
+                              onPress={() => setPreviewAppliance(appliance)}
+                              activeOpacity={0.9}
+                            >
+                              {Platform.OS === 'web' ? (
+                                <video
+                                  src={appVideo}
+                                  muted
+                                  playsInline
+                                  style={{
+                                    width: '100%',
+                                    height: 130,
+                                    borderRadius: 10,
+                                    objectFit: 'cover',
+                                    backgroundColor: '#000000',
+                                  }}
+                                />
+                              ) : (
+                                <View style={styles.applianceMediaThumb}>
+                                  <Text style={styles.videoLabel}>Original Video Attached</Text>
+                                </View>
+                              )}
+                              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+                                <Text style={styles.mediaTapHint}>
+                                  ▶ Original User Video · Tap to play
+                                </Text>
+                                <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#2563eb' }}>
+                                  Original Recording
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          ) : appPhoto ? (
+                            <TouchableOpacity
+                              style={styles.applianceMediaPreview}
+                              onPress={() => setPreviewAppliance(appliance)}
+                              activeOpacity={0.9}
+                            >
                               <Image
-                                source={{ uri: appliance.media.url }}
+                                source={{ uri: appPhoto }}
                                 style={styles.applianceMediaThumb}
                                 resizeMode="cover"
                               />
-                            ) : Platform.OS === 'web' ? (
-                              <video
-                                src={appliance.media.url}
-                                style={{
-                                  width: '100%',
-                                  height: 120,
-                                  borderRadius: 10,
-                                  objectFit: 'cover',
-                                }}
+                              <Text style={styles.mediaTapHint}>
+                                📷 Customer Photo · Tap to expand
+                              </Text>
+                            </TouchableOpacity>
+                          ) : (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#ffffff', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#f1f5f9' }}>
+                              <Image
+                                source={{ uri: catalogImg }}
+                                style={{ width: 50, height: 50, borderRadius: 8, backgroundColor: '#f8fafc' }}
+                                resizeMode="contain"
                               />
-                            ) : (
-                              <View style={styles.applianceMediaThumb}>
-                                <Text style={styles.videoLabel}>Video attached</Text>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a' }}>
+                                  Plan Registered Appliance
+                                </Text>
+                                <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                                  Active item under AMC protection · No customer video recorded yet
+                                </Text>
                               </View>
-                            )}
-                            <Text style={styles.mediaTapHint}>
-                              Tap to expand · {appliance.media.type === 'photo' ? 'Photo' : 'Video'}
-                            </Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <Text style={styles.noMediaText}>No media uploaded</Text>
-                        )}
+                            </View>
+                          )}
 
-                        {appliance.media && appliance.mediaStatus === 'PENDING_REVIEW' && (
-                          <View style={styles.applianceReviewActions}>
-                            <TouchableOpacity
-                              style={[styles.approveBtn, { flex: 1, paddingVertical: 10 }]}
-                              onPress={() => handleApplianceReview(appliance.id, 'APPROVED')}
-                              activeOpacity={0.85}
-                            >
-                              <Text style={[styles.approveBtnText, { fontSize: 12 }]}>
-                                Approve Media
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              style={[styles.rejectBtn, { flex: 1, paddingVertical: 10 }]}
-                              onPress={() => handleApplianceReview(appliance.id, 'REJECTED')}
-                              activeOpacity={0.85}
-                            >
-                              <Text style={[styles.rejectBtnText, { fontSize: 12 }]}>
-                                Reject Media
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                        )}
-                      </View>
-                    ))
+                          {(appVideo || appPhoto) && isPendingReview && (
+                            <View style={styles.applianceReviewActions}>
+                              <TouchableOpacity
+                                style={[styles.approveBtn, { flex: 1, paddingVertical: 10 }]}
+                                onPress={() => handleApplianceReview(appliance.id, 'APPROVED')}
+                                activeOpacity={0.85}
+                              >
+                                <Text style={[styles.approveBtnText, { fontSize: 12 }]}>
+                                  Approve Media
+                                </Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={[styles.rejectBtn, { flex: 1, paddingVertical: 10 }]}
+                                onPress={() => handleApplianceReview(appliance.id, 'REJECTED')}
+                                activeOpacity={0.85}
+                              >
+                                <Text style={[styles.rejectBtnText, { fontSize: 12 }]}>
+                                  Reject Media
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })
                   )}
                 </View>
               )}
@@ -898,13 +965,12 @@ export default function UserProfileModal({ visible, user, onClose }) {
               {section === 'video' && (
                 <View style={styles.panel}>
                   <Text style={styles.sectionTitle}>Property walkthrough video</Text>
-                  {user?.property_video_url ? (
+                  {userVideo ? (
                     <>
                       <View style={{ marginBottom: 16 }}>
                         <AdminVideoPlayer
-                          src={user.property_video_url}
-                          label="Property Walkthrough Video"
-                          fallbackSrc="/sample-video.mp4"
+                          src={userVideo}
+                          label="Original Property Walkthrough Video"
                           autoPlay={false}
                         />
                       </View>
@@ -927,7 +993,7 @@ export default function UserProfileModal({ visible, user, onClose }) {
                     </>
                   ) : (
                     <View style={styles.emptyInfoBox}>
-                      <Text style={styles.emptyInfoText}>No property video uploaded yet.</Text>
+                      <Text style={styles.emptyInfoText}>No property video uploaded yet by this customer.</Text>
                     </View>
                   )}
                 </View>
@@ -953,20 +1019,36 @@ export default function UserProfileModal({ visible, user, onClose }) {
             <Text style={styles.modalSub}>
               {previewAppliance?.category} · {previewAppliance?.location}
             </Text>
-            {previewAppliance?.media?.type === 'photo' ? (
-              <Image
-                source={{ uri: previewAppliance.media.url }}
-                style={styles.fullMediaPreview}
-                resizeMode="contain"
-              />
-            ) : Platform.OS === 'web' && previewAppliance?.media ? (
-              <AdminVideoPlayer
-                src={previewAppliance.media.url}
-                label="Appliance Video"
-                fallbackSrc="/sample-video.mp4"
-                autoPlay={true}
-              />
-            ) : null}
+            {previewAppliance && (() => {
+              const previewVideo = getApplianceVideoUri(previewAppliance);
+              const previewPhoto = previewAppliance.media?.type === 'photo'
+                ? previewAppliance.media.url
+                : (previewAppliance.uploadedPhotoUri || (typeof previewAppliance.img === 'string' && !previewVideo && !previewAppliance.img.includes('sample-video') && (previewAppliance.img.startsWith('data:image/') || previewAppliance.img.startsWith('blob:') || previewAppliance.img.startsWith('http')) && !previewAppliance.img.includes('127.0.0.1:3000') ? previewAppliance.img : null));
+
+              if (previewVideo) {
+                return (
+                  <AdminVideoPlayer
+                    src={previewVideo}
+                    label="Original Customer Appliance Recording"
+                    autoPlay={true}
+                  />
+                );
+              }
+              if (previewPhoto) {
+                return (
+                  <Image
+                    source={{ uri: previewPhoto }}
+                    style={styles.fullMediaPreview}
+                    resizeMode="contain"
+                  />
+                );
+              }
+              return (
+                <View style={styles.emptyInfoBox}>
+                  <Text style={styles.emptyInfoText}>No media uploaded for this appliance.</Text>
+                </View>
+              );
+            })()}
             <TouchableOpacity
               style={styles.closeModalBtn}
               onPress={() => setPreviewAppliance(null)}

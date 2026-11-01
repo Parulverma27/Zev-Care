@@ -151,7 +151,7 @@ export default function AdminDashboardScreen({ onNavigate }) {
           ))}
 
           {pendingApplianceUploads.map((appliance, idx) => {
-            const owner = (users || []).find((u) => u.id === appliance.userId);
+            const owner = (users || []).find((u) => u.id === appliance.userId || u.id === appliance.user_id);
             return (
               <View key={`appliance-${appliance.id}-${idx}`} style={styles.alertRow}>
                 <View style={[styles.alertIconCircle, { backgroundColor: '#fffbe6' }]}>

@@ -1972,7 +1972,9 @@ export function buildSavedApplianceRecords(units, selectedService, user) {
     return {
       id: unit.id || (Date.now() + idx),
       userId: user?.id,
+      user_id: user?.id,
       user_phone: user?.phone || '',
+      user_email: user?.email || '',
       name: unit.displayName || (unit.name ? unit.name : `${svcName} ${idx + 1}`),
       displayName: unit.displayName || (unit.name ? unit.name : `${svcName} ${idx + 1}`),
       category: svcName,

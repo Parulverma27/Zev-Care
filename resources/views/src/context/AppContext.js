@@ -2348,7 +2348,15 @@ export function AppProvider({ children }) {
   ];
 
   useEffect(() => {
-    if (activeUser && !activeUser.isGuest && activeUser.subscription_status === 'ACTIVE') {
+    const hasPlan = Boolean(
+      activeUser &&
+      !activeUser.isGuest &&
+      activeUser.subscription_plan &&
+      activeUser.subscription_plan !== 'None' &&
+      activeUser.subscription_plan !== 'None / Inactive' &&
+      String(activeUser.subscription_plan).trim().toLowerCase() !== 'free'
+    );
+    if (hasPlan) {
       setUserAppliances((prev) => {
         const userMatches = (prev || []).filter(
           (a) => a.userId === activeUser.id || a.user_id === activeUser.id
@@ -2359,6 +2367,7 @@ export function AppProvider({ children }) {
             userId: activeUser.id,
             user_id: activeUser.id,
             user_phone: activeUser.phone,
+            user_email: activeUser.email,
             isCoveredByAmc: true,
             is_covered_by_amc: true,
           }));
@@ -2367,30 +2376,46 @@ export function AppProvider({ children }) {
         return prev;
       });
     }
-  }, [activeUser?.id, activeUser?.subscription_status]);
+  }, [activeUser?.id, activeUser?.subscription_plan, activeUser?.subscription_status]);
 
   const getAppliancesForUser = (userOrId) => {
     if (!userOrId) return [];
+    const clean = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
+    const cleanEmail = (e) => (e ? String(e).trim().toLowerCase() : '');
+
+    let targetUser = null;
     let userId = null;
     let userPhone = null;
+    let userEmail = null;
 
     if (typeof userOrId === 'object' && userOrId !== null) {
+      targetUser = userOrId;
       userId = userOrId.id;
       userPhone = userOrId.phone;
+      userEmail = userOrId.email;
     } else {
       userId = userOrId;
-      const u = (users || []).find((usr) => usr.id === userId || String(usr.id) === String(userId));
-      if (u) userPhone = u.phone;
+      targetUser = (users || []).find((usr) => usr.id === userId || String(usr.id) === String(userId))
+        || (activeUser && (activeUser.id === userId || String(activeUser.id) === String(userId)) ? activeUser : null);
+      if (targetUser) {
+        userPhone = targetUser.phone;
+        userEmail = targetUser.email;
+      }
     }
 
-    const clean = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
     const cleanUserPhone = clean(userPhone);
+    const targetCleanEmail = cleanEmail(userEmail);
 
     const matches = (userAppliances || [])
       .filter((a) => {
         if (userId != null && (a.userId === userId || String(a.userId) === String(userId))) return true;
         if (userId != null && (a.user_id === userId || String(a.user_id) === String(userId))) return true;
         if (cleanUserPhone && a.user_phone && clean(a.user_phone) === cleanUserPhone) return true;
+        if (targetCleanEmail && (
+          (a.user_email && cleanEmail(a.user_email) === targetCleanEmail) ||
+          (a.userEmail && cleanEmail(a.userEmail) === targetCleanEmail) ||
+          (a.email && cleanEmail(a.email) === targetCleanEmail)
+        )) return true;
         return false;
       })
       .map((a) => ({
@@ -2399,33 +2424,74 @@ export function AppProvider({ children }) {
         is_covered_by_amc: true,
       }));
 
-    if (matches.length > 0) return matches;
+    // Check direct appliances on user object (e.g. from user registration/profile)
+    const directAppliances = (
+      Array.isArray(targetUser?.appliances)
+        ? targetUser.appliances
+        : (Array.isArray(targetUser?.registered_appliances) ? targetUser.registered_appliances : [])
+    ).map((a) => ({
+      ...a,
+      userId: targetUser?.id || userId || 1,
+      user_id: targetUser?.id || userId || 1,
+      user_phone: targetUser?.phone || userPhone,
+      user_email: targetUser?.email || userEmail,
+      isCoveredByAmc: true,
+      is_covered_by_amc: true,
+    }));
 
-    const targetUser = typeof userOrId === 'object' && userOrId !== null
-      ? userOrId
-      : (users || []).find((usr) => usr.id === userId || String(usr.id) === String(userId)) || activeUser;
+    const combinedUserApps = [...matches];
+    for (const da of directAppliances) {
+      if (!combinedUserApps.some((ca) => ca.id === da.id || (ca.name && ca.name === da.name))) {
+        combinedUserApps.push(da);
+      }
+    }
 
-    const userHasAmc = Boolean(
+    const planName = targetUser?.subscription_plan || targetUser?.plan;
+    const userHasPlan = Boolean(
       targetUser &&
       !targetUser.isGuest &&
-      targetUser.subscription_status === 'ACTIVE' &&
-      targetUser.subscription_plan &&
-      targetUser.subscription_plan !== 'None' &&
-      targetUser.subscription_plan !== 'None / Inactive'
+      planName &&
+      planName !== 'None' &&
+      planName !== 'None / Inactive' &&
+      String(planName).trim().toLowerCase() !== 'free'
     );
 
-    if (userHasAmc) {
-      return DEFAULT_AMC_SUBSCRIBER_APPLIANCES.map((a) => ({
+    if (userHasPlan) {
+      const defaultPlanApps = DEFAULT_AMC_SUBSCRIBER_APPLIANCES.map((a) => ({
         ...a,
-        userId: targetUser?.id || 1,
-        user_id: targetUser?.id || 1,
-        user_phone: targetUser?.phone,
+        userId: targetUser?.id || userId || 1,
+        user_id: targetUser?.id || userId || 1,
+        user_phone: targetUser?.phone || userPhone,
+        user_email: targetUser?.email || userEmail,
         isCoveredByAmc: true,
         is_covered_by_amc: true,
       }));
+
+      if (combinedUserApps.length === 0) {
+        return defaultPlanApps;
+      }
+
+      // If user already has some recorded appliances (e.g. customized or video-uploaded),
+      // merge any default plan appliances that aren't already represented by name or type:
+      const hasAmcDefaults = combinedUserApps.some((a) => String(a.id).startsWith('amc-app-'));
+      if (hasAmcDefaults) {
+        return combinedUserApps;
+      }
+
+      const merged = [...combinedUserApps];
+      for (const defApp of defaultPlanApps) {
+        const alreadyRepresented = merged.some(
+          (m) => (m.applianceTypeId && m.applianceTypeId === defApp.applianceTypeId) ||
+                 (m.name && m.name.toLowerCase() === defApp.name.toLowerCase())
+        );
+        if (!alreadyRepresented) {
+          merged.push(defApp);
+        }
+      }
+      return merged;
     }
 
-    return [];
+    return combinedUserApps;
   };
 
   const calculateApplianceExtraCharge = (applianceCount = 1) => {
