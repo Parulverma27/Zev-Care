@@ -24,6 +24,8 @@ const PROVIDERS_VERSION = 'v3-aadhar-maps';
 const PROVIDERS_VERSION_KEY = 'zevota_providers_version';
 const WALLET_SYNC_VERSION = 'v5-fix-aryan-phone-collision';
 const WALLET_SYNC_KEY = 'zevota_wallet_sync_version';
+const SUB_ADMINS_VERSION = 'v1-category-managers';
+const SUB_ADMINS_VERSION_KEY = 'zevota_subadmins_version';
 
 const cleanPhoneDigits = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
 
@@ -1380,6 +1382,170 @@ export function AppProvider({ children }) {
       localStorage.setItem('zevota_chats', JSON.stringify(chats));
     } catch (e) {}
   }, [chats]);
+
+  // Sub-Admin Category Management State
+  const DEFAULT_SUB_ADMINS = [
+    {
+      id: 1,
+      name: 'Anil Verma',
+      email: 'anil.electrical@zevotacare.com',
+      phone: '+91 98112 33441',
+      role: 'SUB_ADMIN',
+      status: 'ACTIVE',
+      assigned_categories: ['Electrical & AC', 'Appliances'],
+      permissions: {
+        can_dispatch_partners: true,
+        can_approve_estimates: true,
+        can_manage_catalog_rates: true,
+        can_resolve_complaints: true,
+      },
+      created_at: '2026-10-15T10:00:00Z',
+    },
+    {
+      id: 2,
+      name: 'Sunil Sharma',
+      email: 'sunil.plumbing@zevotacare.com',
+      phone: '+91 98112 33442',
+      role: 'SUB_ADMIN',
+      status: 'ACTIVE',
+      assigned_categories: ['Plumbing'],
+      permissions: {
+        can_dispatch_partners: true,
+        can_approve_estimates: true,
+        can_manage_catalog_rates: true,
+        can_resolve_complaints: true,
+      },
+      created_at: '2026-10-18T11:30:00Z',
+    },
+    {
+      id: 3,
+      name: 'Ramesh Gupta',
+      email: 'ramesh.carpentry@zevotacare.com',
+      phone: '+91 98112 33443',
+      role: 'SUB_ADMIN',
+      status: 'ACTIVE',
+      assigned_categories: ['Carpentry'],
+      permissions: {
+        can_dispatch_partners: true,
+        can_approve_estimates: true,
+        can_manage_catalog_rates: true,
+        can_resolve_complaints: true,
+      },
+      created_at: '2026-10-20T09:15:00Z',
+    },
+    {
+      id: 4,
+      name: 'Deepak Mehta',
+      email: 'deepak.pest@zevotacare.com',
+      phone: '+91 98112 33444',
+      role: 'SUB_ADMIN',
+      status: 'ACTIVE',
+      assigned_categories: ['Pest Control'],
+      permissions: {
+        can_dispatch_partners: true,
+        can_approve_estimates: true,
+        can_manage_catalog_rates: true,
+        can_resolve_complaints: true,
+      },
+      created_at: '2026-10-22T14:40:00Z',
+    },
+    {
+      id: 5,
+      name: 'Pooja Kulkarni',
+      email: 'pooja.cleaning@zevotacare.com',
+      phone: '+91 98112 33445',
+      role: 'SUB_ADMIN',
+      status: 'ACTIVE',
+      assigned_categories: ['Cleaning'],
+      permissions: {
+        can_dispatch_partners: true,
+        can_approve_estimates: true,
+        can_manage_catalog_rates: true,
+        can_resolve_complaints: true,
+      },
+      created_at: '2026-10-25T16:20:00Z',
+    },
+  ];
+
+  const [subAdmins, setSubAdmins] = useState(() => {
+    try {
+      const storedVersion = localStorage.getItem(SUB_ADMINS_VERSION_KEY);
+      if (storedVersion !== SUB_ADMINS_VERSION) {
+        localStorage.removeItem('zevota_subadmins');
+        localStorage.setItem(SUB_ADMINS_VERSION_KEY, SUB_ADMINS_VERSION);
+        return DEFAULT_SUB_ADMINS;
+      }
+      const saved = localStorage.getItem('zevota_subadmins');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return DEFAULT_SUB_ADMINS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('zevota_subadmins', JSON.stringify(subAdmins));
+    } catch (e) {}
+  }, [subAdmins]);
+
+  const addSubAdmin = (data) => {
+    const newSubAdmin = {
+      id: Date.now(),
+      name: data.name?.trim() || 'Sub-Admin',
+      email: data.email?.trim() || '',
+      phone: data.phone?.trim() || '',
+      role: 'SUB_ADMIN',
+      status: data.status || 'ACTIVE',
+      assigned_categories: Array.isArray(data.assigned_categories) && data.assigned_categories.length > 0
+        ? data.assigned_categories
+        : ['Electrical & AC'],
+      permissions: data.permissions || {
+        can_dispatch_partners: true,
+        can_approve_estimates: true,
+        can_manage_catalog_rates: true,
+        can_resolve_complaints: true,
+      },
+      created_at: new Date().toISOString(),
+    };
+    setSubAdmins((prev) => [newSubAdmin, ...prev]);
+    return newSubAdmin;
+  };
+
+  const updateSubAdmin = (id, data) => {
+    setSubAdmins((prev) =>
+      prev.map((sa) => (sa.id === id ? { ...sa, ...data } : sa))
+    );
+  };
+
+  const deleteSubAdmin = (id) => {
+    setSubAdmins((prev) => prev.filter((sa) => sa.id !== id));
+  };
+
+  const toggleSubAdminStatus = (id) => {
+    setSubAdmins((prev) =>
+      prev.map((sa) =>
+        sa.id === id ? { ...sa, status: sa.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' } : sa
+      )
+    );
+  };
+
+  const switchAdminAccount = (account) => {
+    if (!account) return;
+    setAdminUser(account);
+  };
+
+  const isCategoryAllowedForAdmin = (catName, admin = adminUser) => {
+    if (!admin || admin.role === 'SUPER_ADMIN' || !admin.assigned_categories || admin.assigned_categories.length === 0) {
+      return true;
+    }
+    const target = (catName || '').toLowerCase().trim();
+    return admin.assigned_categories.some((c) => {
+      const canonical = c.toLowerCase().trim();
+      return target.includes(canonical) || canonical.includes(target);
+    });
+  };
 
   // Service Areas State (Requirement 18)
   const [serviceAreas, setServiceAreas] = useState(() => {
@@ -3007,6 +3173,14 @@ export function AppProvider({ children }) {
         updateBookingArrivalTelemetry,
         updateProviderProfile,
         calculateApplianceExtraCharge,
+        subAdmins,
+        setSubAdmins,
+        addSubAdmin,
+        updateSubAdmin,
+        deleteSubAdmin,
+        toggleSubAdminStatus,
+        switchAdminAccount,
+        isCategoryAllowedForAdmin,
       }}
     >
       {children}
