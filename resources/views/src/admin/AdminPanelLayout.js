@@ -24,10 +24,14 @@ import {
 export default function AdminPanelLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { adminUser, logoutAdmin } = useApp() || {};
+  const { adminUser, logoutAdmin, subAdmins = [], switchAdminAccount } = useApp() || {};
+  const [showRoleSwitcher, setShowRoleSwitcher] = React.useState(false);
 
-  const menuItems = [
+  const isSubAdmin = adminUser?.role === 'SUB_ADMIN';
+
+  const allMenuItems = [
     { path: '/admin/dashboard', icon: DashboardIcon, label: 'Dashboard & Analytics' },
+    { path: '/admin/subadmins', icon: UsersIcon, label: 'Sub-Admin Managers', superAdminOnly: true },
     { path: '/admin/bookings', icon: BookingsIcon, label: 'Work Orders & Bookings' },
     { path: '/admin/consultations', icon: ConsultationsIcon, label: 'My Mechanic (₹0 Diagnosis)' },
     { path: '/admin/ratings', icon: RatingsIcon, label: 'Ratings & Reviews' },
@@ -43,6 +47,11 @@ export default function AdminPanelLayout() {
     { path: '/admin/chat', icon: ChatIcon, label: 'Live Support Console' },
   ];
 
+  const menuItems = allMenuItems.filter((item) => {
+    if (item.superAdminOnly && isSubAdmin) return false;
+    return true;
+  });
+
   const isAuthPage = location.pathname.includes('/login');
 
   const handleAdminLogout = () => {
@@ -50,9 +59,30 @@ export default function AdminPanelLayout() {
     navigate('/admin/login');
   };
 
+  const handleSwitchToSuperAdmin = () => {
+    if (typeof switchAdminAccount === 'function') {
+      switchAdminAccount({
+        id: 0,
+        name: 'SUPER ADMIN',
+        email: 'admin@zevotacare.com',
+        role: 'SUPER_ADMIN',
+        assigned_categories: [],
+      });
+      setShowRoleSwitcher(false);
+    }
+  };
+
+  const handleSelectSubAdmin = (sa) => {
+    if (typeof switchAdminAccount === 'function') {
+      switchAdminAccount(sa);
+      setShowRoleSwitcher(false);
+      navigate('/admin/bookings');
+    }
+  };
+
   const getPageTitle = () => {
     // Prefer longest matching path so /admin/bookings/:id still resolves correctly
-    const sorted = [...menuItems].sort((a, b) => b.path.length - a.path.length);
+    const sorted = [...allMenuItems].sort((a, b) => b.path.length - a.path.length);
     const current = sorted.find((m) => location.pathname === m.path || location.pathname.startsWith(`${m.path}/`));
     return current ? current.label : 'Control Center';
   };
@@ -68,7 +98,11 @@ export default function AdminPanelLayout() {
                 <ZevotaLogo size="small" />
               </TouchableOpacity>
               <Text style={styles.sidebarTitle}>Admin Control Center</Text>
-              <Text style={styles.sidebarSub}>Operations & Financials</Text>
+              <Text style={styles.sidebarSub}>
+                {isSubAdmin
+                  ? `Department: ${(adminUser?.assigned_categories || []).join(', ')}`
+                  : 'Operations & Financials'}
+              </Text>
             </View>
 
             <ScrollView style={styles.menuList} showsVerticalScrollIndicator={false}>
@@ -94,8 +128,8 @@ export default function AdminPanelLayout() {
 
             {/* Admin Profile & Logout Bar */}
             <View style={styles.adminProfileFooter}>
-              <View style={styles.adminAvatarBox}>
-                <Text style={styles.adminInitials}>
+              <View style={[styles.adminAvatarBox, isSubAdmin && { backgroundColor: '#fef3c7', borderColor: '#fde68a' }]}>
+                <Text style={[styles.adminInitials, isSubAdmin && { color: '#b45309' }]}>
                   {(adminUser?.name || 'ADMIN').slice(0, 2).toUpperCase()}
                 </Text>
               </View>
@@ -104,7 +138,9 @@ export default function AdminPanelLayout() {
                   {adminUser?.name || 'SUPER ADMIN'}
                 </Text>
                 <Text style={styles.adminRoleText} numberOfLines={1}>
-                  {adminUser?.role || 'Super Admin'}
+                  {isSubAdmin
+                    ? `Manager (${(adminUser?.assigned_categories || []).join(', ')})`
+                    : 'Super Admin'}
                 </Text>
               </View>
               <TouchableOpacity style={styles.logoutIconButton} onPress={handleAdminLogout} title="Sign Out">
@@ -122,6 +158,62 @@ export default function AdminPanelLayout() {
                 <Text style={styles.headerBreadcrumb}>Home / Admin / {getPageTitle()}</Text>
               </View>
               <View style={styles.headerRightRow}>
+                {/* Department / Role Switcher */}
+                <View style={{ position: 'relative' }}>
+                  {isSubAdmin ? (
+                    <View style={styles.activeSubAdminHeaderBadge}>
+                      <Text style={styles.activeSubAdminBadgeText}>
+                        📁 {adminUser?.name} ({(adminUser?.assigned_categories || []).join(', ')})
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.switchBackSuperAdminBtn}
+                        onPress={handleSwitchToSuperAdmin}
+                      >
+                        <Text style={styles.switchBackSuperAdminBtnText}>↩ Switch to Super Admin</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.roleSwitcherBtn}
+                      onPress={() => setShowRoleSwitcher((p) => !p)}
+                    >
+                      <Text style={styles.roleSwitcherBtnText}>
+                        👑 Super Admin (All Categories) ▾
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Dropdown Menu when Super Admin clicks Switcher */}
+                  {showRoleSwitcher && !isSubAdmin && (
+                    <View style={styles.roleSwitcherDropdown}>
+                      <Text style={styles.roleDropdownHeader}>TEST AS CATEGORY MANAGER:</Text>
+                      <ScrollView style={{ maxHeight: 220 }}>
+                        {subAdmins.map((sa) => (
+                          <TouchableOpacity
+                            key={sa.id}
+                            style={styles.roleDropdownItem}
+                            onPress={() => handleSelectSubAdmin(sa)}
+                          >
+                            <Text style={styles.roleDropdownName}>{sa.name}</Text>
+                            <Text style={styles.roleDropdownCats}>
+                              {(sa.assigned_categories || []).join(', ')}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                      <TouchableOpacity
+                        style={styles.roleDropdownManageBtn}
+                        onPress={() => {
+                          setShowRoleSwitcher(false);
+                          navigate('/admin/subadmins');
+                        }}
+                      >
+                        <Text style={styles.roleDropdownManageText}>⚙ Manage All Sub-Admins</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+
                 <View style={styles.systemStatusPill}>
                   <View style={styles.systemStatusDot} />
                   <Text style={styles.systemStatusText}>Systems Operational</Text>
@@ -252,5 +344,99 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#e2e8f0',
+  },
+  roleSwitcherBtn: {
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  roleSwitcherBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  roleSwitcherDropdown: {
+    position: 'absolute',
+    top: 36,
+    right: 0,
+    width: 260,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    zIndex: 100,
+  },
+  roleDropdownHeader: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94a3b8',
+    letterSpacing: 0.5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  roleDropdownItem: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginVertical: 2,
+    backgroundColor: '#f8fafc',
+  },
+  roleDropdownName: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  roleDropdownCats: {
+    fontSize: 10,
+    color: '#2563eb',
+    marginTop: 1,
+  },
+  roleDropdownManageBtn: {
+    marginTop: 6,
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    alignItems: 'center',
+  },
+  roleDropdownManageText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  activeSubAdminHeaderBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  activeSubAdminBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#92400e',
+  },
+  switchBackSuperAdminBtn: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  switchBackSuperAdminBtnText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#b45309',
   },
 });

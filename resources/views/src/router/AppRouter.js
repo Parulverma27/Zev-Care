@@ -49,6 +49,7 @@ import { AdminProvidersScreen, AdminServicesScreen } from '../admin/screens/Admi
 import { AdminFinanceScreen, AdminDisputesScreen } from '../admin/screens/AdminFinanceScreen';
 import { AdminBannersScreen, AdminChatScreen } from '../admin/screens/AdminBannersScreen';
 import { AdminSubscriptionPlansScreen } from '../admin/screens/AdminSubscriptionPlansScreen';
+import AdminSubAdminsScreen from '../admin/screens/AdminSubAdminsScreen';
 
 function Protected({ children }) {
   return <UserProtectedRoute>{children}</UserProtectedRoute>;
@@ -122,6 +123,7 @@ export default function AppRouter() {
           <Route path="banners" element={<AdminProtected><AdminBannersScreen /></AdminProtected>} />
           <Route path="chat" element={<AdminProtected><AdminChatScreen /></AdminProtected>} />
           <Route path="plans" element={<AdminProtected><AdminSubscriptionPlansScreen /></AdminProtected>} />
+          <Route path="subadmins" element={<AdminProtected><AdminSubAdminsScreen /></AdminProtected>} />
         </Route>
 
         <Route path="/banners" element={<Navigate to="/admin/banners" replace />} />

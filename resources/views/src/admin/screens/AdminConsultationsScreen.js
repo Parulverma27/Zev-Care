@@ -5,7 +5,7 @@ import { AppIcon } from '../../components/AppIcons';
 import { exportToCSV } from '../../utils/exportUtils';
 
 export default function AdminConsultationsScreen() {
-  const { bookings, providers, assignProvider, generateBill } = useApp();
+  const { bookings, providers, assignProvider, generateBill, isCategoryAllowedForAdmin, adminUser } = useApp();
 
   const [tradeFilter, setTradeFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -20,17 +20,25 @@ export default function AdminConsultationsScreen() {
   const [labourCharge, setLabourCharge] = useState('');
   const [quoteNotes, setQuoteNotes] = useState('');
 
-  // Filter only consultation bookings
+  // Filter only consultation bookings and scope to assigned categories if sub-admin
   const consultationBookings = (bookings || []).filter(
-    (b) => Boolean(
-      b.isConsultation ||
-      b.is_consultation ||
-      b.booking_mode === 'consultation' ||
-      b.bookingMode === 'consultation' ||
-      (b.service_name && b.service_name.toLowerCase().includes('consultation')) ||
-      (b.service_name && b.service_name.toLowerCase().includes('diagnosis')) ||
-      (b.description && b.description.toLowerCase().includes('consultation'))
-    )
+    (b) => {
+      const isCons = Boolean(
+        b.isConsultation ||
+        b.is_consultation ||
+        b.booking_mode === 'consultation' ||
+        b.bookingMode === 'consultation' ||
+        (b.service_name && b.service_name.toLowerCase().includes('consultation')) ||
+        (b.service_name && b.service_name.toLowerCase().includes('diagnosis')) ||
+        (b.description && b.description.toLowerCase().includes('consultation'))
+      );
+      if (!isCons) return false;
+      if (typeof isCategoryAllowedForAdmin === 'function') {
+        const cat = b.category_name || b.category || b.service_name || '';
+        if (!isCategoryAllowedForAdmin(cat)) return false;
+      }
+      return true;
+    }
   );
 
   // KPI calculations

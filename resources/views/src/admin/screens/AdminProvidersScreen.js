@@ -10,11 +10,21 @@ import { getProviderRatingStats, getPerformanceTier } from '../../utils/ratings'
 import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker';
 
 export function AdminProvidersScreen() {
-  const { providers, setProviders, bookings } = useApp();
+  const { providers, setProviders, bookings, isCategoryAllowedForAdmin, adminUser } = useApp();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState(null);
+
+  const visibleProviders = (providers || []).filter((p) => {
+    if (!adminUser || adminUser.role === 'SUPER_ADMIN') return true;
+    if (typeof isCategoryAllowedForAdmin === 'function') {
+      const pCats = p.categories || (p.category ? [p.category] : []);
+      if (pCats.length === 0) return true;
+      return pCats.some((c) => isCategoryAllowedForAdmin(c));
+    }
+    return true;
+  });
 
   // Compute real dynamic statistics for a provider from actual bookings
   const getProviderStats = (provider) => {
@@ -160,7 +170,7 @@ export function AdminProvidersScreen() {
       { label: 'Map Coordinates', accessor: (p) => p.coords?.lat && p.coords?.lng ? `${p.coords.lat}, ${p.coords.lng}` : 'N/A' },
       { label: 'Online Status', accessor: (p) => (p.is_online ? 'ONLINE' : 'OFFLINE') },
     ];
-    exportToCSV('Zevota_Field_Partners_Report', columns, providers);
+    exportToCSV('Zevota_Field_Partners_Report', columns, visibleProviders);
   };
 
   return (
@@ -209,7 +219,7 @@ export function AdminProvidersScreen() {
           <Text style={[styles.th, { flex: 1.5, textAlign: 'right' }]}>Actions</Text>
         </View>
 
-        {providers.map((p, idx) => {
+        {visibleProviders.map((p, idx) => {
           const stats = getProviderStats(p);
           return (
             <View key={idx} style={styles.tableRow}>

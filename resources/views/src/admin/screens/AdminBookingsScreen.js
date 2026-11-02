@@ -11,7 +11,7 @@ import { hasGeneratedBill, isBillPaid } from '../../utils/billing';
 import LiveProviderTrackingMap from '../../components/LiveProviderTrackingMap';
 
 export default function AdminBookingsScreen() {
-  const { bookings, users, providers, acceptBooking, rejectBooking, assignProvider, generateBill } = useApp();
+  const { bookings, users, providers, acceptBooking, rejectBooking, assignProvider, generateBill, isCategoryAllowedForAdmin, adminUser } = useApp();
   const { bookingId: routeBookingId } = useParams();
   const navigate = useNavigate();
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -65,8 +65,16 @@ export default function AdminBookingsScreen() {
   const [billFormError, setBillFormError] = useState('');
 
   // Strictly filter out "My Mechanic" / Free Consultations so Booking Operations only manages standard work orders
+  // and scope by sub-admin assigned category if logged in as sub-admin
   const isConsultationBk = (b) => Boolean(b?.isConsultation || b?.is_consultation || b?.booking_mode === 'consultation' || b?.bookingMode === 'consultation');
-  const activeBookings = (bookings || []).filter((b) => !isConsultationBk(b));
+  const activeBookings = (bookings || []).filter((b) => {
+    if (isConsultationBk(b)) return false;
+    if (typeof isCategoryAllowedForAdmin === 'function') {
+      const cat = b.category_name || b.category || b.service_name || '';
+      if (!isCategoryAllowedForAdmin(cat)) return false;
+    }
+    return true;
+  });
 
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
