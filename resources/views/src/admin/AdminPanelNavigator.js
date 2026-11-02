@@ -5,7 +5,7 @@ import AdminBookingsScreen from './screens/AdminBookingsScreen';
 import AdminConsultationsScreen from './screens/AdminConsultationsScreen';
 import AdminUsersScreen from './screens/AdminUsersScreen';
 import { AdminProvidersScreen, AdminServicesScreen } from './screens/AdminProvidersScreen';
-import { AdminFinanceScreen, AdminDisputesScreen } from './screens/AdminFinanceScreen';
+import { AdminFinanceScreen } from './screens/AdminFinanceScreen';
 import { AdminBannersScreen, AdminChatScreen } from './screens/AdminBannersScreen';
 import { AdminSubscriptionPlansScreen } from './screens/AdminSubscriptionPlansScreen';
 
@@ -17,7 +17,6 @@ import {
   ProvidersIcon,
   CategoriesIcon,
   FinanceIcon,
-  DisputesIcon,
   BannersIcon,
   SubscriptionPlansIcon,
   ChatIcon,
@@ -34,7 +33,6 @@ export default function AdminPanelNavigator() {
     { key: 'PROVIDERS', icon: ProvidersIcon, label: 'Field Partners' },
     { key: 'SERVICES', icon: CategoriesIcon, label: 'Category Catalog' },
     { key: 'FINANCE', icon: FinanceIcon, label: 'Wallet Audit Logs' },
-    { key: 'DISPUTES', icon: DisputesIcon, label: 'Dispute Resolution' },
     { key: 'BANNERS', icon: BannersIcon, label: 'Marketing Banners' },
     { key: 'PLANS', icon: SubscriptionPlansIcon, label: 'Subscription Plans' },
     { key: 'CHAT', icon: ChatIcon, label: 'Live Support Console' },
@@ -56,8 +54,6 @@ export default function AdminPanelNavigator() {
         return <AdminServicesScreen />;
       case 'FINANCE':
         return <AdminFinanceScreen />;
-      case 'DISPUTES':
-        return <AdminDisputesScreen />;
       case 'BANNERS':
         return <AdminBannersScreen />;
       case 'PLANS':

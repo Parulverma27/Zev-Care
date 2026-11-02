@@ -133,22 +133,6 @@ export function AdminFinanceScreen() {
   );
 }
 
-export function AdminDisputesScreen() {
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Dispute Resolution Center</Text>
-        <Text style={styles.subtitle}>Review customer dispute tickets, bill grievances, and partner arbitrations.</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>No Active Disputes</Text>
-        <Text style={styles.cardSub}>All work order estimates, wallet deductions, and completions are operating smoothly.</Text>
-      </View>
-    </ScrollView>
-  );
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   content: { padding: 24, gap: 20 },

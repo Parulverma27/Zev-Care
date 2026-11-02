@@ -46,7 +46,7 @@ import AdminUserServicesScreen from '../admin/screens/AdminUserServicesScreen';
 import AdminUsersScreen from '../admin/screens/AdminUsersScreen';
 import AdminServiceAreasScreen from '../admin/screens/AdminServiceAreasScreen';
 import { AdminProvidersScreen, AdminServicesScreen } from '../admin/screens/AdminProvidersScreen';
-import { AdminFinanceScreen, AdminDisputesScreen } from '../admin/screens/AdminFinanceScreen';
+import { AdminFinanceScreen } from '../admin/screens/AdminFinanceScreen';
 import { AdminBannersScreen, AdminChatScreen } from '../admin/screens/AdminBannersScreen';
 import { AdminSubscriptionPlansScreen } from '../admin/screens/AdminSubscriptionPlansScreen';
 import AdminSubAdminsScreen from '../admin/screens/AdminSubAdminsScreen';
@@ -119,7 +119,7 @@ export default function AppRouter() {
           <Route path="ratings" element={<AdminProtected><AdminRatingsScreen /></AdminProtected>} />
           <Route path="user-services" element={<AdminProtected><AdminUserServicesScreen /></AdminProtected>} />
           <Route path="finance" element={<AdminProtected><AdminFinanceScreen /></AdminProtected>} />
-          <Route path="disputes" element={<AdminProtected><AdminDisputesScreen /></AdminProtected>} />
+          <Route path="disputes" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="banners" element={<AdminProtected><AdminBannersScreen /></AdminProtected>} />
           <Route path="chat" element={<AdminProtected><AdminChatScreen /></AdminProtected>} />
           <Route path="plans" element={<AdminProtected><AdminSubscriptionPlansScreen /></AdminProtected>} />

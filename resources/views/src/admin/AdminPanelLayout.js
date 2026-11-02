@@ -11,7 +11,6 @@ import {
   ProvidersIcon,
   CategoriesIcon,
   FinanceIcon,
-  DisputesIcon,
   BannersIcon,
   ChatIcon,
   RatingsIcon,
@@ -42,7 +41,6 @@ export default function AdminPanelLayout() {
     { path: '/admin/service-areas', icon: CategoriesIcon, label: 'Service Coverage Zones' },
     { path: '/admin/finance', icon: FinanceIcon, label: 'Wallet Audit Logs' },
     { path: '/admin/plans', icon: FinanceIcon, label: 'Subscription Plans' },
-    { path: '/admin/disputes', icon: DisputesIcon, label: 'Dispute Resolution' },
     { path: '/admin/banners', icon: BannersIcon, label: 'Marketing Banners' },
     { path: '/admin/chat', icon: ChatIcon, label: 'Live Support Console' },
   ];
