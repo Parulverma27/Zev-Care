@@ -13,14 +13,14 @@ export function buildServiceCatalog(SERVICE_IMAGES) {
     ...extra,
   });
 
-  const otherItem = (label = 'Other') =>
-    item(label, 'Tell us your specific requirement', 'other', { isOther: true });
+  const otherItem = (label = 'Other', imageKey = 'homeAppliances') =>
+    item(label, 'Tell us your specific requirement', imageKey, { isOther: true });
 
   const group = (name, description, imageKey, items) => ({
     name,
     description,
     image_url: SERVICE_IMAGES[imageKey] || SERVICE_IMAGES.homeAppliances,
-    items: [...items, otherItem()],
+    items: [...items, otherItem('Other', imageKey)],
   });
 
   return [
@@ -79,7 +79,7 @@ export function buildServiceCatalog(SERVICE_IMAGES) {
         item('Drainage & Blockage', 'Clog removal, drain cleaning & pipe clearing', 'drainage'),
         item('Leakages & Connections', 'Pipe leak repair, joint sealing & valve fitting', 'leakage'),
         item('Water Tanks & Motors', 'Overhead tank cleaning, pump motor & float switch repair', 'waterTank'),
-        otherItem(),
+        otherItem('Other', 'plumber'),
       ],
     },
     {
@@ -122,7 +122,7 @@ export function buildServiceCatalog(SERVICE_IMAGES) {
         item('Dining Tables & Chairs', 'Chairs upholstery dry cleaning & table polish', 'diningTable'),
         item('Curtains', 'Steam cleaning, stain removal & hanging', 'curtains'),
         item('Large Chairs', 'Recliner & armchair deep cleaning', 'largeChair'),
-        otherItem(),
+        otherItem('Other', 'dryCleaning'),
       ],
     },
     {
@@ -134,7 +134,7 @@ export function buildServiceCatalog(SERVICE_IMAGES) {
         item('Cockroach', 'Gel baiting & spray treatment', 'cockroach'),
         item('Termite Control', 'Drill-fill-seal & barrier treatment', 'termite'),
         item('Bedbugs', 'Heat & chemical treatment', 'bedbugs'),
-        otherItem(),
+        otherItem('Other', 'pestControl'),
       ],
     },
   ];

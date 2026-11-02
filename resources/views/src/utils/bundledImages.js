@@ -101,9 +101,9 @@ export const SERVICE_IMAGES = {
   largeChair: getImageUrl(require('../../assets/services/catalog/large-chair.png')),
 
   // Pest
-  cockroach: getImageUrl(require('../../assets/services/catalog/cockroach.png')),
-  termite: getImageUrl(require('../../assets/services/catalog/termite.png')),
-  bedbugs: getImageUrl(require('../../assets/services/catalog/bedbugs.png')),
+  cockroach: getImageUrl(require('../../assets/services/catalog/Modern Kitchen Pest Control Service.png')),
+  termite: getImageUrl(require('../../assets/services/catalog/Professional Termite Treatment Scene.png')),
+  bedbugs: getImageUrl(require('../../assets/services/catalog/Zevota Care Bedbug Inspection.png')),
 
   // Misc / legacy keys
   cleaning: getImageUrl(require('../../assets/services/catalog/dry-cleaning.png')),

@@ -1,55 +1,71 @@
 import { SERVICE_IMAGES } from './bundledImages';
+import { getCachedMedia } from './mediaStorage';
 
 /**
  * Extracts the real video URI from an appliance object if present.
  * Looks for video data URLs, blob URIs, or webm/mp4 URLs across all known media fields.
  */
+function isValidVideoUrl(str) {
+  if (typeof str !== 'string') return false;
+  const s = str.trim().toLowerCase();
+  if (!s || s.startsWith('auto-verified') || s.startsWith('fake') || s.startsWith('indexeddb://') || s === 'null' || s === 'undefined') {
+    return false;
+  }
+  return (
+    s.startsWith('data:video/') ||
+    s.startsWith('blob:') ||
+    s.startsWith('http://') ||
+    s.startsWith('https://') ||
+    s.includes('.webm') ||
+    s.includes('.mp4') ||
+    s.includes('video')
+  );
+}
+
 export function getApplianceVideoUri(appliance) {
   if (!appliance) return null;
 
-  if (appliance.media?.type === 'video' || appliance.media_type === 'video') {
-    const directVideo = appliance.media?.url || appliance.media?.uri || appliance.uploadedMediaUri || appliance.video;
-    if (typeof directVideo === 'string' && directVideo.trim()) {
-      const clean = directVideo.trim();
-      if (!clean.toLowerCase().startsWith('auto-verified')) {
-        return clean;
-      }
+  // 1. Check in-memory IndexedDB media cache
+  if (appliance.id != null) {
+    const cached = getCachedMedia(appliance.id) || getCachedMedia(String(appliance.id));
+    if (isValidVideoUrl(cached)) {
+      return cached;
     }
   }
 
-  const explicitVideo = appliance.video || appliance.videoUrl || appliance.video_uri || appliance.uploadedMediaUri;
-  if (typeof explicitVideo === 'string' && explicitVideo.trim()) {
-    const clean = explicitVideo.trim();
-    const lower = clean.toLowerCase();
-    if (!lower.startsWith('auto-verified') && !lower.startsWith('fake') && lower !== 'null' && lower !== 'undefined') {
-      return clean;
-    }
-  }
-
+  // 2. Resolve indexeddb:// pointer if present
   const candidates = [
+    appliance.video,
     appliance.uploadedMediaUri,
     appliance.media?.url,
     appliance.media?.uri,
-    appliance.video,
     appliance.videoUrl,
     appliance.video_uri,
     appliance.img,
   ];
 
   for (const uri of candidates) {
-    if (typeof uri === 'string' && uri.trim()) {
-      const clean = uri.trim();
-      const lower = clean.toLowerCase();
-      if (lower.startsWith('auto-verified') || lower === 'null' || lower === 'undefined') continue;
-      if (
-        lower.startsWith('data:video/') ||
-        lower.startsWith('blob:') ||
-        lower.includes('.webm') ||
-        lower.includes('.mp4') ||
-        lower.includes('video')
-      ) {
-        return clean;
+    if (typeof uri === 'string' && uri.startsWith('indexeddb://')) {
+      const extractedId = uri.replace('indexeddb://', '');
+      const cached = getCachedMedia(extractedId);
+      if (isValidVideoUrl(cached)) {
+        return cached;
       }
+    }
+  }
+
+  // 3. Check direct media object
+  if (appliance.media?.type === 'video' || appliance.media_type === 'video') {
+    const directVideo = appliance.media?.url || appliance.media?.uri || appliance.uploadedMediaUri || appliance.video;
+    if (isValidVideoUrl(directVideo)) {
+      return directVideo.trim();
+    }
+  }
+
+  // 4. Check explicit fields
+  for (const uri of candidates) {
+    if (isValidVideoUrl(uri)) {
+      return uri.trim();
     }
   }
 
@@ -94,12 +110,12 @@ export function resolveApplianceImage(appliance) {
   if (text.includes('switch') || text.includes('plug') || text.includes('mcb')) return SERVICE_IMAGES?.switchBoard || SERVICE_IMAGES?.plugsSockets;
   if (text.includes('cctv') || text.includes('camera')) return SERVICE_IMAGES?.cctv;
   if (text.includes('bell') || text.includes('doorbell')) return SERVICE_IMAGES?.doorbell;
-  if (text.includes('sofa')) return SERVICE_IMAGES?.sofa || SERVICE_IMAGES?.sofaFabric;
-  if (text.includes('bed')) return SERVICE_IMAGES?.bed;
-  if (text.includes('chair') || text.includes('table')) return SERVICE_IMAGES?.chair || SERVICE_IMAGES?.table;
-  if (text.includes('door')) return SERVICE_IMAGES?.door || SERVICE_IMAGES?.doorRepair;
-  if (text.includes('cupboard') || text.includes('cabinet') || text.includes('drawer')) return SERVICE_IMAGES?.cupboard || SERVICE_IMAGES?.drawer;
   if (text.includes('pest') || text.includes('cockroach') || text.includes('termite') || text.includes('bedbug')) return SERVICE_IMAGES?.pestControl;
+  if (text.includes('sofa')) return SERVICE_IMAGES?.sofa || SERVICE_IMAGES?.sofaFabric;
+  if (text.includes('bed') && !text.includes('bedbug')) return SERVICE_IMAGES?.bed;
+  if (text.includes('chair') || text.includes('table')) return SERVICE_IMAGES?.chair || SERVICE_IMAGES?.table;
+  if (text.includes('door') && !text.includes('doorbell')) return SERVICE_IMAGES?.door || SERVICE_IMAGES?.doorRepair;
+  if (text.includes('cupboard') || text.includes('cabinet') || text.includes('drawer')) return SERVICE_IMAGES?.cupboard || SERVICE_IMAGES?.drawer;
   if (text.includes('plumb')) return SERVICE_IMAGES?.plumber;
   if (text.includes('electr')) return SERVICE_IMAGES?.electrician;
   if (text.includes('carpent')) return SERVICE_IMAGES?.carpenter;

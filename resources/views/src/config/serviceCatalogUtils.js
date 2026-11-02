@@ -63,13 +63,16 @@ export function getServiceTypes(categoryName, subGroupName = null, liveServices 
   // Live services flatten strips catalog "Other" — restore it so every list stays complete
   const hasOther = base.some((s) => s.isOther || s.name === 'Other');
   if (!hasOther) {
+    const cat = getCategoryByName(categoryName);
+    const group = subGroupName && cat?.groups ? cat.groups.find((g) => g.name === subGroupName) : null;
+    const fallbackImage = group?.image_url || cat?.image_url || null;
     base = [
       ...base,
       {
         name: 'Other',
         description: 'Tell us your specific requirement',
         isOther: true,
-        image_url: null,
+        image_url: fallbackImage,
       },
     ];
   }
@@ -390,5 +393,225 @@ export function doesApplianceRequireVideo(appliance) {
     return false;
   }
   return true;
+}
+
+export const SERVICE_TO_CATEGORY_MAP = {
+  // Pest Control
+  'bedbugs': 'Pest Control',
+  'bedbug': 'Pest Control',
+  'bedbug control': 'Pest Control',
+  'bedbugs_control': 'Pest Control',
+  'termite': 'Pest Control',
+  'termite control': 'Pest Control',
+  'cockroach': 'Pest Control',
+
+  // Plumbing
+  'bath & shower': 'Plumbing',
+  'tap mixer': 'Plumbing',
+  'toilet': 'Plumbing',
+  'basins & sinks': 'Plumbing',
+  'drainage & blockage': 'Plumbing',
+  'leakages & connections': 'Plumbing',
+  'water tanks & motors': 'Plumbing',
+
+  // Dry Cleaning
+  'sofa fabric': 'Dry Cleaning',
+  'leather sofa': 'Dry Cleaning',
+  'carpets': 'Dry Cleaning',
+  'carpet': 'Dry Cleaning',
+  'fabric headboards': 'Dry Cleaning',
+  'leather headboards': 'Dry Cleaning',
+  'dining tables & chairs': 'Dry Cleaning',
+  'curtains': 'Dry Cleaning',
+  'large chairs': 'Dry Cleaning',
+
+  // Carpentry
+  'bed': 'Carpentry',
+  'sofa': 'Carpentry',
+  'table': 'Carpentry',
+  'chair': 'Carpentry',
+  'door repair': 'Carpentry',
+  'drawer': 'Carpentry',
+  'cupboard lock': 'Carpentry',
+  'cupboard': 'Carpentry',
+  'door mesh': 'Carpentry',
+  'door closer': 'Carpentry',
+  'door lock': 'Carpentry',
+  'cabinet hinges': 'Carpentry',
+  'pull out drawer': 'Carpentry',
+  'cabinet hydraulic': 'Carpentry',
+
+  // Electrician
+  'ac': 'Electrician',
+  'washing machine': 'Electrician',
+  'tv': 'Electrician',
+  'air cooler': 'Electrician',
+  'cooler': 'Electrician',
+  'geyser': 'Electrician',
+  'fans': 'Electrician',
+  'fan': 'Electrician',
+  'switch boards': 'Electrician',
+  'switch board': 'Electrician',
+  'plugs & sockets': 'Electrician',
+  'plug': 'Electrician',
+  'exhaust fan': 'Electrician',
+  'fan regulator': 'Electrician',
+  'fancy lights': 'Electrician',
+  'fancy light': 'Electrician',
+  'bulbs & tubelights': 'Electrician',
+  'bulb': 'Electrician',
+  'chandelier': 'Electrician',
+  'doorbell': 'Electrician',
+  'cctv': 'Electrician',
+  'mcb & main switch': 'Electrician',
+  'mcb': 'Electrician',
+  'home theatre': 'Electrician',
+  'inverters & batteries': 'Electrician',
+  'inverter': 'Electrician',
+  'stabilisers': 'Electrician',
+  'stabiliser': 'Electrician',
+  'iron': 'Electrician',
+  'vacuum cleaner': 'Electrician',
+  'trimmer': 'Electrician',
+  'projector': 'Electrician',
+  'desktops': 'Electrician',
+  'desktop': 'Electrician',
+  'refrigerator': 'Electrician',
+  'fridge': 'Electrician',
+  'stove': 'Electrician',
+  'coffee machine': 'Electrician',
+  'microwave': 'Electrician',
+  'water purifiers': 'Electrician',
+  'water purifier': 'Electrician',
+  'ro': 'Electrician',
+  'ro purifier': 'Electrician',
+  'juicer & mixer': 'Electrician',
+};
+
+export function resolveApplianceCanonicalCategory(appliance) {
+  if (!appliance) return 'Other';
+
+  const rawCat = String(appliance?.category || '').trim();
+  const c = rawCat.toLowerCase();
+  const n = String(appliance?.displayName || appliance?.name || '').trim().toLowerCase();
+  const s = String(appliance?.serviceName || '').trim().toLowerCase();
+  const t = String(appliance?.applianceTypeId || appliance?.type || '').trim().toLowerCase();
+
+  // 1. Direct Category Match if already canonical
+  if (c === 'pest control' || c === 'pest_control' || c === 'pest') return 'Pest Control';
+  if (c === 'plumbing' || c === 'plumber') return 'Plumbing';
+  if (c === 'carpentry' || c === 'carpenter') return 'Carpentry';
+  if (c === 'dry cleaning' || c === 'dry_cleaning' || c === 'cleaning') return 'Dry Cleaning';
+  if (c === 'electrician' || c === 'electrical' || c === 'home appliance' || c === 'home appliances' || c === 'kitchen appliances') return 'Electrician';
+
+  // 2. Exact match against service catalog dictionary
+  if (SERVICE_TO_CATEGORY_MAP[s]) return SERVICE_TO_CATEGORY_MAP[s];
+  if (SERVICE_TO_CATEGORY_MAP[n]) return SERVICE_TO_CATEGORY_MAP[n];
+  if (SERVICE_TO_CATEGORY_MAP[t]) return SERVICE_TO_CATEGORY_MAP[t];
+
+  const hay = ` ${c} ${n} ${s} ${t} `;
+
+  // 3. Pest Control (High priority to avoid collision with bed/wood)
+  if (
+    hay.includes('pest') ||
+    hay.includes('cockroach') ||
+    hay.includes('termite') ||
+    hay.includes('bedbug') ||
+    hay.includes('bed bug') ||
+    hay.includes('insect') ||
+    hay.includes('rodent')
+  ) {
+    return 'Pest Control';
+  }
+
+  // 4. Electrician (RO / water purifiers, kitchen appliances, electronics)
+  if (
+    hay.includes('water purifier') ||
+    hay.includes('purifier') ||
+    hay.includes(' ro ') ||
+    hay.includes('elect') ||
+    hay.includes('ac') ||
+    hay.includes('air cond') ||
+    hay.includes('refrigerat') ||
+    hay.includes('fridge') ||
+    hay.includes('geyser') ||
+    hay.includes('heater') ||
+    hay.includes('tv') ||
+    hay.includes('television') ||
+    hay.includes('fan') ||
+    hay.includes('cooler') ||
+    hay.includes('inverter') ||
+    hay.includes('mcb') ||
+    hay.includes('switch') ||
+    hay.includes('light') ||
+    hay.includes('bulb') ||
+    hay.includes('microwave') ||
+    hay.includes('oven') ||
+    hay.includes('washing machine') ||
+    hay.includes('doorbell') ||
+    hay.includes('vacuum')
+  ) {
+    return 'Electrician';
+  }
+
+  // 5. Plumbing
+  if (
+    hay.includes('plumb') ||
+    hay.includes('tap') ||
+    hay.includes('shower') ||
+    hay.includes('sink') ||
+    hay.includes('basin') ||
+    hay.includes('toilet') ||
+    hay.includes('commode') ||
+    hay.includes('drain') ||
+    hay.includes('leak') ||
+    hay.includes('pipe') ||
+    hay.includes('valve') ||
+    hay.includes('faucet') ||
+    hay.includes('water tank') ||
+    hay.includes('water pump')
+  ) {
+    return 'Plumbing';
+  }
+
+  // 6. Dry Cleaning
+  if (
+    hay.includes('dry clean') ||
+    hay.includes('dryclean') ||
+    hay.includes('carpet') ||
+    hay.includes('curtain') ||
+    hay.includes('upholstery') ||
+    hay.includes('sofa fabric') ||
+    hay.includes('leather sofa') ||
+    hay.includes('headboard') ||
+    hay.includes('laundry')
+  ) {
+    return 'Dry Cleaning';
+  }
+
+  // 7. Carpentry (Whole-word bed to avoid bedbug collision)
+  if (
+    hay.includes('carpent') ||
+    hay.includes('wood') ||
+    hay.includes('furnitur') ||
+    hay.includes('sofa') ||
+    hay.includes('table') ||
+    hay.includes('chair') ||
+    hay.includes('cupboard') ||
+    hay.includes('wardrobe') ||
+    hay.includes('door') ||
+    hay.includes('drawer') ||
+    hay.includes('hinge') ||
+    hay.includes('lock') ||
+    hay.includes('cabinet') ||
+    /\bbed\b/i.test(hay)
+  ) {
+    return 'Carpentry';
+  }
+
+  if (rawCat && !['item', 'appliance', 'home appliance', 'other', 'none'].includes(c)) {
+    return rawCat.charAt(0).toUpperCase() + rawCat.slice(1);
+  }
+  return 'Other';
 }
 

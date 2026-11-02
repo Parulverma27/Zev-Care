@@ -59,46 +59,78 @@ export default function PlanReviewScreen({
       <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, isDesktopWeb && styles.contentDesktop]} showsVerticalScrollIndicator={false}>
         <div style={isDesktopWeb ? desktopTwoColReview : undefined}>
           <div style={isDesktopWeb ? desktopLeftCol : undefined}>
-            <TouchableOpacity onPress={onBack} style={styles.backLink} activeOpacity={0.7}>
-              <Text style={styles.backLinkText}>← Back to Plans</Text>
-            </TouchableOpacity>
-
-            {/* Step indicator */}
-            <View style={styles.stepRow}>
-              <View style={[styles.stepDot, styles.stepDotDone]}><Text style={styles.stepDotText}>✓</Text></View>
-              <View style={[styles.stepLine, styles.stepLineDone]} />
-              <View style={[styles.stepDot, styles.stepDotActive]}><Text style={styles.stepDotText}>2</Text></View>
-              <View style={styles.stepLine} />
-              <View style={styles.stepDot}><Text style={[styles.stepDotText, { color: '#64748b' }]}>3</Text></View>
-            </View>
-            <View style={styles.stepLabelRow}>
-              <Text style={styles.stepLabel}>Add Appliances</Text>
-              <Text style={[styles.stepLabel, { color: '#2563eb' }]}>Review</Text>
-              <Text style={styles.stepLabel}>Purchase</Text>
+            <View style={styles.topNavRow}>
+              <TouchableOpacity onPress={onBack} style={styles.backPill} activeOpacity={0.75}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                <Text style={styles.backPillText}>Back to Plans</Text>
+              </TouchableOpacity>
+              <View style={styles.stepBadgePill}>
+                <Text style={styles.stepBadgePillText}>Step 2 of 3</Text>
+              </View>
             </View>
 
+            {/* Polished Stepper without overlapping */}
+            <View style={styles.stepperContainer}>
+              <View style={styles.stepItem}>
+                <View style={[styles.stepDot, styles.stepDotDone]}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </View>
+                <Text style={[styles.stepLabel, styles.stepLabelDone]}>Add Appliances</Text>
+              </View>
+
+              <View style={[styles.stepConnector, styles.stepConnectorDone]} />
+
+              <View style={styles.stepItem}>
+                <View style={[styles.stepDot, styles.stepDotActive]}>
+                  <Text style={styles.stepDotText}>2</Text>
+                </View>
+                <Text style={[styles.stepLabel, styles.stepLabelActive]}>Review</Text>
+              </View>
+
+              <View style={styles.stepConnector} />
+
+              <View style={styles.stepItem}>
+                <View style={styles.stepDot}>
+                  <Text style={[styles.stepDotText, { color: '#64748b' }]}>3</Text>
+                </View>
+                <Text style={styles.stepLabel}>Purchase</Text>
+              </View>
+            </View>
+
+            {/* Header / Plan Overview Card */}
             <View style={styles.headerCard}>
-              <Text style={styles.headerEyebrow}>{(plan?.name || 'AMC').toUpperCase()} PLAN</Text>
-              <Text style={styles.headerTitle}>Your Appliances</Text>
+              <View style={styles.headerEyebrowRow}>
+                <View style={styles.headerEyebrowBadge}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  <Text style={styles.headerEyebrow}>{(plan?.name || 'AMC').toUpperCase()} PLAN</Text>
+                </View>
+                <View style={styles.validityBadge}>
+                  <Text style={styles.validityBadgeText}>{plan?.validity_months || 12} Months Protection</Text>
+                </View>
+              </View>
+              <Text style={styles.headerTitle}>Review Covered Appliances</Text>
               <Text style={styles.headerSub}>
                 {count === 0
                   ? 'No appliances added yet. Add every appliance you want covered before purchasing.'
-                  : `${count} appliance${count === 1 ? '' : 's'} will be covered under your ${plan?.name}. Add everything you want protected now.`}
+                  : `${count} appliance${count === 1 ? '' : 's'} protected under this plan. Everything listed here gets free breakdown repair labor & verified technician support.`}
               </Text>
             </View>
 
             {count === 0 ? (
               <View style={styles.emptyBox}>
-                <Text style={styles.emptyTitle}>No appliances added</Text>
-                <Text style={styles.emptySub}>Tap “Add Appliance” to register your first appliance.</Text>
+                <Text style={styles.emptyTitle}>No appliances added yet</Text>
+                <Text style={styles.emptySub}>Tap “Add Appliance” to register your first appliance under this plan.</Text>
               </View>
             ) : (
               <View style={styles.list}>
                 {appliances.map((app, idx) => {
                   const name = app.displayName || app.name || 'Appliance';
-                  const meta = [app.category && app.category !== name ? app.category : null, app.brand, app.location]
-                    .filter(Boolean)
-                    .join(' • ');
                   const validVideoUri = getValidVideoUri(app);
                   const catalogImg = resolveApplianceImage(app);
 
@@ -119,7 +151,7 @@ export default function PlanReviewScreen({
                               objectFit: 'cover',
                               display: 'block',
                               pointerEvents: 'none',
-                              borderRadius: 'inherit',
+                              borderRadius: 14,
                             }}
                             muted
                             loop
@@ -133,21 +165,55 @@ export default function PlanReviewScreen({
                           </View>
                         </TouchableOpacity>
                       ) : catalogImg ? (
-                        <Image
-                          source={{ uri: catalogImg }}
-                          style={[styles.itemThumb, isDesktopWeb && styles.itemThumbDesktop]}
-                          resizeMode="contain"
-                        />
+                        <View style={[styles.itemThumb, isDesktopWeb && styles.itemThumbDesktop]}>
+                          <Image
+                            source={{ uri: catalogImg }}
+                            style={{ width: '100%', height: '100%' }}
+                            resizeMode="contain"
+                          />
+                        </View>
                       ) : (
                         <View style={styles.itemIndex}>
                           <Text style={styles.itemIndexText}>{idx + 1}</Text>
                         </View>
                       )}
-                      <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
-                        <Text style={styles.itemName} numberOfLines={1}>{name}</Text>
-                        {meta ? <Text style={styles.itemMeta} numberOfLines={1}>{meta}</Text> : null}
+
+                      <View style={styles.itemInfo}>
+                        <View style={styles.itemHeaderRow}>
+                          <Text style={styles.itemName} numberOfLines={1}>{name}</Text>
+                          <TouchableOpacity onPress={() => onRemove?.(idx)} style={styles.removeBtn} activeOpacity={0.7} accessibilityLabel={`Remove ${name}`}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                            <Text style={styles.removeBtnText}>Remove</Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        {/* Specs Pill Row */}
+                        <View style={styles.specChipsRow}>
+                          {app.category && app.category !== name ? (
+                            <View style={styles.specChip}>
+                              <Text style={styles.specChipText}>{app.category}</Text>
+                            </View>
+                          ) : null}
+                          {app.brand ? (
+                            <View style={styles.specChip}>
+                              <Text style={styles.specChipText}>{app.brand}</Text>
+                            </View>
+                          ) : null}
+                          {app.location ? (
+                            <View style={styles.specChip}>
+                              <Text style={styles.specChipText}>{app.location}</Text>
+                            </View>
+                          ) : null}
+                        </View>
+
                         <View style={styles.itemBadgeRow}>
                           <View style={styles.coveredBadge}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.6">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
                             <Text style={styles.coveredBadgeText}>Will be covered</Text>
                           </View>
                           {validVideoUri ? (
@@ -168,9 +234,6 @@ export default function PlanReviewScreen({
                           )}
                         </View>
                       </View>
-                      <TouchableOpacity onPress={() => onRemove?.(idx)} style={styles.removeBtn} activeOpacity={0.7}>
-                        <Text style={styles.removeBtnText}>Remove</Text>
-                      </TouchableOpacity>
                     </View>
                   );
                 })}
@@ -178,7 +241,19 @@ export default function PlanReviewScreen({
             )}
 
             <TouchableOpacity onPress={onAddMore} style={styles.addMoreBtn} activeOpacity={0.85}>
-              <Text style={styles.addMoreBtnText}>+ {count === 0 ? 'Add Appliance' : 'Add Another Appliance'}</Text>
+              <View style={styles.addMoreIconBox}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.addMoreBtnTitle}>+ {count === 0 ? 'Add Appliance' : 'Add Another Appliance'}</Text>
+                <Text style={styles.addMoreBtnSub}>Add AC, Refrigerator, RO, Geyser &amp; more to this plan</Text>
+              </View>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
             </TouchableOpacity>
 
             {/* Mobile Terms & Conditions Acceptance Card */}
@@ -207,13 +282,6 @@ export default function PlanReviewScreen({
                       of {ZEVOTA_COMPANY_NAME}
                     </Text>
                   </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.viewTermsLinkBtn}
-                  onPress={() => setShowTermsModal(true)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.viewTermsLinkBtnText}>Read all 15 Terms &amp; Conditions clauses →</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -276,14 +344,6 @@ export default function PlanReviewScreen({
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.viewTermsLinkBtn}
-                  onPress={() => setShowTermsModal(true)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.viewTermsLinkBtnText}>Read 15 Terms &amp; Conditions clauses →</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
                   style={[styles.desktopPurchaseBtn, !canPurchase && styles.purchaseBtnDisabled]}
                   onPress={canPurchase ? openConfirm : undefined}
                   disabled={!canPurchase}
@@ -306,20 +366,41 @@ export default function PlanReviewScreen({
       {/* Sticky purchase footer (Mobile only) */}
       {!isDesktopWeb && (
         <View style={styles.footer}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.footerLabel}>{plan?.name} • {plan?.validity_months || 12} months</Text>
-            <Text style={styles.footerPrice}>₹{price.toLocaleString('en-IN')}</Text>
+          {/* Row 1: Plan & Covered Items Info */}
+          <View style={styles.footerTopRow}>
+            <View style={styles.footerPlanTitleWrap}>
+              <View style={styles.footerDot} />
+              <Text style={styles.footerPlanTitle}>
+                {plan?.name} Plan • {plan?.validity_months || 12} Months
+              </Text>
+            </View>
+            <View style={styles.footerCoveredPill}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <Text style={styles.footerCoveredPillText}>
+                {count} {count === 1 ? 'Item' : 'Items'} Covered
+              </Text>
+            </View>
           </View>
-          <TouchableOpacity
-            onPress={canPurchase ? openConfirm : undefined}
-            disabled={!canPurchase}
-            style={[styles.purchaseBtn, !canPurchase && styles.purchaseBtnDisabled]}
-            activeOpacity={0.88}
-          >
-            <Text style={[styles.purchaseBtnText, !canPurchase && { color: '#94a3b8' }]}>
-              Purchase {plan?.name}
-            </Text>
-          </TouchableOpacity>
+
+          {/* Row 2: Price & Purchase Action */}
+          <View style={styles.footerBottomRow}>
+            <View style={styles.footerPriceCol}>
+              <Text style={styles.footerPriceLabel}>Total Plan Price</Text>
+              <Text style={styles.footerPrice}>₹{price.toLocaleString('en-IN')}</Text>
+            </View>
+            <TouchableOpacity
+              onPress={canPurchase ? openConfirm : undefined}
+              disabled={!canPurchase}
+              style={[styles.purchaseBtn, !canPurchase && styles.purchaseBtnDisabled]}
+              activeOpacity={0.88}
+            >
+              <Text style={[styles.purchaseBtnText, !canPurchase && { color: '#94a3b8' }]}>
+                {canPurchase ? `Purchase ${plan?.name} →` : 'Add Appliance First'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -375,7 +456,7 @@ export default function PlanReviewScreen({
                 <Text style={styles.checkLabel}>
                   I accept all 15 clauses of the{' '}
                   <Text
-                    style={{ color: '#0052e0', fontWeight: '800', textDecorationLine: 'underline' }}
+                    style={{ color: '#0052e0', fontWeight: '800', textDecorationLine: 'underline', cursor: 'pointer' }}
                     onPress={(e) => {
                       e?.stopPropagation?.();
                       setShowTermsModal(true);
@@ -386,20 +467,6 @@ export default function PlanReviewScreen({
                   of {ZEVOTA_COMPANY_NAME}.
                 </Text>
               </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.viewTermsModalLinkBtn}
-              onPress={() => setShowTermsModal(true)}
-              activeOpacity={0.75}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-              </svg>
-              <Text style={styles.viewTermsModalLinkText}>Read full 15 Terms &amp; Conditions clauses</Text>
             </TouchableOpacity>
 
             <View style={styles.modalBtnRow}>
@@ -577,7 +644,7 @@ const desktopStickySummaryStyle = {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f8fafc' },
   scroll: { flex: 1 },
-  content: { padding: 16, paddingBottom: 120, gap: 14 },
+  content: { padding: 16, paddingBottom: 175, gap: 14 },
   contentDesktop: {
     maxWidth: 1240,
     width: '100%',
@@ -678,41 +745,208 @@ const styles = StyleSheet.create({
     marginTop: 6,
     lineHeight: 16,
   },
-  backLink: { alignSelf: 'flex-start', paddingVertical: 4 },
-  backLinkText: { fontSize: 13, fontWeight: '700', color: '#2563eb' },
-  stepRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, marginTop: 4 },
+  /* Top Nav Row */
+  topNavRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  backPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+    cursor: 'pointer',
+    ...(Platform.OS === 'web' ? { boxShadow: '0 2px 6px rgba(37, 99, 235, 0.06)' } : {}),
+  },
+  backPillText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2563eb',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  stepBadgePill: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  stepBadgePillText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#2563eb',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+
+  /* Stepper (No Overlap) */
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    marginVertical: 10,
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    ...(Platform.OS === 'web' ? { boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)' } : {}),
+  },
+  stepItem: {
+    alignItems: 'center',
+    flexShrink: 0,
+    width: 86,
+  },
   stepDot: {
-    width: 26, height: 26, borderRadius: 13, backgroundColor: '#e2e8f0',
-    alignItems: 'center', justifyContent: 'center',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
   },
-  stepDotDone: { backgroundColor: '#16a34a' },
-  stepDotActive: { backgroundColor: '#2563eb' },
-  stepDotText: { fontSize: 12, fontWeight: '800', color: '#ffffff' },
-  stepLine: { flex: 1, height: 3, backgroundColor: '#e2e8f0', marginHorizontal: 4, borderRadius: 2 },
-  stepLineDone: { backgroundColor: '#16a34a' },
-  stepLabelRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -6 },
-  stepLabel: { fontSize: 11, fontWeight: '700', color: '#64748b' },
+  stepDotDone: {
+    backgroundColor: '#16a34a',
+    borderColor: '#16a34a',
+  },
+  stepDotActive: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+    ...(Platform.OS === 'web' ? { boxShadow: '0 0 0 3.5px rgba(37, 99, 235, 0.2)' } : {}),
+  },
+  stepDotText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#ffffff',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  stepConnector: {
+    flex: 1,
+    height: 2.5,
+    backgroundColor: '#e2e8f0',
+    marginTop: 13,
+    marginHorizontal: 4,
+    borderRadius: 1.5,
+  },
+  stepConnectorDone: {
+    backgroundColor: '#16a34a',
+  },
+  stepLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#94a3b8',
+    textAlign: 'center',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  stepLabelActive: {
+    color: '#2563eb',
+    fontWeight: '800',
+  },
+  stepLabelDone: {
+    color: '#15803d',
+    fontWeight: '700',
+  },
+
+  /* Header Card */
   headerCard: {
-    backgroundColor: '#ffffff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#dbeafe', gap: 4,
-    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)',
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    gap: 8,
+    ...(Platform.OS === 'web' ? { boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' } : {}),
   },
-  headerEyebrow: { fontSize: 11, fontWeight: '800', color: '#2563eb', letterSpacing: 0.8 },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: '#0f172a', fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" },
-  headerSub: { fontSize: 12.5, color: '#64748b', lineHeight: 18 },
+  headerEyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  headerEyebrowBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#eff6ff',
+    paddingVertical: 3.5,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  headerEyebrow: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#2563eb',
+    letterSpacing: 0.6,
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  validityBadge: {
+    backgroundColor: '#f8fafc',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  validityBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  headerSub: {
+    fontSize: 12.5,
+    color: '#64748b',
+    lineHeight: 18,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
   emptyBox: {
-    backgroundColor: '#ffffff', borderRadius: 14, padding: 24, alignItems: 'center', gap: 4,
-    borderWidth: 1, borderColor: '#e2e8f0', borderStyle: 'dashed',
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    borderStyle: 'dashed',
   },
-  emptyTitle: { fontSize: 14, fontWeight: '700', color: '#0f172a' },
-  emptySub: { fontSize: 12, color: '#64748b', textAlign: 'center' },
+  emptyTitle: { fontSize: 15, fontWeight: '800', color: '#0f172a' },
+  emptySub: { fontSize: 12.5, color: '#64748b', textAlign: 'center' },
   list: { gap: 10 },
+
+  /* Appliance Item Card */
   itemCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#ffffff',
-    borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#e2e8f0',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1.2,
+    borderColor: '#e2e8f0',
+    ...(Platform.OS === 'web' ? { boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)' } : {}),
   },
   itemThumb: {
-    width: 60,
-    height: 60,
+    width: 62,
+    height: 62,
     borderRadius: 14,
     backgroundColor: '#f8fafc',
     overflow: 'hidden',
@@ -747,6 +981,84 @@ const styles = StyleSheet.create({
     boxShadow: '0 2px 6px rgba(0, 0, 0, 0.4)',
     pointerEvents: 'none',
   },
+  itemInfo: {
+    flex: 1,
+    minWidth: 0,
+    gap: 6,
+  },
+  itemHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  itemName: {
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    flex: 1,
+  },
+  specChipsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 5,
+  },
+  specChip: {
+    backgroundColor: '#f1f5f9',
+    paddingVertical: 2,
+    paddingHorizontal: 7,
+    borderRadius: 6,
+  },
+  specChipText: {
+    fontSize: 11,
+    color: '#475569',
+    fontWeight: '600',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  itemBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+    marginTop: 2,
+  },
+  coveredBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f0fdf4',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2.5,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  coveredBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#15803d',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  videoBadgeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#eff6ff',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    cursor: 'pointer',
+  },
+  videoBadgeBtnText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#0052e0',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
   catalogBadge: {
     backgroundColor: '#f8fafc',
     borderRadius: 6,
@@ -761,50 +1073,168 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   itemIndex: {
-    width: 32, height: 32, borderRadius: 10, backgroundColor: '#eff6ff',
-    alignItems: 'center', justifyContent: 'center',
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   itemIndexText: { fontSize: 13, fontWeight: '800', color: '#2563eb' },
-  itemName: { fontSize: 14, fontWeight: '700', color: '#0f172a' },
-  itemMeta: { fontSize: 11.5, color: '#64748b' },
-  itemBadgeRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
-  coveredBadge: { backgroundColor: '#f0fdf4', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: '#bbf7d0' },
-  coveredBadgeText: { fontSize: 10, fontWeight: '700', color: '#15803d' },
-  videoBadgeBtn: {
+  removeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#eff6ff',
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 7,
+    backgroundColor: '#fef2f2',
     borderWidth: 1,
-    borderColor: '#bfdbfe',
+    borderColor: '#fecaca',
+    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  removeBtnText: { fontSize: 11, fontWeight: '700', color: '#dc2626' },
+
+  /* Add More Button */
+  addMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1.5,
+    borderColor: '#93c5fd',
+    backgroundColor: '#f8faff',
+    cursor: 'pointer',
+    ...(Platform.OS === 'web' ? { boxShadow: '0 2px 8px rgba(37, 99, 235, 0.05)' } : {}),
+  },
+  addMoreIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#dbeafe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  addMoreBtnTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#1d4ed8',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  addMoreBtnSub: {
+    fontSize: 11.5,
+    color: '#64748b',
+    marginTop: 1,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+
+  /* Sticky Footer */
+  footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'web' ? 14 : 22,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    boxShadow: '0 -6px 20px rgba(15, 23, 42, 0.08)',
+    zIndex: 90,
+    gap: 10,
+  },
+  footerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+  },
+  footerPlanTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  footerDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#2563eb',
+  },
+  footerPlanTitle: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#334155',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  footerCoveredPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+  },
+  footerCoveredPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#15803d',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  footerBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 14,
+  },
+  footerPriceCol: {
+    justifyContent: 'center',
+  },
+  footerPriceLabel: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#64748b',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  footerPrice: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.3,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  purchaseBtn: {
+    flex: 1.3,
+    backgroundColor: '#0052e0',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 4px 14px rgba(0, 82, 224, 0.28)',
     cursor: 'pointer',
   },
-  videoBadgeBtnText: { fontSize: 10, fontWeight: '700', color: '#0052e0' },
-  videoBadge: { backgroundColor: '#eff6ff', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: '#bfdbfe' },
-  videoBadgeText: { fontSize: 10, fontWeight: '700', color: '#1d4ed8' },
-  removeBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: '#fef2f2' },
-  removeBtnText: { fontSize: 11.5, fontWeight: '700', color: '#dc2626' },
-  addMoreBtn: {
-    borderRadius: 12, paddingVertical: 13, alignItems: 'center', borderWidth: 1.5,
-    borderColor: '#2563eb', borderStyle: 'dashed', backgroundColor: '#eff6ff',
+  purchaseBtnDisabled: {
+    backgroundColor: '#e2e8f0',
+    boxShadow: 'none',
+    cursor: 'default',
   },
-  addMoreBtnText: { fontSize: 14, fontWeight: '800', color: '#2563eb' },
-  footer: {
-    position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#ffffff',
-    borderTopWidth: 1, borderTopColor: '#e2e8f0', boxShadow: '0 -4px 16px rgba(15, 23, 42, 0.08)',
+  purchaseBtnText: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#ffffff',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
   },
-  footerLabel: { fontSize: 11.5, color: '#64748b', fontWeight: '600' },
-  footerPrice: { fontSize: 18, fontWeight: '900', color: '#0f172a', fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" },
-  purchaseBtn: {
-    backgroundColor: '#2563eb', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 18,
-    boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)', cursor: 'pointer',
-  },
-  purchaseBtnDisabled: { backgroundColor: '#e2e8f0', boxShadow: 'none', cursor: 'default' },
-  purchaseBtnText: { fontSize: 14, fontWeight: '800', color: '#ffffff' },
   videoModalTitle: {
     fontSize: 15,
     fontWeight: '800',

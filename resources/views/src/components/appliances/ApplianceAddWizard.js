@@ -26,9 +26,9 @@ import {
   doesApplianceRequireVideo,
 } from '../../config/serviceCatalogUtils';
 import FastAddConfirmationModal from '../booking/FastAddConfirmationModal';
-import BlinkitCartBar from '../booking/BlinkitCartBar';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../AppIcons';
+import ApplianceCartScreen from './ApplianceCartScreen';
 
 /**
  * Multi-step add-service wizard.
@@ -44,7 +44,7 @@ const GENERIC_SERVICE_FIELDS = [
     label: 'Item / Label',
     type: 'text',
     required: true,
-    placeholder: 'e.g. Living Room Sofa',
+    placeholder: 'e.g. Water Pump, Mixer Tap, Living Room Sofa',
   },
   {
     id: 'location',
@@ -202,12 +202,12 @@ function resolveApplianceImage(appliance) {
   if (text.includes('switch') || text.includes('plug') || text.includes('mcb')) return SERVICE_IMAGES?.switchBoard || SERVICE_IMAGES?.plugsSockets;
   if (text.includes('cctv') || text.includes('camera')) return SERVICE_IMAGES?.cctv;
   if (text.includes('bell') || text.includes('doorbell')) return SERVICE_IMAGES?.doorbell;
-  if (text.includes('sofa')) return SERVICE_IMAGES?.sofa || SERVICE_IMAGES?.sofaFabric;
-  if (text.includes('bed')) return SERVICE_IMAGES?.bed;
-  if (text.includes('chair') || text.includes('table')) return SERVICE_IMAGES?.chair || SERVICE_IMAGES?.table;
-  if (text.includes('door')) return SERVICE_IMAGES?.door || SERVICE_IMAGES?.doorRepair;
-  if (text.includes('cupboard') || text.includes('cabinet') || text.includes('drawer')) return SERVICE_IMAGES?.cupboard || SERVICE_IMAGES?.drawer;
   if (text.includes('pest') || text.includes('cockroach') || text.includes('termite') || text.includes('bedbug')) return SERVICE_IMAGES?.pestControl;
+  if (text.includes('sofa')) return SERVICE_IMAGES?.sofa || SERVICE_IMAGES?.sofaFabric;
+  if (text.includes('bed') && !text.includes('bedbug')) return SERVICE_IMAGES?.bed;
+  if (text.includes('chair') || text.includes('table')) return SERVICE_IMAGES?.chair || SERVICE_IMAGES?.table;
+  if (text.includes('door') && !text.includes('doorbell')) return SERVICE_IMAGES?.door || SERVICE_IMAGES?.doorRepair;
+  if (text.includes('cupboard') || text.includes('cabinet') || text.includes('drawer')) return SERVICE_IMAGES?.cupboard || SERVICE_IMAGES?.drawer;
   if (text.includes('plumb')) return SERVICE_IMAGES?.plumber;
   if (text.includes('electr')) return SERVICE_IMAGES?.electrician;
   if (text.includes('carpent')) return SERVICE_IMAGES?.carpenter;
@@ -216,14 +216,17 @@ function resolveApplianceImage(appliance) {
   return SERVICE_IMAGES?.homeAppliances || null;
 }
 
-function createServiceUnitDraft(serviceItem, index, applianceDef) {
+function createServiceUnitDraft(serviceItem, index, applianceDef, categoryName = '') {
   const typeName = serviceItem?.name || 'Item';
+  const isOther = Boolean(serviceItem?.isOther || typeName === 'Other');
+  const cat = categoryName || serviceItem?.category || '';
   return {
     unitIndex: index,
     serviceName: typeName,
+    category: cat,
     applianceTypeId: applianceDef?.id || serviceItem?.applianceTypeId || 'other',
     serviceImage: serviceItem?.image_url || serviceItem?.image || null,
-    displayName: `${typeName} ${index + 1}`,
+    displayName: isOther ? '' : `${typeName} ${index + 1}`,
     brand: '',
     customBrand: '',
     type: '',
@@ -371,11 +374,13 @@ export function resolveInitialApplianceService({
     ) || null;
   }
 
+  const isOther = Boolean(matchedItem?.isOther || resolvedName === 'Other');
+  const catImage = matchedSubgroup?.image_url || matchedCategory?.image_url || null;
   const serviceObj = {
     name: resolvedName,
-    image_url: matchedItem?.image_url || resolvedDef?.image || null,
+    image_url: isOther ? (catImage || matchedItem?.image_url || resolvedDef?.image) : (matchedItem?.image_url || resolvedDef?.image || catImage || null),
     description: matchedItem?.description || resolvedDef?.description || '',
-    isOther: !!matchedItem?.isOther,
+    isOther,
     applianceTypeId: resolvedTypeId,
     applianceDef: resolvedDef,
   };
@@ -400,6 +405,8 @@ export default function ApplianceAddWizard({
   initialCategory = null,
   initialService = null,
   preselectedService = null,
+  onRemoveAppliance = null,
+  onProceedToReview = null,
 }) {
   const appContext = useApp ? useApp() : {};
   const { activeUser, getAppliancesForUser, userAppliances, updateUserAppliance } = appContext;
@@ -463,6 +470,7 @@ export default function ApplianceAddWizard({
     activeUser.isAnonymous
   );
   const [showGuestModal, setShowGuestModal] = useState(false);
+  const [successToast, setSuccessToast] = useState('');
 
   useEffect(() => {
     if (initialResolved) {
@@ -510,6 +518,34 @@ export default function ApplianceAddWizard({
     );
   }, [searchQuery, serviceItems]);
 
+  const isServiceAlreadyInPlan = useCallback(
+    (svc) => {
+      if (!svc || svc.isOther) return false;
+      const targetName = (svc.name || '').toLowerCase().trim();
+      const targetId = (svc.id || '').toLowerCase().trim();
+
+      return (
+        (displayedPlanAppliances || []).some((u) => {
+          const uSvc = String(u.serviceName || '').toLowerCase().trim();
+          const uName = String(u.name || '').toLowerCase().trim();
+          const uDisp = String(u.displayName || '').toLowerCase().trim();
+          const uTypeId = String(u.applianceTypeId || '').toLowerCase().trim();
+          return (
+            uSvc === targetName ||
+            uName === targetName ||
+            uDisp === targetName ||
+            (targetId && (uTypeId === targetId || uSvc === targetId))
+          );
+        }) ||
+        (accumulatedFastUnits || []).some((u) => {
+          const uSvc = String(u.serviceName || u.name || '').toLowerCase().trim();
+          return uSvc === targetName;
+        })
+      );
+    },
+    [displayedPlanAppliances, accumulatedFastUnits]
+  );
+
   // --- dirty guard ---
   const dirty = !!selectedService || units.some((u) => u.location || u.media) || accumulatedFastUnits.length > 0;
 
@@ -554,16 +590,44 @@ export default function ApplianceAddWizard({
     const mappedId = getApplianceTypeIdForService(selectedService.name);
     const def = mappedId ? getApplianceById(mappedId) : null;
     if (def?.fields?.length) return def.fields;
+
+    if (selectedService.isOther) {
+      const catName = (selectedCategory?.name || '').toLowerCase();
+      let customPlaceholder = 'e.g. Water Pump, Mixer Tap, Balcony Pipe';
+      if (catName.includes('electr')) customPlaceholder = 'e.g. Inverter, Decorative Lamp, Wall Fan';
+      else if (catName.includes('carpent')) customPlaceholder = 'e.g. Shoe Rack, Bookshelf, Wooden Table';
+      else if (catName.includes('clean')) customPlaceholder = 'e.g. Dining Chair, Silk Rug, Velvet Cushion';
+      else if (catName.includes('pest')) customPlaceholder = 'e.g. Mosquito Treatment, Kitchen Pest Area';
+
+      return [
+        {
+          id: 'displayName',
+          label: 'Item / Label',
+          type: 'text',
+          required: true,
+          placeholder: customPlaceholder,
+        },
+        GENERIC_SERVICE_FIELDS[1],
+        GENERIC_SERVICE_FIELDS[2],
+      ];
+    }
+
     return GENERIC_SERVICE_FIELDS;
-  }, [selectedService]);
+  }, [selectedService, selectedCategory]);
 
   const handlePickService = (item) => {
     if (isGuest) {
       setShowGuestModal(true);
       return;
     }
-    const isZeroFriction = isZeroFrictionCategory(selectedCategory?.name || selectedCategory?.id);
+    const isOther = Boolean(item?.isOther || item?.name === 'Other' || item?.id === 'other');
+    const isZeroFriction = !isOther && isZeroFrictionCategory(selectedCategory?.name || selectedCategory?.id);
     if (isZeroFriction) {
+      if (isServiceAlreadyInPlan(item)) {
+        setSuccessToast(`"${item.name}" is already protected under your plan.`);
+        setTimeout(() => setSuccessToast(''), 3000);
+        return;
+      }
       setFastAddItem(item);
       setFastAddQty(1);
       setShowFastAddModal(true);
@@ -572,21 +636,24 @@ export default function ApplianceAddWizard({
 
     const applianceTypeId = getApplianceTypeIdForService(item.name);
     const applianceDef = applianceTypeId ? getApplianceById(applianceTypeId) : null;
+    const categoryImage = selectedSubgroup?.image_url || selectedCategory?.image_url || item.image_url || null;
+    const resolvedImg = isOther ? (categoryImage || item.image_url) : (item.image_url || categoryImage);
     const serviceObj = {
       name: item.name,
-      image_url: item.image_url || null,
+      category: selectedCategory?.name || '',
+      image_url: resolvedImg,
       description: item.description || '',
-      isOther: !!item.isOther,
+      isOther,
       applianceTypeId: applianceTypeId || 'other',
       applianceDef,
     };
     setSelectedService(serviceObj);
     setQuantity(1);
-    setUnits([createServiceUnitDraft(serviceObj, 0, applianceDef)]);
+    setUnits([createServiceUnitDraft(serviceObj, 0, applianceDef, selectedCategory?.name || '')]);
     setCurrentIndex(0);
     setFieldErrors({});
     setMediaError('');
-    if (item.isOther) {
+    if (isOther) {
       setStep('details');
     } else {
       setStep('quantity');
@@ -616,6 +683,8 @@ export default function ApplianceAddWizard({
           ...createServiceUnitDraft(serviceObj, idx, applianceDef),
           displayName: svc.name,
           serviceName: svc.name,
+          name: svc.name,
+          category: selectedCategory?.name || 'Home Appliance',
           location: 'Home',
           condition: 'Working',
           notes: `${selectedCategory?.name || 'Quick Add'} category protection`,
@@ -623,13 +692,11 @@ export default function ApplianceAddWizard({
         };
       });
 
-      // Avoid duplicate services
-      const notYetAdded = bundleUnits.filter(
-        (bu) => !accumulatedFastUnits.some((au) => au.serviceName === bu.serviceName)
-      );
-      setAccumulatedFastUnits((prev) => [...prev, ...notYetAdded]);
+      onComplete?.(bundleUnits, null);
       setShowFastAddModal(false);
       setFastAddItem(null);
+      setAccumulatedFastUnits([]);
+      setStep('cart');
       return;
     }
 
@@ -646,17 +713,21 @@ export default function ApplianceAddWizard({
 
     const newUnits = Array.from({ length: fastAddQty }, (_, idx) => ({
       ...createServiceUnitDraft(serviceObj, idx, applianceDef),
-      displayName: `${fastAddItem.name} ${accumulatedFastUnits.filter((u) => u.serviceName === fastAddItem.name).length + idx + 1}`,
+      displayName: fastAddQty > 1 ? `${fastAddItem.name} ${idx + 1}` : fastAddItem.name,
       serviceName: fastAddItem.name,
+      name: fastAddItem.name,
+      category: selectedCategory?.name || 'Home Appliance',
       location: 'Home',
       condition: 'Working',
       notes: `${selectedCategory?.name || 'Quick Add'} registered`,
       media: null,
     }));
 
-    setAccumulatedFastUnits((prev) => [...prev, ...newUnits]);
+    onComplete?.(newUnits, serviceObj);
     setShowFastAddModal(false);
     setFastAddItem(null);
+    setAccumulatedFastUnits([]);
+    setStep('cart');
   };
 
   const handleAddEntireCategory = () => {
@@ -665,8 +736,13 @@ export default function ApplianceAddWizard({
       return;
     }
     if (!selectedCategory) return;
-    const itemsToAdd = (serviceItems || []).filter((s) => !s.isOther);
-    if (!itemsToAdd.length) return;
+    const standardServices = (serviceItems || []).filter((s) => !s.isOther);
+    const itemsToAdd = standardServices.filter((s) => !isServiceAlreadyInPlan(s));
+    if (!itemsToAdd.length) {
+      setSuccessToast(`All services in ${selectedCategory.name} are already added to your plan.`);
+      setTimeout(() => setSuccessToast(''), 3000);
+      return;
+    }
 
     setFastAddItem({
       name: `Complete ${selectedCategory.name} Protection`,
@@ -681,7 +757,7 @@ export default function ApplianceAddWizard({
 
   const handleQuantityContinue = () => {
     const drafts = Array.from({ length: quantity }, (_, idx) =>
-      createServiceUnitDraft(selectedService, idx, selectedService?.applianceDef)
+      createServiceUnitDraft(selectedService, idx, selectedService?.applianceDef, selectedCategory?.name || '')
     );
     setUnits(drafts);
     setCurrentIndex(0);
@@ -730,16 +806,41 @@ export default function ApplianceAddWizard({
     setShowSaveConfirmModal(true);
   };
 
+  const resetToCategory = (addedName) => {
+    setSelectedCategory(null);
+    setSelectedSubgroup(null);
+    setSelectedService(null);
+    setUnits([]);
+    setCurrentIndex(0);
+    setFieldErrors({});
+    setMediaError('');
+    setSearchQuery('');
+    setStep('category');
+    if (addedName) {
+      setSuccessToast(`✓ ${addedName} added to ${planName || 'Plan'}!`);
+      setTimeout(() => setSuccessToast(''), 4000);
+    }
+  };
+
   const handleConfirmFinalSave = () => {
     if (isGuest) {
       setShowGuestModal(true);
       return;
     }
     setShowSaveConfirmModal(false);
+    const appName = units[0]?.name || selectedService?.name || 'Appliance';
     onComplete?.(units, selectedService);
+
+    if (planName || onProceedToReview) {
+      resetToCategory(appName);
+    }
   };
 
   const handleBack = () => {
+    if (step === 'cart') {
+      setStep('category');
+      return;
+    }
     if (step === 'subgroup') {
       setSelectedCategory(null);
       setSelectedSubgroup(null);
@@ -768,6 +869,10 @@ export default function ApplianceAddWizard({
         return;
       }
       if (currentIndex === 0) {
+        if (selectedService?.isOther) {
+          setStep('service');
+          return;
+        }
         setStep('quantity');
         return;
       }
@@ -866,6 +971,7 @@ export default function ApplianceAddWizard({
       rowGap: isDesktopWeb ? 24 : 16,
       columnGap: isDesktopWeb ? 20 : 12,
     };
+    const isZeroFriction = isZeroFrictionCategory(selectedCategory?.name || selectedCategory?.id);
     if (Platform.OS === 'web') {
       return (
         <div style={serviceGridStyle}>
@@ -873,6 +979,7 @@ export default function ApplianceAddWizard({
             <ServiceItemCard
               key={svc.name}
               item={svc}
+              isAdded={isZeroFriction && isServiceAlreadyInPlan(svc)}
               onPress={() => handlePickService(svc)}
             />
           ))}
@@ -885,6 +992,7 @@ export default function ApplianceAddWizard({
           <ServiceItemCard
             key={svc.name}
             item={svc}
+            isAdded={isZeroFriction && isServiceAlreadyInPlan(svc)}
             onPress={() => handlePickService(svc)}
             style={{ width: `${100 / columns - 2}%`, marginBottom: 12 }}
           />
@@ -895,8 +1003,34 @@ export default function ApplianceAddWizard({
 
   const breadcrumb = [selectedCategory?.name, selectedSubgroup?.name].filter(Boolean).join(' › ');
 
+  if (step === 'cart') {
+    return (
+      <ApplianceCartScreen
+        appliances={displayedPlanAppliances}
+        planName={planName}
+        onBack={() => setStep('category')}
+        onAddMore={() => setStep('category')}
+        onProceed={() => {
+          if (onProceedToReview) {
+            onProceedToReview();
+          } else if (onCancel) {
+            onCancel();
+          }
+        }}
+        onRemoveAppliance={onRemoveAppliance}
+        onInspectAppliance={(appliance) => setInspectingAppliance(appliance)}
+      />
+    );
+  }
+
   return (
     <View style={[styles.root, isDesktopWeb && styles.rootDesktop]}>
+      {!!successToast && (
+        <View style={styles.floatingToastWrap}>
+          <IconCheckCircle size={15} color="#15803d" />
+          <Text style={styles.floatingToastText}>{successToast}</Text>
+        </View>
+      )}
       <View style={[styles.headerRow, isDesktopWeb && styles.headerRowDesktop]}>
         {isDesktopWeb ? (
           <TouchableOpacity style={styles.backPillDesktop} onPress={handleBack} accessibilityLabel="Go back">
@@ -913,6 +1047,25 @@ export default function ApplianceAddWizard({
           </Text>
         )}
         <View style={{ flex: 1 }} />
+        <TouchableOpacity
+          style={styles.headerCartBtn}
+          onPress={() => setStep('cart')}
+          activeOpacity={0.8}
+          accessibilityLabel="View Appliance Cart"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          </svg>
+          {displayedPlanAppliances.length > 0 && (
+            <View style={styles.headerCartBadge}>
+              <Text style={styles.headerCartBadgeText}>
+                {displayedPlanAppliances.length > 99 ? '99+' : displayedPlanAppliances.length}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -927,9 +1080,6 @@ export default function ApplianceAddWizard({
 
         {/* --------- CATEGORY STEP --------- */}
         {step === 'category' && (
-          <CategoryStepLayout
-            isDesktop={isDesktopWeb}
-            left={(
           <>
             <Text
               style={[styles.title, isDesktopWeb && styles.titleDesktop]}
@@ -959,8 +1109,8 @@ export default function ApplianceAddWizard({
             </View>
             {renderCategoryGrid(filteredCategories)}
           </>
-            )}
-            right={(
+        )}
+        {false && (
             /* --------- REGISTERED / PLAN APPLIANCES SECTION --------- */
             <View style={[styles.coveredSection, isDesktopWeb && styles.coveredSectionDesktop]}>
               <View style={styles.coveredSectionHeader}>
@@ -1139,8 +1289,6 @@ export default function ApplianceAddWizard({
                 </View>
               )}
             </View>
-            )}
-          />
         )}
 
         {/* --------- SUBGROUP STEP --------- */}
@@ -1184,9 +1332,8 @@ export default function ApplianceAddWizard({
             {/* ONE-TIME ADD COMPLETE CATEGORY HERO BANNER */}
             {isZeroFrictionCategory(selectedCategory?.name || selectedCategory?.id) && (() => {
               const standardServices = (serviceItems || []).filter((s) => !s.isOther);
-              const allAdded = standardServices.length > 0 && standardServices.every((s) =>
-                accumulatedFastUnits.some((u) => u.serviceName === s.name)
-              );
+              const remainingServices = standardServices.filter((s) => !isServiceAlreadyInPlan(s));
+              const allAdded = standardServices.length > 0 && remainingServices.length === 0;
 
               return (
                 <View style={styles.categoryBundleHero}>
@@ -1197,7 +1344,7 @@ export default function ApplianceAddWizard({
                     </View>
                     <View style={styles.bundleSavingsPill}>
                       <Text style={styles.bundleSavingsText}>
-                        {standardServices.length} Services Included
+                        {allAdded ? 'All Services Covered' : `${standardServices.length} Services Included`}
                       </Text>
                     </View>
                   </View>
@@ -1208,7 +1355,9 @@ export default function ApplianceAddWizard({
                         Complete {selectedCategory.name} Protection
                       </Text>
                       <Text style={styles.bundleHeroDesc}>
-                        Protect your home against {standardServices.map((s) => s.name).join(', ')} in a single confirmation.
+                        {allAdded
+                          ? `All standard ${selectedCategory.name} services (${standardServices.map((s) => s.name).join(', ')}) are already active and protected under your plan.`
+                          : `Protect your home against ${standardServices.map((s) => s.name).join(', ')} in a single confirmation.`}
                       </Text>
                       <View style={styles.bundleFeaturesRow}>
                         <View style={styles.bundleFeatureItem}>
@@ -1227,7 +1376,7 @@ export default function ApplianceAddWizard({
                     style={[styles.bundleAddBtn, allAdded && styles.bundleAddBtnDone]}
                     onPress={handleAddEntireCategory}
                     disabled={allAdded}
-                    activeOpacity={0.85}
+                    activeOpacity={allAdded ? 1 : 0.85}
                   >
                     {allAdded ? (
                       <>
@@ -1241,7 +1390,9 @@ export default function ApplianceAddWizard({
                           <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
                         <Text style={styles.bundleAddBtnText}>
-                          Add Entire Category (All {standardServices.length} Services)
+                          {remainingServices.length < standardServices.length
+                            ? `Add Remaining (${remainingServices.length} Services)`
+                            : `Add Entire Category (All ${standardServices.length} Services)`}
                         </Text>
                       </>
                     )}
@@ -1304,15 +1455,24 @@ export default function ApplianceAddWizard({
         {step === 'details' && currentUnit && selectedService && (
           <>
             <ApplianceProgress currentIndex={currentIndex} total={units.length} />
-            <Text style={styles.title}>Tell us about this item</Text>
-            <Text style={styles.subtitle}>
-              {selectedService.name} {currentIndex + 1} of {units.length}
+            <Text style={styles.title}>
+              {selectedService.isOther ? 'Tell us about your custom item' : 'Tell us about this item'}
             </Text>
-            {!!selectedService.image_url && (
-              <Image source={{ uri: selectedService.image_url }} style={styles.detailsHero} resizeMode="contain" />
-            )}
+            <Text style={styles.subtitle}>
+              {selectedService.isOther
+                ? 'Specify the item name, location, and details'
+                : `${selectedService.name} ${currentIndex + 1} of ${units.length}`}
+            </Text>
+            {(() => {
+              const heroImg = selectedService.image_url || selectedSubgroup?.image_url || selectedCategory?.image_url;
+              return heroImg ? (
+                <Image source={{ uri: heroImg }} style={styles.detailsHero} resizeMode="contain" />
+              ) : null;
+            })()}
             <View style={styles.typeBadge}>
-              <Text style={styles.typeBadgeTitle}>{selectedService.name}</Text>
+              <Text style={styles.typeBadgeTitle}>
+                {selectedService.isOther ? 'Custom Requirement' : selectedService.name}
+              </Text>
               {!!selectedCategory && (
                 <Text style={styles.typeBadgeSub}>{selectedCategory.name}</Text>
               )}
@@ -1776,22 +1936,6 @@ export default function ApplianceAddWizard({
         </View>
       </Modal>
 
-      {/* Blinkit-Style Cart Bar for Quick Add */}
-      {isZeroFrictionCategory(selectedCategory?.name || selectedCategory?.id) && accumulatedFastUnits.length > 0 && (
-        <BlinkitCartBar
-          count={accumulatedFastUnits.length}
-          items={accumulatedFastUnits}
-          actionLabel="Add to Plan ›"
-          onProceed={() => {
-            if (isGuest) {
-              setShowGuestModal(true);
-              return;
-            }
-            onComplete?.(accumulatedFastUnits, null);
-          }}
-        />
-      )}
-
       {/* Guest Lock Modal */}
       <Modal
         visible={showGuestModal}
@@ -1841,6 +1985,44 @@ export default function ApplianceAddWizard({
           </View>
         </View>
       </Modal>
+
+      {/* Floating Success Toast */}
+      {!!successToast && (
+        <View style={styles.floatingToast}>
+          <Text style={styles.floatingToastText}>{successToast}</Text>
+        </View>
+      )}
+
+      {/* Floating Bottom Cart Bar for Plan Appliances */}
+      {displayedPlanAppliances.length > 0 && (step === 'category' || step === 'subgroup' || step === 'service') && (
+        <TouchableOpacity
+          style={[styles.floatingCategoryCartBar, isDesktopWeb && styles.floatingCategoryCartBarDesktop]}
+          onPress={() => setStep('cart')}
+          activeOpacity={0.9}
+        >
+          <View style={styles.floatingCategoryCartLeft}>
+            <View style={styles.floatingCartIconCircle}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="21" r="1" />
+                <circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+              </svg>
+            </View>
+            <View style={styles.floatingCartTextWrap}>
+              <Text style={styles.floatingCartTitle} numberOfLines={1}>
+                {displayedPlanAppliances.length} {displayedPlanAppliances.length === 1 ? 'Appliance' : 'Appliances'} added
+              </Text>
+              <Text style={styles.floatingCartSub} numberOfLines={1}>
+                {planName ? `${planName} Plan` : 'Coverage'} • ₹0 Extra
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.floatingReviewBtn}>
+            <Text style={styles.floatingReviewBtnText}>View Cart →</Text>
+          </View>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -1923,12 +2105,16 @@ function CategoryCard({ item, onPress, style }) {
   );
 }
 
-function ServiceItemCard({ item, onPress, style }) {
+function ServiceItemCard({ item, isAdded = false, onPress, style }) {
   const isOther = item.isOther || item.name === 'Other';
   return (
     <TouchableOpacity
       dataSet={{ zcSvcCard: 'true' }}
-      style={[svcStyles.card, style]}
+      style={[
+        svcStyles.card,
+        isAdded && { borderColor: '#86efac', backgroundColor: '#f0fdf4' },
+        style,
+      ]}
       onPress={onPress}
       activeOpacity={0.88}
       accessibilityRole="button"
@@ -1946,8 +2132,34 @@ function ServiceItemCard({ item, onPress, style }) {
             <Text style={svcStyles.placeholderText}>{item.name[0]}</Text>
           </View>
         )}
+        {isAdded && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              backgroundColor: '#16a34a',
+              borderRadius: 10,
+              paddingHorizontal: 6,
+              paddingVertical: 2,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 3,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+            }}
+          >
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#ffffff', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+              Covered
+            </Text>
+          </View>
+        )}
       </View>
-      <Text style={svcStyles.name} numberOfLines={2}>{item.name}</Text>
+      <Text style={[svcStyles.name, isAdded && { color: '#15803d', fontWeight: '700' }]} numberOfLines={2}>
+        {item.name}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -1977,7 +2189,7 @@ export function buildSavedApplianceRecords(units, selectedService, user) {
       user_email: user?.email || '',
       name: unit.displayName || (unit.name ? unit.name : `${svcName} ${idx + 1}`),
       displayName: unit.displayName || (unit.name ? unit.name : `${svcName} ${idx + 1}`),
-      category: svcName,
+      category: unit.category || selectedService?.category || svcName,
       applianceTypeId: selectedService?.applianceTypeId || selectedService?.id || unit.applianceTypeId || 'other',
       brand: brandName,
       customBrand: unit.customBrand || '',
@@ -2153,6 +2365,153 @@ const styles = StyleSheet.create({
   breadcrumb: {
     fontSize: 13, fontWeight: '600', color: '#64748b',
     flexShrink: 1, fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  headerCartBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)',
+          cursor: 'pointer',
+          transition: 'all 0.18s ease',
+        }
+      : {}),
+  },
+  headerCartBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 19,
+    height: 19,
+    borderRadius: 10,
+    backgroundColor: '#2563eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#ffffff',
+  },
+  headerCartBadgeText: {
+    color: '#ffffff',
+    fontSize: 9.5,
+    fontWeight: '800',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    lineHeight: 12,
+  },
+  floatingToast: {
+    position: 'absolute',
+    top: 58,
+    left: 20,
+    right: 20,
+    zIndex: 9999,
+    backgroundColor: '#0f172a',
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.25)',
+  },
+  floatingToastText: {
+    color: '#ffffff',
+    fontSize: 13.5,
+    fontWeight: '700',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    textAlign: 'center',
+  },
+  floatingCategoryCartBar: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+    zIndex: 999,
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#2563eb',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    boxShadow: '0 8px 30px rgba(37, 99, 235, 0.22)',
+    maxWidth: 480,
+    alignSelf: 'center',
+    gap: 12,
+    ...(Platform.OS === 'web'
+      ? {
+          cursor: 'pointer',
+          width: 'calc(100% - 32px)',
+        }
+      : {}),
+  },
+  floatingCategoryCartBarDesktop: {
+    bottom: 24,
+    maxWidth: 520,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+  },
+  floatingCategoryCartLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    minWidth: 0,
+  },
+  floatingCartIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  floatingCartTextWrap: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+  },
+  floatingCartTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    ...(Platform.OS === 'web' ? { whiteSpace: 'nowrap' } : {}),
+  },
+  floatingCartSub: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: '#2563eb',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    ...(Platform.OS === 'web' ? { whiteSpace: 'nowrap' } : {}),
+  },
+  floatingReviewBtn: {
+    paddingVertical: 9,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#2563eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    boxShadow: '0 2px 10px rgba(37, 99, 235, 0.3)',
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  },
+  floatingReviewBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#ffffff',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    ...(Platform.OS === 'web' ? { whiteSpace: 'nowrap' } : {}),
   },
   content: {
     paddingHorizontal: 16,
@@ -2960,6 +3319,28 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#15803d',
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+  },
+  floatingToastWrap: {
+    position: 'absolute',
+    top: 60,
+    left: 16,
+    right: 16,
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    zIndex: 9999,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+  },
+  floatingToastText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+    flex: 1,
     fontFamily: "'Outfit', 'Inter', sans-serif",
   },
   inspectSpecGrid: {

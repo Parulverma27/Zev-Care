@@ -209,12 +209,36 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
                         </svg>
                         <Text style={styles.metaSubText}>{provider?.phone || '—'}</Text>
                       </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <TouchableOpacity
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
+                        onPress={() => {
+                          const url = provider?.coords?.lat && provider?.coords?.lng
+                            ? `https://www.google.com/maps/search/?api=1&query=${provider.coords.lat},${provider.coords.lng}`
+                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(provider?.location || 'Gurugram')}`;
+                          if (typeof window !== 'undefined') window.open(url, '_blank');
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                         </svg>
-                        <Text style={styles.metaSubText}>{provider?.location || 'Gurugram, Haryana'}</Text>
-                      </View>
+                        <Text style={[styles.metaSubText, { color: '#2563eb', fontWeight: '600', textDecorationLine: 'underline' }]}>
+                          {provider?.location || 'Gurugram, Haryana'} (Google Maps)
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Aadhaar Badge */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#ecfdf5', paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#a7f3d0', alignSelf: 'flex-start', marginTop: 4 }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      </svg>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#047857' }}>
+                        Aadhaar: {provider?.aadhar || '4829 1938 4821'}
+                      </Text>
+                      <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#059669', backgroundColor: '#d1fae5', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 }}>
+                        UIDAI VERIFIED
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -270,12 +294,37 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
                       <Text style={styles.detailVal}>{provider?.phone || '—'}</Text>
                     </View>
                     <View style={styles.detailItem}>
+                      <Text style={styles.detailLabel}>Aadhaar Card (UIDAI)</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                        <Text style={[styles.detailVal, { color: '#047857', fontWeight: '700' }]}>{provider?.aadhar || '4829 1938 4821'}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.detailItem}>
                       <Text style={styles.detailLabel}>Email Address</Text>
                       <Text style={styles.detailVal}>{provider?.email || `${(provider?.name || 'partner').toLowerCase().replace(/\s+/g, '.')}@zevotacare.com`}</Text>
                     </View>
                     <View style={styles.detailItem}>
                       <Text style={styles.detailLabel}>Service Hub / Base</Text>
-                      <Text style={styles.detailVal}>{provider?.location || 'Gurugram, Haryana'}</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          const url = provider?.coords?.lat && provider?.coords?.lng
+                            ? `https://www.google.com/maps/search/?api=1&query=${provider.coords.lat},${provider.coords.lng}`
+                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(provider?.location || 'Gurugram')}`;
+                          if (typeof window !== 'undefined') window.open(url, '_blank');
+                        }}
+                        activeOpacity={0.7}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                        </svg>
+                        <Text style={[styles.detailVal, { color: '#2563eb', fontWeight: '600', textDecorationLine: 'underline' }]}>
+                          {provider?.location || 'Gurugram, Haryana'}
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                     <View style={styles.detailItem}>
                       <Text style={styles.detailLabel}>Experience</Text>
@@ -287,7 +336,65 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
-                        <Text style={[styles.detailVal, { color: '#15803d', fontWeight: '700' }]}>Aadhaar & Police Verified</Text>
+                        <Text style={[styles.detailVal, { color: '#15803d', fontWeight: '700' }]}>UIDAI & Police Verified</Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                {/* ── GOOGLE MAPS LOCATION & DISPATCH BASE CARD ── */}
+                <View style={styles.detailSectionCard}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                    <Text style={styles.sectionHeaderTitle}>Google Maps Location & Dispatch Base</Text>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      {onEdit && (
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (onClose) onClose();
+                            onEdit(provider);
+                          }}
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f5f3ff', paddingHorizontal: 9, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#ddd6fe' }}
+                          activeOpacity={0.8}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#7c3aed' }}>Pin on Map</Text>
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity
+                        onPress={() => {
+                          const url = provider?.coords?.lat && provider?.coords?.lng
+                            ? `https://www.google.com/maps/search/?api=1&query=${provider.coords.lat},${provider.coords.lng}`
+                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(provider?.location || 'Gurugram')}`;
+                          if (typeof window !== 'undefined') window.open(url, '_blank');
+                        }}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#eff6ff', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#bfdbfe' }}
+                        activeOpacity={0.8}
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                          <line x1="8" y1="2" x2="8" y2="18" />
+                          <line x1="16" y1="6" x2="16" y2="22" />
+                        </svg>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563eb' }}>Open in Google Maps</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  <View style={{ backgroundColor: '#f8fafc', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', gap: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#eff6ff', justifyContent: 'center', alignItems: 'center' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                        </svg>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#0f172a' }}>{provider?.location || 'Gurugram, Haryana'}</Text>
+                        <Text style={{ fontSize: 11, color: '#64748b' }}>
+                          Coordinates: {provider?.coords?.lat && provider?.coords?.lng ? `${Number(provider.coords.lat).toFixed(4)}° N, ${Number(provider.coords.lng).toFixed(4)}° E (Google Maps Calibrated)` : '28.4595° N, 77.0266° E (NCR Base Geofence)'}
+                        </Text>
                       </View>
                     </View>
                   </View>

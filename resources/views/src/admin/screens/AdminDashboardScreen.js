@@ -45,7 +45,6 @@ export default function AdminDashboardScreen({ onNavigate }) {
 
   const reportedBookings = (bookings || []).filter((b) => b.status === 'ASSIGNED_TO_ADMIN' || b.inspection_report);
   const pendingApplianceUploads = (userAppliances || []).filter((a) => a.mediaStatus === 'PENDING_REVIEW');
-  const pendingVideoAudits = (users || []).filter((u) => u.property_verification_status === 'PENDING');
 
   const getCategoryStats = () => {
     const statsMap = {};
@@ -170,21 +169,6 @@ export default function AdminDashboardScreen({ onNavigate }) {
             );
           })}
 
-          {pendingVideoAudits.map((u, idx) => (
-            <View key={idx} style={styles.alertRow}>
-              <View style={[styles.alertIconCircle, { backgroundColor: '#fffbe6' }]}>
-                <VideoIcon color="#d97706" size={18} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.alertTitle}>Video Audit Pending: {u.name}</Text>
-                <Text style={styles.alertText}>User submitted home walkthrough video for property verification.</Text>
-              </View>
-              <TouchableOpacity style={[styles.alertActionBtn, { backgroundColor: '#059669' }]} onPress={() => handleNav('/admin/users')}>
-                <Text style={styles.alertActionBtnText}>Audit Video</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-
           {(bookings || []).filter((b) => b.status === 'PENDING_ADMIN_REVIEW').map((b, idx) => (
             <View key={idx} style={styles.alertRow}>
               <View style={[styles.alertIconCircle, { backgroundColor: '#eff6ff' }]}>
@@ -202,7 +186,6 @@ export default function AdminDashboardScreen({ onNavigate }) {
 
           {reportedBookings.length === 0 &&
             pendingApplianceUploads.length === 0 &&
-            pendingVideoAudits.length === 0 &&
             (bookings || []).filter((b) => b.status === 'PENDING_ADMIN_REVIEW').length === 0 && (
               <View style={styles.allClearBox}>
                 <CheckCircleIcon color="#059669" size={20} />

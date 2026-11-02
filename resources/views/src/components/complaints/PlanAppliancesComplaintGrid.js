@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Platform } from 'react-native';
 import { SERVICE_IMAGES } from '../../utils/bundledImages';
+import { getApplianceVideoUri } from '../../utils/applianceMediaHelper';
 
 /**
  * Returns matching image URL from bundled catalog images
@@ -46,27 +47,7 @@ const getApplianceImage = (app) => {
  */
 const getUserUploadedVideo = (app) => {
   if (!app) return null;
-  const raw =
-    app.videoUri ||
-    app.video_url ||
-    app.uploadedMediaUri ||
-    app.video ||
-    app.videoUrl ||
-    app.video_uri ||
-    (app.media?.type === 'video' ? (app.media?.url || app.media?.uri) : null);
-
-  if (typeof raw === 'string') {
-    const clean = raw.trim();
-    if (
-      clean.length > 0 &&
-      !clean.startsWith('auto-verified') &&
-      !clean.includes('mixkit') &&
-      (clean.startsWith('blob:') || clean.startsWith('data:video') || clean.startsWith('http') || clean.includes('.mp4') || clean.includes('.webm'))
-    ) {
-      return clean;
-    }
-  }
-  return null;
+  return getApplianceVideoUri(app);
 };
 
 export default function PlanAppliancesComplaintGrid({

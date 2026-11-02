@@ -90,9 +90,9 @@ export const SERVICE_IMAGES = {
   curtains: c('curtains.png'),
   largeChair: c('large-chair.png'),
 
-  cockroach: c('cockroach.png'),
-  termite: c('termite.png'),
-  bedbugs: c('bedbugs.png'),
+  cockroach: c('Modern Kitchen Pest Control Service.png'),
+  termite: c('Professional Termite Treatment Scene.png'),
+  bedbugs: c('Zevota Care Bedbug Inspection.png'),
 
   bathroomClean: c('toilet.png'),
   kitchenClean: c('kitchen-appliances.png'),

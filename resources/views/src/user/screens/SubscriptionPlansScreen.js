@@ -800,9 +800,7 @@ export default function SubscriptionPlansScreen({ onNavigate, isMyAmcOnly = fals
         ...prev,
         [wizardTargetPlan.id]: [...(prev[wizardTargetPlan.id] || []), ...records],
       }));
-      setReviewPlan(wizardTargetPlan);
-      setWizardTargetPlan(null);
-      setViewMode('PLAN_REVIEW');
+      // Keep user in wizard so they can continue adding more appliances from the main category page
       return;
     } else {
       // Adding out-of-plan appliance to active contract requires ₹500 fee
@@ -877,7 +875,28 @@ export default function SubscriptionPlansScreen({ onNavigate, isMyAmcOnly = fals
               setViewMode('DASHBOARD');
             }
           }}
+          onProceedToReview={() => {
+            if (wizardTargetPlan) {
+              setReviewPlan(wizardTargetPlan);
+              setWizardTargetPlan(null);
+              setViewMode('PLAN_REVIEW');
+            }
+          }}
           onComplete={handleWizardComplete}
+          onRemoveAppliance={(target) => {
+            if (wizardTargetPlan) {
+              setPlanAppliancesMap((prev) => {
+                const list = prev[wizardTargetPlan.id] || [];
+                const updated = typeof target === 'number'
+                  ? list.filter((_, i) => i !== target)
+                  : list.filter((item, i) => (item.id ? item.id !== target : i !== target));
+                return {
+                  ...prev,
+                  [wizardTargetPlan.id]: updated,
+                };
+              });
+            }
+          }}
         />
         <AppliancePaymentPromptModal
           visible={showPaymentModal}

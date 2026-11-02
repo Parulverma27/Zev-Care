@@ -4,18 +4,19 @@ import { loadGoogleMapsScript } from '../config/maps';
 import { AppIcon } from './AppIcons';
 
 export default function LiveProviderTrackingMap({
-  customerCoords = { lat: 19.0596, lng: 72.8295 },
+  customerCoords = { lat: 28.4595, lng: 77.0266 },
   customerAddress = '',
   providerName = 'Technician',
   providerPhone = '',
   providerCoords: providerCoordsProp = null,
   bookingStatus = 'ON_THE_WAY',
   lastUpdatedAt = null,
+  mapHeight = 200,
   onRefresh,
 }) {
   const resolvedCustomer = {
-    lat: Number(customerCoords?.lat) || 19.0596,
-    lng: Number(customerCoords?.lng) || 72.8295,
+    lat: Number(customerCoords?.lat) || 28.4595,
+    lng: Number(customerCoords?.lng) || 77.0266,
   };
 
   const hasLiveProvider =
@@ -178,18 +179,25 @@ export default function LiveProviderTrackingMap({
 
   const getStatusBadge = () => {
     switch (bookingStatus) {
+      case 'PROVIDER_ASSIGNED':
       case 'ASSIGNED':
         return { label: 'Technician Assigned', color: '#0284c7', bg: '#e0f2fe' };
+      case 'PROVIDER_ACCEPTED':
+        return { label: 'Dispatch Confirmed', color: '#0284c7', bg: '#e0f2fe' };
+      case 'PROVIDER_ON_THE_WAY':
       case 'ON_THE_WAY':
-        return { label: hasLiveProvider ? 'Live GPS · On The Way' : 'Technician On The Way', color: '#16a34a', bg: '#dcfce7' };
+        return { label: hasLiveProvider ? 'Live GPS · En Route' : 'Technician En Route', color: '#16a34a', bg: '#dcfce7' };
+      case 'PROVIDER_ARRIVED':
       case 'ARRIVED':
-        return { label: 'Technician Arrived', color: '#9333ea', bg: '#f3e8ff' };
+        return { label: 'Technician Arrived On Site', color: '#9333ea', bg: '#f3e8ff' };
+      case 'SERVICE_IN_PROGRESS':
       case 'IN_PROGRESS':
         return { label: 'Service In Progress', color: '#d97706', bg: '#fef3c7' };
+      case 'BOOKING_COMPLETED':
       case 'COMPLETED':
         return { label: 'Service Completed', color: '#16a34a', bg: '#dcfce7' };
       default:
-        return { label: 'Order Processing', color: '#475569', bg: '#f1f5f9' };
+        return { label: 'Active Dispatch', color: '#475569', bg: '#f1f5f9' };
     }
   };
 
@@ -227,7 +235,7 @@ export default function LiveProviderTrackingMap({
         </View>
       </View>
 
-      <View style={styles.mapContainer}>
+      <View style={[styles.mapContainer, mapHeight ? { height: mapHeight } : null]}>
         {/* Google Map Div Container - always in DOM so ref is permanently mounted */}
         <div
           ref={mapRef}

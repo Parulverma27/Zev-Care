@@ -7,6 +7,7 @@ import { exportToCSV } from '../../utils/exportUtils';
 import { resolveCategoryImageUri, resolveServiceItemImageUri } from '../../utils/imageUtils';
 import { getHardcodedCatalogImage } from '../../utils/bundledImages';
 import { getProviderRatingStats, getPerformanceTier } from '../../utils/ratings';
+import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker';
 
 export function AdminProvidersScreen() {
   const { providers, setProviders, bookings } = useApp();
@@ -55,29 +56,46 @@ export function AdminProvidersScreen() {
   const [editId, setEditId] = useState(null);
   const [partnerName, setPartnerName] = useState('');
   const [partnerPhone, setPartnerPhone] = useState('');
+  const [partnerAadhar, setPartnerAadhar] = useState('');
   const [partnerRating, setPartnerRating] = useState('5.0');
   const [partnerJobs, setPartnerJobs] = useState('0');
   const [partnerEarnings, setPartnerEarnings] = useState('0');
-  const [partnerLocation, setPartnerLocation] = useState('Bandra West (1.5 km away)');
+  const [partnerLocation, setPartnerLocation] = useState('DLF Cyber City, Sector 24, Gurugram');
+  const [partnerCoords, setPartnerCoords] = useState({ lat: 28.4986, lng: 77.0878 });
+  const [showMapPicker, setShowMapPicker] = useState(false);
+
+  const formatAadharNumber = (val) => {
+    const digits = (val || '').replace(/\D/g, '').slice(0, 12);
+    const parts = [];
+    for (let i = 0; i < digits.length; i += 4) {
+      parts.push(digits.slice(i, i + 4));
+    }
+    return parts.join(' ');
+  };
 
   const openModal = (p = null) => {
     if (p) {
       setEditId(p.id);
-      setPartnerName(p.name);
-      setPartnerPhone(p.phone);
-      setPartnerRating(String(p.rating));
-      setPartnerJobs(String(p.total_jobs));
-      setPartnerEarnings(String(p.earnings));
-      setPartnerLocation(p.location);
+      setPartnerName(p.name || '');
+      setPartnerPhone(p.phone || '');
+      setPartnerAadhar(p.aadhar ? formatAadharNumber(p.aadhar) : '');
+      setPartnerRating(String(p.rating ?? '5.0'));
+      setPartnerJobs(String(p.total_jobs ?? '0'));
+      setPartnerEarnings(String(p.earnings ?? '0'));
+      setPartnerLocation(p.location || 'DLF Cyber City, Sector 24, Gurugram');
+      setPartnerCoords(p.coords || (p.lat && p.lng ? { lat: Number(p.lat), lng: Number(p.lng) } : { lat: 28.4986, lng: 77.0878 }));
     } else {
       setEditId(null);
       setPartnerName('');
       setPartnerPhone('');
+      setPartnerAadhar('');
       setPartnerRating('5.0');
       setPartnerJobs('0');
       setPartnerEarnings('0');
-      setPartnerLocation('Bandra West (1.5 km away)');
+      setPartnerLocation('DLF Cyber City, Sector 24, Gurugram');
+      setPartnerCoords({ lat: 28.4986, lng: 77.0878 });
     }
+    setShowMapPicker(false);
     setModalVisible(true);
   };
 
@@ -89,14 +107,21 @@ export function AdminProvidersScreen() {
   const handleAddPartner = () => {
     if (!partnerName.trim() || !partnerPhone.trim()) return;
 
+    const cleanAadhar = (partnerAadhar || '').replace(/\D/g, '').slice(0, 12);
+    const formattedAadhar = cleanAadhar.length > 0 ? formatAadharNumber(cleanAadhar) : '';
+
+    const existing = editId ? providers.find((p) => p.id === editId) : null;
     const newPartner = {
+      ...(existing || {}),
       id: editId || Date.now(),
-      name: partnerName,
-      phone: partnerPhone,
+      name: partnerName.trim(),
+      phone: partnerPhone.trim(),
+      aadhar: formattedAadhar,
+      coords: partnerCoords,
       rating: parseFloat(partnerRating) || 5.0,
       total_jobs: parseInt(partnerJobs) || 0,
       earnings: parseFloat(partnerEarnings) || 0.0,
-      location: partnerLocation || 'Bandra West, Mumbai',
+      location: partnerLocation.trim() || 'DLF Cyber City, Sector 24, Gurugram',
     };
 
     if (editId) {
@@ -125,12 +150,14 @@ export function AdminProvidersScreen() {
     const columns = [
       { label: 'Provider ID', accessor: (p) => p.id },
       { label: 'Partner Name', accessor: (p) => p.name },
+      { label: 'Aadhaar (UIDAI)', accessor: (p) => p.aadhar || 'Pending' },
       { label: 'Phone Number', accessor: (p) => p.phone },
       { label: 'Rating', accessor: (p) => getProviderStats(p).rating },
       { label: 'Performance Tier', accessor: (p) => getProviderStats(p).tier?.label || 'Baseline' },
       { label: 'Total Jobs Completed', accessor: (p) => getProviderStats(p).completedCount },
       { label: 'Total Earnings (INR)', accessor: (p) => getProviderStats(p).revenue },
       { label: 'Service Location', accessor: (p) => p.location || 'N/A' },
+      { label: 'Map Coordinates', accessor: (p) => p.coords?.lat && p.coords?.lng ? `${p.coords.lat}, ${p.coords.lng}` : 'N/A' },
       { label: 'Online Status', accessor: (p) => (p.is_online ? 'ONLINE' : 'OFFLINE') },
     ];
     exportToCSV('Zevota_Field_Partners_Report', columns, providers);
@@ -186,10 +213,46 @@ export function AdminProvidersScreen() {
           const stats = getProviderStats(p);
           return (
             <View key={idx} style={styles.tableRow}>
-              <TouchableOpacity style={{ flex: 1.5 }} onPress={() => handleOpenDetailModal(p)} onClick={() => handleOpenDetailModal(p)} activeOpacity={0.7}>
-                <Text style={[styles.tdBold, { color: '#7c3aed' }]}>{p.name}</Text>
-              </TouchableOpacity>
-              <Text style={[styles.td, { flex: 1.2 }]}>{p.phone}</Text>
+              <View style={{ flex: 1.5, gap: 3 }}>
+                <TouchableOpacity onPress={() => handleOpenDetailModal(p)} onClick={() => handleOpenDetailModal(p)} activeOpacity={0.7}>
+                  <Text style={[styles.tdBold, { color: '#7c3aed' }]}>{p.name}</Text>
+                </TouchableOpacity>
+                {p.aadhar ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    <Text style={{ fontSize: 10.5, color: '#047857', fontWeight: '700' }}>
+                      UIDAI: {p.aadhar}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={{ fontSize: 10, color: '#94a3b8' }}>UIDAI: Pending</Text>
+                )}
+              </View>
+
+              <View style={{ flex: 1.2, gap: 3 }}>
+                <Text style={styles.td}>{p.phone}</Text>
+                {p.location ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      const url = p.coords?.lat && p.coords?.lng
+                        ? `https://www.google.com/maps/search/?api=1&query=${p.coords.lat},${p.coords.lng}`
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.location)}`;
+                      if (typeof window !== 'undefined') window.open(url, '_blank');
+                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}
+                    activeOpacity={0.7}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <Text style={{ fontSize: 10.5, color: '#2563eb', fontWeight: '600' }} numberOfLines={1}>
+                      {p.location}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
               <View style={{ flex: 0.9 }}>
                 <View style={[styles.statusPill, p.is_online !== false ? styles.activePill : styles.offlinePill]}>
                   <Text style={[styles.statusPillText, p.is_online !== false ? styles.activePillText : styles.offlinePillText]}>
@@ -242,43 +305,152 @@ export function AdminProvidersScreen() {
       })}
       </View>
 
-      {/* ADD FIELD PARTNER MODAL */}
+      {/* ADD / EDIT FIELD PARTNER MODAL */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{editId ? 'Edit Field Partner' : 'Add Certified Field Partner'}</Text>
-            
-            <Text style={styles.inputLabel}>Partner Name</Text>
-            <TextInput style={styles.textInput} value={partnerName} onChangeText={setPartnerName} placeholder="e.g. Ramesh Kumar" />
+          <View style={[styles.modalContent, { maxHeight: '90vh', overflow: 'hidden' }]}>
+            <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ gap: 12 }}>
+              <Text style={styles.modalTitle}>{editId ? 'Edit Field Partner' : 'Add Certified Field Partner'}</Text>
+              
+              <Text style={styles.inputLabel}>Partner Name *</Text>
+              <TextInput style={styles.textInput} value={partnerName} onChangeText={setPartnerName} placeholder="e.g. Ramesh Kumar" />
 
-            <Text style={styles.inputLabel}>Phone Number</Text>
-            <TextInput style={styles.textInput} value={partnerPhone} onChangeText={setPartnerPhone} placeholder="e.g. +91 99887 76655" />
+              <Text style={styles.inputLabel}>Phone Number *</Text>
+              <TextInput style={styles.textInput} value={partnerPhone} onChangeText={setPartnerPhone} placeholder="e.g. +91 99887 76655" keyboardType="phone-pad" />
 
-            <Text style={styles.inputLabel}>Location Service Area</Text>
-            <TextInput style={styles.textInput} value={partnerLocation} onChangeText={setPartnerLocation} placeholder="e.g. Bandra West, Mumbai" />
-
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.inputLabel}>Rating (1-5)</Text>
-                <TextInput style={styles.textInput} value={partnerRating} onChangeText={setPartnerRating} keyboardType="numeric" />
+              {/* AADHAAR NUMBER FIELD */}
+              <View style={{ gap: 4 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={styles.inputLabel}>Aadhaar Card Number (UIDAI) *</Text>
+                  {partnerAadhar.replace(/\D/g, '').length === 12 ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <Text style={{ fontSize: 10.5, color: '#059669', fontWeight: '700' }}>12-Digit Format Valid</Text>
+                    </View>
+                  ) : (
+                    <Text style={{ fontSize: 10, color: '#94a3b8' }}>12 Digits required</Text>
+                  )}
+                </View>
+                <TextInput
+                  style={styles.textInput}
+                  value={partnerAadhar}
+                  onChangeText={(text) => setPartnerAadhar(formatAadharNumber(text))}
+                  placeholder="e.g. 4829 1938 4821"
+                  maxLength={14}
+                  keyboardType="numeric"
+                />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.inputLabel}>Completed Jobs</Text>
-                <TextInput style={styles.textInput} value={partnerJobs} onChangeText={setPartnerJobs} keyboardType="number-pad" />
+
+              {/* LOCATION SERVICE AREA (WITH GOOGLE MAPS PINPOINT) */}
+              <View style={{ gap: 6 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={styles.inputLabel}>Location Service Area (Google Maps) *</Text>
+                  <TouchableOpacity
+                    onPress={() => setShowMapPicker(true)}
+                    style={styles.mapPinpointBtn}
+                    activeOpacity={0.8}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                      <line x1="8" y1="2" x2="8" y2="18" />
+                      <line x1="16" y1="6" x2="16" y2="22" />
+                    </svg>
+                    <Text style={styles.mapPinpointBtnText}>Pinpoint on Map</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                <TextInput
+                  style={styles.textInput}
+                  value={partnerLocation}
+                  onChangeText={setPartnerLocation}
+                  placeholder="e.g. DLF Cyber City, Sector 24, Gurugram"
+                />
+
+                {partnerCoords && partnerCoords.lat && partnerCoords.lng ? (
+                  <View style={styles.coordsBadge}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <Text style={styles.coordsBadgeText}>
+                      Google Maps Pin: {Number(partnerCoords.lat).toFixed(4)}° N, {Number(partnerCoords.lng).toFixed(4)}° E
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        const url = `https://www.google.com/maps/search/?api=1&query=${partnerCoords.lat},${partnerCoords.lng}`;
+                        if (typeof window !== 'undefined') window.open(url, '_blank');
+                      }}
+                      style={{ marginLeft: 'auto' }}
+                    >
+                      <Text style={{ fontSize: 10, color: '#2563eb', fontWeight: '700', textDecorationLine: 'underline' }}>View Live Map</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => setShowMapPicker(true)}
+                    style={[styles.coordsBadge, { backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }]}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '600' }}>
+                      📍 Click "Pinpoint on Map" to select exact Google Maps coordinates
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
+
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.inputLabel}>Rating (1-5)</Text>
+                  <TextInput style={styles.textInput} value={partnerRating} onChangeText={setPartnerRating} keyboardType="numeric" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.inputLabel}>Completed Jobs</Text>
+                  <TextInput style={styles.textInput} value={partnerJobs} onChangeText={setPartnerJobs} keyboardType="number-pad" />
+                </View>
+              </View>
+
+              <Text style={styles.inputLabel}>Initial Earnings / Revenue (₹)</Text>
+              <TextInput style={styles.textInput} value={partnerEarnings} onChangeText={setPartnerEarnings} keyboardType="numeric" />
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.submitBtn} onPress={handleAddPartner}>
+                  <Text style={styles.submitBtnText}>{editId ? 'Save Partner' : 'Add Partner'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* GOOGLE MAPS LOCATION PICKER MODAL */}
+      <Modal visible={showMapPicker} transparent animationType="fade" onRequestClose={() => setShowMapPicker(false)}>
+        <View style={styles.mapModalOverlay}>
+          <View style={styles.mapModalCard}>
+            <View style={styles.mapModalHeader}>
+              <View style={{ gap: 2 }}>
+                <Text style={styles.mapModalTitle}>Google Maps Location Calibration</Text>
+                <Text style={styles.mapModalSubtitle}>Search or drag pin to define field partner dispatch location</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowMapPicker(false)} style={styles.mapModalCloseBtn} activeOpacity={0.7}>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#64748b' }}>✕</Text>
+              </TouchableOpacity>
             </View>
 
-            <Text style={styles.inputLabel}>Initial Earnings / Revenue (₹)</Text>
-            <TextInput style={styles.textInput} value={partnerEarnings} onChangeText={setPartnerEarnings} keyboardType="numeric" />
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.submitBtn} onPress={handleAddPartner}>
-                <Text style={styles.submitBtnText}>{editId ? 'Save Partner' : 'Add Partner'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
+            <GoogleMapsLocationPicker
+              initialAddress={partnerLocation}
+              initialCoords={partnerCoords}
+              onSelectLocation={({ address, lat, lng }) => {
+                if (address) setPartnerLocation(address);
+                if (lat && lng) setPartnerCoords({ lat, lng });
+                setShowMapPicker(false);
+              }}
+              onClose={() => setShowMapPicker(false)}
+              containerStyle={{ borderWidth: 0, boxShadow: 'none', padding: 0 }}
+            />
           </View>
         </View>
       </Modal>
@@ -895,6 +1067,82 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#fecaca',
+    cursor: 'pointer',
+  },
+  coordsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  coordsBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#065f46',
+  },
+  mapPinpointBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  mapPinpointBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+  mapModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15,23,42,0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    zIndex: 9999,
+  },
+  mapModalCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 18,
+    width: '100%',
+    maxWidth: 620,
+    gap: 12,
+    boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+  },
+  mapModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    paddingBottom: 10,
+  },
+  mapModalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  mapModalSubtitle: {
+    fontSize: 11.5,
+    color: '#64748b',
+  },
+  mapModalCloseBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
     cursor: 'pointer',
   },
 });

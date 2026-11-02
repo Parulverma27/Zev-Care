@@ -12,6 +12,7 @@ import { getHardcodedCatalogImage } from '../utils/bundledImages';
 import { normalizeSavedAddresses, upsertDefaultAddress, normalizeTag } from '../utils/savedAddresses';
 import { getPlanTheme } from '../config/planTheme';
 import { normalizeBookingReviews } from '../utils/ratings';
+import { storeMedia, loadAllStoredMedia, getStoredMedia, getCachedMedia } from '../utils/mediaStorage';
 
 const AppContext = createContext();
 
@@ -19,7 +20,7 @@ const API_BASE = 'http://127.0.0.1:3000/api';
 const CATALOG_VERSION_KEY = 'zevota_catalog_version';
 const BOOKINGS_VERSION = 'v11-consultation-orders'; // bump to force-reset cached bookings
 const BOOKINGS_VERSION_KEY = 'zevota_bookings_version';
-const PROVIDERS_VERSION = 'v2-rich-profiles';
+const PROVIDERS_VERSION = 'v3-aadhar-maps';
 const PROVIDERS_VERSION_KEY = 'zevota_providers_version';
 const WALLET_SYNC_VERSION = 'v5-fix-aryan-phone-collision';
 const WALLET_SYNC_KEY = 'zevota_wallet_sync_version';
@@ -1289,7 +1290,16 @@ export function AppProvider({ children }) {
         localStorage.setItem(PROVIDERS_VERSION_KEY, PROVIDERS_VERSION);
       } else {
         const saved = localStorage.getItem('zevota_providers');
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            return parsed.map((p, idx) => ({
+              ...p,
+              aadhar: p.aadhar || (idx === 0 ? '4829 1938 4821' : idx === 1 ? '5839 2948 1029' : '9182 7364 5512'),
+              coords: p.coords || (idx === 0 ? { lat: 28.4986, lng: 77.0878 } : { lat: 28.4239, lng: 77.0406 }),
+            }));
+          }
+        }
       }
     } catch (e) {}
     return [
@@ -1297,11 +1307,13 @@ export function AppProvider({ children }) {
         id: 1,
         name: 'Rajesh Sharma',
         phone: '+91 99887 76655',
+        aadhar: '4829 1938 4821',
         email: 'rajesh.electrician@zevotacare.com',
         rating: 4.9,
         trade: 'Electrical & AC Specialist',
         experience: '6 Years Experience',
-        location: 'Gurugram, Haryana',
+        location: 'DLF Cyber City, Sector 24, Gurugram, Haryana',
+        coords: { lat: 28.4986, lng: 77.0878 },
         categories: ['Electrical & AC', 'Appliances'],
         services: ['Mixer Repair', 'Switch Repair', 'AC Gas Refill', 'AC Deep Cleaning', 'Chandelier Installation'],
         is_online: true,
@@ -1311,11 +1323,13 @@ export function AppProvider({ children }) {
         id: 2,
         name: 'Suresh Kumar',
         phone: '+91 98989 12345',
+        aadhar: '5839 2948 1029',
         email: 'suresh.plumber@zevotacare.com',
         rating: 4.8,
         trade: 'Plumbing Specialist',
         experience: '8 Years Experience',
-        location: 'Gurugram, Haryana',
+        location: 'Sohna Road, Sector 48, Gurugram, Haryana',
+        coords: { lat: 28.4239, lng: 77.0406 },
         categories: ['Plumbing'],
         services: ['Sink Mixer Replacement', 'Drain Blockage', 'Pipe Leakage Fix', 'Water Tank Cleaning'],
         is_online: true,
@@ -2109,7 +2123,24 @@ export function AppProvider({ children }) {
               ...b,
               provider_lat: lat,
               provider_lng: lng,
+              provider_coords: { lat, lng },
               last_location_update: new Date().toISOString(),
+            }
+          : b
+      )
+    );
+  };
+
+  const updateBookingArrivalTelemetry = (bookingId, telemetry) => {
+    setBookings((prev) =>
+      prev.map((b) =>
+        b.booking_id === bookingId
+          ? {
+              ...b,
+              provider_arrived_at: telemetry.arrived_at || new Date().toISOString(),
+              arrival_coords: telemetry.arrival_coords || (telemetry.lat && telemetry.lng ? { lat: telemetry.lat, lng: telemetry.lng } : null),
+              arrival_distance_m: telemetry.distance_m != null ? telemetry.distance_m : 35,
+              arrival_verified: telemetry.is_verified ?? true,
             }
           : b
       )
@@ -2332,16 +2363,66 @@ export function AppProvider({ children }) {
     return [];
   });
 
+  const [, setMediaLoadedTick] = useState(0);
+
+  useEffect(() => {
+    loadAllStoredMedia().then(() => {
+      setMediaLoadedTick((t) => t + 1);
+      // Rehydrate in-memory userAppliances if indexeddb references exist
+      setUserAppliances((prev) =>
+        (prev || []).map((a) => {
+          const cached = getCachedMedia(a.id) || getCachedMedia(String(a.id));
+          if (cached) {
+            return {
+              ...a,
+              video: cached,
+              uploadedMediaUri: cached,
+              media: a.media ? { ...a.media, url: cached, uri: cached } : { type: 'video', url: cached, uri: cached },
+            };
+          }
+          return a;
+        })
+      );
+    });
+  }, []);
+
   useEffect(() => {
     try {
-      localStorage.setItem('zevota_user_appliances', JSON.stringify(userAppliances));
-    } catch (e) {}
+      // Asynchronously store large videos in IndexedDB to avoid localStorage quota failure
+      (userAppliances || []).forEach((a) => {
+        const videoUri = a.video || a.uploadedMediaUri || a.media?.uri || a.media?.url;
+        if (videoUri && typeof videoUri === 'string' && (videoUri.startsWith('data:video') || videoUri.startsWith('blob:') || videoUri.includes('video'))) {
+          storeMedia(a.id, videoUri);
+        }
+      });
+
+      // Write lightweight state to localStorage without crashing on 5MB quota
+      const lightweight = (userAppliances || []).map((a) => {
+        const isLargeVideo = typeof a.video === 'string' && a.video.length > 50000;
+        const isLargeUpload = typeof a.uploadedMediaUri === 'string' && a.uploadedMediaUri.length > 50000;
+        return {
+          ...a,
+          video: isLargeVideo ? `indexeddb://${a.id}` : a.video,
+          uploadedMediaUri: isLargeUpload ? `indexeddb://${a.id}` : a.uploadedMediaUri,
+          media: a.media
+            ? {
+                ...a.media,
+                url: typeof a.media.url === 'string' && a.media.url.length > 50000 ? `indexeddb://${a.id}` : a.media.url,
+                uri: typeof a.media.uri === 'string' && a.media.uri.length > 50000 ? `indexeddb://${a.id}` : a.media.uri,
+              }
+            : null,
+        };
+      });
+      localStorage.setItem('zevota_user_appliances', JSON.stringify(lightweight));
+    } catch (e) {
+      console.warn('[AppContext] userAppliances save error:', e);
+    }
   }, [userAppliances]);
 
   const DEFAULT_AMC_SUBSCRIBER_APPLIANCES = [
     { id: 'amc-app-1', name: '1.5 Ton AC', location: 'Living Room', category: 'Electrician', brand: 'Daikin', applianceTypeId: 'air_conditioner' },
     { id: 'amc-app-2', name: 'Refrigerator', location: 'Kitchen', category: 'Electrician', brand: 'LG', applianceTypeId: 'refrigerator' },
-    { id: 'amc-app-3', name: 'RO Purifier', location: 'Kitchen', category: 'Plumber', brand: 'Kent', applianceTypeId: 'water_purifier' },
+    { id: 'amc-app-3', name: 'RO Purifier', location: 'Kitchen', category: 'Electrician', brand: 'Kent', applianceTypeId: 'water_purifier' },
     { id: 'amc-app-4', name: 'Washing Machine', location: 'Balcony', category: 'Electrician', brand: 'Bosch', applianceTypeId: 'washing_machine' },
     { id: 'amc-app-5', name: 'Smart TV 55"', location: 'Master Bed', category: 'Electrician', brand: 'Sony', applianceTypeId: 'television' },
     { id: 'amc-app-6', name: 'Geyser 25L', location: 'Bathroom', category: 'Electrician', brand: 'Havells', applianceTypeId: 'geyser' },
@@ -2361,17 +2442,12 @@ export function AppProvider({ children }) {
         const userMatches = (prev || []).filter(
           (a) => a.userId === activeUser.id || a.user_id === activeUser.id
         );
-        if (userMatches.length === 0) {
-          const seeded = DEFAULT_AMC_SUBSCRIBER_APPLIANCES.map((a) => ({
-            ...a,
-            userId: activeUser.id,
-            user_id: activeUser.id,
-            user_phone: activeUser.phone,
-            user_email: activeUser.email,
-            isCoveredByAmc: true,
-            is_covered_by_amc: true,
-          }));
-          return [...seeded, ...prev];
+        const hasRealApps = userMatches.some((a) => !String(a.id || '').startsWith('amc-app-'));
+        if (hasRealApps) {
+          return prev.filter((a) => {
+            const isUserApp = a.userId === activeUser.id || a.user_id === activeUser.id;
+            return !isUserApp || !String(a.id || '').startsWith('amc-app-');
+          });
         }
         return prev;
       });
@@ -2418,26 +2494,44 @@ export function AppProvider({ children }) {
         )) return true;
         return false;
       })
-      .map((a) => ({
-        ...a,
-        isCoveredByAmc: true,
-        is_covered_by_amc: true,
-      }));
+      .map((a) => {
+        const cached = getCachedMedia(a.id) || getCachedMedia(String(a.id));
+        const resolvedVideo = cached || (typeof a.video === 'string' && !a.video.startsWith('indexeddb://') ? a.video : null);
+        return {
+          ...a,
+          video: resolvedVideo,
+          uploadedMediaUri: resolvedVideo,
+          media: resolvedVideo
+            ? { type: 'video', url: resolvedVideo, uri: resolvedVideo, fileName: a.media?.fileName || 'Appliance_Live_Video.webm' }
+            : a.media,
+          isCoveredByAmc: true,
+          is_covered_by_amc: true,
+        };
+      });
 
     // Check direct appliances on user object (e.g. from user registration/profile)
     const directAppliances = (
       Array.isArray(targetUser?.appliances)
         ? targetUser.appliances
         : (Array.isArray(targetUser?.registered_appliances) ? targetUser.registered_appliances : [])
-    ).map((a) => ({
-      ...a,
-      userId: targetUser?.id || userId || 1,
-      user_id: targetUser?.id || userId || 1,
-      user_phone: targetUser?.phone || userPhone,
-      user_email: targetUser?.email || userEmail,
-      isCoveredByAmc: true,
-      is_covered_by_amc: true,
-    }));
+    ).map((a) => {
+      const cached = getCachedMedia(a.id) || getCachedMedia(String(a.id));
+      const resolvedVideo = cached || (typeof a.video === 'string' && !a.video.startsWith('indexeddb://') ? a.video : null);
+      return {
+        ...a,
+        userId: targetUser?.id || userId || 1,
+        user_id: targetUser?.id || userId || 1,
+        user_phone: targetUser?.phone || userPhone,
+        user_email: targetUser?.email || userEmail,
+        video: resolvedVideo,
+        uploadedMediaUri: resolvedVideo,
+        media: resolvedVideo
+          ? { type: 'video', url: resolvedVideo, uri: resolvedVideo, fileName: a.media?.fileName || 'Appliance_Live_Video.webm' }
+          : a.media,
+        isCoveredByAmc: true,
+        is_covered_by_amc: true,
+      };
+    });
 
     const combinedUserApps = [...matches];
     for (const da of directAppliances) {
@@ -2457,38 +2551,32 @@ export function AppProvider({ children }) {
     );
 
     if (userHasPlan) {
-      const defaultPlanApps = DEFAULT_AMC_SUBSCRIBER_APPLIANCES.map((a) => ({
-        ...a,
-        userId: targetUser?.id || userId || 1,
-        user_id: targetUser?.id || userId || 1,
-        user_phone: targetUser?.phone || userPhone,
-        user_email: targetUser?.email || userEmail,
-        isCoveredByAmc: true,
-        is_covered_by_amc: true,
-      }));
-
-      if (combinedUserApps.length === 0) {
-        return defaultPlanApps;
+      // If the user has explicitly added appliances, return ONLY their real registered appliances!
+      const userCustomApps = combinedUserApps.filter((a) => !String(a.id || '').startsWith('amc-app-'));
+      if (userCustomApps.length > 0) {
+        return userCustomApps;
       }
 
-      // If user already has some recorded appliances (e.g. customized or video-uploaded),
-      // merge any default plan appliances that aren't already represented by name or type:
-      const hasAmcDefaults = combinedUserApps.some((a) => String(a.id).startsWith('amc-app-'));
-      if (hasAmcDefaults) {
+      if (combinedUserApps.length > 0) {
         return combinedUserApps;
       }
 
-      const merged = [...combinedUserApps];
-      for (const defApp of defaultPlanApps) {
-        const alreadyRepresented = merged.some(
-          (m) => (m.applianceTypeId && m.applianceTypeId === defApp.applianceTypeId) ||
-                 (m.name && m.name.toLowerCase() === defApp.name.toLowerCase())
-        );
-        if (!alreadyRepresented) {
-          merged.push(defApp);
-        }
-      }
-      return merged;
+      // If user has zero registered appliances, show fallback demo items
+      return DEFAULT_AMC_SUBSCRIBER_APPLIANCES.map((a) => {
+        const cached = getCachedMedia(a.id) || getCachedMedia(String(a.id));
+        return {
+          ...a,
+          userId: targetUser?.id || userId || 1,
+          user_id: targetUser?.id || userId || 1,
+          user_phone: targetUser?.phone || userPhone,
+          user_email: targetUser?.email || userEmail,
+          video: cached || null,
+          uploadedMediaUri: cached || null,
+          media: cached ? { type: 'video', url: cached, uri: cached, fileName: 'Appliance_Live_Video.webm' } : a.media,
+          isCoveredByAmc: true,
+          is_covered_by_amc: true,
+        };
+      });
     }
 
     return combinedUserApps;
@@ -2500,8 +2588,21 @@ export function AppProvider({ children }) {
   };
 
   const addUserAppliance = (applianceData) => {
+    const videoUri =
+      applianceData.video ||
+      applianceData.uploadedMediaUri ||
+      applianceData.media?.uri ||
+      applianceData.media?.url ||
+      (typeof applianceData.img === 'string' && (applianceData.img.startsWith('data:video') || applianceData.img.startsWith('blob:')) ? applianceData.img : null);
+
+    const applianceId = applianceData.id || Date.now() + Math.floor(Math.random() * 1000);
+
+    if (videoUri) {
+      storeMedia(applianceId, videoUri);
+    }
+
     const newAppliance = {
-      id: Date.now() + Math.floor(Math.random() * 1000),
+      id: applianceId,
       is_immutable: false,
       createdAt: new Date().toISOString(),
       age_range: applianceData.age_range || applianceData.year || '',
@@ -2509,8 +2610,51 @@ export function AppProvider({ children }) {
       isCoveredByAmc: true,
       is_covered_by_amc: true,
       ...applianceData,
+      id: applianceId,
+      video: videoUri || applianceData.video,
+      uploadedMediaUri: videoUri || applianceData.uploadedMediaUri,
+      media: videoUri
+        ? {
+            type: 'video',
+            url: videoUri,
+            uri: videoUri,
+            fileName: applianceData.media?.fileName || 'Appliance_Live_Video.webm',
+          }
+        : applianceData.media,
+      mediaStatus: videoUri ? 'PENDING_REVIEW' : (applianceData.mediaStatus || 'NOT_REQUIRED'),
     };
-    setUserAppliances((prev) => [newAppliance, ...prev]);
+
+    setUserAppliances((prev) => {
+      // Check if we should update an existing item (e.g. placeholder with matching name/category/id)
+      const existingIdx = (prev || []).findIndex((a) => {
+        if (a.id === newAppliance.id) return true;
+        const sameUser = (a.userId === newAppliance.userId || a.user_id === newAppliance.userId);
+        if (!sameUser) return false;
+        if (String(a.id).startsWith('amc-app-') && (
+          (a.applianceTypeId && a.applianceTypeId === newAppliance.applianceTypeId) ||
+          (a.name && newAppliance.name && a.name.toLowerCase() === newAppliance.name.toLowerCase())
+        )) {
+          return true;
+        }
+        return false;
+      });
+
+      if (existingIdx >= 0) {
+        const copy = [...prev];
+        const existing = copy[existingIdx];
+        if (videoUri) {
+          storeMedia(existing.id, videoUri);
+        }
+        copy[existingIdx] = {
+          ...existing,
+          ...newAppliance,
+          id: existing.id,
+        };
+        return copy;
+      }
+      return [newAppliance, ...prev];
+    });
+
     if (newAppliance.media && newAppliance.userId) {
       setUsers((prev) =>
         prev.map((u) =>
@@ -2529,14 +2673,45 @@ export function AppProvider({ children }) {
   };
 
   const updateUserAppliance = (id, updatedFields) => {
-    setUserAppliances((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, ...updatedFields } : a))
-    );
+    const videoUri =
+      updatedFields.video ||
+      updatedFields.uploadedMediaUri ||
+      updatedFields.media?.uri ||
+      updatedFields.media?.url;
+    if (videoUri) {
+      storeMedia(id, videoUri);
+      storeMedia(String(id), videoUri);
+    }
+    setUserAppliances((prev) => {
+      const idx = (prev || []).findIndex((a) => a.id === id || String(a.id) === String(id));
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], ...updatedFields };
+        return copy;
+      }
+      // If updating a placeholder default plan appliance (e.g. amc-app-1), upsert it
+      const defaultMatch = DEFAULT_AMC_SUBSCRIBER_APPLIANCES.find(
+        (d) => d.id === id || String(d.id) === String(id)
+      );
+      const newApp = {
+        id,
+        userId: activeUser?.id || 1,
+        user_id: activeUser?.id || 1,
+        user_phone: activeUser?.phone || '',
+        user_email: activeUser?.email || '',
+        isCoveredByAmc: true,
+        is_covered_by_amc: true,
+        createdAt: new Date().toISOString(),
+        ...(defaultMatch || {}),
+        ...updatedFields,
+      };
+      return [newApp, ...(prev || [])];
+    });
   };
 
   const reviewApplianceMedia = (applianceId, status) => {
     setUserAppliances((prev) =>
-      prev.map((a) => (a.id === applianceId ? { ...a, mediaStatus: status } : a))
+      prev.map((a) => (a.id === applianceId || String(a.id) === String(applianceId) ? { ...a, mediaStatus: status } : a))
     );
   };
 
@@ -2555,6 +2730,19 @@ export function AppProvider({ children }) {
     const selectedIds = new Set(
       selectedList.map((item) => (typeof item === 'object' && item?.id ? String(item.id) : String(item)))
     );
+
+    // Ensure any captured videos are stored in IndexedDB immediately
+    selectedList.forEach((item) => {
+      if (item) {
+        const v = item.video || item.uploadedMediaUri || item.media?.url || item.media?.uri;
+        if (v && typeof v === 'string' && (v.startsWith('data:video') || v.startsWith('blob:') || v.includes('.webm') || v.includes('.mp4'))) {
+          if (item.id) {
+            storeMedia(item.id, v);
+            storeMedia(String(item.id), v);
+          }
+        }
+      }
+    });
 
     setUserAppliances((prev) => {
       const updated = prev.map((app) => {
@@ -2580,23 +2768,27 @@ export function AppProvider({ children }) {
       const existingIds = new Set(updated.map((a) => String(a.id)));
       const brandNew = selectedList
         .filter((item) => typeof item === 'object' && item !== null && (!item.id || !existingIds.has(String(item.id))))
-        .map((item) => ({
-          id: item.id || Date.now() + Math.floor(Math.random() * 1000),
-          userId: activeUser.id,
-          user_id: activeUser.id,
-          user_phone: activeUser.phone,
-          isCoveredByAmc: true,
-          coveredPlanTier: planName,
-          linkedAtPlanPurchase: true,
-          amcLinkedAt: nowIso,
-          ...item,
-        }));
+        .map((item) => {
+          const generatedId = item.id || Date.now() + Math.floor(Math.random() * 1000);
+          const v = item.video || item.uploadedMediaUri || item.media?.url || item.media?.uri;
+          if (v && typeof v === 'string') {
+            storeMedia(generatedId, v);
+            storeMedia(String(generatedId), v);
+          }
+          return {
+            id: generatedId,
+            userId: activeUser.id,
+            user_id: activeUser.id,
+            user_phone: activeUser.phone,
+            isCoveredByAmc: true,
+            coveredPlanTier: planName,
+            linkedAtPlanPurchase: true,
+            amcLinkedAt: nowIso,
+            ...item,
+          };
+        });
 
-      const finalAppliances = [...brandNew, ...updated];
-      try {
-        localStorage.setItem('zevota_user_appliances', JSON.stringify(finalAppliances));
-      } catch (e) {}
-      return finalAppliances;
+      return [...brandNew, ...updated];
     });
   };
 
@@ -2812,6 +3004,7 @@ export function AppProvider({ children }) {
         setProviderIncrementDecision,
         skipBookingRating,
         updateProviderLocation,
+        updateBookingArrivalTelemetry,
         updateProviderProfile,
         calculateApplianceExtraCharge,
       }}

@@ -150,7 +150,7 @@ export default function AddPropertyScreen() {
       }),
     });
 
-    navigate('/user/plans');
+    navigate('/user/home');
   };
 
   if (isDesktopWeb) {
@@ -168,7 +168,7 @@ export default function AddPropertyScreen() {
                 <Text style={styles.backPillDesktopText}>← Back</Text>
               </TouchableOpacity>
               <View style={styles.progressWrap}>
-                <Text style={styles.stepLabel}>Step 1 of 2 • Setup Property</Text>
+                <Text style={styles.stepLabel}>Setup Property</Text>
                 <View style={styles.progressTrack}>
                   <View style={styles.progressFill} />
                 </View>
@@ -334,7 +334,7 @@ export default function AddPropertyScreen() {
               activeOpacity={isFormValid ? 0.88 : 1}
             >
               <Text style={[styles.continueBtnText, !isFormValid && styles.continueBtnTextDisabled]}>
-                Save & Continue to Plans →
+                Save & Continue to Home →
               </Text>
             </TouchableOpacity>
           </div>
@@ -350,7 +350,7 @@ export default function AddPropertyScreen() {
           <Text style={styles.backArrow}>←</Text>
         </TouchableOpacity>
         <View style={styles.progressWrap}>
-          <Text style={styles.stepLabel}>Step 1 of 2</Text>
+          <Text style={styles.stepLabel}>Setup Property</Text>
           <View style={styles.progressTrack}>
             <View style={styles.progressFill} />
           </View>
@@ -451,7 +451,7 @@ export default function AddPropertyScreen() {
         activeOpacity={isFormValid ? 0.88 : 1}
       >
         <Text style={[styles.continueBtnText, !isFormValid && styles.continueBtnTextDisabled]}>
-          Continue
+          Save & Continue to Home →
         </Text>
       </TouchableOpacity>
     </ScrollView>

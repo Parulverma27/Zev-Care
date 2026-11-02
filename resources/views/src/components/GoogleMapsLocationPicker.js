@@ -3,12 +3,17 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator,
 import { GOOGLE_MAPS_API_KEY, isGoogleMapsLoaded, loadGoogleMapsScript } from '../config/maps';
 import { AppIcon } from './AppIcons';
 
-export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddress = '', onClose, containerStyle }) {
+export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddress = '', initialCoords = null, onClose, containerStyle }) {
   const [loading, setLoading] = useState(true);
   const [detecting, setDetecting] = useState(false);
   const [searchQuery, setSearchQuery] = useState(initialAddress);
-  const [selectedAddress, setSelectedAddress] = useState(initialAddress || 'Jaipur, Rajasthan, India');
-  const [coords, setCoords] = useState({ lat: 26.9124, lng: 75.7873 }); // Default Jaipur
+  const [selectedAddress, setSelectedAddress] = useState(initialAddress || 'Gurugram, Haryana, India');
+  const [coords, setCoords] = useState(() => {
+    if (initialCoords && initialCoords.lat && initialCoords.lng) {
+      return { lat: Number(initialCoords.lat), lng: Number(initialCoords.lng) };
+    }
+    return { lat: 28.4595, lng: 77.0266 }; // Gurugram / Delhi NCR default
+  });
   const [permissionError, setPermissionError] = useState('');
 
   const mapRef = useRef(null);
@@ -436,6 +441,25 @@ export default function GoogleMapsLocationPicker({ onSelectLocation, initialAddr
             </>
           )}
         </TouchableOpacity>
+        {onClose && (
+          <TouchableOpacity
+            style={{
+              padding: 7,
+              backgroundColor: '#f1f5f9',
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: '#e2e8f0',
+              cursor: 'pointer',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={onClose}
+            activeOpacity={0.8}
+            accessibilityLabel="Close Map"
+          >
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748b', lineHeight: 14 }}>✕</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {!!permissionError && (

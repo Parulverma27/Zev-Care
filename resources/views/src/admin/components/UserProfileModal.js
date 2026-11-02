@@ -7,6 +7,8 @@ import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
 import { hasGeneratedBill } from '../../utils/billing';
 import { getApplianceVideoUri, resolveApplianceImage } from '../../utils/applianceMediaHelper';
 import AdminVideoPlayer from './AdminVideoPlayer';
+import { AppIcon } from '../../components/AppIcons';
+import { resolveApplianceCanonicalCategory } from '../../config/serviceCatalogUtils';
 
 const SECTIONS = [
   { key: 'overview', label: 'Overview' },
@@ -16,7 +18,6 @@ const SECTIONS = [
   { key: 'appliances', label: 'Appliances' },
   { key: 'location', label: 'Location' },
   { key: 'bookings', label: 'Bookings' },
-  { key: 'video', label: 'Video' },
 ];
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
@@ -62,9 +63,83 @@ const txBelongsToUser = (tx, user) => {
   return false;
 };
 
+const CategoryVectorIcon = ({ category, size = 13, color = 'currentColor' }) => {
+  const p = {
+    width: size,
+    height: size,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: color,
+    strokeWidth: '2.2',
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+  };
+
+  switch (category) {
+    case 'ALL':
+      return (
+        <svg {...p}>
+          <rect x="3" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        </svg>
+      );
+    case 'Electrician':
+      return (
+        <svg {...p}>
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        </svg>
+      );
+    case 'Plumbing':
+      return (
+        <svg {...p}>
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+        </svg>
+      );
+    case 'Carpentry':
+      return (
+        <svg {...p}>
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
+      );
+    case 'Pest Control':
+      return (
+        <svg {...p}>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+      );
+    case 'Dry Cleaning':
+      return (
+        <svg {...p}>
+          <path d="m12 3 1.912 5.885h6.188l-5.008 3.637 1.913 5.885L12 14.77l-5.005 3.637 1.913-5.885-5.008-3.637h6.188z" />
+        </svg>
+      );
+    case 'Other':
+    default:
+      return (
+        <svg {...p}>
+          <path d="M16.5 9.4 7.55 4.24M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+          <polyline points="3.29 7 12 12 20.71 7" />
+          <line x1="12" y1="22" x2="12" y2="12" />
+        </svg>
+      );
+  }
+};
+
+const CATEGORY_CONFIG = [
+  { key: 'Electrician', label: 'Electrician', color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+  { key: 'Plumbing', label: 'Plumbing', color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
+  { key: 'Carpentry', label: 'Carpentry', color: '#b45309', bg: '#fffbe6', border: '#fde68a' },
+  { key: 'Pest Control', label: 'Pest Control', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  { key: 'Dry Cleaning', label: 'Dry Cleaning', color: '#6d28d9', bg: '#f5f3ff', border: '#ddd6fe' },
+  { key: 'Other', label: 'Other', color: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
+];
+
+const resolveApplianceCategory = (appliance) => resolveApplianceCanonicalCategory(appliance);
+
 export default function UserProfileModal({ visible, user, onClose }) {
   const {
-    verifyPropertyVideo,
     getAppliancesForUser,
     reviewApplianceMedia,
     bookings,
@@ -78,29 +153,32 @@ export default function UserProfileModal({ visible, user, onClose }) {
   const [historySearch, setHistorySearch] = useState('');
   const [historyStatusFilter, setHistoryStatusFilter] = useState('ALL');
   const [txFilter, setTxFilter] = useState('ALL');
+  const [applianceCategoryFilter, setApplianceCategoryFilter] = useState('ALL');
 
-  const appliances = useMemo(
-    () => (user ? getAppliancesForUser(user) : []),
-    [user, getAppliancesForUser]
-  );
+  const appliances = useMemo(() => {
+    if (!user) return [];
+    const list = getAppliancesForUser(user) || [];
+    // Only show actual user-added appliances if any exist, filtering out dummy placeholder amc-app- items
+    const realUserApps = list.filter((a) => !String(a.id || '').startsWith('amc-app-'));
+    return realUserApps.length > 0 ? realUserApps : list;
+  }, [user, getAppliancesForUser]);
 
-  const userVideo = useMemo(() => {
-    if (!user) return null;
-    const direct =
-      user.property_video_url ||
-      user.property_video ||
-      user.propertyVideo ||
-      user.videoUri ||
-      user.property?.video_url ||
-      user.property?.video ||
-      user.property?.videoUri;
-    if (typeof direct === 'string' && direct.trim() && !direct.includes('sample-video')) {
-      return direct.trim();
+  const categoryCounts = useMemo(() => {
+    const counts = { ALL: appliances.length };
+    appliances.forEach((app) => {
+      const catKey = resolveApplianceCategory(app);
+      counts[catKey] = (counts[catKey] || 0) + 1;
+    });
+    return counts;
+  }, [appliances]);
+
+  const filteredAppliances = useMemo(() => {
+    if (applianceCategoryFilter === 'ALL') {
+      return appliances;
     }
-    const firstAppVideo = (appliances || []).map(getApplianceVideoUri).find(Boolean);
-    if (firstAppVideo) return firstAppVideo;
-    return null;
-  }, [user, appliances]);
+    return appliances.filter((app) => resolveApplianceCategory(app) === applianceCategoryFilter);
+  }, [appliances, applianceCategoryFilter]);
+
 
   const planMeta = useMemo(() => {
     if (!user?.subscription_plan) return null;
@@ -219,10 +297,6 @@ export default function UserProfileModal({ visible, user, onClose }) {
 
   if (!user) return null;
 
-  const handleVerify = (status) => {
-    if (user?.id) verifyPropertyVideo(user.id, status);
-  };
-
   const handleApplianceReview = (applianceId, status) => {
     reviewApplianceMedia(applianceId, status);
     setPreviewAppliance(null);
@@ -281,7 +355,7 @@ export default function UserProfileModal({ visible, user, onClose }) {
                 <View
                   style={[
                     styles.verificationBadge,
-                    user?.property_verification_status === 'APPROVED'
+                    (user?.subscription_status === 'ACTIVE' || user?.subscription_plan)
                       ? styles.verifiedBadge
                       : styles.pendingBadge,
                   ]}
@@ -289,12 +363,12 @@ export default function UserProfileModal({ visible, user, onClose }) {
                   <Text
                     style={[
                       styles.verificationBadgeText,
-                      user?.property_verification_status === 'APPROVED'
+                      (user?.subscription_status === 'ACTIVE' || user?.subscription_plan)
                         ? { color: '#047857' }
-                        : { color: '#b45309' },
+                        : { color: '#64748b' },
                     ]}
                   >
-                    {user?.property_verification_status || 'PENDING'}
+                    {user?.subscription_status || (user?.subscription_plan ? 'ACTIVE' : 'INACTIVE')}
                   </Text>
                 </View>
               </View>
@@ -362,10 +436,6 @@ export default function UserProfileModal({ visible, user, onClose }) {
                           .filter(Boolean)
                           .join(' · ') || '—'
                       }
-                    />
-                    <DetailRow
-                      label="Verification"
-                      value={user.property_verification_status || 'PENDING'}
                     />
                     <DetailRow
                       label="Subscription status"
@@ -558,162 +628,258 @@ export default function UserProfileModal({ visible, user, onClose }) {
               {/* ── APPLIANCES ── */}
               {section === 'appliances' && (
                 <View style={styles.panel}>
-                  <Text style={styles.sectionTitle}>
-                    Registered appliances ({appliances.length})
-                  </Text>
-                  {appliances.length === 0 ? (
-                    <View style={styles.emptyInfoBox}>
-                      <Text style={styles.emptyInfoText}>No appliances registered yet.</Text>
-                    </View>
-                  ) : (
-                    appliances.map((appliance) => {
-                      const appVideo = getApplianceVideoUri(appliance);
-                      const appPhoto = appliance.media?.type === 'photo'
-                        ? appliance.media.url
-                        : (appliance.uploadedPhotoUri || (typeof appliance.img === 'string' && !appVideo && !appliance.img.includes('sample-video') && (appliance.img.startsWith('data:image/') || appliance.img.startsWith('blob:') || appliance.img.startsWith('http')) && !appliance.img.includes('127.0.0.1:3000') ? appliance.img : null));
-                      const catalogImg = resolveApplianceImage(appliance);
-                      const isPendingReview = appliance.mediaStatus === 'PENDING_REVIEW';
-                      const isApproved = appliance.mediaStatus === 'APPROVED';
-                      const isRejected = appliance.mediaStatus === 'REJECTED';
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={styles.sectionTitle}>
+                      Registered appliances ({filteredAppliances.length}{applianceCategoryFilter !== 'ALL' ? ` of ${appliances.length}` : ''})
+                    </Text>
+                  </View>
 
+                  {/* Category Filter Tabs */}
+                  <View style={styles.filterRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.miniTab,
+                        applianceCategoryFilter === 'ALL' && styles.miniTabActive,
+                      ]}
+                      onPress={() => setApplianceCategoryFilter('ALL')}
+                      activeOpacity={0.85}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <CategoryVectorIcon
+                          category="ALL"
+                          size={13}
+                          color={applianceCategoryFilter === 'ALL' ? '#ffffff' : '#64748b'}
+                        />
+                        <Text
+                          style={[
+                            styles.miniTabTxt,
+                            applianceCategoryFilter === 'ALL' && styles.miniTabTxtActive,
+                          ]}
+                        >
+                          All ({appliances.length})
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    {CATEGORY_CONFIG.map((cat) => {
+                      const count = categoryCounts[cat.key] || 0;
+                      const active = applianceCategoryFilter === cat.key;
                       return (
-                        <View key={appliance.id} style={styles.applianceReviewCard}>
-                          <View style={styles.applianceReviewHeader}>
-                            <View style={{ flex: 1 }}>
-                              <Text style={styles.applianceReviewName}>{appliance.name}</Text>
-                              <Text style={styles.applianceReviewMeta}>
-                                {appliance.category || appliance.typeName || 'Appliance'}
-                                {appliance.brand ? ` · ${appliance.brand}` : ''}
-                                {appliance.location ? ` · ${appliance.location}` : ''}
-                                {` · ${formatDate(appliance.createdAt || appliance.created_at)}`}
-                              </Text>
-                            </View>
-                            <View
+                        <TouchableOpacity
+                          key={cat.key}
+                          style={[
+                            styles.miniTab,
+                            active && styles.miniTabActive,
+                          ]}
+                          onPress={() => setApplianceCategoryFilter(cat.key)}
+                          activeOpacity={0.85}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <CategoryVectorIcon
+                              category={cat.key}
+                              size={13}
+                              color={active ? '#ffffff' : '#64748b'}
+                            />
+                            <Text
                               style={[
-                                styles.statusPill,
-                                isApproved
-                                  ? styles.greenPill
-                                  : isRejected
-                                    ? { backgroundColor: '#fef2f2' }
-                                    : isPendingReview
-                                      ? styles.yellowPill
-                                      : { backgroundColor: '#f1f5f9' },
+                                styles.miniTabTxt,
+                                active && styles.miniTabTxtActive,
                               ]}
                             >
-                              <Text
+                              {cat.label} ({count})
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+
+                  {filteredAppliances.length === 0 ? (
+                    <View style={styles.emptyInfoBox}>
+                      <Text style={styles.emptyInfoText}>
+                        {applianceCategoryFilter === 'ALL'
+                          ? 'No appliances registered yet.'
+                          : `No ${applianceCategoryFilter} appliances registered for this customer.`}
+                      </Text>
+                    </View>
+                  ) : (
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                        gap: '12px',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      {filteredAppliances.map((appliance) => {
+                        const appVideo = getApplianceVideoUri(appliance);
+                        const appPhoto =
+                          appliance.media?.type === 'photo'
+                            ? appliance.media.url
+                            : (appliance.uploadedPhotoUri ||
+                              (typeof appliance.img === 'string' &&
+                              !appVideo &&
+                              !appliance.img.includes('sample-video') &&
+                              (appliance.img.startsWith('data:image/') ||
+                                appliance.img.startsWith('blob:') ||
+                                appliance.img.startsWith('http')) &&
+                              !appliance.img.includes('127.0.0.1:3000')
+                                ? appliance.img
+                                : null));
+                        const catalogImg = resolveApplianceImage(appliance);
+                        const isPendingReview = appliance.mediaStatus === 'PENDING_REVIEW';
+                        const isApproved = appliance.mediaStatus === 'APPROVED';
+                        const isRejected = appliance.mediaStatus === 'REJECTED';
+                        const displayCat = resolveApplianceCategory(appliance);
+
+                        return (
+                          <View key={appliance.id} style={styles.applianceReviewCard}>
+                            <View style={styles.applianceReviewHeader}>
+                              <View style={{ flex: 1, minWidth: 0 }}>
+                                <Text style={styles.applianceReviewName} numberOfLines={1}>
+                                  {appliance.name}
+                                </Text>
+                                <Text style={styles.applianceReviewMeta} numberOfLines={1}>
+                                  {displayCat}
+                                  {appliance.brand ? ` · ${appliance.brand}` : ''}
+                                  {appliance.location ? ` · ${appliance.location}` : ''}
+                                </Text>
+                              </View>
+                              <View
                                 style={[
-                                  styles.statusPillText,
+                                  styles.statusPill,
                                   isApproved
-                                    ? styles.greenPillText
+                                    ? styles.greenPill
                                     : isRejected
-                                      ? { color: '#dc2626' }
+                                      ? { backgroundColor: '#fef2f2' }
                                       : isPendingReview
-                                        ? styles.yellowPillText
-                                        : { color: '#64748b' },
+                                        ? styles.yellowPill
+                                        : { backgroundColor: '#f1f5f9' },
                                 ]}
                               >
-                                {isApproved
-                                  ? (appVideo ? 'VIDEO APPROVED' : 'MEDIA APPROVED')
-                                  : isRejected
-                                    ? (appVideo ? 'VIDEO REJECTED' : 'MEDIA REJECTED')
-                                    : isPendingReview
-                                      ? (appVideo ? 'VIDEO PENDING AUDIT' : 'MEDIA PENDING AUDIT')
-                                      : (appVideo ? 'ORIGINAL VIDEO' : appPhoto ? 'PHOTO ATTACHED' : 'PLAN PROTECTED')}
-                              </Text>
+                                <Text
+                                  style={[
+                                    styles.statusPillText,
+                                    isApproved
+                                      ? styles.greenPillText
+                                      : isRejected
+                                        ? { color: '#dc2626' }
+                                        : isPendingReview
+                                          ? styles.yellowPillText
+                                          : { color: '#64748b' },
+                                  ]}
+                                >
+                                  {isApproved
+                                    ? (appVideo ? 'VIDEO APPROVED' : 'MEDIA APPROVED')
+                                    : isRejected
+                                      ? (appVideo ? 'VIDEO REJECTED' : 'MEDIA REJECTED')
+                                      : isPendingReview
+                                        ? (appVideo ? 'VIDEO PENDING' : 'MEDIA PENDING')
+                                        : (appVideo ? 'ORIGINAL VIDEO' : appPhoto ? 'PHOTO ATTACHED' : 'PLAN PROTECTED')}
+                                </Text>
+                              </View>
                             </View>
-                          </View>
 
-                          {appVideo ? (
-                            <TouchableOpacity
-                              style={styles.applianceMediaPreview}
-                              onPress={() => setPreviewAppliance(appliance)}
-                              activeOpacity={0.9}
-                            >
-                              {Platform.OS === 'web' ? (
-                                <video
-                                  src={appVideo}
-                                  muted
-                                  playsInline
-                                  style={{
-                                    width: '100%',
-                                    height: 130,
-                                    borderRadius: 10,
-                                    objectFit: 'cover',
-                                    backgroundColor: '#000000',
-                                  }}
-                                />
-                              ) : (
-                                <View style={styles.applianceMediaThumb}>
-                                  <Text style={styles.videoLabel}>Original Video Attached</Text>
+                            {appVideo ? (
+                              <TouchableOpacity
+                                style={styles.applianceMediaPreview}
+                                onPress={() => setPreviewAppliance(appliance)}
+                                activeOpacity={0.9}
+                              >
+                                {Platform.OS === 'web' ? (
+                                  <video
+                                    src={appVideo}
+                                    muted
+                                    playsInline
+                                    controls
+                                    style={{
+                                      width: '100%',
+                                      height: 120,
+                                      borderRadius: 8,
+                                      objectFit: 'cover',
+                                      backgroundColor: '#000000',
+                                    }}
+                                  />
+                                ) : (
+                                  <View style={styles.applianceMediaThumb}>
+                                    <Text style={styles.videoLabel}>Original Video Attached</Text>
+                                  </View>
+                                )}
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <AppIcon name="video" size={12} color="#64748b" />
+                                    <Text style={styles.mediaTapHint}>
+                                      Video · Tap to expand
+                                    </Text>
+                                  </View>
+                                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#2563eb' }}>
+                                    Recorded
+                                  </Text>
                                 </View>
-                              )}
-                              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-                                <Text style={styles.mediaTapHint}>
-                                  ▶ Original User Video · Tap to play
-                                </Text>
-                                <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#2563eb' }}>
-                                  Original Recording
-                                </Text>
+                              </TouchableOpacity>
+                            ) : appPhoto ? (
+                              <TouchableOpacity
+                                style={styles.applianceMediaPreview}
+                                onPress={() => setPreviewAppliance(appliance)}
+                                activeOpacity={0.9}
+                              >
+                                <Image
+                                  source={{ uri: appPhoto }}
+                                  style={[styles.applianceMediaThumb, { height: 110 }]}
+                                  resizeMode="cover"
+                                />
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                                  <AppIcon name="camera" size={12} color="#64748b" />
+                                  <Text style={styles.mediaTapHint}>
+                                    Customer Photo · Tap to expand
+                                  </Text>
+                                </View>
+                              </TouchableOpacity>
+                            ) : (
+                              <View style={styles.planRegisteredItemBox}>
+                                <Image
+                                  source={{ uri: catalogImg }}
+                                  style={styles.planRegisteredItemThumb}
+                                  resizeMode="contain"
+                                />
+                                <View style={{ flex: 1, minWidth: 0 }}>
+                                  <Text style={styles.planRegisteredItemTitle} numberOfLines={1}>
+                                    Plan Registered Item
+                                  </Text>
+                                  <Text style={styles.planRegisteredItemSub} numberOfLines={1}>
+                                    Active under AMC protection
+                                  </Text>
+                                </View>
                               </View>
-                            </TouchableOpacity>
-                          ) : appPhoto ? (
-                            <TouchableOpacity
-                              style={styles.applianceMediaPreview}
-                              onPress={() => setPreviewAppliance(appliance)}
-                              activeOpacity={0.9}
-                            >
-                              <Image
-                                source={{ uri: appPhoto }}
-                                style={styles.applianceMediaThumb}
-                                resizeMode="cover"
-                              />
-                              <Text style={styles.mediaTapHint}>
-                                📷 Customer Photo · Tap to expand
-                              </Text>
-                            </TouchableOpacity>
-                          ) : (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#ffffff', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#f1f5f9' }}>
-                              <Image
-                                source={{ uri: catalogImg }}
-                                style={{ width: 50, height: 50, borderRadius: 8, backgroundColor: '#f8fafc' }}
-                                resizeMode="contain"
-                              />
-                              <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a' }}>
-                                  Plan Registered Appliance
-                                </Text>
-                                <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
-                                  Active item under AMC protection · No customer video recorded yet
-                                </Text>
-                              </View>
-                            </View>
-                          )}
+                            )}
 
-                          {(appVideo || appPhoto) && isPendingReview && (
-                            <View style={styles.applianceReviewActions}>
-                              <TouchableOpacity
-                                style={[styles.approveBtn, { flex: 1, paddingVertical: 10 }]}
-                                onPress={() => handleApplianceReview(appliance.id, 'APPROVED')}
-                                activeOpacity={0.85}
-                              >
-                                <Text style={[styles.approveBtnText, { fontSize: 12 }]}>
-                                  Approve Media
-                                </Text>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                style={[styles.rejectBtn, { flex: 1, paddingVertical: 10 }]}
-                                onPress={() => handleApplianceReview(appliance.id, 'REJECTED')}
-                                activeOpacity={0.85}
-                              >
-                                <Text style={[styles.rejectBtnText, { fontSize: 12 }]}>
-                                  Reject Media
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
-                          )}
-                        </View>
-                      );
-                    })
+                            {(appVideo || appPhoto) && isPendingReview && (
+                              <View style={styles.applianceReviewActions}>
+                                <TouchableOpacity
+                                  style={[styles.approveBtn, { flex: 1, paddingVertical: 8 }]}
+                                  onPress={() => handleApplianceReview(appliance.id, 'APPROVED')}
+                                  activeOpacity={0.85}
+                                >
+                                  <Text style={[styles.approveBtnText, { fontSize: 11.5 }]}>
+                                    Approve
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  style={[styles.rejectBtn, { flex: 1, paddingVertical: 8 }]}
+                                  onPress={() => handleApplianceReview(appliance.id, 'REJECTED')}
+                                  activeOpacity={0.85}
+                                >
+                                  <Text style={[styles.rejectBtnText, { fontSize: 11.5 }]}>
+                                    Reject
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
+                            )}
+                          </View>
+                        );
+                      })}
+                    </div>
                   )}
                 </View>
               )}
@@ -961,43 +1127,7 @@ export default function UserProfileModal({ visible, user, onClose }) {
                 </View>
               )}
 
-              {/* ── VIDEO ── */}
-              {section === 'video' && (
-                <View style={styles.panel}>
-                  <Text style={styles.sectionTitle}>Property walkthrough video</Text>
-                  {userVideo ? (
-                    <>
-                      <View style={{ marginBottom: 16 }}>
-                        <AdminVideoPlayer
-                          src={userVideo}
-                          label="Original Property Walkthrough Video"
-                          autoPlay={false}
-                        />
-                      </View>
-                      <View style={styles.modalActions}>
-                        <TouchableOpacity
-                          style={styles.approveBtn}
-                          onPress={() => handleVerify('APPROVED')}
-                          activeOpacity={0.85}
-                        >
-                          <Text style={styles.approveBtnText}>Approve Video Audit</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.rejectBtn}
-                          onPress={() => handleVerify('REJECTED')}
-                          activeOpacity={0.85}
-                        >
-                          <Text style={styles.rejectBtnText}>Reject & Re-upload</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </>
-                  ) : (
-                    <View style={styles.emptyInfoBox}>
-                      <Text style={styles.emptyInfoText}>No property video uploaded yet by this customer.</Text>
-                    </View>
-                  )}
-                </View>
-              )}
+
 
               <TouchableOpacity style={styles.closeModalBtn} onPress={handleClose} activeOpacity={0.7}>
                 <Text style={styles.closeModalBtnText}>Close profile</Text>
@@ -1082,7 +1212,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 24,
     width: '100%',
-    maxWidth: 720,
+    maxWidth: 880,
     gap: 14,
     boxShadow: '0 12px 36px rgba(0,0,0,0.15)',
   },
@@ -1344,13 +1474,45 @@ const styles = StyleSheet.create({
   greenPillText: { color: '#047857' },
   yellowPillText: { color: '#b45309' },
 
+  categorySection: {
+    gap: 8,
+    marginTop: 6,
+  },
+  categoryHeaderBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  categoryHeaderText: {
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  categoryCountBadge: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  categoryCountBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
   applianceReviewCard: {
     backgroundColor: '#f8fafc',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    padding: 14,
-    gap: 10,
+    padding: 12,
+    gap: 8,
+    minWidth: 0,
+    boxSizing: 'border-box',
   },
   applianceReviewHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   applianceReviewName: { fontSize: 14, fontWeight: '700', color: '#0f172a' },
@@ -1360,6 +1522,33 @@ const styles = StyleSheet.create({
   mediaTapHint: { fontSize: 10.5, color: '#64748b' },
   noMediaText: { fontSize: 12, color: '#94a3b8', fontStyle: 'italic' },
   applianceReviewActions: { flexDirection: 'row', gap: 10 },
+
+  planRegisteredItemBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#ffffff',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  planRegisteredItemThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: '#f8fafc',
+  },
+  planRegisteredItemTitle: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  planRegisteredItemSub: {
+    fontSize: 11,
+    color: '#94a3b8',
+    marginTop: 2,
+  },
 
   searchBox: {
     flexDirection: 'row',

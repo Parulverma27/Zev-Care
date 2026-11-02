@@ -378,33 +378,58 @@ export default function PropertyVerificationScreen({ onNavigate }) {
     const nameToSave = applianceName.trim() || 'Master Bedroom AC';
     const locToSave = applianceLocation.trim() || 'Living Room';
     const userMediaUri = capturedMedia?.uri || null;
+    const brandName = selectedBrand === 'Other' && customBrandName ? customBrandName : (selectedBrand || '');
 
     const finalAppliance = {
-      id: Date.now(),
+      id: editingApplianceId || Date.now(),
       userId: activeUser.id,
+      user_id: activeUser.id,
       name: nameToSave,
+      displayName: nameToSave,
       category: selectedAppliance?.name || 'Home Appliance',
+      brand: brandName,
+      location: locToSave,
       img: userMediaUri || getRealApplianceImageUrl({ name: nameToSave }),
       uploadedMediaUri: userMediaUri,
-      location: locToSave,
+      video: userMediaUri,
+      videoUrl: userMediaUri,
+      video_uri: userMediaUri,
       media: capturedMedia
         ? {
             type: capturedMedia.type,
             url: capturedMedia.uri,
+            uri: capturedMedia.uri,
             fileName:
               capturedMedia.fileName ||
               (capturedMedia.type === 'photo' ? 'Photo_Capture.jpg' : 'Video_Walkthrough.webm'),
           }
         : null,
       mediaStatus: capturedMedia ? 'PENDING_REVIEW' : 'SKIPPED',
+      isCoveredByAmc: true,
+      is_covered_by_amc: true,
       createdAt: new Date().toISOString(),
     };
-    setPaymentPromptTarget({
-      type: 'SINGLE',
-      appliance: finalAppliance,
-      name: nameToSave,
-    });
-    setShowPaymentModal(true);
+
+    if (editingApplianceId) {
+      updateUserAppliance(editingApplianceId, finalAppliance);
+    } else {
+      addUserAppliance(finalAppliance);
+    }
+    setLatestAdded(finalAppliance);
+    setCapturedMedia(null);
+    setEditingApplianceId(null);
+    stopCamera();
+    setView('SUCCESS');
+  };
+
+  const handleRecordForAppliance = (appliance) => {
+    setEditingApplianceId(appliance.id);
+    setApplianceName(appliance.name || appliance.displayName || '');
+    setApplianceLocation(appliance.location || 'Home');
+    setSelectedBrand(appliance.brand || 'Samsung');
+    setSelectedAppliance({ name: appliance.category || 'Home Appliance' });
+    setCapturedMedia(null);
+    setView('UPLOAD');
   };
 
   const stopCamera = () => {
@@ -672,13 +697,9 @@ export default function PropertyVerificationScreen({ onNavigate }) {
   const handleWizardComplete = (units, applianceType) => {
     if (!activeUser) return;
     const records = buildSavedApplianceRecords(units, applianceType, activeUser);
-    const first = records[0];
-    setPaymentPromptTarget({
-      type: 'WIZARD',
-      records,
-      name: first?.name || applianceType?.name || 'Appliance',
-    });
-    setShowPaymentModal(true);
+    records.forEach((rec) => addUserAppliance(rec));
+    setLatestAdded(records[records.length - 1] || null);
+    setView('SUCCESS');
   };
 
   const handlePaymentSuccess = (paymentResult) => {
@@ -919,6 +940,30 @@ export default function PropertyVerificationScreen({ onNavigate }) {
 
                       {/* Actions */}
                       <div style={{ display: 'flex', gap: 8, paddingTop: 10, borderTop: '1px solid #f1f5f9' }}>
+                        <button
+                          onClick={() => handleRecordForAppliance(appliance)}
+                          style={{
+                            flex: 1.5,
+                            padding: '8px 12px',
+                            borderRadius: 10,
+                            backgroundColor: '#eff6ff',
+                            border: '1px solid #bfdbfe',
+                            color: '#1d4ed8',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="23 7 16 12 23 17 23 7" />
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                          </svg>
+                          <span>{appliance.video || appliance.uploadedMediaUri ? 'Update Video' : 'Record Video'}</span>
+                        </button>
                         <button
                           onClick={() => handleRemoveAppliance(appliance.id)}
                           style={{

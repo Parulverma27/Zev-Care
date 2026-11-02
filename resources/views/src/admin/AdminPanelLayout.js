@@ -32,7 +32,7 @@ export default function AdminPanelLayout() {
     { path: '/admin/consultations', icon: ConsultationsIcon, label: 'My Mechanic (₹0 Diagnosis)' },
     { path: '/admin/ratings', icon: RatingsIcon, label: 'Ratings & Reviews' },
     { path: '/admin/user-services', icon: UserServicesIcon, label: 'User Service Payments' },
-    { path: '/admin/users', icon: UsersIcon, label: 'Users & Video Audit' },
+    { path: '/admin/users', icon: UsersIcon, label: 'Customers & Users' },
     { path: '/admin/providers', icon: ProvidersIcon, label: 'Field Partners' },
     { path: '/admin/categories', icon: CategoriesIcon, label: 'Category Catalog' },
     { path: '/admin/service-areas', icon: CategoriesIcon, label: 'Service Coverage Zones' },

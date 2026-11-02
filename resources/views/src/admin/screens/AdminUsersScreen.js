@@ -25,7 +25,7 @@ export default function AdminUsersScreen() {
       { label: 'Email Address', accessor: (u) => u.email },
       { label: 'Subscription Plan', accessor: (u) => u.subscription_plan || 'Free' },
       { label: 'Wallet Balance (INR)', accessor: (u) => u.wallet_balance || 0 },
-      { label: 'Property Audit Status', accessor: (u) => u.property_verification_status || 'PENDING' },
+      { label: 'Status', accessor: (u) => u.subscription_status || (u.subscription_plan ? 'ACTIVE' : 'INACTIVE') },
     ];
     exportToCSV('Zevota_Users_Report', columns, activeUsers);
   };
@@ -34,8 +34,8 @@ export default function AdminUsersScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={styles.header}>
-          <Text style={styles.title}>User Management & Home Video Audits</Text>
-          <Text style={styles.subtitle}>Review registered customer profiles, home property video walk-throughs, and wallet credits.</Text>
+          <Text style={styles.title}>Customers & Users</Text>
+          <Text style={styles.subtitle}>Review registered customer profiles, subscriptions, appliances, and wallet credits.</Text>
         </View>
 
         <TouchableOpacity style={styles.exportBtn} onPress={handleExportUsers} activeOpacity={0.85}>
@@ -57,7 +57,7 @@ export default function AdminUsersScreen() {
           <Text style={[styles.th, { flex: 1.2 }]}>Phone</Text>
           <Text style={[styles.th, { flex: 1.0 }]}>Plan Tier</Text>
           <Text style={[styles.th, { flex: 1.2 }]}>Wallet Credit</Text>
-          <Text style={[styles.th, { flex: 1.0 }]}>Video Audit</Text>
+          <Text style={[styles.th, { flex: 1.0 }]}>Status</Text>
           <Text style={[styles.th, { flex: 1.2 }]}>Action</Text>
         </View>
 
@@ -97,9 +97,9 @@ export default function AdminUsersScreen() {
             <Text style={[styles.td, { flex: 1.2, color: '#059669', fontWeight: '800' }]}>₹{Number(u.wallet_balance || 0).toLocaleString('en-IN')}</Text>
 
             <View style={{ flex: 1.0 }}>
-              <View style={[styles.statusPill, u.property_verification_status === 'APPROVED' ? styles.greenPill : styles.yellowPill]}>
-                <Text style={[styles.statusPillText, u.property_verification_status === 'APPROVED' ? styles.greenPillText : styles.yellowPillText]}>
-                  {u.property_verification_status || 'PENDING'}
+              <View style={[styles.statusPill, (u.subscription_status === 'ACTIVE' || u.subscription_plan) ? styles.greenPill : styles.yellowPill]}>
+                <Text style={[styles.statusPillText, (u.subscription_status === 'ACTIVE' || u.subscription_plan) ? styles.greenPillText : styles.yellowPillText]}>
+                  {u.subscription_status || (u.subscription_plan ? 'ACTIVE' : 'INACTIVE')}
                 </Text>
               </View>
             </View>
