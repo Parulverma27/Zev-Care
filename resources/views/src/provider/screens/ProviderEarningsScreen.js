@@ -4,21 +4,38 @@ import { useApp } from '../../context/AppContext';
 import ProviderIcon from '../ProviderIcons';
 
 export default function ProviderEarningsScreen() {
-  const { bookings } = useApp();
+  const { bookings, activeProvider } = useApp();
+
+  const isAssigned = (b) => {
+    if (!activeProvider) return false;
+    const providerIdMatches = b.provider_id != null && String(b.provider_id) === String(activeProvider.id);
+    const cleanProviderPhone = (activeProvider.phone || '').replace(/\D/g, '').slice(-10);
+    const cleanBookingProviderPhone = (b.provider_phone || '').replace(/\D/g, '').slice(-10);
+    const phoneMatches = Boolean(cleanProviderPhone && cleanBookingProviderPhone && cleanProviderPhone === cleanBookingProviderPhone);
+    const nameMatches = Boolean(
+      activeProvider.name &&
+      b.provider_name &&
+      activeProvider.name.trim().toLowerCase() === b.provider_name.trim().toLowerCase()
+    );
+    return providerIdMatches || phoneMatches || nameMatches;
+  };
 
   // Only count real completed bookings assigned to this provider
-  const completedBookings = bookings.filter((b) => b.status === 'BOOKING_COMPLETED');
+  const completedBookings = bookings.filter((b) => b.status === 'BOOKING_COMPLETED' && isAssigned(b));
 
   const displaySettlements = completedBookings.map((b) => {
     const amount = Number(b.total_bill || 0);
     const payout = Number(b.payout_amount || Math.round(amount * 0.8));
+    const formattedDate = b.completed_date || b.completed_at
+      ? new Date(b.completed_date || b.completed_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      : (b.scheduled_date || 'N/A');
     return {
       booking_id: b.booking_id,
       service: b.service_name,
       customer: b.user_name,
       amount,
       payout,
-      date: b.completed_date || b.scheduled_date || 'N/A',
+      date: formattedDate,
     };
   });
 
@@ -58,23 +75,35 @@ export default function ProviderEarningsScreen() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Recent Work Order Payouts</Text>
 
-        {displaySettlements.map((s, idx) => (
-          <View key={idx} style={styles.settleRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.settleService}>{s.service} ({s.booking_id})</Text>
-              <Text style={styles.settleCustomer}>Customer: {s.customer}</Text>
-              <Text style={styles.settleDate}>{s.date} • Total Bill: ₹{s.amount.toLocaleString()}</Text>
+        {displaySettlements.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconCircle}>
+              <ProviderIcon name="wallet" color="#3b82f6" size={28} />
             </View>
+            <Text style={styles.emptyTitle}>No Settled Payouts Yet</Text>
+            <Text style={styles.emptySubtitle}>
+              Completed work orders with approved customer billing will appear here with your 80% direct partner settlement.
+            </Text>
+          </View>
+        ) : (
+          displaySettlements.map((s, idx) => (
+            <View key={idx} style={styles.settleRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settleService}>{s.service} ({s.booking_id})</Text>
+                <Text style={styles.settleCustomer}>Customer: {s.customer}</Text>
+                <Text style={styles.settleDate}>{s.date} • Total Bill: ₹{s.amount.toLocaleString()}</Text>
+              </View>
 
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.settlePayout}>+ ₹{s.payout.toLocaleString()}</Text>
-              <View style={styles.settledBadge}>
-                <ProviderIcon name="checkCircle" color="#1d4ed8" size={10} />
-                <Text style={styles.settleStatus}>SETTLED</Text>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={styles.settlePayout}>+ ₹{s.payout.toLocaleString()}</Text>
+                <View style={styles.settledBadge}>
+                  <ProviderIcon name="checkCircle" color="#1d4ed8" size={10} />
+                  <Text style={styles.settleStatus}>SETTLED</Text>
+                </View>
               </View>
             </View>
-          </View>
-        ))}
+          ))
+        )}
       </View>
     </ScrollView>
   );
@@ -105,4 +134,9 @@ const styles = StyleSheet.create({
   settlePayout: { fontSize: 15, fontWeight: '900', color: '#1d4ed8' },
   settledBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#dbeafe', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 2 },
   settleStatus: { fontSize: 9, color: '#1d4ed8', fontWeight: '800' },
+
+  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 28, paddingHorizontal: 16, gap: 8 },
+  emptyIconCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  emptyTitle: { fontSize: 15, fontWeight: '800', color: '#1e293b' },
+  emptySubtitle: { fontSize: 12, color: '#64748b', textAlign: 'center', lineHeight: 18, maxWidth: 300 },
 });

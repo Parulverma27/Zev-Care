@@ -26,6 +26,7 @@ function getStatusBadgeStyle(status, isConsult) {
         label: isConsult ? 'Quote Ready' : 'Awaiting Approval',
         icon: '⚠',
       };
+    case 'PROVIDER_ON_THE_WAY':
     case 'PROVIDER_EN_ROUTE':
       return {
         bg: '#f0fdf4',
@@ -34,7 +35,16 @@ function getStatusBadgeStyle(status, isConsult) {
         label: 'Technician En Route',
         icon: '🚗',
       };
+    case 'PROVIDER_ARRIVED':
+      return {
+        bg: '#ecfeff',
+        color: '#0e7490',
+        border: '#a5f3fc',
+        label: isConsult ? 'Arrived for Diagnosis' : 'Arrived On Site',
+        icon: '📍',
+      };
     case 'PROVIDER_ASSIGNED':
+    case 'PROVIDER_ACCEPTED':
       return {
         bg: '#f8fafc',
         color: '#334155',
@@ -87,8 +97,15 @@ export default function BookingsDesktopWebView({ bookings = [], onNavigate, form
         active++;
       } else if (
         s === 'BOOKING_CREATED' ||
+        s === 'PENDING_ADMIN_REVIEW' ||
+        s === 'ADMIN_ACCEPTED' ||
         s === 'PROVIDER_ASSIGNED' ||
+        s === 'PROVIDER_ACCEPTED' ||
+        s === 'PROVIDER_ON_THE_WAY' ||
         s === 'PROVIDER_EN_ROUTE' ||
+        s === 'PROVIDER_ARRIVED' ||
+        s === 'ISSUE_INSPECTED' ||
+        s === 'ASSIGNED_TO_ADMIN' ||
         s === 'SERVICE_IN_PROGRESS'
       ) {
         active++;
@@ -108,15 +125,12 @@ export default function BookingsDesktopWebView({ bookings = [], onNavigate, form
 
       // Status filter
       if (activeFilter === 'ACTIVE') {
-        if (
-          s !== 'BOOKING_CREATED' &&
-          s !== 'PROVIDER_ASSIGNED' &&
-          s !== 'PROVIDER_EN_ROUTE' &&
-          s !== 'SERVICE_IN_PROGRESS' &&
-          s !== 'AWAITING_USER_APPROVAL'
-        ) {
-          return false;
-        }
+        const isNotActive =
+          s === 'BOOKING_COMPLETED' ||
+          s === 'ESTIMATE_REJECTED' ||
+          s === 'CANCELLED' ||
+          s === 'ADMIN_REJECTED';
+        if (isNotActive) return false;
       } else if (activeFilter === 'APPROVAL') {
         if (s !== 'AWAITING_USER_APPROVAL') return false;
       } else if (activeFilter === 'COMPLETED') {

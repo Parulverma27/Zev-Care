@@ -31,13 +31,17 @@ const cleanPhoneDigits = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '
 
 const bookingBelongsToUser = (b, u) => {
   if (!b || !u) return false;
-  // Match by ID first — strict to prevent same-phone users from seeing each other's bookings
+  // 1. Direct ID match
   if (b.user_id != null && u.id != null && String(b.user_id) === String(u.id)) return true;
-  // Only fall back to phone when booking has no user_id
-  if (b.user_id != null) return false; // has ID but didn't match above — different user
+  // 2. Clean 10-digit phone match
   const bp = cleanPhoneDigits(b.user_phone);
   const up = cleanPhoneDigits(u.phone);
-  return !!(bp && up && bp === up);
+  if (bp && up && bp === up) return true;
+  // 3. Name match for registered users
+  if (b.user_name && u.name && !u.isGuest && !u.isAnonymous) {
+    if (b.user_name.trim().toLowerCase() === u.name.trim().toLowerCase()) return true;
+  }
+  return false;
 };
 
 const paidBookingAmount = (b) =>
@@ -187,31 +191,32 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('zevota_active_user');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.isAnonymous) {
+        if (parsed && (parsed.isAnonymous || !parsed.phone) && (!parsed.name || parsed.id === 0)) {
+          // Empty anonymous session in localStorage -> fall back to Rahul Sharma default account
+        } else if (parsed) {
+          if ((parsed.isGuest || parsed.id === 0) && parsed.phone) {
+            if (!parsed.guestId || parsed.guestId === 'GUEST') {
+              let guestId = sessionStorage.getItem('zevota_guest_session_id');
+              if (!guestId) {
+                const counter = Number(localStorage.getItem('zevota_guest_counter') || 0) + 1;
+                localStorage.setItem('zevota_guest_counter', String(counter));
+                guestId = `GUEST-${String(counter).padStart(3, '0')}`;
+                sessionStorage.setItem('zevota_guest_session_id', guestId);
+              }
+              parsed.guestId = guestId;
+            }
+          }
+          if (Array.isArray(parsed?.saved_addresses)) {
+            // If demo address #2 was previously persisted, clean it up so only 1 address is saved
+            if (parsed.id === 1) {
+              parsed.saved_addresses = parsed.saved_addresses.filter((a) => a.id !== 2);
+            }
+            parsed.saved_addresses = parsed.saved_addresses.map(a => {
+              return { ...a, tag: normalizeTag(a.tag) };
+            });
+          }
           return parsed;
         }
-        if (parsed && (parsed.isGuest || parsed.id === 0) && parsed.phone) {
-          if (!parsed.guestId || parsed.guestId === 'GUEST') {
-            let guestId = sessionStorage.getItem('zevota_guest_session_id');
-            if (!guestId) {
-              const counter = Number(localStorage.getItem('zevota_guest_counter') || 0) + 1;
-              localStorage.setItem('zevota_guest_counter', String(counter));
-              guestId = `GUEST-${String(counter).padStart(3, '0')}`;
-              sessionStorage.setItem('zevota_guest_session_id', guestId);
-            }
-            parsed.guestId = guestId;
-          }
-        }
-        if (Array.isArray(parsed?.saved_addresses)) {
-          // If demo address #2 was previously persisted, clean it up so only 1 address is saved
-          if (parsed.id === 1) {
-            parsed.saved_addresses = parsed.saved_addresses.filter((a) => a.id !== 2);
-          }
-          parsed.saved_addresses = parsed.saved_addresses.map(a => {
-            return { ...a, tag: normalizeTag(a.tag) };
-          });
-        }
-        return parsed;
       }
     } catch (e) {}
     return {
@@ -1692,19 +1697,38 @@ export function AppProvider({ children }) {
     return digits;
   };
 
+  const cleanTenDigitPhone = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
+
   const bookingBelongsToUser = (booking, user) => {
     if (!booking || !user) return false;
-    if (booking.user_id != null && user.id != null) {
-      return String(booking.user_id) === String(user.id);
+    // 1. Direct ID match
+    if (booking.user_id != null && user.id != null && String(booking.user_id) === String(user.id)) {
+      return true;
     }
-    if (booking.user_id != null) return false;
-    if (booking.user_phone && user.phone && getCleanPhone(booking.user_phone) === getCleanPhone(user.phone)) return true;
+    // 2. Phone match (comparing clean 10-digit phone)
+    const bPhone = cleanTenDigitPhone(booking.user_phone);
+    const uPhone = cleanTenDigitPhone(user.phone);
+    if (bPhone && uPhone && bPhone === uPhone) {
+      return true;
+    }
+    // 3. User Name match (case-insensitive for registered users)
+    if (booking.user_name && user.name && !user.isGuest && !user.isAnonymous) {
+      if (booking.user_name.trim().toLowerCase() === user.name.trim().toLowerCase()) {
+        return true;
+      }
+    }
     return false;
   };
 
   const getUserBookings = (user = activeUser) => {
-    if (!user) return [];
-    return bookings.filter((booking) => bookingBelongsToUser(booking, user));
+    let target = user;
+    // If no active user or user is anonymous/guest without phone, fallback to default demo user (Rahul Sharma, id: 1)
+    if (!target || (!target.phone && (!target.name || target.isAnonymous || target.id === 0))) {
+      const defaultUser = (users || []).find((u) => u.id === 1 || u.name === 'Rahul Sharma');
+      if (defaultUser) target = defaultUser;
+    }
+    if (!target) return [];
+    return bookings.filter((booking) => bookingBelongsToUser(booking, target));
   };
 
   const findUserByPhone = (phone) => {
@@ -1961,13 +1985,13 @@ export function AppProvider({ children }) {
     const newBk = {
       id: bookings.length + 1,
       booking_id: newId,
-      user_id: activeUser.id,
-      user_name: activeUser.name,
-      user_phone: activeUser.phone,
+      user_id: activeUser?.id ?? 0,
+      user_name: activeUser?.name || 'Customer',
+      user_phone: activeUser?.phone || '',
       category_name: bookingData.category || 'Electrician',
       sub_category_name: bookingData.subCategory || 'General',
       service_name: bookingData.service || 'Service Request',
-      address_text: bookingData.address || activeUser.address || 'Bandra West, Mumbai',
+      address_text: bookingData.address || activeUser?.address || 'Bandra West, Mumbai',
       latitude: resolvedLat,
       longitude: resolvedLng,
       issue_description:
@@ -2068,8 +2092,11 @@ export function AppProvider({ children }) {
           ? {
               ...b,
               inspection_report: reportData.findings,
+              parts_used: reportData.partsUsed != null ? reportData.partsUsed : Boolean(reportData.partsDescription && !reportData.partsDescription.toLowerCase().includes('no spare parts')),
               parts_description: reportData.partsDescription || reportData.parts_description || b.parts_description || '',
               issue_media_url: reportData.mediaUrl || b.issue_media_url,
+              resolution_video_url: reportData.resolutionVideoUrl || reportData.videoUrl || b.resolution_video_url,
+              after_media_url: reportData.resolutionVideoUrl || reportData.mediaUrl || b.after_media_url,
               parts_charge: Number(reportData.partsCost || b.parts_charge || 0),
               labour_charge: Number(reportData.labourCost || b.labour_charge || 0),
               service_charge: Number(reportData.serviceCost || b.service_charge || 0),
@@ -2081,8 +2108,19 @@ export function AppProvider({ children }) {
   };
 
   const updateBookingStatus = (bookingId, newStatus) => {
+    const isCompleted = newStatus === 'BOOKING_COMPLETED';
+    const nowIso = new Date().toISOString();
     setBookings((prev) =>
-      prev.map((b) => (b.booking_id === bookingId ? { ...b, status: newStatus } : b))
+      prev.map((b) =>
+        b.booking_id === bookingId
+          ? {
+              ...b,
+              status: newStatus,
+              completed_date: isCompleted ? (b.completed_date || nowIso) : b.completed_date,
+              completed_at: isCompleted ? (b.completed_at || nowIso) : b.completed_at,
+            }
+          : b
+      )
     );
   };
 
@@ -2331,8 +2369,11 @@ export function AppProvider({ children }) {
     const parts_charge = Number(billData.parts_charge || 0);
     const labour_charge = Number(billData.labour_charge || 0);
     const discount_amount = Number(billData.discount || 0);
-    const total = service_charge + parts_charge + labour_charge - discount_amount;
+    const total = billData.total_bill != null ? Number(billData.total_bill) : (service_charge + parts_charge + labour_charge - discount_amount);
     const payout_amount = Math.round(total * 0.8);
+    const isZeroFree = total === 0 && (Boolean(billData.isConsultation) || billData.service_charge === 0);
+    const targetStatus = billData.status || (isZeroFree ? 'BOOKING_COMPLETED' : 'AWAITING_USER_APPROVAL');
+    const billStatus = billData.bill_status || (isZeroFree ? 'PAID' : (b?.bill_status === 'PAID' ? 'PAID' : 'UNPAID'));
 
     setBookings((prev) =>
       prev.map((b) =>
@@ -2345,10 +2386,11 @@ export function AppProvider({ children }) {
               discount_amount,
               total_bill: total,
               payout_amount,
-              bill_status: b.bill_status === 'PAID' ? 'PAID' : 'UNPAID',
+              bill_status: billStatus,
               bill_sent: true,
               bill_generated: true,
-              status: 'AWAITING_USER_APPROVAL',
+              status: targetStatus,
+              completed_date: targetStatus === 'BOOKING_COMPLETED' ? new Date().toISOString() : b.completed_date,
               inspection_report: billData.notes || billData.findings || b.inspection_report,
               parts_description: billData.parts_description || b.parts_description,
             }

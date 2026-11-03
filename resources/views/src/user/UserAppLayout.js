@@ -20,7 +20,7 @@ export default function UserAppLayout() {
 
   const userBookings = (getUserBookings && activeUser) ? getUserBookings(activeUser) : [];
   const activeBookingsCount = (userBookings || []).filter(
-    (b) => b && !['completed', 'cancelled', 'rated'].includes(String(b.status || '').toLowerCase())
+    (b) => b && !['completed', 'cancelled', 'rated', 'booking_completed', 'estimate_rejected', 'admin_rejected'].includes(String(b.status || '').toLowerCase())
   ).length;
 
   const isAuthPage = ['/login', '/register', '/otp', '/add-property', '/basic-details', '/terms'].some(

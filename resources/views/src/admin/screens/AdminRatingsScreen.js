@@ -25,6 +25,24 @@ import {
 } from '../../config/ratingConfig';
 import { exportToCSV } from '../../utils/exportUtils';
 import { AppIcon } from '../../components/AppIcons';
+import {
+  TrophyIcon,
+  MedalIcon,
+  AlertTriangleIcon,
+  FlagIcon,
+  EyeIcon,
+  EyeOffIcon,
+  CheckIcon,
+  XIcon,
+  PauseIcon,
+  HourglassIcon,
+  TrendingUpIcon,
+  TrendingDownIcon,
+  ToolsIcon,
+  ProvidersIcon,
+  ZapMiniIcon,
+  RatingsIcon,
+} from '../components/AdminIcons';
 
 export default function AdminRatingsScreen() {
   const {
@@ -261,6 +279,29 @@ export default function AdminRatingsScreen() {
     );
   };
 
+  const renderTierBadge = (tier) => {
+    if (!tier) return null;
+    let Icon = null;
+    if (tier.id === 'platinum') Icon = TrophyIcon;
+    else if (tier.id === 'gold' || tier.id === 'silver') Icon = MedalIcon;
+    else if (tier.id === 'needs_review') Icon = AlertTriangleIcon;
+
+    return (
+      <View
+        style={[
+          styles.tierBadge,
+          {
+            backgroundColor: tier.bg,
+            borderColor: tier.border,
+          },
+        ]}
+      >
+        {Icon && <Icon size={12} color={tier.color} />}
+        <Text style={[styles.tierBadgeText, { color: tier.color }]}>{tier.badge || tier.label}</Text>
+      </View>
+    );
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       {/* Header */}
@@ -284,27 +325,36 @@ export default function AdminRatingsScreen() {
           style={[styles.tabBtn, activeTab === 'performance' && styles.tabBtnActive]}
           onPress={() => setActiveTab('performance')}
         >
-          <Text style={[styles.tabBtnText, activeTab === 'performance' && styles.tabBtnTextActive]}>
-            🏆 Partner Performance & Increments ({providerLeaderboard.length})
-          </Text>
+          <View style={styles.tabBtnInner}>
+            <TrophyIcon size={15} color={activeTab === 'performance' ? '#0f172a' : '#64748b'} />
+            <Text style={[styles.tabBtnText, activeTab === 'performance' && styles.tabBtnTextActive]}>
+              Partner Performance & Increments ({providerLeaderboard.length})
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tabBtn, activeTab === 'services' && styles.tabBtnActive]}
           onPress={() => setActiveTab('services')}
         >
-          <Text style={[styles.tabBtnText, activeTab === 'services' && styles.tabBtnTextActive]}>
-            🛠️ Service Reviews ({serviceStats.totalRatings})
-          </Text>
+          <View style={styles.tabBtnInner}>
+            <ToolsIcon size={15} color={activeTab === 'services' ? '#0f172a' : '#64748b'} />
+            <Text style={[styles.tabBtnText, activeTab === 'services' && styles.tabBtnTextActive]}>
+              Service Reviews ({serviceStats.totalRatings})
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tabBtn, activeTab === 'providers' && styles.tabBtnActive]}
           onPress={() => setActiveTab('providers')}
         >
-          <Text style={[styles.tabBtnText, activeTab === 'providers' && styles.tabBtnTextActive]}>
-            👨‍🔧 Technician Reviews ({allProviderReviews.length})
-          </Text>
+          <View style={styles.tabBtnInner}>
+            <ProvidersIcon size={15} color={activeTab === 'providers' ? '#0f172a' : '#64748b'} />
+            <Text style={[styles.tabBtnText, activeTab === 'providers' && styles.tabBtnTextActive]}>
+              Technician Reviews ({allProviderReviews.length})
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -355,28 +405,33 @@ export default function AdminRatingsScreen() {
             />
 
             <View style={styles.filterPills}>
-              {['ALL', 'platinum', 'gold', 'silver', 'needs_review', 'insufficient_data'].map((tierId) => {
-                const isSelected = tierFilter === tierId;
-                const label =
-                  tierId === 'ALL'
-                    ? 'All Tiers'
-                    : tierId === 'platinum'
-                    ? '🏆 Platinum'
-                    : tierId === 'gold'
-                    ? '🥇 Gold'
-                    : tierId === 'silver'
-                    ? '🥈 Silver'
-                    : tierId === 'needs_review'
-                    ? '⚠️ Needs Review'
-                    : '— Baseline';
-
+              {[
+                { id: 'ALL', label: 'All Tiers' },
+                { id: 'platinum', label: 'Platinum', icon: TrophyIcon, iconColor: '#8b5cf6' },
+                { id: 'gold', label: 'Gold', icon: MedalIcon, iconColor: '#f59e0b' },
+                { id: 'silver', label: 'Silver', icon: MedalIcon, iconColor: '#64748b' },
+                { id: 'needs_review', label: 'Needs Review', icon: AlertTriangleIcon, iconColor: '#ef4444' },
+                { id: 'insufficient_data', label: 'Baseline' },
+              ].map((tierItem) => {
+                const isSelected = tierFilter === tierItem.id;
+                const IconComponent = tierItem.icon;
                 return (
                   <TouchableOpacity
-                    key={tierId}
+                    key={tierItem.id}
                     style={[styles.pill, isSelected && styles.pillActive]}
-                    onPress={() => setTierFilter(tierId)}
+                    onPress={() => setTierFilter(tierItem.id)}
                   >
-                    <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>{label}</Text>
+                    <View style={styles.pillInner}>
+                      {IconComponent && (
+                        <IconComponent
+                          size={13}
+                          color={isSelected ? '#ffffff' : tierItem.iconColor || '#64748b'}
+                        />
+                      )}
+                      <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>
+                        {tierItem.label}
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                 );
               })}
@@ -439,19 +494,26 @@ export default function AdminRatingsScreen() {
 
                     {/* Trend */}
                     <View style={[styles.td, { flex: 1.4 }]}>
-                      <Text
-                        style={[
-                          styles.trendBadge,
-                          trendPositive && styles.trendUp,
-                          trendNegative && styles.trendDown,
-                        ]}
-                      >
-                        {trendPositive
-                          ? `▲ +${stats.trend30Days}`
-                          : trendNegative
-                          ? `▼ ${stats.trend30Days}`
-                          : '— Stable'}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        {trendPositive ? (
+                          <TrendingUpIcon size={14} color="#059669" />
+                        ) : trendNegative ? (
+                          <TrendingDownIcon size={14} color="#dc2626" />
+                        ) : null}
+                        <Text
+                          style={[
+                            styles.trendBadge,
+                            trendPositive && styles.trendUp,
+                            trendNegative && styles.trendDown,
+                          ]}
+                        >
+                          {trendPositive
+                            ? `+${stats.trend30Days}`
+                            : trendNegative
+                            ? `${stats.trend30Days}`
+                            : '— Stable'}
+                        </Text>
+                      </View>
                       <Text style={styles.subHint}>
                         {stats.lowRatingCount > 0 ? `${stats.lowRatingCount} low ratings` : '0 low ratings'}
                       </Text>
@@ -459,17 +521,7 @@ export default function AdminRatingsScreen() {
 
                     {/* Tier Badge */}
                     <View style={[styles.td, { flex: 1.4 }]}>
-                      <View
-                        style={[
-                          styles.tierBadge,
-                          {
-                            backgroundColor: tier.bg,
-                            borderColor: tier.border,
-                          },
-                        ]}
-                      >
-                        <Text style={[styles.tierBadgeText, { color: tier.color }]}>{tier.badge}</Text>
-                      </View>
+                      {renderTierBadge(tier)}
                     </View>
 
                     {/* Recommendation */}
@@ -489,18 +541,23 @@ export default function AdminRatingsScreen() {
                           status === 'REJECTED' && styles.statusRejected,
                         ]}
                       >
-                        <Text
-                          style={[
-                            styles.statusPillText,
-                            status === 'APPROVED' && { color: '#065f46' },
-                            status === 'ON_HOLD' && { color: '#92400e' },
-                            status === 'REJECTED' && { color: '#991b1b' },
-                          ]}
-                        >
-                          {status === 'APPROVED'
-                            ? `✓ Hike +${provider.current_increment || 15}%`
-                            : status.replace(/_/g, ' ')}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          {status === 'APPROVED' && <CheckIcon size={11} color="#065f46" />}
+                          {status === 'ON_HOLD' && <PauseIcon size={10} color="#92400e" />}
+                          {status === 'REJECTED' && <XIcon size={10} color="#991b1b" />}
+                          <Text
+                            style={[
+                              styles.statusPillText,
+                              status === 'APPROVED' && { color: '#065f46' },
+                              status === 'ON_HOLD' && { color: '#92400e' },
+                              status === 'REJECTED' && { color: '#991b1b' },
+                            ]}
+                          >
+                            {status === 'APPROVED'
+                              ? `Hike +${provider.current_increment || 15}%`
+                              : status.replace(/_/g, ' ')}
+                          </Text>
+                        </View>
                       </View>
                     </View>
 
@@ -529,7 +586,10 @@ export default function AdminRatingsScreen() {
           <View style={styles.kpiGrid}>
             <View style={styles.kpiCard}>
               <Text style={styles.kpiLabel}>AVERAGE SERVICE SCORE</Text>
-              <Text style={styles.kpiValue}>★ {serviceStats.averageRating || '—'}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <RatingsIcon size={20} color="#f59e0b" />
+                <Text style={[styles.kpiValue, { marginBottom: 0 }]}>{serviceStats.averageRating || '—'}</Text>
+              </View>
               <Text style={styles.kpiFoot}>Based on {serviceStats.totalRatings} completed services</Text>
             </View>
 
@@ -567,9 +627,17 @@ export default function AdminRatingsScreen() {
                   style={[styles.pill, starFilter === star && styles.pillActive]}
                   onPress={() => setStarFilter(star)}
                 >
-                  <Text style={[styles.pillText, starFilter === star && styles.pillTextActive]}>
-                    {star === 'ALL' ? 'All Stars' : `${star}★`}
-                  </Text>
+                  <View style={styles.pillInner}>
+                    <Text style={[styles.pillText, starFilter === star && styles.pillTextActive]}>
+                      {star === 'ALL' ? 'All Stars' : star}
+                    </Text>
+                    {star !== 'ALL' && (
+                      <RatingsIcon
+                        size={11}
+                        color={starFilter === star ? '#ffffff' : '#f59e0b'}
+                      />
+                    )}
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
@@ -634,20 +702,29 @@ export default function AdminRatingsScreen() {
                           rev.issueResolved === 'no' && styles.resNo,
                         ]}
                       >
-                        <Text
-                          style={[
-                            styles.resolutionPillText,
-                            rev.issueResolved === 'yes' && { color: '#065f46' },
-                            rev.issueResolved === 'partial' && { color: '#92400e' },
-                            rev.issueResolved === 'no' && { color: '#991b1b' },
-                          ]}
-                        >
-                          {rev.issueResolved === 'yes'
-                            ? '✓ Resolved'
-                            : rev.issueResolved === 'partial'
-                            ? '⚡ Partial'
-                            : '✕ Unresolved'}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          {rev.issueResolved === 'yes' ? (
+                            <CheckIcon size={11} color="#065f46" />
+                          ) : rev.issueResolved === 'partial' ? (
+                            <ZapMiniIcon size={11} color="#92400e" />
+                          ) : (
+                            <XIcon size={11} color="#991b1b" />
+                          )}
+                          <Text
+                            style={[
+                              styles.resolutionPillText,
+                              rev.issueResolved === 'yes' && { color: '#065f46' },
+                              rev.issueResolved === 'partial' && { color: '#92400e' },
+                              rev.issueResolved === 'no' && { color: '#991b1b' },
+                            ]}
+                          >
+                            {rev.issueResolved === 'yes'
+                              ? 'Resolved'
+                              : rev.issueResolved === 'partial'
+                              ? 'Partial'
+                              : 'Unresolved'}
+                          </Text>
+                        </View>
                       </View>
                     </View>
 
@@ -683,7 +760,16 @@ export default function AdminRatingsScreen() {
                           onPress={() => handleToggleFlag(rev.bookingId, 'service', isFlagged)}
                           title="Flag Review"
                         >
-                          <Text style={styles.modBtnText}>{isFlagged ? '🚩 Flagged' : '🏳️ Flag'}</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <FlagIcon
+                              size={12}
+                              color={isFlagged ? '#dc2626' : '#64748b'}
+                              fill={isFlagged ? '#dc2626' : 'none'}
+                            />
+                            <Text style={[styles.modBtnText, isFlagged && { color: '#dc2626' }]}>
+                              {isFlagged ? 'Flagged' : 'Flag'}
+                            </Text>
+                          </View>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -691,7 +777,16 @@ export default function AdminRatingsScreen() {
                           onPress={() => handleToggleHide(rev.bookingId, 'service', isHidden)}
                           title="Hide/Exclude"
                         >
-                          <Text style={styles.modBtnText}>{isHidden ? '👁️ Unhide' : '🚫 Hide'}</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            {isHidden ? (
+                              <EyeIcon size={12} color="#dc2626" />
+                            ) : (
+                              <EyeOffIcon size={12} color="#64748b" />
+                            )}
+                            <Text style={[styles.modBtnText, isHidden && { color: '#dc2626' }]}>
+                              {isHidden ? 'Unhide' : 'Hide'}
+                            </Text>
+                          </View>
                         </TouchableOpacity>
                       </View>
 
@@ -730,9 +825,17 @@ export default function AdminRatingsScreen() {
                   style={[styles.pill, starFilter === star && styles.pillActive]}
                   onPress={() => setStarFilter(star)}
                 >
-                  <Text style={[styles.pillText, starFilter === star && styles.pillTextActive]}>
-                    {star === 'ALL' ? 'All Stars' : `${star}★`}
-                  </Text>
+                  <View style={styles.pillInner}>
+                    <Text style={[styles.pillText, starFilter === star && styles.pillTextActive]}>
+                      {star === 'ALL' ? 'All Stars' : star}
+                    </Text>
+                    {star !== 'ALL' && (
+                      <RatingsIcon
+                        size={11}
+                        color={starFilter === star ? '#ffffff' : '#f59e0b'}
+                      />
+                    )}
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
@@ -811,8 +914,9 @@ export default function AdminRatingsScreen() {
                       {Array.isArray(rev.compliments) && rev.compliments.length > 0 && (
                         <View style={styles.miniTagsWrap}>
                           {rev.compliments.map((c) => (
-                            <View key={c} style={[styles.miniTag, { backgroundColor: '#f5f3ff' }]}>
-                              <Text style={[styles.miniTagText, { color: '#6d28d9' }]}>✓ {c}</Text>
+                            <View key={c} style={[styles.miniTag, { backgroundColor: '#f5f3ff', flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                              <CheckIcon size={10} color="#6d28d9" />
+                              <Text style={[styles.miniTagText, { color: '#6d28d9' }]}>{c}</Text>
                             </View>
                           ))}
                         </View>
@@ -836,14 +940,32 @@ export default function AdminRatingsScreen() {
                           style={[styles.modBtn, isFlagged && styles.modBtnFlagged]}
                           onPress={() => handleToggleFlag(rev.bookingId, 'provider', isFlagged)}
                         >
-                          <Text style={styles.modBtnText}>{isFlagged ? '🚩 Flagged' : '🏳️ Flag'}</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <FlagIcon
+                              size={12}
+                              color={isFlagged ? '#dc2626' : '#64748b'}
+                              fill={isFlagged ? '#dc2626' : 'none'}
+                            />
+                            <Text style={[styles.modBtnText, isFlagged && { color: '#dc2626' }]}>
+                              {isFlagged ? 'Flagged' : 'Flag'}
+                            </Text>
+                          </View>
                         </TouchableOpacity>
 
                         <TouchableOpacity
                           style={[styles.modBtn, isHidden && styles.modBtnHidden]}
                           onPress={() => handleToggleHide(rev.bookingId, 'provider', isHidden)}
                         >
-                          <Text style={styles.modBtnText}>{isHidden ? '👁️ Unhide' : '🚫 Hide'}</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            {isHidden ? (
+                              <EyeIcon size={12} color="#dc2626" />
+                            ) : (
+                              <EyeOffIcon size={12} color="#64748b" />
+                            )}
+                            <Text style={[styles.modBtnText, isHidden && { color: '#dc2626' }]}>
+                              {isHidden ? 'Unhide' : 'Hide'}
+                            </Text>
+                          </View>
                         </TouchableOpacity>
                       </View>
 
@@ -873,8 +995,8 @@ export default function AdminRatingsScreen() {
                   {selectedProvider?.provider.name} — Increment Decision
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setAppraisalModalOpen(false)}>
-                <Text style={styles.modalCloseText}>✕</Text>
+              <TouchableOpacity onPress={() => setAppraisalModalOpen(false)} style={styles.modalCloseBtn}>
+                <XIcon size={18} color="#64748b" />
               </TouchableOpacity>
             </View>
 
@@ -893,9 +1015,7 @@ export default function AdminRatingsScreen() {
                   </View>
                   <View style={styles.appraisalStatDivider} />
                   <View style={styles.appraisalStatCol}>
-                    <Text style={[styles.appraisalStatVal, { color: selectedProvider.tier.color }]}>
-                      {selectedProvider.tier.badge}
-                    </Text>
+                    {renderTierBadge(selectedProvider.tier)}
                     <Text style={styles.appraisalStatLbl}>Performance Tier</Text>
                   </View>
                 </View>
@@ -924,29 +1044,36 @@ export default function AdminRatingsScreen() {
                   <Text style={styles.formLabel}>Increment Decision Status</Text>
                   <View style={styles.statusSelectRow}>
                     {[
-                      { id: 'APPROVED', label: '✓ Approved' },
-                      { id: 'ON_HOLD', label: '⏸ On Hold' },
-                      { id: 'REJECTED', label: '✕ Rejected' },
-                      { id: 'UNDER_REVIEW', label: '⏳ Review' },
-                    ].map((opt) => (
-                      <TouchableOpacity
-                        key={opt.id}
-                        style={[
-                          styles.statusSelectBtn,
-                          incrementStatus === opt.id && styles.statusSelectBtnActive,
-                        ]}
-                        onPress={() => setIncrementStatus(opt.id)}
-                      >
-                        <Text
+                      { id: 'APPROVED', label: 'Approved', icon: CheckIcon, iconColor: '#059669' },
+                      { id: 'ON_HOLD', label: 'On Hold', icon: PauseIcon, iconColor: '#b45309' },
+                      { id: 'REJECTED', label: 'Rejected', icon: XIcon, iconColor: '#dc2626' },
+                      { id: 'UNDER_REVIEW', label: 'Review', icon: HourglassIcon, iconColor: '#2563eb' },
+                    ].map((opt) => {
+                      const IconC = opt.icon;
+                      const isSel = incrementStatus === opt.id;
+                      return (
+                        <TouchableOpacity
+                          key={opt.id}
                           style={[
-                            styles.statusSelectBtnText,
-                            incrementStatus === opt.id && styles.statusSelectBtnTextActive,
+                            styles.statusSelectBtn,
+                            isSel && styles.statusSelectBtnActive,
                           ]}
+                          onPress={() => setIncrementStatus(opt.id)}
                         >
-                          {opt.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                            <IconC size={12} color={isSel ? '#ffffff' : opt.iconColor} />
+                            <Text
+                              style={[
+                                styles.statusSelectBtnText,
+                                isSel && styles.statusSelectBtnTextActive,
+                              ]}
+                            >
+                              {opt.label}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
                 </View>
 
@@ -1023,8 +1150,8 @@ export default function AdminRatingsScreen() {
           <View style={[styles.appraisalModal, { maxWidth: 440 }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Admin Resolution Note</Text>
-              <TouchableOpacity onPress={() => setAdminNoteModalOpen(false)}>
-                <Text style={styles.modalCloseText}>✕</Text>
+              <TouchableOpacity onPress={() => setAdminNoteModalOpen(false)} style={styles.modalCloseBtn}>
+                <XIcon size={18} color="#64748b" />
               </TouchableOpacity>
             </View>
 
@@ -1129,6 +1256,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
+  tabBtnInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   tabBtnActive: {
     borderBottomColor: '#0f172a',
   },
@@ -1211,6 +1343,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
+  },
+  pillInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   pillActive: {
     backgroundColor: '#0f172a',
@@ -1309,6 +1446,9 @@ const styles = StyleSheet.create({
     color: '#dc2626',
   },
   tierBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -1527,6 +1667,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: '#0f172a',
+  },
+  modalCloseBtn: {
+    padding: 4,
+    borderRadius: 8,
   },
   modalCloseText: {
     fontSize: 18,

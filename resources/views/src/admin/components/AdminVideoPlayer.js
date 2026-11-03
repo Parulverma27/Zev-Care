@@ -181,7 +181,7 @@ export default function AdminVideoPlayer({
   }
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, style, { height: 'auto' }]}>
       {/* Video Element Viewport */}
       {playableUrl ? (
         <video
@@ -208,7 +208,7 @@ export default function AdminVideoPlayer({
           }}
           style={{
             width: '100%',
-            maxHeight: 290,
+            height: 190,
             borderRadius: 8,
             objectFit: 'contain',
             backgroundColor: '#000000',

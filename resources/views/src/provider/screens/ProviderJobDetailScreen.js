@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, Platform } from 'react-native';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import ImageUploadField from '../../admin/components/ImageUploadField';
@@ -30,9 +30,23 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
   const [enteredOtp, setEnteredOtp] = useState('');
   const [otpError, setOtpError] = useState('');
   const [findings, setFindings] = useState('Armature coil burnt due to jar overload. Requires replacement jar coupler.');
-  const [mediaUrl, setMediaUrl] = useState('https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?auto=format&fit=crop&q=80&w=600');
+  const [mediaUrl, setMediaUrl] = useState('');
+  const [hasSpareParts, setHasSpareParts] = useState(false);
   const [partsDescription, setPartsDescription] = useState('');
+  const [resolutionVideoUrl, setResolutionVideoUrl] = useState('');
+  const [isRecordingLiveVideo, setIsRecordingLiveVideo] = useState(false);
+  const [isCapturingLivePhoto, setIsCapturingLivePhoto] = useState(false);
+  const [liveVideoSeconds, setLiveVideoSeconds] = useState(0);
   const [quoteError, setQuoteError] = useState('');
+
+  const liveVideoViewRef = useRef(null);
+  const liveVideoRecorderRef = useRef(null);
+  const liveVideoStreamRef = useRef(null);
+  const liveVideoTimerRef = useRef(null);
+  const liveVideoChunksRef = useRef([]);
+
+  const livePhotoViewRef = useRef(null);
+  const livePhotoStreamRef = useRef(null);
 
   const targetBookingId = routeBookingId || propsBookingId;
   const bk = bookings.find((b) => b.booking_id === targetBookingId);
@@ -45,10 +59,189 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
       } else if (isConsultationBk) {
         setFindings(`Diagnosed issue for ${bk.service_name || 'appliance'}: `);
       }
-      if (bk.parts_description) setPartsDescription(String(bk.parts_description));
+      if (bk.parts_description) {
+        const pDesc = String(bk.parts_description);
+        setPartsDescription(pDesc);
+        setHasSpareParts(!pDesc.toLowerCase().includes('no spare parts'));
+      }
+      if (bk.resolution_video_url) {
+        setResolutionVideoUrl(bk.resolution_video_url);
+      } else if (bk.after_media_url && isVideoUri(bk.after_media_url)) {
+        setResolutionVideoUrl(bk.after_media_url);
+      }
       if (bk.issue_media_url) setMediaUrl(bk.issue_media_url);
     }
   }, [bk?.booking_id, isConsultationBk]);
+
+  const stopLiveCamera = () => {
+    if (liveVideoRecorderRef.current && liveVideoRecorderRef.current.state !== 'inactive') {
+      try {
+        liveVideoRecorderRef.current.stop();
+      } catch (e) {}
+    }
+    if (liveVideoStreamRef.current) {
+      liveVideoStreamRef.current.getTracks().forEach((track) => track.stop());
+      liveVideoStreamRef.current = null;
+    }
+    setIsRecordingLiveVideo(false);
+    if (liveVideoTimerRef.current) {
+      clearInterval(liveVideoTimerRef.current);
+      liveVideoTimerRef.current = null;
+    }
+  };
+
+  const stopLivePhotoCamera = () => {
+    if (livePhotoStreamRef.current) {
+      livePhotoStreamRef.current.getTracks().forEach((track) => track.stop());
+      livePhotoStreamRef.current = null;
+    }
+    setIsCapturingLivePhoto(false);
+  };
+
+  const handleStartLiveVideoRecording = async () => {
+    setQuoteError('');
+    stopLivePhotoCamera();
+    if (Platform.OS !== 'web' || !navigator?.mediaDevices?.getUserMedia) {
+      setQuoteError('Camera access is required on this device to record live resolution video.');
+      return;
+    }
+    try {
+      if (liveVideoStreamRef.current) {
+        liveVideoStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+          audio: true,
+        });
+      } catch (e) {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+          audio: false,
+        });
+      }
+
+      liveVideoStreamRef.current = stream;
+      liveVideoChunksRef.current = [];
+
+      setIsRecordingLiveVideo(true);
+      setLiveVideoSeconds(0);
+
+      const mimeType =
+        typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+          ? 'video/webm;codecs=vp9'
+          : 'video/webm';
+
+      const recorder = new MediaRecorder(stream, { mimeType });
+      liveVideoRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) liveVideoChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(liveVideoChunksRef.current, { type: mimeType });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setResolutionVideoUrl(reader.result);
+        };
+        reader.readAsDataURL(blob);
+        stopLiveCamera();
+        setLiveVideoSeconds(0);
+      };
+
+      recorder.start();
+
+      liveVideoTimerRef.current = setInterval(() => {
+        setLiveVideoSeconds((prev) => {
+          if (prev >= 25) {
+            handleStopLiveVideoRecording();
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } catch (err) {
+      console.warn('Camera stream error:', err);
+      setQuoteError('Unable to access device camera. Please check camera permissions in your browser.');
+    }
+  };
+
+  const handleStopLiveVideoRecording = () => {
+    if (liveVideoRecorderRef.current && liveVideoRecorderRef.current.state !== 'inactive') {
+      try {
+        liveVideoRecorderRef.current.stop();
+      } catch (e) {}
+    }
+    if (liveVideoTimerRef.current) {
+      clearInterval(liveVideoTimerRef.current);
+      liveVideoTimerRef.current = null;
+    }
+    setIsRecordingLiveVideo(false);
+  };
+
+  const handleStartLivePhotoCapture = async () => {
+    setQuoteError('');
+    stopLiveCamera();
+    if (Platform.OS !== 'web' || !navigator?.mediaDevices?.getUserMedia) {
+      setQuoteError('Live camera access is required to capture photos.');
+      return;
+    }
+    try {
+      if (livePhotoStreamRef.current) {
+        livePhotoStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false,
+      });
+      livePhotoStreamRef.current = stream;
+      setIsCapturingLivePhoto(true);
+    } catch (err) {
+      console.warn('Live photo camera stream error:', err);
+      setQuoteError('Unable to open camera for photo capture. Please check camera permissions.');
+    }
+  };
+
+  const handleTakeLivePhotoSnapshot = () => {
+    try {
+      if (livePhotoViewRef.current && typeof document !== 'undefined') {
+        const vid = livePhotoViewRef.current;
+        const canvas = document.createElement('canvas');
+        canvas.width = vid.videoWidth || 640;
+        canvas.height = vid.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          setMediaUrl(dataUrl);
+        }
+      }
+    } catch (err) {
+      console.warn('Snapshot capture error:', err);
+    }
+    stopLivePhotoCamera();
+  };
+
+  useEffect(() => {
+    if (isRecordingLiveVideo && liveVideoViewRef.current && liveVideoStreamRef.current) {
+      liveVideoViewRef.current.srcObject = liveVideoStreamRef.current;
+    }
+  }, [isRecordingLiveVideo]);
+
+  useEffect(() => {
+    if (isCapturingLivePhoto && livePhotoViewRef.current && livePhotoStreamRef.current) {
+      livePhotoViewRef.current.srcObject = livePhotoStreamRef.current;
+    }
+  }, [isCapturingLivePhoto]);
+
+  useEffect(() => {
+    return () => {
+      stopLiveCamera();
+      stopLivePhotoCamera();
+    };
+  }, []);
 
   const pushGps = (lat, lng) => {
     if (typeof updateProviderLocation === 'function' && bk?.booking_id) {
@@ -316,24 +509,40 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
   const handleInspectionSubmit = () => {
     if (!bk?.booking_id) return;
     if (!findings.trim()) {
-      setQuoteError('Please enter diagnostic findings and root cause explanation.');
+      setQuoteError('Please enter work performed and technical diagnosis findings.');
+      return;
+    }
+    if (hasSpareParts && !partsDescription.trim()) {
+      setQuoteError('Please specify the spare parts used or required.');
       return;
     }
     setQuoteError('');
+    const finalPartsDesc = hasSpareParts
+      ? partsDescription.trim()
+      : 'No spare parts used (Labor/adjustment only)';
+
     if (submitInspectionReport) {
       submitInspectionReport(bk.booking_id, {
         findings: findings.trim(),
-        partsDescription: partsDescription.trim(),
-        parts_description: partsDescription.trim(),
-        mediaUrl,
+        partsUsed: hasSpareParts,
+        partsDescription: finalPartsDesc,
+        parts_description: finalPartsDesc,
+        mediaUrl: mediaUrl || resolutionVideoUrl,
+        resolutionVideoUrl,
+        videoUrl: resolutionVideoUrl,
       });
     } else {
       updateBookingStatus(bk.booking_id, 'ASSIGNED_TO_ADMIN');
     }
 
+    if (resolutionVideoUrl && typeof uploadBookingMedia === 'function') {
+      uploadBookingMedia(bk.booking_id, 'resolution_video', resolutionVideoUrl);
+    }
     if (mediaUrl && typeof uploadBookingMedia === 'function') {
       uploadBookingMedia(bk.booking_id, 'inspection', mediaUrl);
     }
+    stopLiveCamera();
+    stopLivePhotoCamera();
     setInspectModal(false);
   };
 
@@ -552,27 +761,57 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
             <View style={styles.quoteWaitingHeader}>
               <ProviderIcon name="clock" color="#d97706" size={18} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.quoteWaitingTitle}>Inspection Submitted to Admin</Text>
+                <Text style={styles.quoteWaitingTitle}>Resolution Report Submitted to Admin</Text>
                 <Text style={styles.quoteWaitingSub}>
-                  Technical findings & spare parts description transmitted to Admin. Admin will review the diagnosis and decide the pricing to send to the customer.
+                  Technical findings, spare parts assessment, and live video proof transmitted to Admin for review.
                 </Text>
               </View>
             </View>
 
             <View style={styles.quoteBreakdownCard}>
               <View style={styles.quoteRow}>
-                <Text style={styles.quoteRowLabel}>Technical Findings</Text>
+                <Text style={styles.quoteRowLabel}>Work Done / Findings</Text>
                 <Text style={[styles.quoteRowVal, { maxWidth: '58%', textAlign: 'right' }]}>{bk?.inspection_report || findings}</Text>
               </View>
-              {bk?.parts_description || partsDescription ? (
-                <View style={styles.quoteRow}>
-                  <Text style={styles.quoteRowLabel}>Parts Required</Text>
-                  <Text style={[styles.quoteRowVal, { maxWidth: '58%', textAlign: 'right' }]}>{bk?.parts_description || partsDescription}</Text>
+              <View style={styles.quoteRow}>
+                <Text style={styles.quoteRowLabel}>Spare Parts Status</Text>
+                <Text
+                  style={[
+                    styles.quoteRowVal,
+                    {
+                      maxWidth: '58%',
+                      textAlign: 'right',
+                      color: (bk?.parts_description || partsDescription)?.toLowerCase().includes('no spare')
+                        ? '#059669'
+                        : '#b45309',
+                    },
+                  ]}
+                >
+                  {bk?.parts_description || partsDescription || 'No spare parts used'}
+                </Text>
+              </View>
+
+              {(bk?.resolution_video_url || resolutionVideoUrl) ? (
+                <View style={{ marginTop: 6, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f1f5f9', gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <ProviderIcon name="checkCircle" color="#059669" size={13} />
+                    <Text style={{ fontSize: 11.5, color: '#065f46', fontWeight: '700' }}>
+                      Live Resolution Video Attached
+                    </Text>
+                  </View>
+                  {Platform.OS === 'web' && (
+                    <video
+                      src={bk?.resolution_video_url || resolutionVideoUrl}
+                      controls
+                      style={{ width: '100%', height: 140, borderRadius: 8, backgroundColor: '#0f172a' }}
+                    />
+                  )}
                 </View>
               ) : null}
-              <View style={styles.quoteRow}>
+
+              <View style={[styles.quoteRow, { borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 6, marginTop: 4 }]}>
                 <Text style={styles.quoteRowLabel}>Pricing Decision</Text>
-                <Text style={[styles.quoteRowVal, { color: '#d97706', fontWeight: '800' }]}>Pending Admin Pricing</Text>
+                <Text style={[styles.quoteRowVal, { color: '#d97706', fontWeight: '800' }]}>Pending Admin Review</Text>
               </View>
             </View>
           </View>
@@ -620,14 +859,25 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
         )}
 
         {currentStatus === 'ESTIMATE_REJECTED' && (
-          <View style={styles.declinedBox}>
-            <ProviderIcon name="clock" color="#64748b" size={18} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.declinedTitle}>Customer Declined Quote at ₹0 Visit Fee</Text>
-              <Text style={styles.declinedSub}>
-                Customer chose not to proceed with repair. Under Free Diagnosis Guarantee, ₹0 was charged. Work order closed.
-              </Text>
+          <View style={{ gap: 10 }}>
+            <View style={styles.declinedBox}>
+              <ProviderIcon name="clock" color="#64748b" size={18} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.declinedTitle}>Customer Declined Quote at ₹0 Visit Fee</Text>
+                <Text style={styles.declinedSub}>
+                  Customer chose not to proceed with repair. Under Free Diagnosis Guarantee, ₹0 was charged. Work order closed.
+                </Text>
+              </View>
             </View>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: '#475569' }]}
+              onPress={() => navigate('/provider/dashboard')}
+              activeOpacity={0.85}
+            >
+              <ProviderIcon name="back" color="#ffffff" size={14} />
+              <Text style={styles.actionBtnText}>RETURN TO DASHBOARD</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -673,70 +923,298 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
         )}
       </View>
 
-      {/* INSPECTION / TECHNICAL REPORT MODAL (NO PRICING FOR PROVIDER) */}
+      {/* INSPECTION / TECHNICAL REPORT MODAL */}
       <Modal visible={inspectModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {isConsultationBk ? 'On-Site Diagnosis & Technical Report' : 'Technical Inspection & Findings'}
-            </Text>
-            <Text style={styles.modalSub}>
-              Zevota Care Flow • Work Order: {bk?.booking_id}
-            </Text>
-
-            <View style={styles.modalNoticeBanner}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
-                <ProviderIcon name="info" color="#dc2626" size={14} />
-                <Text style={[styles.modalNoticeText, { flex: 1 }]}>
-                  {isConsultationBk ? 'Free On-Site Inspection (₹0). ' : ''}Record your technical findings and required spare parts. Admin will review your report, decide the charges, and transmit the official quote to the customer.
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalTitle}>
+                  {isConsultationBk ? 'On-Site Diagnosis & Technical Report' : 'Technical Inspection & Resolution Report'}
+                </Text>
+                <Text style={styles.modalSub}>
+                  Zevota Care Flow • Work Order: {bk?.booking_id}
                 </Text>
               </View>
+              <TouchableOpacity
+                onPress={() => {
+                  stopLiveCamera();
+                  stopLivePhotoCamera();
+                  setInspectModal(false);
+                }}
+                style={styles.modalCloseIconBtn}
+              >
+                <Text style={styles.modalCloseIconText}>✕</Text>
+              </TouchableOpacity>
             </View>
 
             {quoteError ? <Text style={styles.errorText}>{quoteError}</Text> : null}
 
-            <ScrollView style={{ width: '100%', maxHeight: 420 }} contentContainerStyle={{ paddingHorizontal: 2, paddingBottom: 6 }} showsVerticalScrollIndicator={true}>
+            <ScrollView
+              style={{ width: '100%', maxHeight: 440 }}
+              contentContainerStyle={{ paddingHorizontal: 2, paddingBottom: 10, gap: 12 }}
+              showsVerticalScrollIndicator={true}
+            >
+              {/* 1. Work Performed & Root Cause Findings */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.inputLabel}>
-                  1. Root Cause Diagnosis & Technical Findings *
+                <View style={styles.fieldHeaderRow}>
+                  <ProviderIcon name="wrench" color="#1d4ed8" size={14} />
+                  <Text style={styles.inputLabelBold}>
+                    1. Root Cause Diagnosis & Technical Findings *
+                  </Text>
+                </View>
+                <Text style={styles.fieldHelperText}>
+                  Detail the diagnosed fault, what you resolved, repairs carried out, and current working status.
                 </Text>
                 <TextInput
-                  style={[styles.textInput, { height: 70 }]}
+                  style={[styles.textInput, { height: 75, textAlignVertical: 'top' }]}
                   multiline
-                  placeholder="e.g. Capacitor burnt, gas leak in copper tubing, PCB burnt..."
+                  placeholder="e.g. Diagnosed capacitor failure; replaced with 50 MFD unit, cleaned filters, and tested cooling cycle."
                   placeholderTextColor="#94a3b8"
                   value={findings}
                   onChangeText={setFindings}
                 />
               </View>
 
+              {/* 2. Spare Parts Assessment */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.inputLabel}>2. Spare Parts Required (Optional)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="e.g. 50 MFD Capacitor, Copper flare nut, 2m copper pipe"
-                  placeholderTextColor="#94a3b8"
-                  value={partsDescription}
-                  onChangeText={setPartsDescription}
-                />
+                <View style={styles.fieldHeaderRow}>
+                  <ProviderIcon name="tool" color="#1d4ed8" size={14} />
+                  <Text style={styles.inputLabelBold}>
+                    2. Were Any Spare Parts Used or Required? *
+                  </Text>
+                </View>
+                <Text style={styles.fieldHelperText}>
+                  Specify whether physical spare parts were replaced/installed, or if only service/labor was done.
+                </Text>
+
+                <View style={styles.sparePartsToggleRow}>
+                  <TouchableOpacity
+                    style={[styles.sparePartToggleBtn, !hasSpareParts && styles.sparePartToggleBtnActive]}
+                    onPress={() => {
+                      setHasSpareParts(false);
+                      setPartsDescription('No spare parts used (Labor/adjustment only)');
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <ProviderIcon name="checkCircle" color={!hasSpareParts ? '#ffffff' : '#059669'} size={13} />
+                      <Text style={[styles.sparePartToggleBtnText, !hasSpareParts && styles.sparePartToggleBtnTextActive]}>
+                        No Spare Parts Used
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.sparePartToggleBtn, hasSpareParts && styles.sparePartToggleBtnActiveAlert]}
+                    onPress={() => {
+                      setHasSpareParts(true);
+                      if (partsDescription === 'No spare parts used (Labor/adjustment only)') {
+                        setPartsDescription('');
+                      }
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <ProviderIcon name="wrench" color={hasSpareParts ? '#ffffff' : '#b45309'} size={13} />
+                      <Text style={[styles.sparePartToggleBtnText, hasSpareParts && styles.sparePartToggleBtnTextActiveAlert]}>
+                        Yes, Spare Parts Used
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+                {!hasSpareParts ? (
+                  <View style={styles.sparePartsNoneNotice}>
+                    <ProviderIcon name="checkCircle" color="#059669" size={13} />
+                    <Text style={styles.sparePartsNoneNoticeText}>
+                      Confirmed: No physical spare parts used. Only labor/service will apply.
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={{ marginTop: 6, gap: 4 }}>
+                    <Text style={styles.subInputLabel}>Itemized Spare Parts List & Specifications *</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="e.g. 50 MFD Capacitor (1x), Copper flare nut (2x), 1m drain pipe"
+                      placeholderTextColor="#94a3b8"
+                      value={partsDescription === 'No spare parts used (Labor/adjustment only)' ? '' : partsDescription}
+                      onChangeText={setPartsDescription}
+                    />
+                  </View>
+                )}
               </View>
 
-              <ImageUploadField
-                label="3. Photo / Video of Defective Part (Optional)"
-                value={mediaUrl}
-                onChange={setMediaUrl}
-              />
+              {/* 3. Live Video of Resolved Work */}
+              <View style={styles.fieldGroup}>
+                <View style={styles.fieldHeaderRow}>
+                  <ProviderIcon name="video" color="#1d4ed8" size={14} />
+                  <Text style={styles.inputLabelBold}>
+                    3. Live Video of What Was Resolved *
+                  </Text>
+                </View>
+                <Text style={styles.fieldHelperText}>
+                  Record a live video walkthrough (10–25s) demonstrating the resolved issue and working appliance.
+                </Text>
+
+                {isRecordingLiveVideo ? (
+                  <View style={styles.liveCameraContainer}>
+                    {Platform.OS === 'web' && (
+                      <video
+                        ref={liveVideoViewRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        style={styles.liveCameraVideo}
+                      />
+                    )}
+                    <View style={styles.liveRecordingBadge}>
+                      <View style={styles.liveRecordingDot} />
+                      <Text style={styles.liveRecordingTimer}>
+                        REC 00:{liveVideoSeconds < 10 ? `0${liveVideoSeconds}` : liveVideoSeconds} / 00:25
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.stopRecordingBtn}
+                      onPress={handleStopLiveVideoRecording}
+                      activeOpacity={0.85}
+                    >
+                      <View style={styles.stopRecordingSquare} />
+                      <Text style={styles.stopRecordingBtnText}>Stop & Save Video</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : resolutionVideoUrl ? (
+                  <View style={styles.videoPreviewCard}>
+                    {Platform.OS === 'web' ? (
+                      <video
+                        src={resolutionVideoUrl}
+                        controls
+                        style={styles.attachedVideoPlayer}
+                      />
+                    ) : (
+                      <View style={styles.videoPlaceholder}>
+                        <Text style={{ color: '#fff', fontSize: 12 }}>Video Attached</Text>
+                      </View>
+                    )}
+                    <View style={styles.videoPreviewMetaRow}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                        <ProviderIcon name="checkCircle" color="#059669" size={13} />
+                        <Text style={styles.videoAttachedBadgeText}>Live Resolution Video Attached</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.retakeVideoBtn}
+                        onPress={() => {
+                          setResolutionVideoUrl('');
+                          stopLiveCamera();
+                        }}
+                      >
+                        <Text style={styles.retakeVideoBtnText}>✕ Retake Video</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.fullWidthActionBtn}
+                    onPress={handleStartLiveVideoRecording}
+                    activeOpacity={0.85}
+                  >
+                    <ProviderIcon name="camera" color="#ffffff" size={15} />
+                    <Text style={styles.fullWidthActionText}>Record Live Video via Camera</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* 4. Live Camera Photo Snapshot (Optional) */}
+              <View style={styles.fieldGroup}>
+                <View style={styles.fieldHeaderRow}>
+                  <ProviderIcon name="camera" color="#1d4ed8" size={14} />
+                  <Text style={styles.inputLabelBold}>
+                    4. Live Photo of Defective Part / Work Done (Optional)
+                  </Text>
+                </View>
+                <Text style={styles.fieldHelperText}>
+                  Capture a live on-site camera snapshot of the affected component or finished work.
+                </Text>
+
+                {isCapturingLivePhoto ? (
+                  <View style={styles.liveCameraContainer}>
+                    {Platform.OS === 'web' && (
+                      <video
+                        ref={livePhotoViewRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        style={styles.liveCameraVideo}
+                      />
+                    )}
+                    <View style={styles.livePhotoControlsRow}>
+                      <TouchableOpacity
+                        style={styles.snapPhotoBtn}
+                        onPress={handleTakeLivePhotoSnapshot}
+                        activeOpacity={0.85}
+                      >
+                        <ProviderIcon name="camera" color="#ffffff" size={14} />
+                        <Text style={styles.snapPhotoBtnText}>Snap Live Photo</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.cancelCaptureBtn}
+                        onPress={stopLivePhotoCamera}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.cancelCaptureBtnText}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : mediaUrl ? (
+                  <View style={styles.photoPreviewCard}>
+                    <Image source={{ uri: mediaUrl }} style={styles.capturedPhotoImg} resizeMode="cover" />
+                    <View style={styles.photoPreviewMetaRow}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                        <ProviderIcon name="checkCircle" color="#059669" size={13} />
+                        <Text style={styles.photoAttachedBadgeText}>Live Photo Captured</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.retakePhotoBtn}
+                        onPress={() => {
+                          setMediaUrl('');
+                          stopLivePhotoCamera();
+                        }}
+                      >
+                        <Text style={styles.retakePhotoBtnText}>✕ Retake Photo</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.secondaryActionBtn}
+                    onPress={handleStartLivePhotoCapture}
+                    activeOpacity={0.85}
+                  >
+                    <ProviderIcon name="camera" color="#1d4ed8" size={15} />
+                    <Text style={styles.secondaryActionText}>Take Live Photo via Camera</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
               <TouchableOpacity
-                style={[styles.primaryBtn, { backgroundColor: '#1d4ed8' }]}
+                style={[styles.primaryBtn, { backgroundColor: '#1d4ed8', marginTop: 6 }]}
                 onPress={handleInspectionSubmit}
+                activeOpacity={0.88}
               >
                 <ProviderIcon name="send" color="#ffffff" size={15} />
                 <Text style={styles.primaryBtnText}>Transmit Report to Admin</Text>
                 <ProviderIcon name="arrowRight" color="#ffffff" size={14} />
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.closeModalBtn} onPress={() => setInspectModal(false)}>
+              <TouchableOpacity
+                style={styles.closeModalBtn}
+                onPress={() => {
+                  stopLiveCamera();
+                  stopLivePhotoCamera();
+                  setInspectModal(false);
+                }}
+              >
                 <Text style={styles.closeModalBtnText}>Cancel</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -935,9 +1413,371 @@ const styles = StyleSheet.create({
   uploadBtnText: { color: '#1d4ed8', fontWeight: '700', fontSize: 11, textAlign: 'center' },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.7)', justifyContent: 'center', alignItems: 'center', padding: 12, width: '100%', boxSizing: 'border-box' },
-  modalContent: { backgroundColor: '#ffffff', borderRadius: 18, padding: 18, width: '92%', maxWidth: 380, maxHeight: '90%', gap: 6, boxSizing: 'border-box', overflow: 'hidden' },
+  modalContent: { backgroundColor: '#ffffff', borderRadius: 20, padding: 20, width: '94%', maxWidth: 460, maxHeight: '92%', gap: 6, boxSizing: 'border-box', overflow: 'hidden', shadowColor: '#0f172a', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 6 },
   modalTitle: { fontSize: 17, fontWeight: '800', color: '#0f172a', lineHeight: 22 },
-  modalSub: { fontSize: 11, color: '#64748b', lineHeight: 15, marginBottom: 8 },
+  modalSub: { fontSize: 11.5, color: '#64748b', lineHeight: 15, marginTop: 2 },
+
+  modalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 6,
+    gap: 8,
+  },
+  modalCloseIconBtn: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCloseIconText: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '800',
+  },
+  fieldHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  inputLabelBold: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  fieldHelperText: {
+    fontSize: 11,
+    color: '#64748b',
+    marginBottom: 6,
+    lineHeight: 15,
+  },
+  subInputLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#334155',
+    marginBottom: 3,
+  },
+  sparePartsToggleRow: {
+    flexDirection: 'row',
+    gap: 8,
+    width: '100%',
+    marginBottom: 4,
+  },
+  sparePartToggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sparePartToggleBtnActive: {
+    borderColor: '#059669',
+    backgroundColor: '#059669',
+  },
+  sparePartToggleBtnActiveAlert: {
+    borderColor: '#d97706',
+    backgroundColor: '#d97706',
+  },
+  sparePartToggleBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+    textAlign: 'center',
+  },
+  sparePartToggleBtnTextActive: {
+    color: '#ffffff',
+  },
+  sparePartToggleBtnTextActiveAlert: {
+    color: '#ffffff',
+  },
+  sparePartsNoneNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 4,
+  },
+  sparePartsNoneNoticeText: {
+    fontSize: 11,
+    color: '#065f46',
+    fontWeight: '600',
+    flex: 1,
+  },
+  videoActionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    width: '100%',
+    marginTop: 2,
+  },
+  videoRecordActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#1d4ed8',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  videoRecordActionText: {
+    color: '#ffffff',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  videoUploadActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1.5,
+    borderColor: '#bfdbfe',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  videoUploadActionText: {
+    color: '#1d4ed8',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  liveCameraContainer: {
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+    backgroundColor: '#000000',
+    position: 'relative',
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  liveCameraVideo: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  liveRecordingBadge: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  liveRecordingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ef4444',
+  },
+  liveRecordingTimer: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  stopRecordingBtn: {
+    position: 'absolute',
+    bottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#dc2626',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  stopRecordingSquare: {
+    width: 10,
+    height: 10,
+    backgroundColor: '#ffffff',
+    borderRadius: 2,
+  },
+  stopRecordingBtnText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  videoPreviewCard: {
+    width: '100%',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    backgroundColor: '#f8fafc',
+    overflow: 'hidden',
+    gap: 6,
+    padding: 8,
+    marginTop: 4,
+  },
+  attachedVideoPlayer: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
+    backgroundColor: '#0f172a',
+  },
+  videoPlaceholder: {
+    width: '100%',
+    height: 120,
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoPreviewMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+    paddingTop: 4,
+  },
+  videoAttachedBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#065f46',
+  },
+  retakeVideoBtn: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  retakeVideoBtnText: {
+    fontSize: 11,
+    color: '#dc2626',
+    fontWeight: '700',
+  },
+
+  fullWidthActionBtn: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#1d4ed8',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  fullWidthActionText: {
+    color: '#ffffff',
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+  secondaryActionBtn: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1.5,
+    borderColor: '#93c5fd',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  secondaryActionText: {
+    color: '#1d4ed8',
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+  livePhotoControlsRow: {
+    position: 'absolute',
+    bottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  snapPhotoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#059669',
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  snapPhotoBtnText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  cancelCaptureBtn: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  cancelCaptureBtnText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  photoPreviewCard: {
+    width: '100%',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    backgroundColor: '#f8fafc',
+    overflow: 'hidden',
+    gap: 6,
+    padding: 8,
+    marginTop: 4,
+  },
+  capturedPhotoImg: {
+    width: '100%',
+    height: 160,
+    borderRadius: 8,
+    backgroundColor: '#0f172a',
+  },
+  photoPreviewMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+    paddingTop: 4,
+  },
+  photoAttachedBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#065f46',
+  },
+  retakePhotoBtn: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  retakePhotoBtnText: {
+    fontSize: 11,
+    color: '#dc2626',
+    fontWeight: '700',
+  },
 
   fieldGroup: { marginBottom: 8 },
   inputLabel: { fontSize: 11, fontWeight: '700', color: '#334155', marginTop: 4, marginBottom: 4, lineHeight: 15 },

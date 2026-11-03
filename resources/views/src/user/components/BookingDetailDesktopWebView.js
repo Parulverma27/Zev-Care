@@ -393,43 +393,41 @@ export default function BookingDetailDesktopWebView({
                 </div>
               </div>
 
-              {/* Payment Method Selector (for Consultations) */}
-              {isConsultationBk && (
-                <div style={{ marginTop: '14px', gap: '8px', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: '12.5px', fontWeight: '700', color: '#0f172a' }}>Payment Preference:</div>
-                  <div
-                    style={payChoiceCardStyle(selectedPaymentMode === 'PAY_ON_COMPLETION')}
-                    onClick={() => setSelectedPaymentMode('PAY_ON_COMPLETION')}
-                  >
-                    <div style={radioCircleStyle(selectedPaymentMode === 'PAY_ON_COMPLETION')}>
-                      {selectedPaymentMode === 'PAY_ON_COMPLETION' && <div style={radioDotStyle} />}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '12.5px', fontWeight: '700', color: '#0f172a' }}>
-                        Pay After Service (Cash / UPI)
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>Pay technician only after work is tested & approved</div>
-                    </div>
+              {/* Payment Method Selector (for Consultations and Regular Bookings) */}
+              <div style={{ marginTop: '14px', gap: '8px', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ fontSize: '12.5px', fontWeight: '700', color: '#0f172a' }}>Payment Preference:</div>
+                <div
+                  style={payChoiceCardStyle(selectedPaymentMode === 'PAY_ON_COMPLETION')}
+                  onClick={() => setSelectedPaymentMode('PAY_ON_COMPLETION')}
+                >
+                  <div style={radioCircleStyle(selectedPaymentMode === 'PAY_ON_COMPLETION')}>
+                    {selectedPaymentMode === 'PAY_ON_COMPLETION' && <div style={radioDotStyle} />}
                   </div>
-
-                  <div
-                    style={payChoiceCardStyle(selectedPaymentMode === 'WALLET')}
-                    onClick={() => setSelectedPaymentMode('WALLET')}
-                  >
-                    <div style={radioCircleStyle(selectedPaymentMode === 'WALLET')}>
-                      {selectedPaymentMode === 'WALLET' && <div style={radioDotStyle} />}
+                  <div>
+                    <div style={{ fontSize: '12.5px', fontWeight: '700', color: '#0f172a' }}>
+                      Pay After Service (Cash / UPI)
                     </div>
-                    <div>
-                      <div style={{ fontSize: '12.5px', fontWeight: '700', color: '#0f172a' }}>
-                        Pay from Wallet Balance
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>
-                        Available Balance: ₹{(activeUser?.wallet_balance || 0).toLocaleString('en-IN')}
-                      </div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>Pay technician only after work is tested & approved</div>
+                  </div>
+                </div>
+
+                <div
+                  style={payChoiceCardStyle(selectedPaymentMode === 'WALLET')}
+                  onClick={() => setSelectedPaymentMode('WALLET')}
+                >
+                  <div style={radioCircleStyle(selectedPaymentMode === 'WALLET')}>
+                    {selectedPaymentMode === 'WALLET' && <div style={radioDotStyle} />}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12.5px', fontWeight: '700', color: '#0f172a' }}>
+                      Pay from Wallet Balance
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>
+                      Available Balance: ₹{(activeUser?.wallet_balance || 0).toLocaleString('en-IN')}
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>

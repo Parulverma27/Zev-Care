@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, useWindowDimensions, Platform } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcons';
@@ -195,6 +195,9 @@ export default function LiveSupportScreen({ onNavigate }) {
   };
 
   const handleDownloadDocument = (msg) => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') {
+      return;
+    }
     if (msg.fileData && typeof msg.fileData === 'string' && msg.fileData.includes(',')) {
       try {
         const byteString = atob(msg.fileData.split(',')[1]);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
@@ -6,9 +6,24 @@ import { AppIcon } from '../../components/AppIcons';
 import BookingsDesktopWebView from '../components/BookingsDesktopWebView';
 
 export default function UserBookingsScreen() {
-  const { activeUser, getUserBookings } = useApp();
+  const { activeUser, setActiveUser, getUserBookings, users } = useApp();
   const navigate = useNavigate();
-  const userBookings = getUserBookings(activeUser);
+
+  // If user is anonymous or has no phone, sync to default Rahul Sharma (id: 1)
+  useEffect(() => {
+    if (!activeUser || (activeUser.isAnonymous && !activeUser.phone && !activeUser.name)) {
+      const defaultUser = (users || []).find((u) => u.id === 1 || u.name === 'Rahul Sharma');
+      if (defaultUser && typeof setActiveUser === 'function') {
+        setActiveUser(defaultUser);
+      }
+    }
+  }, [activeUser, users, setActiveUser]);
+
+  const effectiveUser = (!activeUser || (activeUser.isAnonymous && !activeUser.phone && !activeUser.name))
+    ? ((users || []).find((u) => u.id === 1 || u.name === 'Rahul Sharma') || activeUser)
+    : activeUser;
+
+  const userBookings = getUserBookings(effectiveUser);
   const { width } = useWindowDimensions();
   const isDesktop = Platform.OS === 'web' && width >= 768;
 
@@ -54,6 +69,19 @@ export default function UserBookingsScreen() {
             activeOpacity={0.88}
           >
             <Text style={styles.bookBtnText}>Book a Service</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.switchDemoBtn}
+            onPress={() => {
+              const defaultUser = (users || []).find((u) => u.id === 1 || u.name === 'Rahul Sharma');
+              if (defaultUser && typeof setActiveUser === 'function') {
+                setActiveUser(defaultUser);
+              }
+            }}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.switchDemoBtnText}>Switch to Rahul Sharma (4 Bookings)</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -210,6 +238,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   bookBtnText: { color: '#ffffff', fontSize: 14, fontWeight: '700' },
+  switchDemoBtn: {
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  switchDemoBtnText: {
+    color: '#1d4ed8',
+    fontSize: 13,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
   list: { gap: 12 },
   card: {
     backgroundColor: '#ffffff',

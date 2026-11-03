@@ -81,7 +81,7 @@ export const PERFORMANCE_TIERS = {
   PLATINUM: {
     id: 'platinum',
     label: 'Platinum Partner',
-    badge: '🏆 Platinum',
+    badge: 'Platinum',
     minAvg: 4.8,
     minRatings: 20,
     maxLowPercent: 5,
@@ -94,7 +94,7 @@ export const PERFORMANCE_TIERS = {
   GOLD: {
     id: 'gold',
     label: 'Gold Partner',
-    badge: '🥇 Gold',
+    badge: 'Gold',
     minAvg: 4.5,
     minRatings: 10,
     maxLowPercent: 10,
@@ -107,7 +107,7 @@ export const PERFORMANCE_TIERS = {
   SILVER: {
     id: 'silver',
     label: 'Silver Partner',
-    badge: '🥈 Silver',
+    badge: 'Silver',
     minAvg: 4.0,
     minRatings: 5,
     maxLowPercent: 20,
@@ -120,7 +120,7 @@ export const PERFORMANCE_TIERS = {
   NEEDS_REVIEW: {
     id: 'needs_review',
     label: 'Needs Review',
-    badge: '⚠️ Needs Review',
+    badge: 'Needs Review',
     minAvg: 0,
     minRatings: 5,
     maxLowPercent: 100,
@@ -133,7 +133,7 @@ export const PERFORMANCE_TIERS = {
   INSUFFICIENT_DATA: {
     id: 'insufficient_data',
     label: 'Awaiting Evaluations',
-    badge: '— Baseline',
+    badge: 'Baseline',
     minAvg: 0,
     minRatings: 0,
     maxLowPercent: 100,

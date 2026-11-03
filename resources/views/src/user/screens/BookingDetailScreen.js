@@ -10,7 +10,7 @@ import { hasGeneratedBill } from '../../utils/billing';
 import BookingDetailDesktopWebView from '../components/BookingDetailDesktopWebView';
 
 export default function BookingDetailScreen() {
-  const { getUserBookings, activeUser, approveBill, rejectBill, providers } = useApp();
+  const { getUserBookings, activeUser, approveBill, rejectBill, providers, bookings } = useApp();
   const navigate = useNavigate();
   const { bookingId } = useParams();
   const [approving, setApproving] = useState(false);
@@ -21,7 +21,7 @@ export default function BookingDetailScreen() {
   const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
 
   const userBookings = getUserBookings(activeUser);
-  const bk = userBookings.find((b) => b.booking_id === bookingId);
+  const bk = userBookings.find((b) => b.booking_id === bookingId) || (bookings || []).find((b) => b.booking_id === bookingId);
 
   const assignedProvider = (() => {
     if (!bk) return null;
@@ -195,7 +195,7 @@ export default function BookingDetailScreen() {
     setApproving(true);
     setTimeout(() => {
       const result = approveBill(bk.booking_id, {
-        paymentMethod: isConsultationBk ? selectedPaymentMode : 'WALLET',
+        paymentMethod: selectedPaymentMode || 'PAY_ON_COMPLETION',
       });
       setApproving(false);
       if (result && result.ok === false) {
@@ -482,53 +482,51 @@ export default function BookingDetailScreen() {
             </View>
           </View>
 
-          {/* Payment Method Selector (for Consultations) */}
-          {isConsultationBk && (
-            <View style={styles.paySelectorContainer}>
-              <Text style={styles.paySelectorTitle}>Choose How to Pay</Text>
+          {/* Payment Method Selector (for Consultations and Regular Bookings) */}
+          <View style={styles.paySelectorContainer}>
+            <Text style={styles.paySelectorTitle}>Choose How to Pay</Text>
 
-              <TouchableOpacity
-                style={[
-                  styles.payChoiceCard,
-                  selectedPaymentMode === 'PAY_ON_COMPLETION' && styles.payChoiceCardActive,
-                ]}
-                onPress={() => setSelectedPaymentMode('PAY_ON_COMPLETION')}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.radioCircle, selectedPaymentMode === 'PAY_ON_COMPLETION' && styles.radioCircleActive]}>
-                  {selectedPaymentMode === 'PAY_ON_COMPLETION' && <View style={styles.radioDot} />}
+            <TouchableOpacity
+              style={[
+                styles.payChoiceCard,
+                selectedPaymentMode === 'PAY_ON_COMPLETION' && styles.payChoiceCardActive,
+              ]}
+              onPress={() => setSelectedPaymentMode('PAY_ON_COMPLETION')}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.radioCircle, selectedPaymentMode === 'PAY_ON_COMPLETION' && styles.radioCircleActive]}>
+                {selectedPaymentMode === 'PAY_ON_COMPLETION' && <View style={styles.radioDot} />}
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.payChoiceLabel}>Pay After Service (Recommended)</Text>
+                  <View style={styles.cashBadge}><Text style={styles.cashBadgeText}>Cash / UPI</Text></View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Text style={styles.payChoiceLabel}>Pay After Service (Recommended)</Text>
-                    <View style={styles.cashBadge}><Text style={styles.cashBadgeText}>Cash / UPI</Text></View>
-                  </View>
-                  <Text style={styles.payChoiceSub}>
-                    Pay technician directly once the repair is tested and you are 100% satisfied.
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                <Text style={styles.payChoiceSub}>
+                  Pay technician directly once the repair is tested and you are 100% satisfied.
+                </Text>
+              </View>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[
-                  styles.payChoiceCard,
-                  selectedPaymentMode === 'WALLET' && styles.payChoiceCardActive,
-                ]}
-                onPress={() => setSelectedPaymentMode('WALLET')}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.radioCircle, selectedPaymentMode === 'WALLET' && styles.radioCircleActive]}>
-                  {selectedPaymentMode === 'WALLET' && <View style={styles.radioDot} />}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.payChoiceLabel}>Pay from Wallet Balance</Text>
-                  <Text style={styles.payChoiceSub}>
-                    Wallet Balance: ₹{(activeUser?.wallet_balance || 0).toLocaleString('en-IN')}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          )}
+            <TouchableOpacity
+              style={[
+                styles.payChoiceCard,
+                selectedPaymentMode === 'WALLET' && styles.payChoiceCardActive,
+              ]}
+              onPress={() => setSelectedPaymentMode('WALLET')}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.radioCircle, selectedPaymentMode === 'WALLET' && styles.radioCircleActive]}>
+                {selectedPaymentMode === 'WALLET' && <View style={styles.radioDot} />}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.payChoiceLabel}>Pay from Wallet Balance</Text>
+                <Text style={styles.payChoiceSub}>
+                  Wallet Balance: ₹{(activeUser?.wallet_balance || 0).toLocaleString('en-IN')}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             style={[styles.approveBillBtn, Boolean(activeUser?.subscription_plan) && !isConsultationBk && { backgroundColor: '#0a192f', borderWidth: 1.5, borderColor: '#d4af37' }]}
@@ -541,9 +539,11 @@ export default function BookingDetailScreen() {
                 ? 'Processing Approval...'
                 : isConsultationBk
                 ? `Approve Quote & Start Repair Work (₹${(bk?.total_bill ?? 0).toLocaleString()})`
+                : selectedPaymentMode === 'PAY_ON_COMPLETION'
+                ? `Approve Quote • Pay After Service (₹${(bk?.total_bill ?? 0).toLocaleString()})`
                 : Boolean(activeUser?.subscription_plan && activeUser?.subscription_status === 'ACTIVE')
-                ? `Approve & Confirm Service (${activeUser.subscription_plan})`
-                : 'Approve & Pay Bill from Wallet'}
+                ? `Approve & Deduct from Wallet (${activeUser.subscription_plan})`
+                : `Approve & Pay from Wallet (₹${(bk?.total_bill ?? 0).toLocaleString()})`}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity

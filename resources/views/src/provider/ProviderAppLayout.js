@@ -15,6 +15,7 @@ export default function ProviderAppLayout() {
   const providerTabs = [
     { key: 'today', label: 'Today', path: '/provider/dashboard', icon: 'provider-today' },
     { key: 'work', label: 'Work Orders', path: '/provider/bookings', icon: 'provider-work' },
+    { key: 'earnings', label: 'Earnings', path: '/provider/earnings', icon: 'provider-earnings' },
     { key: 'profile', label: 'Profile', path: '/provider/profile', icon: 'provider-profile' },
   ];
 
@@ -47,6 +48,7 @@ export default function ProviderAppLayout() {
             let isActive = false;
             if (tab.key === 'today' && location.pathname.includes('/dashboard')) isActive = true;
             else if (tab.key === 'work' && location.pathname.includes('/bookings')) isActive = true;
+            else if (tab.key === 'earnings' && location.pathname.includes('/earnings')) isActive = true;
             else if (tab.key === 'profile' && location.pathname.includes('/profile')) isActive = true;
 
             return (

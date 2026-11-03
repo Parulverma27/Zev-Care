@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Modal, Platform } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import { resolveImageUri } from '../../utils/imageUtils';
 import ConfirmDeleteModal from '../../components/ConfirmDeleteModal';
@@ -380,6 +380,9 @@ export function AdminChatScreen() {
   };
 
   const handleDownloadDocument = (msg) => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') {
+      return;
+    }
     if (msg.fileData && typeof msg.fileData === 'string' && msg.fileData.includes(',')) {
       try {
         const byteString = atob(msg.fileData.split(',')[1]);

@@ -405,7 +405,7 @@ export default function AdminBookingsScreen() {
             b.is_accepted ||
             (b.status !== 'PENDING_ADMIN_REVIEW' && b.status !== 'ADMIN_REJECTED')
           );
-          const hasInspection = b.status === 'ASSIGNED_TO_ADMIN' || Boolean(b.inspection_report);
+          const hasInspection = b.status === 'ASSIGNED_TO_ADMIN' || Boolean(b.inspection_report) || Boolean(b.resolution_video_url) || Boolean(b.parts_description);
           const isAssigned = Boolean(b.provider_id || b.provider_name || (b.status !== 'PENDING_ADMIN_REVIEW' && b.status !== 'ADMIN_ACCEPTED'));
 
           const statusLabels = {
@@ -781,42 +781,85 @@ export default function AdminBookingsScreen() {
       {/* PROVIDER REPORT AUDIT MODAL */}
       <Modal visible={reportModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Field Provider Inspection & Video Audit</Text>
-            <Text style={styles.modalSub}>Work Order: {selectedBooking?.booking_id} • Assigned to Admin</Text>
-
-            <Text style={styles.inputLabel}>Provider Explanation & Findings</Text>
-            <Text style={styles.modalNotes}>
-              {selectedBooking?.inspection_report || 'No inspection report submitted yet.'}
-            </Text>
-
-            <View style={{ flexDirection: 'row', gap: 16, marginVertical: 8, backgroundColor: '#f8fafc', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 10, color: '#64748b', fontWeight: '600', fontFamily: 'Inter, sans-serif' }}>Parts Cost (reported)</Text>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0f172a', marginTop: 2, fontFamily: 'Inter, sans-serif' }}>{selectedBooking?.parts_charge ? `₹${Number(selectedBooking.parts_charge).toLocaleString()}` : '—'}</Text>
+          <View style={[styles.modalContent, { maxWidth: 560, maxHeight: '90%' }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <View>
+                <Text style={styles.modalTitle}>Field Provider Inspection & Technical Report</Text>
+                <Text style={styles.modalSub}>
+                  Work Order: {selectedBooking?.booking_id} • Assigned: {selectedBooking?.provider_name || 'Assigned Partner'}
+                </Text>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 10, color: '#64748b', fontWeight: '600', fontFamily: 'Inter, sans-serif' }}>Labour Cost (reported)</Text>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0f172a', marginTop: 2, fontFamily: 'Inter, sans-serif' }}>{selectedBooking?.labour_charge ? `₹${Number(selectedBooking.labour_charge).toLocaleString()}` : '—'}</Text>
-              </View>
+              <TouchableOpacity onPress={closeBookingModals} style={{ padding: 6 }}>
+                <Text style={{ fontSize: 18, color: '#64748b', fontWeight: '700' }}>✕</Text>
+              </TouchableOpacity>
             </View>
 
-            {Boolean(selectedBooking?.issue_media_url) && (
-              <>
-                <Text style={styles.inputLabel}>Attached Issue Video / Photo</Text>
-                <View style={styles.modalMediaBox}>
-                  <Image source={{ uri: selectedBooking.issue_media_url }} style={styles.modalMediaImg} />
+            <ScrollView style={{ width: '100%' }} contentContainerStyle={{ gap: 12, paddingBottom: 12 }} showsVerticalScrollIndicator={true}>
+              {/* 1. Root Cause & Technical Findings */}
+              <View style={{ backgroundColor: '#f8fafc', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', gap: 4 }}>
+                <Text style={{ fontSize: 11, fontWeight: '800', color: '#1e40af', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  1. Root Cause Diagnosis & Work Performed
+                </Text>
+                <Text style={{ fontSize: 13, color: '#0f172a', lineHeight: 18 }}>
+                  {selectedBooking?.inspection_report || 'No technical report submitted yet.'}
+                </Text>
+              </View>
+
+              {/* 2. Spare Parts Assessment */}
+              <View style={{ backgroundColor: selectedBooking?.parts_used ? '#fffbeb' : '#ecfdf5', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: selectedBooking?.parts_used ? '#fde68a' : '#a7f3d0', gap: 6 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: selectedBooking?.parts_used ? '#b45309' : '#047857', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    2. Spare Parts Assessment
+                  </Text>
+                  <View style={{ backgroundColor: selectedBooking?.parts_used ? '#f59e0b' : '#10b981', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#ffffff' }}>
+                      {selectedBooking?.parts_used ? 'SPARE PARTS USED' : 'NO PARTS USED (SERVICE ONLY)'}
+                    </Text>
+                  </View>
                 </View>
-              </>
-            )}
+                <Text style={{ fontSize: 12.5, color: '#0f172a', fontWeight: '600' }}>
+                  {selectedBooking?.parts_description || (selectedBooking?.parts_used ? 'Spare parts required/installed' : 'No spare parts used. Only labor & service inspection performed.')}
+                </Text>
+              </View>
 
-            <TouchableOpacity style={styles.sendBillBtn} onPress={() => { setReportModal(false); openBillModalWithReport(selectedBooking); }}>
-              <Text style={styles.sendBillBtnText}>{hasGeneratedBill(selectedBooking) ? 'Edit Bill' : 'Proceed to Create Bill'}</Text>
-            </TouchableOpacity>
+              {/* 3. Live Resolution Video Player */}
+              {Boolean(selectedBooking?.resolution_video_url || (selectedBooking?.after_media_url && String(selectedBooking.after_media_url).includes('data:video/'))) && (
+                <View style={{ gap: 4 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#1e40af', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    3. Live Resolution Video Walkthrough (10–25s)
+                  </Text>
+                  <AdminVideoPlayer
+                    src={selectedBooking?.resolution_video_url || selectedBooking?.after_media_url}
+                    label="Live Resolution Video Proof"
+                    style={{ width: '100%', borderRadius: 10 }}
+                  />
+                </View>
+              )}
 
-            <TouchableOpacity style={styles.closeModalBtn} onPress={closeBookingModals}>
-              <Text style={styles.closeModalBtnText}>Close</Text>
-            </TouchableOpacity>
+              {/* 4. Live Defective Part / Work Done Photo Snapshot */}
+              {Boolean(selectedBooking?.issue_media_url && !String(selectedBooking.issue_media_url).includes('data:video/')) && (
+                <View style={{ gap: 4 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#1e40af', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    4. Defective Part / On-Site Snapshot
+                  </Text>
+                  <View style={{ width: '100%', borderRadius: 10, overflow: 'hidden', borderWidth: 1, borderColor: '#cbd5e1', backgroundColor: '#000000' }}>
+                    <Image
+                      source={{ uri: selectedBooking.issue_media_url }}
+                      style={{ width: '100%', height: 200 }}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </View>
+              )}
+
+              <TouchableOpacity style={styles.sendBillBtn} onPress={() => { setReportModal(false); openBillModalWithReport(selectedBooking); }}>
+                <Text style={styles.sendBillBtnText}>{hasGeneratedBill(selectedBooking) ? 'Edit Estimate Bill' : 'Proceed to Create Bill'}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.closeModalBtn} onPress={closeBookingModals}>
+                <Text style={styles.closeModalBtnText}>Close</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -860,17 +903,32 @@ export default function AdminBookingsScreen() {
 
             {/* EMBEDDED PROVIDER REPORT SUMMARY BOX INSIDE BILL BUILDER */}
             <View style={styles.modalReportBox}>
-              <Text style={styles.modalReportTag}>PROVIDER FIELD INSPECTION REPORT</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <Text style={styles.modalReportTag}>PROVIDER FIELD INSPECTION REPORT</Text>
+                <Text style={{ fontSize: 10, fontWeight: '700', color: selectedBooking?.parts_used ? '#b45309' : '#047857' }}>
+                  {selectedBooking?.parts_used ? 'Spare Parts Used' : 'No Parts Used'}
+                </Text>
+              </View>
               <Text style={styles.modalReportNotes}>
                 <Text style={styles.boldText}>Diagnosis:</Text> {selectedBooking?.inspection_report || 'No inspection report submitted yet.'}
               </Text>
-              <View style={styles.modalReportRow}>
+              {Boolean(selectedBooking?.parts_description) && (
+                <Text style={[styles.modalReportNotes, { marginTop: 3 }]}>
+                  <Text style={styles.boldText}>Parts Detail:</Text> {selectedBooking?.parts_description}
+                </Text>
+              )}
+              <View style={[styles.modalReportRow, { marginTop: 6, alignItems: 'center' }]}>
+                {Boolean(selectedBooking?.resolution_video_url) && (
+                  <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#bfdbfe' }}>
+                    <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1d4ed8' }}>📹 Live Video Attached</Text>
+                  </View>
+                )}
                 {Boolean(selectedBooking?.issue_media_url) && (
                   <Image source={{ uri: selectedBooking.issue_media_url }} style={styles.modalReportImg} />
                 )}
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.modalReportItem}>Provider Parts Cost: <Text style={styles.boldGreen}>{selectedBooking?.parts_charge ? `₹${selectedBooking.parts_charge}` : '—'}</Text></Text>
-                  <Text style={styles.modalReportItem}>Provider Labour Cost: <Text style={styles.boldGreen}>{selectedBooking?.labour_charge ? `₹${selectedBooking.labour_charge}` : '—'}</Text></Text>
+                  <Text style={styles.modalReportItem}>Provider: <Text style={styles.boldText}>{selectedBooking?.provider_name || 'Assigned Partner'}</Text></Text>
+                  <Text style={styles.modalReportItem}>Status: <Text style={styles.boldGreen}>{selectedBooking?.status}</Text></Text>
                 </View>
               </View>
             </View>

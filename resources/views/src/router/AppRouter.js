@@ -35,6 +35,7 @@ import ProviderAuthScreen from '../provider/screens/ProviderAuthScreen';
 import ProviderDashboardScreen from '../provider/screens/ProviderDashboardScreen';
 import ProviderJobDetailScreen from '../provider/screens/ProviderJobDetailScreen';
 import ProviderWorkOrdersScreen from '../provider/screens/ProviderWorkOrdersScreen';
+import ProviderEarningsScreen from '../provider/screens/ProviderEarningsScreen';
 import ProviderProfileScreen from '../provider/screens/ProviderProfileScreen';
 
 import AdminLoginScreen from '../admin/screens/AdminLoginScreen';
@@ -102,6 +103,7 @@ export default function AppRouter() {
           <Route path="dashboard" element={<ProviderProtected><ProviderDashboardScreen /></ProviderProtected>} />
           <Route path="bookings" element={<ProviderProtected><ProviderWorkOrdersScreen /></ProviderProtected>} />
           <Route path="bookings/:bookingId" element={<ProviderProtected><ProviderJobDetailScreen /></ProviderProtected>} />
+          <Route path="earnings" element={<ProviderProtected><ProviderEarningsScreen /></ProviderProtected>} />
           <Route path="profile" element={<ProviderProtected><ProviderProfileScreen /></ProviderProtected>} />
         </Route>
 

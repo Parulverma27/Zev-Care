@@ -30,10 +30,16 @@ export default function ProviderDashboardScreen({ onNavigate }) {
     BOOKING_COMPLETED: 'COMPLETED & SETTLED',
   };
 
+  const cleanPhone = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
+  const provIdStr = activeProvider?.id != null ? String(activeProvider.id) : '';
+  const provPhone = cleanPhone(activeProvider?.phone);
+  const provName = (activeProvider?.name || '').trim().toLowerCase();
+
   const myJobs = (bookings || []).filter((b) => {
     if (!activeProvider) return false;
-    if (b.provider_id != null && b.provider_id === activeProvider.id) return true;
-    if (b.provider_name && b.provider_name === activeProvider.name) return true;
+    if (provIdStr && b.provider_id != null && String(b.provider_id) === provIdStr) return true;
+    if (provPhone && b.provider_phone && cleanPhone(b.provider_phone) === provPhone) return true;
+    if (provName && b.provider_name && b.provider_name.trim().toLowerCase() === provName) return true;
     return false;
   });
   const activeJob = myJobs.find((b) => b.status !== 'BOOKING_COMPLETED') || myJobs[0];
