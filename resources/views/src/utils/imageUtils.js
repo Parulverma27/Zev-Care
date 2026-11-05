@@ -19,55 +19,28 @@ export const DEFAULT_BANNERS = [
   },
   {
     id: 2,
-    title: 'Unlimited Home Maintenance',
-    description: 'Subscribe to Gold Care Plan & get ₹5,00,000 Service Wallet Credit.',
+    title: 'Your Home. Our Responsibility.',
+    description: 'Trusted experts for every home service.',
     image_url: SERVICE_IMAGES.heroBanner2,
     type: 'hero',
     status: 'ACTIVE',
-    redirect_url: '/user/plans',
+    redirect_url: '/user/bookings/new',
   },
   {
     id: 3,
-    title: 'Trusted Professionals & Genuine Spares',
-    description: '100% background-verified technicians with 30 days warranty.',
+    title: 'Home Problems? Consider Them Solved.',
+    description: 'Professional home services, just one booking away.',
     image_url: SERVICE_IMAGES.heroBanner3,
     type: 'hero',
     status: 'ACTIVE',
-    redirect_url: '/user/bookings/new',
-  },
-  {
-    id: 4,
-    title: 'Deep House & Appliance Cleaning',
-    description: 'Book certified hygiene experts for kitchen, bath & AC servicing.',
-    image_url: SERVICE_IMAGES.heroBanner1,
-    type: 'hero',
-    status: 'ACTIVE',
-    redirect_url: '/user/bookings/new',
-  },
-  {
-    id: 5,
-    title: 'Smart Appliance & Property Verification',
-    description: 'Register appliances for digital invoice backup & instant 1-tap service.',
-    image_url: SERVICE_IMAGES.heroBanner2,
-    type: 'hero',
-    status: 'ACTIVE',
-    redirect_url: '/user/property-verification',
-  },
-  {
-    id: 6,
-    title: '24x7 Emergency Repair Dispatch',
-    description: 'Immediate response within 30 mins for electrical & plumbing breakdowns.',
-    image_url: SERVICE_IMAGES.heroBanner3,
-    type: 'hero',
-    status: 'ACTIVE',
-    redirect_url: '/user/bookings/new',
+    redirect_url: '/user/consultation',
   },
 ];
 
 export { CATEGORY_IMAGE_FALLBACKS, SERVICE_ITEM_IMAGE_KEYS as SERVICE_ITEM_IMAGE_FALLBACKS };
 
 export const BANNERS_VERSION_KEY = 'zevota_banners_version';
-export const BANNERS_VERSION = '11';
+export const BANNERS_VERSION = '14-design-pdf-clean';
 
 export function isStaleLocalImageUrl(url) {
   if (!url || typeof url !== 'string') return true;

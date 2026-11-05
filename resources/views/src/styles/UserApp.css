@@ -446,7 +446,7 @@
     min-height: 100% !important;
   }
 
-  #root, #root > div, #root > div > div {
+  #root, #root > div, #root > div > div:not([data-admin-root="true"]) {
     overflow: visible !important;
     height: auto !important;
     min-height: 100% !important;

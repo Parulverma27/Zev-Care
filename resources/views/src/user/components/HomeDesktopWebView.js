@@ -1,18 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { AppIcon } from '../../components/AppIcons';
-import { SERVICE_IMAGES } from '../../utils/bundledImages';
+import { SERVICE_IMAGES, COMPLAINT_CATEGORY_IMAGES } from '../../utils/bundledImages';
 import { resolveImageUri } from '../../utils/imageUtils';
 
 const banner1Uri = resolveImageUri(SERVICE_IMAGES.heroBanner1, '/assets/hero-banner-1.png');
 const banner2Uri = resolveImageUri(SERVICE_IMAGES.heroBanner2, '/assets/hero-banner-2.png');
 const banner3Uri = resolveImageUri(SERVICE_IMAGES.heroBanner3, '/assets/hero-banner-3.png');
-const homeHeaderBgUri = resolveImageUri(SERVICE_IMAGES.homeHeaderBg, '/assets/home-header-bg.jpg');
+const heroTechnicianUri = resolveImageUri(
+  COMPLAINT_CATEGORY_IMAGES.electrician,
+  '/assets/services/complaints/electrician-complaint.png'
+);
 const wordmarkUri = resolveImageUri(SERVICE_IMAGES.zevotaCareWordmark, '/assets/zevota-care-wordmark.png');
 
 const PROMO_SLIDES = [
-  { id: 1, image: banner1Uri, alt: 'Zevota Care Annual Maintenance Plans', target: '/user/plans' },
-  { id: 2, image: banner2Uri, alt: 'Specialist Home Maintenance & Repair', target: '/user/bookings/new' },
-  { id: 3, image: banner3Uri, alt: 'Verified Home Technicians & AMC', target: '/user/plans' },
+  {
+    id: 1,
+    image: banner1Uri,
+    alt: 'Home Problems? Consider Them Solved. Professional home services, just one booking away.',
+    ctaLabel: 'Explore Services',
+    target: '#explore-services-section',
+  },
+  {
+    id: 2,
+    image: banner2Uri,
+    alt: 'Your Home. Our Responsibility. Trusted experts for every home service.',
+    ctaLabel: 'Book a Service',
+    target: '/user/bookings/new',
+  },
+  {
+    id: 3,
+    image: banner3Uri,
+    alt: 'Reliable Experts. Happier Homes. Book professional services at your convenience.',
+    ctaLabel: 'Get Expert Help',
+    target: '/user/consultation',
+  },
 ];
 
 const EXPLORE_SERVICES = [
@@ -453,8 +474,8 @@ const AMC_CARDS = [
     icon: <Luxury3DWrenchIcon size={24} variant="blue" />,
     perks: [
       { id: 'c1', label: 'Instant Ticket Logging', icon: 'clock' },
-      { id: 'c2', label: 'Direct Technician Dispatch', icon: 'pin' },
-      { id: 'c3', label: '100% Quality Guaranteed', icon: 'check-circle' },
+      { id: 'c2', label: 'Direct Specialist Dispatch', icon: 'pin' },
+      { id: 'c3', label: 'Trusted Quality', icon: 'check-circle' },
     ],
   },
   {
@@ -537,38 +558,38 @@ const IconMiniCheck = ({ size = 11, color = '#2563eb' }) => (
 const TRUST_PILLARS = [
   {
     icon: (color) => <IconShieldCheck size={26} color={color} />,
-    badgeText: 'SAFETY FIRST',
-    title: 'Background-Checked',
-    desc: 'Certified and identity-verified home technicians equipped with proper tools for safe, reliable service.',
-    chipText: 'Verified Identity',
+    badgeText: 'CERTIFIED SPECIALISTS',
+    title: 'Certified Specialists',
+    desc: 'Certified and background-checked home specialists equipped with proper tools for a fast and reliable experience.',
+    chipText: 'Certified Specialists',
     accentColor: '#2563eb',
     bgColor: '#eff6ff',
     borderColor: '#bfdbfe',
   },
   {
     icon: (color) => <IconReceiptPercent size={26} color={color} />,
-    badgeText: 'HONEST RATES',
-    title: 'Upfront Fixed Pricing',
-    desc: 'Standardized rate cards with clear pricing quotes before work begins. Zero surprise or hidden fees.',
-    chipText: 'Clear Rate Cards',
+    badgeText: 'TRUSTED QUALITY',
+    title: 'Trusted Quality',
+    desc: 'Standardized rate cards, genuine parts, and clear upfront pricing quotes before work begins. Zero hidden fees.',
+    chipText: 'Trusted Quality',
     accentColor: '#059669',
     bgColor: '#ecfdf5',
     borderColor: '#a7f3d0',
   },
   {
     icon: (color) => <IconClockSpeed size={26} color={color} />,
-    badgeText: 'PROMPT SERVICE',
-    title: 'Scheduled Doorstep Arrival',
-    desc: 'Convenient appointment slots with live arrival updates and timely doorstep service by dedicated professionals.',
-    chipText: 'Scheduled Slots',
+    badgeText: 'FAST & RELIABLE',
+    title: 'Fast and Reliable',
+    desc: 'Convenient appointment slots with live booking status updates and timely doorstep service by certified specialists.',
+    chipText: 'Fast and Reliable',
     accentColor: '#4f46e5',
     bgColor: '#eef2ff',
     borderColor: '#c7d2fe',
   },
   {
     icon: (color) => <IconBadgeGuarantee size={26} color={color} />,
-    badgeText: 'GUARANTEE',
-    title: 'Post-Service Warranty',
+    badgeText: 'SERVICE GUARANTEE',
+    title: 'Fast and Reliable Experience',
     desc: 'Every completed repair is backed by our service warranty with free revisit and rework support if unsatisfied.',
     chipText: 'Service Warranty',
     accentColor: '#d97706',
@@ -622,16 +643,16 @@ export default function HomeDesktopWebView({
           <div style={heroLeftStyle}>
             <div style={eyebrowStyle}>
               <span style={eyebrowDotStyle} />
-              <span>YOUR HOME, OUR PRIORITY</span>
+              <span>WELCOME TO ZEVOTA CARE</span>
             </div>
 
             <h1 style={heroHeadlineStyle}>
-              Expert care for every <span style={{ color: '#0878f8' }}>corner of your home.</span>
+              Home Problems? <span style={{ color: '#0878f8' }}>Consider Them Solved.</span>
             </h1>
 
             <p style={heroSubtextStyle}>
-              Book trusted professionals for appliance repairs, home maintenance,
-              and comprehensive annual coverage — all in one place.
+              Professional home services, just one booking away. Trusted experts for every
+              home service — book professional services at your convenience.
             </p>
 
             {/* Live Search Input with Animated Placeholder Ticker (Smooth like in the app) */}
@@ -774,9 +795,29 @@ export default function HomeDesktopWebView({
                 type="button"
                 className="zc-desktop-btn-secondary"
                 style={secondaryCtaBtnStyle}
-                onClick={() => onNavigate('/user/plans')}
+                onClick={() => {
+                  const el = typeof document !== 'undefined' && document.getElementById('explore-services-section');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  } else {
+                    onNavigate('/user/categories');
+                  }
+                }}
               >
-                <span>Explore AMC Plans</span>
+                <span>Explore Services</span>
+              </button>
+              <button
+                type="button"
+                className="zc-desktop-btn-secondary"
+                style={{
+                  ...secondaryCtaBtnStyle,
+                  backgroundColor: '#eff6ff',
+                  borderColor: '#bfdbfe',
+                  borderStyle: 'solid',
+                }}
+                onClick={() => onNavigate('/user/consultation')}
+              >
+                <span>Get Expert Help</span>
               </button>
             </div>
 
@@ -784,33 +825,36 @@ export default function HomeDesktopWebView({
             <div style={trustBulletsRowStyle}>
               <span style={trustPillStyle}>
                 <AppIcon name="check" size={12} color="#059669" strokeWidth={3} />
-                <span>Verified Professionals</span>
+                <span>Certified Specialists</span>
               </span>
               <span style={trustPillStyle}>
                 <AppIcon name="check" size={12} color="#059669" strokeWidth={3} />
-                <span>Transparent Pricing</span>
+                <span>Fast and Reliable</span>
               </span>
               <span style={trustPillStyle}>
                 <AppIcon name="check" size={12} color="#059669" strokeWidth={3} />
-                <span>Fast Support</span>
+                <span>Trusted Quality</span>
               </span>
               <span style={trustPillBlueStyle}>
                 <AppIcon name="shield" size={12} color="#0878f8" strokeWidth={2.5} />
-                <span>₹0 Visit with AMC</span>
+                <span>Fast and Reliable Experience</span>
               </span>
             </div>
           </div>
 
-          {/* Right Column: Luxury Living Room Hero Graphic (Matches Brand App Identity) */}
+          {/* Right Column: Professional Technician Hero Card + Live Booking Status */}
           <div style={heroRightStyle}>
             <div style={heroArtCardStyle}>
               <img
-                src={homeHeaderBgUri || '/assets/home-header-bg.jpg'}
-                alt="Zevota Care - Your home, our priority"
-                style={heroArtImgStyle}
+                src={heroTechnicianUri || '/assets/services/complaints/electrician-complaint.png'}
+                alt="Zevota Care Certified Specialist"
+                style={{
+                  ...heroArtImgStyle,
+                  objectPosition: 'center top',
+                }}
                 onError={(e) => {
                   e.currentTarget.onerror = null;
-                  e.currentTarget.src = '/assets/home-header-bg.jpg';
+                  e.currentTarget.src = '/assets/services/complaints/electrician-complaint.png';
                 }}
               />
               <div style={heroArtOverlayStyle}>
@@ -831,34 +875,34 @@ export default function HomeDesktopWebView({
                   </span>
                 </div>
                 <div style={heroArtTitleStyle}>
-                  Your home,<br />
-                  <span style={{ color: '#ffffff' }}>our </span>
-                  <span style={{ color: '#fbbf24', textShadow: '0 2px 10px rgba(251, 191, 36, 0.45)' }}>priority.</span>
+                  Your Home.<br />
+                  <span style={{ color: '#ffffff' }}>Our </span>
+                  <span style={{ color: '#fbbf24', textShadow: '0 2px 10px rgba(251, 191, 36, 0.45)' }}>Responsibility.</span>
                 </div>
                 <div style={heroArtSubStyle}>
-                  Trusted home services & AMC for a worry-free tomorrow.
+                  Trusted experts for every home service.
                 </div>
               </div>
 
-              {/* Floating Rating Badge (Top Right) */}
+              {/* Floating Live Booking Status Card (Top Right) */}
               <div className="zc-floating-badge" style={heroFloatingBadgeTopStyle}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #fde68a' }}>
-                  <AppIcon name="star" size={15} color="#d97706" strokeWidth={2.5} />
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #a7f3d0' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 0 3px rgba(16, 185, 129, 0.25)' }} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0f172a', fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>4.9 / 5 Rating</div>
-                  <div style={{ fontSize: '10.5px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>50,000+ Happy Homes</div>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>Live Booking Status</div>
+                  <div style={{ fontSize: '10.5px', fontWeight: 600, color: '#059669', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>On The Way → Arrived → In Progress</div>
                 </div>
               </div>
 
-              {/* Floating Verified Experts Badge (Bottom Right) */}
+              {/* Floating Certified Specialists Badge (Bottom Right) */}
               <div className="zc-floating-badge" style={heroFloatingBadgeStyle}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #dbeafe' }}>
                   <AppIcon name="check" size={16} color="#0878f8" strokeWidth={3} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', fontFamily: "'Outfit', sans-serif" }}>Verified Experts</div>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Background Checked</div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', fontFamily: "'Outfit', sans-serif" }}>Certified Specialists</div>
+                  <div style={{ fontSize: '11px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Trusted Quality • Fast & Reliable</div>
                 </div>
               </div>
             </div>
@@ -882,7 +926,19 @@ export default function HomeDesktopWebView({
               <div
                 key={`${slide.id}-${idx}`}
                 className="zc-promo-banner-card"
-                style={promoCardStyle}
+                style={{ ...promoCardStyle, cursor: 'pointer' }}
+                onClick={() => {
+                  if (slide.target === '#explore-services-section') {
+                    const el = typeof document !== 'undefined' && document.getElementById('explore-services-section');
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      return;
+                    }
+                  }
+                  onNavigate(slide.target || '/user/bookings/new');
+                }}
+                role="button"
+                tabIndex={0}
               >
                 <img
                   src={slide.image || `/assets/hero-banner-${((slide.id - 1) % 3) + 1}.png`}
@@ -1719,7 +1775,7 @@ const promoTrackStyle = {
 const promoCardStyle = {
   flex: '0 0 calc(50% - 12px)',
   width: 'calc(50% - 12px)',
-  height: '318px',
+  aspectRatio: '1376 / 768',
   borderRadius: '22px',
   overflow: 'hidden',
   cursor: 'default',
@@ -1733,7 +1789,8 @@ const promoCardStyle = {
 const promoImgStyle = {
   width: '100%',
   height: '100%',
-  objectFit: 'cover',
+  objectFit: 'contain',
+  objectPosition: 'center',
   display: 'block',
 };
 

@@ -29,8 +29,8 @@ const SLIDE_CONFIGS = [
   {
     url: SERVICE_IMAGES.loginSlide3,
     bg: '#d8cdc5',
-    tag: 'VERIFIED SPECIALISTS',
-    caption: '100% Background-Checked Specialists',
+    tag: 'CERTIFIED SPECIALISTS',
+    caption: 'Certified Specialists for Every Home Service',
     sub: 'Reliable, trained specialists equipped with genuine parts & upfront pricing.',
   },
   {
@@ -1256,9 +1256,9 @@ export default function AuthScreen() {
               <TrustBadges
                 style={css.loginBadges}
                 items={[
-                  { icon: <SvgPerson />, lines: ['Skilled', 'Professionals'] },
-                  { icon: <SvgBadgeCheck />, lines: ['Quality', 'Service'] },
-                  { icon: <SvgShieldCheck />, lines: ['Safe &', 'Trusted'] },
+                  { icon: <SvgPerson />, lines: ['Certified', 'Specialists'] },
+                  { icon: <SvgBadgeCheck />, lines: ['Trusted', 'Quality'] },
+                  { icon: <SvgShieldCheck />, lines: ['Fast &', 'Reliable'] },
                 ]}
               />
             </>
@@ -1394,9 +1394,9 @@ export default function AuthScreen() {
               <TrustBadges
                 style={css.loginBadges}
                 items={[
-                  { icon: <SvgShieldCheck />, lines: ['Secure', 'account'] },
-                  { icon: <SvgBadgeCheck />, lines: ['Verified', 'professionals'] },
-                  { icon: <SvgStarIcon />, lines: ['Reliable', 'service'] },
+                  { icon: <SvgBadgeCheck />, lines: ['Certified', 'Specialists'] },
+                  { icon: <SvgShieldCheck />, lines: ['Trusted', 'Quality'] },
+                  { icon: <SvgStarIcon />, lines: ['Fast &', 'Reliable'] },
                 ]}
               />
             </>

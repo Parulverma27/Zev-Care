@@ -5,7 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { searchAllServices } from '../../config/serviceCatalogUtils';
 import HomeDesktopWebView from '../components/HomeDesktopWebView';
 import { resolveImageUri, DEFAULT_BANNERS } from '../../utils/imageUtils';
-import { SERVICE_IMAGES } from '../../utils/bundledImages';
+import { SERVICE_IMAGES, COMPLAINT_CATEGORY_IMAGES } from '../../utils/bundledImages';
 import { AppIcon } from '../../components/AppIcons';
 import ZevotaLogo from '../../components/ZevotaLogo';
 import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker';
@@ -16,7 +16,7 @@ const zevotaCareWordmark = require('../../../assets/zevota-care-wordmark.png');
 
 const TRUST_FEATURES = [
   {
-    label: 'Verified\nprofessionals',
+    label: 'Certified\nSpecialists',
     route: '/user/bookings/new',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -26,7 +26,7 @@ const TRUST_FEATURES = [
     ),
   },
   {
-    label: 'Transparent\nservice',
+    label: 'Trusted\nQuality',
     route: '/user/bookings/new',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -37,7 +37,7 @@ const TRUST_FEATURES = [
     ),
   },
   {
-    label: 'Secure\nbooking',
+    label: 'Fast &\nReliable',
     route: '/user/bookings',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -47,8 +47,8 @@ const TRUST_FEATURES = [
     ),
   },
   {
-    label: 'Service\nsupport',
-    route: '/user/support',
+    label: 'Get Expert\nHelp',
+    route: '/user/consultation',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
@@ -879,7 +879,7 @@ export default function HomeScreen({ onNavigate }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-      {/* Luxury Hero Header (Exact match to reference design) */}
+      {/* Luxury Hero Header (Clean & Minimal Mobile App Header) */}
       <View style={styles.luxuryHeroContainer}>
         <View style={styles.luxuryHeroCard}>
           <Image
@@ -930,12 +930,12 @@ export default function HomeScreen({ onNavigate }) {
 
           {/* Hero Headline & Subtitle */}
           <View style={styles.heroTextContent}>
-            <Text style={styles.heroHeadline}>Your home,</Text>
+            <Text style={styles.heroHeadline}>Your Home.</Text>
             <Text style={styles.heroHeadline}>
-              our <Text style={styles.heroHeadlineGold}>priority.</Text>
+              Our <Text style={styles.heroHeadlineGold}>Responsibility.</Text>
             </Text>
             <Text style={styles.heroSubHeadline}>
-              Trusted home services & AMC{'\n'}for a worry-free tomorrow.
+              Trusted experts for every home service.{'\n'}Fast and reliable experience.
             </Text>
           </View>
         </View>
@@ -1083,9 +1083,15 @@ export default function HomeScreen({ onNavigate }) {
                   return (
                     <div
                       key={banner.id || idx}
+                      onClick={() => {
+                        if (!isSwiping) {
+                          handleNav(banner?.redirect_url || '/user/bookings/new');
+                        }
+                      }}
                       style={{
                         ...heroBannerWebCss.slideItem,
                         width: `${100 / activeBannersList.length}%`,
+                        cursor: 'pointer',
                       }}
                     >
                       <img
@@ -1106,11 +1112,35 @@ export default function HomeScreen({ onNavigate }) {
               </div>
             </div>
           ) : (
-            <Image
-              source={{ uri: resolveImageUri(activeHeroBanner?.image_url, SERVICE_IMAGES.homeHeroBanner) }}
-              style={styles.heroBannerImage}
-              resizeMode="fill"
-            />
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => handleNav(activeHeroBanner?.redirect_url || '/user/bookings/new')}
+            >
+              <Image
+                source={{ uri: resolveImageUri(activeHeroBanner?.image_url, SERVICE_IMAGES.homeHeroBanner) }}
+                style={styles.heroBannerImage}
+                resizeMode="fill"
+              />
+            </TouchableOpacity>
+          )}
+
+          {activeBannersList.length > 1 && (
+            <>
+              <TouchableOpacity
+                style={[styles.mobileBannerArrowBtn, { left: 8 }]}
+                onPress={handlePrevSlide}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.mobileBannerArrowText}>‹</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.mobileBannerArrowBtn, { right: 8 }]}
+                onPress={handleNextSlide}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.mobileBannerArrowText}>›</Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
 
@@ -1432,7 +1462,7 @@ export default function HomeScreen({ onNavigate }) {
       </View>
 
       <View style={styles.trustBanner}>
-        <Text style={styles.trustTitle}>Trusted professionals for your home</Text>
+        <Text style={styles.trustTitle}>Your Home. Our Responsibility.</Text>
         <View style={styles.trustRow}>
           {TRUST_FEATURES.map((item) => (
             <TouchableOpacity
@@ -1622,16 +1652,16 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 26,
     overflow: 'hidden',
     position: 'relative',
-    minHeight: 178,
+    minHeight: 218,
     paddingTop: 16,
     paddingHorizontal: 16,
-    paddingBottom: 32,
-    backgroundColor: '#091836',
+    paddingBottom: 38,
+    backgroundColor: '#06112b',
     boxShadow: '0 12px 32px rgba(9, 24, 54, 0.28)',
   },
   luxuryHeroBgImage: {
     position: 'absolute',
-    top: 0,
+    top: 22,
     left: 0,
     right: 0,
     bottom: 0,
@@ -1640,7 +1670,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web'
       ? {
         objectFit: 'cover',
-        objectPosition: 'right center',
+        objectPosition: 'right 8px',
       }
       : {}),
   },
@@ -1654,7 +1684,7 @@ const styles = StyleSheet.create({
     height: '100%',
     ...(Platform.OS === 'web'
       ? {
-        background: 'linear-gradient(90deg, rgba(6, 17, 43, 0.96) 0%, rgba(6, 17, 43, 0.86) 44%, rgba(6, 17, 43, 0.38) 72%, rgba(6, 17, 43, 0.08) 100%)',
+        background: 'linear-gradient(180deg, rgba(6, 17, 43, 0.96) 0%, rgba(6, 17, 43, 0.58) 28%, rgba(6, 17, 43, 0) 52%), linear-gradient(90deg, rgba(6, 17, 43, 0.96) 0%, rgba(6, 17, 43, 0.85) 45%, rgba(6, 17, 43, 0.28) 70%, rgba(6, 17, 43, 0.05) 100%)',
       }
       : { backgroundColor: 'rgba(5, 16, 42, 0.75)' }),
   },
@@ -1664,7 +1694,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     zIndex: 10,
-    marginBottom: 12,
+    marginBottom: 20,
     gap: 8,
   },
   heroBrandWrap: {
@@ -1673,8 +1703,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   heroBrandWordmark: {
-    width: 90,
-    height: 30,
+    width: 86,
+    height: 28,
   },
   heroBrandZevota: {
     fontSize: 20,
@@ -1705,7 +1735,7 @@ const styles = StyleSheet.create({
   },
   heroGreetingSub: {
     fontSize: 10,
-    color: '#94a3b8',
+    color: '#cbd5e1',
     fontWeight: '500',
     lineHeight: 13,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
@@ -1749,33 +1779,174 @@ const styles = StyleSheet.create({
     borderColor: '#0A192F',
   },
   heroTextContent: {
-    width: '100%',
+    width: '58%',
+    maxWidth: 230,
     zIndex: 10,
     paddingLeft: 2,
-    marginBottom: 4,
+    marginTop: 6,
+    marginBottom: 6,
   },
   heroHeadline: {
-    fontSize: 20,
+    fontSize: 16.5,
     fontWeight: '800',
     color: '#ffffff',
-    lineHeight: 25,
+    lineHeight: 21,
     letterSpacing: -0.3,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroHeadlineGold: {
-    fontSize: 20,
+    fontSize: 16.5,
     fontWeight: '800',
     color: '#f6c453',
     fontStyle: 'italic',
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   heroSubHeadline: {
-    fontSize: 11,
-    lineHeight: 15.5,
+    fontSize: 10,
+    lineHeight: 14,
     color: '#cbd5e1',
     fontWeight: '400',
     marginTop: 5,
     fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  mobileHeroEyebrowPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    backgroundColor: 'rgba(37, 99, 235, 0.28)',
+    borderWidth: 1,
+    borderColor: 'rgba(147, 197, 253, 0.45)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3.5,
+    marginBottom: 8,
+    zIndex: 10,
+  },
+  mobileHeroLiveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#22c55e',
+  },
+  mobileHeroEyebrowText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#93c5fd',
+    letterSpacing: 0.7,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  mobileLiveStatusRow: {
+    flexDirection: 'column',
+    gap: 5,
+    marginTop: 6,
+    marginBottom: 8,
+    zIndex: 10,
+  },
+  mobileLiveStatusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  mobileLiveStatusText: {
+    fontSize: 9.5,
+    fontWeight: '600',
+    color: '#f8fafc',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  mobileSpecialistBadgePill: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(16, 185, 129, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(52, 211, 153, 0.4)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  mobileSpecialistBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#a7f3d0',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  mobileHeroCtaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 7,
+    marginTop: 4,
+    marginBottom: 8,
+    zIndex: 10,
+  },
+  mobileCtaPrimaryBtn: {
+    backgroundColor: '#2563eb',
+    borderRadius: 999,
+    paddingHorizontal: 13,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: '#60a5fa',
+  },
+  mobileCtaPrimaryText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '800',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  mobileCtaSecondaryBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+  },
+  mobileCtaSecondaryText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '700',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  mobileCtaTertiaryBtn: {
+    backgroundColor: 'rgba(16, 185, 129, 0.22)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: 'rgba(52, 211, 153, 0.5)',
+  },
+  mobileCtaTertiaryText: {
+    color: '#ecfdf5',
+    fontSize: 11,
+    fontWeight: '700',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  mobileBannerArrowBtn: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -11,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(15, 23, 42, 0.38)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 25,
+  },
+  mobileBannerArrowText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '700',
+    lineHeight: 17,
+    marginTop: -1,
   },
   floatingSearchWrapper: {
     position: 'absolute',
@@ -1936,17 +2107,19 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     width: '100%',
-    height: 152,
+    ...(Platform.OS === 'web' ? { aspectRatio: '1376 / 768' } : { height: 190 }),
     borderRadius: 14,
     overflow: 'hidden',
     alignSelf: 'center',
     position: 'relative',
+    backgroundColor: '#03102e',
   },
   heroBannerImage: {
     width: '100%',
-    height: 152,
+    ...(Platform.OS === 'web'
+      ? { height: '100%', objectFit: 'contain', objectPosition: 'center' }
+      : { height: 190 }),
     display: 'block',
-    ...(Platform.OS === 'web' ? { objectFit: 'fill', objectPosition: 'center' } : {}),
   },
   heroDotsContainer: {
     position: 'absolute',
@@ -2687,10 +2860,10 @@ const heroBannerWebCss = {
   slidesWrapper: {
     position: 'relative',
     width: '100%',
-    height: '152px',
+    aspectRatio: '1376 / 768',
     borderRadius: '14px',
     overflow: 'hidden',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#03102e',
     cursor: 'default',
     userSelect: 'none',
     touchAction: 'pan-y',
@@ -2698,13 +2871,13 @@ const heroBannerWebCss = {
   sliderTrack: {
     display: 'flex',
     flexDirection: 'row',
-    height: '152px',
+    height: '100%',
     transition: 'transform 500ms cubic-bezier(0.25, 1, 0.5, 1)',
     willChange: 'transform',
     userSelect: 'none',
   },
   slideItem: {
-    height: '152px',
+    height: '100%',
     flexShrink: 0,
     borderRadius: '14px',
     overflow: 'hidden',
@@ -2712,8 +2885,9 @@ const heroBannerWebCss = {
   },
   slideImage: {
     width: '100%',
-    height: '152px',
-    objectFit: 'fill',
+    height: '100%',
+    objectFit: 'contain',
+    objectPosition: 'center',
     display: 'block',
     borderRadius: '14px',
     userSelect: 'none',

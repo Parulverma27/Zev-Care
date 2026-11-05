@@ -17,7 +17,10 @@ import {
   UserServicesIcon,
   LogoutIcon,
   BellIcon,
-  SearchIcon,
+  SubAdminsIcon,
+  ServiceAreasIcon,
+  AmcPlansIcon,
+  TrophyIcon,
 } from './components/AdminIcons';
 
 export default function AdminPanelLayout() {
@@ -28,27 +31,56 @@ export default function AdminPanelLayout() {
 
   const isSubAdmin = adminUser?.role === 'SUB_ADMIN';
 
-  const allMenuItems = [
-    { path: '/admin/dashboard', icon: DashboardIcon, label: 'Dashboard & Analytics' },
-    { path: '/admin/subadmins', icon: UsersIcon, label: 'Sub-Admin Managers', superAdminOnly: true },
-    { path: '/admin/bookings', icon: BookingsIcon, label: 'Work Orders & Bookings' },
-    { path: '/admin/consultations', icon: ConsultationsIcon, label: 'My Mechanic (₹0 Diagnosis)' },
-    { path: '/admin/ratings', icon: RatingsIcon, label: 'Ratings & Reviews' },
-    { path: '/admin/user-services', icon: UserServicesIcon, label: 'User Service Payments' },
-    { path: '/admin/users', icon: UsersIcon, label: 'Customers & Users' },
-    { path: '/admin/providers', icon: ProvidersIcon, label: 'Field Partners' },
-    { path: '/admin/categories', icon: CategoriesIcon, label: 'Category Catalog' },
-    { path: '/admin/service-areas', icon: CategoriesIcon, label: 'Service Coverage Zones' },
-    { path: '/admin/finance', icon: FinanceIcon, label: 'Wallet Audit Logs' },
-    { path: '/admin/plans', icon: FinanceIcon, label: 'Subscription Plans' },
-    { path: '/admin/banners', icon: BannersIcon, label: 'Marketing Banners' },
-    { path: '/admin/chat', icon: ChatIcon, label: 'Live Support Console' },
+  const menuGroups = [
+    {
+      section: 'OVERVIEW',
+      items: [
+        { path: '/admin/dashboard', icon: DashboardIcon, label: 'Dashboard' },
+      ],
+    },
+    {
+      section: 'ORDERS & DISPATCH',
+      items: [
+        { path: '/admin/bookings', icon: BookingsIcon, label: 'Service Bookings' },
+        { path: '/admin/consultations', icon: ConsultationsIcon, label: 'My Mechanic Orders' },
+        { path: '/admin/ratings', icon: RatingsIcon, label: 'Ratings & Reviews' },
+        { path: '/admin/chat', icon: ChatIcon, label: 'Customer Support & Chat' },
+      ],
+    },
+    {
+      section: 'PEOPLE & ACCESS',
+      items: [
+        { path: '/admin/users', icon: UsersIcon, label: 'Customers & Properties' },
+        { path: '/admin/providers', icon: ProvidersIcon, label: 'Service Providers' },
+        { path: '/admin/subadmins', icon: SubAdminsIcon, label: 'Category Sub-Admins', superAdminOnly: true },
+      ],
+    },
+    {
+      section: 'CATALOG & PLANS',
+      items: [
+        { path: '/admin/categories', icon: CategoriesIcon, label: 'Services & Categories' },
+        { path: '/admin/plans', icon: AmcPlansIcon, label: 'AMC Plans' },
+        { path: '/admin/service-areas', icon: ServiceAreasIcon, label: 'Serviceable Areas & Pincodes' },
+      ],
+    },
+    {
+      section: 'FINANCE & MARKETING',
+      items: [
+        { path: '/admin/user-services', icon: UserServicesIcon, label: 'Customer Billing & Spend' },
+        { path: '/admin/finance', icon: FinanceIcon, label: 'Wallet Transactions' },
+        { path: '/admin/banners', icon: BannersIcon, label: 'App Banners & Offers' },
+      ],
+    },
   ];
 
-  const menuItems = allMenuItems.filter((item) => {
-    if (item.superAdminOnly && isSubAdmin) return false;
-    return true;
-  });
+  const allMenuItems = menuGroups.flatMap((g) => g.items);
+
+  const visibleGroups = menuGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !(item.superAdminOnly && isSubAdmin)),
+    }))
+    .filter((group) => group.items.length > 0);
 
   const isAuthPage = location.pathname.includes('/login');
 
@@ -86,11 +118,11 @@ export default function AdminPanelLayout() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} dataSet={{ adminRoot: 'true' }}>
       {!isAuthPage ? (
-        <View style={styles.bodyRow}>
-          {/* Executive Light Sidebar */}
-          <View style={styles.sidebar}>
+        <View style={styles.bodyRow} dataSet={{ adminBody: 'true' }}>
+          {/* Executive Light Sidebar (Fixed / Non-scrolling with main content) */}
+          <View style={styles.sidebar} dataSet={{ adminSidebar: 'true' }}>
             <View style={styles.sidebarHeader}>
               <TouchableOpacity onPress={() => navigate('/admin/dashboard')} style={styles.logoBtn}>
                 <ZevotaLogo size="small" />
@@ -104,24 +136,29 @@ export default function AdminPanelLayout() {
             </View>
 
             <ScrollView style={styles.menuList} showsVerticalScrollIndicator={false}>
-              {menuItems.map((item) => {
-                const isActive =
-                  location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
-                const IconComponent = item.icon;
-                return (
-                  <TouchableOpacity
-                    key={item.path}
-                    style={[styles.menuItem, isActive && styles.activeMenuItem]}
-                    onPress={() => navigate(item.path)}
-                  >
-                    <IconComponent color={isActive ? '#2563eb' : '#64748b'} size={18} />
-                    <Text style={[styles.menuLabel, isActive && styles.activeMenuLabel]}>
-                      {item.label}
-                    </Text>
-                    {isActive && <View style={styles.activeIndicator} />}
-                  </TouchableOpacity>
-                );
-              })}
+              {visibleGroups.map((group, gIdx) => (
+                <View key={group.section} style={[styles.menuGroup, gIdx > 0 && styles.menuGroupSpaced]}>
+                  <Text style={styles.menuSectionLabel}>{group.section}</Text>
+                  {group.items.map((item) => {
+                    const isActive =
+                      location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+                    const IconComponent = item.icon;
+                    return (
+                      <TouchableOpacity
+                        key={item.path}
+                        style={[styles.menuItem, isActive && styles.activeMenuItem]}
+                        onPress={() => navigate(item.path)}
+                      >
+                        <IconComponent color={isActive ? '#2563eb' : '#64748b'} size={18} />
+                        <Text style={[styles.menuLabel, isActive && styles.activeMenuLabel]} numberOfLines={1}>
+                          {item.label}
+                        </Text>
+                        {isActive && <View style={styles.activeIndicator} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              ))}
             </ScrollView>
 
             {/* Admin Profile & Logout Bar */}
@@ -148,7 +185,7 @@ export default function AdminPanelLayout() {
           </View>
 
           {/* Main Content Area */}
-          <View style={styles.mainContent}>
+          <View style={styles.mainContent} dataSet={{ adminMain: 'true' }}>
             {/* Executive Light Header Bar */}
             <View style={styles.topHeaderBar}>
               <View style={styles.headerLeftCol}>
@@ -160,8 +197,9 @@ export default function AdminPanelLayout() {
                 <View style={{ position: 'relative' }}>
                   {isSubAdmin ? (
                     <View style={styles.activeSubAdminHeaderBadge}>
+                      <SubAdminsIcon color="#b45309" size={14} />
                       <Text style={styles.activeSubAdminBadgeText}>
-                        📁 {adminUser?.name} ({(adminUser?.assigned_categories || []).join(', ')})
+                        {adminUser?.name} ({(adminUser?.assigned_categories || []).join(', ')})
                       </Text>
                       <TouchableOpacity
                         style={styles.switchBackSuperAdminBtn}
@@ -175,9 +213,12 @@ export default function AdminPanelLayout() {
                       style={styles.roleSwitcherBtn}
                       onPress={() => setShowRoleSwitcher((p) => !p)}
                     >
-                      <Text style={styles.roleSwitcherBtnText}>
-                        👑 Super Admin (All Categories) ▾
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <TrophyIcon color="#2563eb" size={14} />
+                        <Text style={styles.roleSwitcherBtnText}>
+                          Super Admin (All Categories) ▾
+                        </Text>
+                      </View>
                     </TouchableOpacity>
                   )}
 
@@ -206,7 +247,7 @@ export default function AdminPanelLayout() {
                           navigate('/admin/subadmins');
                         }}
                       >
-                        <Text style={styles.roleDropdownManageText}>⚙ Manage All Sub-Admins</Text>
+                        <Text style={styles.roleDropdownManageText}>Manage All Sub-Admins →</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -222,7 +263,9 @@ export default function AdminPanelLayout() {
               </View>
             </View>
 
-            <Outlet />
+            <View style={styles.outletScrollArea} dataSet={{ adminOutlet: 'true' }}>
+              <Outlet />
+            </View>
           </View>
         </View>
       ) : (
@@ -235,10 +278,13 @@ export default function AdminPanelLayout() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  bodyRow: { flex: 1, flexDirection: 'row' },
+  container: { flex: 1, height: '100vh', maxHeight: '100vh', overflow: 'hidden', backgroundColor: '#f8fafc' },
+  bodyRow: { flex: 1, flexDirection: 'row', height: '100vh', maxHeight: '100vh', overflow: 'hidden' },
   sidebar: {
-    width: 250,
+    width: 264,
+    height: '100vh',
+    maxHeight: '100vh',
+    flexShrink: 0,
     backgroundColor: '#ffffff',
     borderRightWidth: 1,
     borderRightColor: '#e2e8f0',
@@ -247,24 +293,36 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 10,
     zIndex: 10,
+    overflow: 'hidden',
   },
-  sidebarHeader: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', gap: 6 },
+  sidebarHeader: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', gap: 6, flexShrink: 0 },
   logoBtn: { marginBottom: 4 },
   sidebarTitle: { color: '#0f172a', fontWeight: '800', fontSize: 15 },
   sidebarSub: { color: '#64748b', fontSize: 11 },
 
-  menuList: { padding: 10, gap: 4 },
+  menuList: { flex: 1, minHeight: 0, paddingHorizontal: 10, paddingVertical: 8 },
+  menuGroup: { gap: 2 },
+  menuGroupSpaced: { marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
+  menuSectionLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94a3b8',
+    letterSpacing: 0.7,
+    paddingHorizontal: 12,
+    paddingBottom: 4,
+    textTransform: 'uppercase',
+  },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderRadius: 10,
-    gap: 12,
+    gap: 11,
     position: 'relative',
   },
   activeMenuItem: { backgroundColor: '#eff6ff' },
-  menuLabel: { color: '#64748b', fontSize: 13, fontWeight: '600' },
+  menuLabel: { color: '#475569', fontSize: 13, fontWeight: '600', flex: 1 },
   activeMenuLabel: { color: '#1d4ed8', fontWeight: '700' },
   activeIndicator: {
     position: 'absolute',
@@ -285,6 +343,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#f1f5f9',
     backgroundColor: '#f8fafc',
     gap: 10,
+    flexShrink: 0,
   },
   adminAvatarBox: {
     width: 34,
@@ -308,7 +367,8 @@ const styles = StyleSheet.create({
     borderColor: '#fca5a5',
   },
 
-  mainContent: { flex: 1, backgroundColor: '#f8fafc' },
+  mainContent: { flex: 1, minWidth: 0, height: '100vh', maxHeight: '100vh', overflow: 'hidden', backgroundColor: '#f8fafc' },
+  outletScrollArea: { flex: 1, minHeight: 0, overflow: 'hidden' },
   topHeaderBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -318,6 +378,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
+    flexShrink: 0,
+    zIndex: 20,
   },
   headerLeftCol: { gap: 2 },
   headerPageTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a' },

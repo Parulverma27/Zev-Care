@@ -73,9 +73,10 @@ function loadBannersFromStorage() {
       if (Array.isArray(parsed) && parsed.length > 0) {
         return parsed.map((b) => {
           const fallback = DEFAULT_BANNERS.find((d) => d.id === b.id)?.image_url || DEFAULT_BANNERS[0].image_url;
+          const isBundledHeroAsset = typeof b.image_url === 'string' && b.image_url.includes('hero-banner-');
           return {
             ...b,
-            image_url: isStaleLocalImageUrl(b.image_url) ? fallback : (b.image_url || fallback),
+            image_url: (isStaleLocalImageUrl(b.image_url) || isBundledHeroAsset) ? fallback : (b.image_url || fallback),
           };
         });
       }

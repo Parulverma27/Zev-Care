@@ -36,11 +36,11 @@ export default function AdminDashboardScreen({ onNavigate }) {
   const consultationBookings = (bookings || []).filter((b) => isConsultation(b));
 
   const stats = [
-    { title: 'Total Registered Users', val: (users || []).length, color: '#2563eb', bg: '#eff6ff', icon: UsersIcon, path: '/admin/users' },
-    { title: 'Approved Partners', val: (providers || []).length, color: '#059669', bg: '#ecfdf5', icon: ProvidersIcon, path: '/admin/providers' },
-    { title: 'Work Orders & Bookings', val: regularBookings.length, color: '#7c3aed', bg: '#f5f3ff', icon: BookingsIcon, path: '/admin/bookings' },
-    { title: 'My Mechanic (₹0 Visits)', val: consultationBookings.length, color: '#0284c7', bg: '#f0f9ff', icon: BookingsIcon, path: '/admin/consultations' },
-    { title: 'Total Platform Revenue', val: `₹${getPlatformRevenue().toLocaleString('en-IN')}`, color: '#d97706', bg: '#fffbe6', icon: FinanceIcon, path: '/admin/finance' },
+    { title: 'Customers & Properties', val: (users || []).length, color: '#2563eb', bg: '#eff6ff', icon: UsersIcon, path: '/admin/users' },
+    { title: 'Service Providers', val: (providers || []).length, color: '#059669', bg: '#ecfdf5', icon: ProvidersIcon, path: '/admin/providers' },
+    { title: 'Service Bookings', val: regularBookings.length, color: '#7c3aed', bg: '#f5f3ff', icon: BookingsIcon, path: '/admin/bookings' },
+    { title: 'My Mechanic Orders', val: consultationBookings.length, color: '#0284c7', bg: '#f0f9ff', icon: BookingsIcon, path: '/admin/consultations' },
+    { title: 'Wallet Transactions', val: `₹${getPlatformRevenue().toLocaleString('en-IN')}`, color: '#d97706', bg: '#fffbe6', icon: FinanceIcon, path: '/admin/finance' },
   ];
 
   const reportedBookings = (bookings || []).filter((b) => b.status === 'ASSIGNED_TO_ADMIN' || b.inspection_report);
@@ -175,11 +175,16 @@ export default function AdminDashboardScreen({ onNavigate }) {
                 <ClockIcon color="#2563eb" size={18} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.alertTitle}>New Booking Request: {b.booking_id}</Text>
-                <Text style={styles.alertText}>Awaiting admin review and partner assignment for {b.service_name}.</Text>
+                <Text style={styles.alertTitle}>
+                  New {isConsultation(b) ? 'My Mechanic' : 'Service'} Request: {b.booking_id}
+                </Text>
+                <Text style={styles.alertText}>Awaiting admin review and provider assignment for {b.service_name}.</Text>
               </View>
-              <TouchableOpacity style={[styles.alertActionBtn, { backgroundColor: '#2563eb' }]} onPress={() => handleNav('/admin/bookings')}>
-                <Text style={styles.alertActionBtnText}>Assign Partner</Text>
+              <TouchableOpacity
+                style={[styles.alertActionBtn, { backgroundColor: '#2563eb' }]}
+                onPress={() => handleNav(isConsultation(b) ? '/admin/consultations' : '/admin/bookings')}
+              >
+                <Text style={styles.alertActionBtnText}>Assign Provider</Text>
               </TouchableOpacity>
             </View>
           ))}

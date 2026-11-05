@@ -346,7 +346,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
             </View>
             <View style={styles.trustPill}>
               <Text style={styles.trustPillDot}>✓</Text>
-              <Text style={styles.trustPillText}>Verified Technicians</Text>
+              <Text style={styles.trustPillText}>Certified Specialists</Text>
             </View>
             <View style={styles.trustPill}>
               <Text style={styles.trustPillDot}>✓</Text>

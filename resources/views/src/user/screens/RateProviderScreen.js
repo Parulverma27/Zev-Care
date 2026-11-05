@@ -448,7 +448,7 @@ export default function RateProviderScreen() {
                 <Text style={styles.providerHeroName}>{providerName}</Text>
                 <View style={styles.verifiedProPill}>
                   <AppIcon name="check" size={10} color="#059669" />
-                  <Text style={styles.verifiedProText}>Verified Pro</Text>
+                  <Text style={styles.verifiedProText}>Certified Specialist</Text>
                 </View>
               </View>
               <Text style={styles.providerHeroTrade}>{providerTrade}</Text>
