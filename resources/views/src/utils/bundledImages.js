@@ -120,6 +120,7 @@ export const SERVICE_IMAGES = {
   heroBanner2: getImageUrl(require('../../assets/hero-banner-2.png')),
   heroBanner3: getImageUrl(require('../../assets/hero-banner-3.png')),
   footerBanner: getImageUrl(require('../../assets/services/footer-banner.jpg')),
+  trustBannerBg: getImageUrl(require('../../assets/trust-banner-bg.jpg')),
   myAppliancesHero: getImageUrl(require('../../assets/my-appliances-hero.jpg')),
   homeHeaderBg: getImageUrl(require('../../assets/home-header-bg.jpg')),
   amcPlanBg: getImageUrl(require('../../assets/amc-plan-card-bg.jpg')),

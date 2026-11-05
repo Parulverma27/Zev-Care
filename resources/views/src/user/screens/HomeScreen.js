@@ -182,204 +182,63 @@ function Luxury3DMechanicIcon({ size = 19, variant = 'teal' }) {
 const AMC_HOME_ACTIONS = [
   {
     key: 'plans',
-    badge: 'EXCLUSIVE PASS',
-    badgeIcon: (
-      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-      </svg>
-    ),
     title: 'My AMC Plan',
     tagline: 'Annual Maintenance Pass',
-    subtitle: 'Protect your home with comprehensive annual maintenance.',
     actionLabel: 'Explore Plans',
     route: '/user/my-amc',
-    theme: 'frosted-sapphire',
-    glowOrb1: 'radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, rgba(96, 165, 250, 0.3) 55%, transparent 75%)',
-    glowOrb2: 'radial-gradient(circle, rgba(147, 197, 253, 0.65) 0%, rgba(59, 130, 246, 0.25) 55%, transparent 75%)',
-    cardBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(240, 246, 255, 0.52) 50%, rgba(224, 242, 254, 0.38) 100%)',
-    borderColor: 'rgba(255, 255, 255, 0.95)',
-    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 1px 0 rgba(37, 99, 235, 0.08), 0 12px 30px -4px rgba(37, 99, 235, 0.16), 0 2px 6px rgba(15, 23, 42, 0.03)',
-    topSheen: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.95) 30%, rgba(255, 255, 255, 0.95) 70%, transparent 100%)',
+    cardBg: 'linear-gradient(145deg, #ffffff 0%, #f8fbff 100%)',
+    borderColor: '#ffffff',
+    boxShadow: '0 12px 26px rgba(15, 23, 42, 0.11), 0 4px 10px rgba(37, 99, 235, 0.1)',
     taglineColor: '#2563eb',
-    iconBg: 'rgba(255, 255, 255, 0.94)',
-    iconBorder: '1.5px solid #ffffff',
+    iconBg: '#f0f7ff',
+    iconBorder: '1.2px solid #dbeafe',
     titleColor: '#0f172a',
-    subColor: '#475569',
-    badgeBg: 'rgba(255, 255, 255, 0.9)',
-    badgeBorder: 'rgba(191, 219, 254, 0.9)',
-    badgeColor: '#1d4ed8',
-    perkBg: 'rgba(255, 255, 255, 0.75)',
-    perkBorder: 'rgba(255, 255, 255, 0.95)',
-    perkColor: '#1e40af',
     pillBtnBg: '#ffffff',
-    pillBtnBorder: 'rgba(191, 219, 254, 0.95)',
+    pillBtnBorder: '#bfdbfe',
     pillBtnColor: '#1d4ed8',
     pillArrowBg: '#eff6ff',
     pillArrowColor: '#1d4ed8',
-    icon: <Luxury3DShieldIcon size={21} />,
-    perks: [
-      {
-        label: '2-Hr Priority',
-        icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-          </svg>
-        ),
-      },
-      {
-        label: '₹0 Labour Fee',
-        icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Free Inspections',
-        icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-          </svg>
-        ),
-      },
-    ],
+    icon: <Luxury3DShieldIcon size={20} />,
   },
   {
     key: 'complaints',
-    badge: 'PRIORITY SUPPORT',
-    badgeIcon: (
-      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
     title: 'AMC Complaints',
     tagline: 'Express Priority Support',
-    subtitle: 'Raise any appliance or home issue with instant technician dispatch.',
     actionLabel: 'Raise Issue',
     route: '/user/complains',
-    theme: 'frosted-sapphire',
-    glowOrb1: 'radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, rgba(96, 165, 250, 0.3) 55%, transparent 75%)',
-    glowOrb2: 'radial-gradient(circle, rgba(147, 197, 253, 0.65) 0%, rgba(59, 130, 246, 0.25) 55%, transparent 75%)',
-    cardBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(240, 246, 255, 0.52) 50%, rgba(224, 242, 254, 0.38) 100%)',
-    borderColor: 'rgba(255, 255, 255, 0.95)',
-    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 1px 0 rgba(37, 99, 235, 0.08), 0 12px 30px -4px rgba(37, 99, 235, 0.16), 0 2px 6px rgba(15, 23, 42, 0.03)',
-    topSheen: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.95) 30%, rgba(255, 255, 255, 0.95) 70%, transparent 100%)',
+    cardBg: 'linear-gradient(145deg, #ffffff 0%, #f8fbff 100%)',
+    borderColor: '#ffffff',
+    boxShadow: '0 12px 26px rgba(15, 23, 42, 0.11), 0 4px 10px rgba(37, 99, 235, 0.1)',
     taglineColor: '#2563eb',
-    iconBg: 'rgba(255, 255, 255, 0.94)',
-    iconBorder: '1.5px solid #ffffff',
+    iconBg: '#f0f7ff',
+    iconBorder: '1.2px solid #dbeafe',
     titleColor: '#0f172a',
-    subColor: '#475569',
-    badgeBg: 'rgba(255, 255, 255, 0.9)',
-    badgeBorder: 'rgba(191, 219, 254, 0.9)',
-    badgeColor: '#1d4ed8',
-    perkBg: 'rgba(255, 255, 255, 0.75)',
-    perkBorder: 'rgba(255, 255, 255, 0.95)',
-    perkColor: '#1e40af',
     pillBtnBg: '#ffffff',
-    pillBtnBorder: 'rgba(191, 219, 254, 0.95)',
+    pillBtnBorder: '#bfdbfe',
     pillBtnColor: '#1d4ed8',
     pillArrowBg: '#eff6ff',
     pillArrowColor: '#1d4ed8',
-    icon: <Luxury3DWrenchIcon size={20} variant="blue" />,
-    perks: [
-      {
-        label: 'Instant Ticket',
-        icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Direct Tech Dispatch',
-        icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Live Tracking',
-        icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-        ),
-      },
-    ],
+    icon: <Luxury3DWrenchIcon size={19} variant="blue" />,
   },
   {
     key: 'mechanic',
-    badge: '₹0 FREE VISIT',
-    badgeIcon: (
-      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
-        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-        <line x1="7" y1="7" x2="7.01" y2="7" />
-      </svg>
-    ),
     title: 'My Mechanic',
-    tagline: 'Doorstep Inspection & Quote',
-    subtitle: 'Free on-site diagnosis & inspection for home appliances.',
+    tagline: 'Free Doorstep Diagnosis',
     actionLabel: 'Book Free',
     route: '/user/consultation',
-    theme: 'frosted-emerald',
-    glowOrb1: 'radial-gradient(circle, rgba(16, 185, 129, 0.52) 0%, rgba(52, 211, 153, 0.28) 55%, transparent 75%)',
-    glowOrb2: 'radial-gradient(circle, rgba(167, 243, 208, 0.65) 0%, rgba(16, 185, 129, 0.22) 55%, transparent 75%)',
-    cardBg: 'linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(240, 253, 250, 0.52) 50%, rgba(204, 251, 241, 0.38) 100%)',
-    borderColor: 'rgba(255, 255, 255, 0.95)',
-    boxShadow: 'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 1px 0 rgba(16, 185, 129, 0.08), 0 12px 30px -4px rgba(16, 185, 129, 0.16), 0 2px 6px rgba(15, 23, 42, 0.03)',
-    topSheen: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.95) 30%, rgba(255, 255, 255, 0.95) 70%, transparent 100%)',
+    cardBg: 'linear-gradient(135deg, #ffffff 0%, #f4fdf9 100%)',
+    borderColor: '#ffffff',
+    boxShadow: '0 12px 26px rgba(15, 23, 42, 0.11), 0 4px 10px rgba(16, 185, 129, 0.1)',
     taglineColor: '#059669',
-    iconBg: 'rgba(255, 255, 255, 0.94)',
-    iconBorder: '1.5px solid #ffffff',
+    iconBg: '#ecfdf5',
+    iconBorder: '1.2px solid #bbf7d0',
     titleColor: '#0f172a',
-    subColor: '#475569',
-    badgeBg: 'rgba(255, 255, 255, 0.9)',
-    badgeBorder: 'rgba(167, 243, 208, 0.9)',
-    badgeColor: '#065f46',
-    perkBg: 'rgba(255, 255, 255, 0.75)',
-    perkBorder: 'rgba(255, 255, 255, 0.95)',
-    perkColor: '#065f46',
     pillBtnBg: '#ffffff',
-    pillBtnBorder: 'rgba(167, 243, 208, 0.95)',
+    pillBtnBorder: '#a7f3d0',
     pillBtnColor: '#047857',
     pillArrowBg: '#ecfdf5',
     pillArrowColor: '#047857',
-    icon: <Luxury3DMechanicIcon size={22} variant="teal" />,
-    perks: [
-      {
-        label: 'Zero Inspection Fee',
-        icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Doorstep Checkup',
-        icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Upfront Quote',
-        icon: (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg>
-        ),
-      },
-    ],
+    icon: <Luxury3DMechanicIcon size={21} variant="teal" />,
   },
 ];
 
@@ -389,13 +248,22 @@ const ALL_SERVICES_SLIDESHOW = [
     name: 'AC',
     category: 'AC Services',
     icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="5" width="20" height="9" rx="2" />
-        <line x1="6" y1="10" x2="18" y2="10" />
-        <circle cx="18" cy="7.5" r="0.75" fill="#2563eb" />
-        <path d="M5 17c1 1 2 1 3 0" />
-        <path d="M10.5 17c1 1 2 1 3 0" />
-        <path d="M16 17c1 1 2 1 3 0" />
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        {/* Main 3D AC Body */}
+        <rect x="2.5" y="5" width="27" height="13" rx="3.5" fill="#f8fafc" stroke="#334155" strokeWidth="1.6" />
+        {/* Bottom 3D bevel */}
+        <path d="M4 14.5h24a1.5 1.5 0 0 1 1 2.5H3a1.5 1.5 0 0 1 1-2.5z" fill="#e2e8f0" />
+        {/* Blue brand accent strip */}
+        <line x1="5" y1="12" x2="27" y2="12" stroke="#2563eb" strokeWidth="1.6" strokeLinecap="round" />
+        {/* Dark air louver slot */}
+        <rect x="6" y="15" width="20" height="1.8" rx="0.9" fill="#1e293b" />
+        {/* LED temp display */}
+        <rect x="21" y="7.5" width="5.5" height="2.8" rx="1.2" fill="#0f172a" />
+        <circle cx="24.8" cy="8.9" r="0.8" fill="#10b981" />
+        {/* Cool 3D airflow waves */}
+        <path d="M9 21c0 2-1.8 3-1.8 5" stroke="#0284c7" strokeWidth="2" strokeLinecap="round" />
+        <path d="M16 21v5.5" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" />
+        <path d="M23 21c0 2 1.8 3 1.8 5" stroke="#0284c7" strokeWidth="2" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -404,12 +272,23 @@ const ALL_SERVICES_SLIDESHOW = [
     name: 'Washing Machine',
     category: 'Washing Machine Repair',
     icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="4" y="2" width="16" height="20" rx="3" />
-        <circle cx="12" cy="13" r="4.5" />
-        <circle cx="12" cy="13" r="1.8" />
-        <line x1="7" y1="5.5" x2="11" y2="5.5" />
-        <circle cx="17" cy="5.5" r="1" fill="#2563eb" />
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        {/* 3D Appliance Cabinet */}
+        <rect x="5" y="2.5" width="22" height="27" rx="3.5" fill="#f8fafc" stroke="#334155" strokeWidth="1.6" />
+        {/* Top Control Panel */}
+        <path d="M5.8 6a2.7 2.7 0 0 1 2.7-2.7h15a2.7 2.7 0 0 1 2.7 2.7v3.2H5.8V6z" fill="#e2e8f0" />
+        <line x1="5" y1="9.5" x2="27" y2="9.5" stroke="#475569" strokeWidth="1.4" />
+        {/* Detergent drawer & rotary dial */}
+        <rect x="7.5" y="5.2" width="5.5" height="2.2" rx="1" fill="#2563eb" />
+        <circle cx="22.5" cy="6.3" r="1.6" fill="#0f172a" />
+        <circle cx="18.5" cy="6.3" r="0.9" fill="#10b981" />
+        {/* Outer Chrome Drum Ring */}
+        <circle cx="16" cy="19.5" r="6.8" fill="#cbd5e1" stroke="#334155" strokeWidth="1.5" />
+        {/* Inner Glass Porthole */}
+        <circle cx="16" cy="19.5" r="4.8" fill="#1e3a8a" />
+        {/* Swirling Cyan Water Wave */}
+        <path d="M11.6 20c1.5-1.5 3 1.5 4.4 0s2.9-1.5 4.4 0a4.6 4.6 0 0 1-8.8 0z" fill="#38bdf8" />
+        <circle cx="14.5" cy="17" r="0.8" fill="#bae6fd" />
       </svg>
     ),
   },
@@ -418,11 +297,19 @@ const ALL_SERVICES_SLIDESHOW = [
     name: 'Refrigerator',
     category: 'Refrigerator Repair',
     icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="5" y="2" width="14" height="20" rx="2.5" />
-        <line x1="5" y1="10" x2="19" y2="10" />
-        <line x1="8" y1="5.5" x2="8" y2="8" />
-        <line x1="8" y1="13" x2="8" y2="17" />
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        {/* 3D Fridge Body */}
+        <rect x="7" y="2.5" width="18" height="27" rx="3" fill="#e2e8f0" stroke="#334155" strokeWidth="1.6" />
+        {/* Left light highlight panel */}
+        <path d="M8.5 3.5h7v25h-7a1.5 1.5 0 0 1-1.5-1.5v-22a1.5 1.5 0 0 1 1.5-1.5z" fill="#f8fafc" />
+        {/* Freezer / Fridge Divider */}
+        <line x1="7" y1="12.5" x2="25" y2="12.5" stroke="#334155" strokeWidth="1.6" />
+        {/* Chrome Handles */}
+        <line x1="10.5" y1="5.8" x2="10.5" y2="10" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" />
+        <line x1="10.5" y1="15.5" x2="10.5" y2="22.5" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" />
+        {/* Water / Ice Dispenser Recess */}
+        <rect x="18.5" y="16" width="4" height="5.2" rx="1" fill="#0f172a" />
+        <circle cx="20.5" cy="18.8" r="1" fill="#38bdf8" />
       </svg>
     ),
   },
@@ -431,11 +318,19 @@ const ALL_SERVICES_SLIDESHOW = [
     name: 'TV & AV',
     category: 'TV & AV Services',
     icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <line x1="8" y1="21" x2="16" y2="21" />
-        <line x1="12" y1="17" x2="12" y2="21" />
-        <circle cx="12" cy="14.5" r="0.8" fill="#2563eb" />
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        {/* Outer Dark Bezel */}
+        <rect x="2.5" y="5" width="27" height="17.5" rx="2.5" fill="#0f172a" stroke="#1e293b" strokeWidth="1.5" />
+        {/* Vivid Sapphire Display */}
+        <rect x="4.2" y="6.7" width="23.6" height="14.1" rx="1.2" fill="#2563eb" />
+        {/* Screen Diagonal Light Reflection */}
+        <path d="M6 6.7h7l-5 14.1H4.2V8a1.2 1.2 0 0 1 1.8-1.3z" fill="#3b82f6" />
+        <path d="M10 10l-2.5 5M14 10l-4 7" stroke="#93c5fd" strokeWidth="1.6" strokeLinecap="round" />
+        {/* Play Emblem */}
+        <polygon points="15,11.5 15,16 19,13.75" fill="#ffffff" />
+        {/* Metallic Stand */}
+        <path d="M16 22.5v4" stroke="#475569" strokeWidth="2.4" strokeLinecap="round" />
+        <path d="M10.5 26.8h11" stroke="#334155" strokeWidth="2.4" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -444,12 +339,17 @@ const ALL_SERVICES_SLIDESHOW = [
     name: 'Electrician',
     category: 'Electrical Services',
     icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22v-5" />
-        <path d="M9 7V2" />
-        <path d="M15 7V2" />
-        <rect x="6" y="7" width="12" height="10" rx="3" />
-        <path d="M12.5 10l-1.5 2h2l-1.5 2" />
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        {/* Metal Prongs */}
+        <rect x="11" y="3" width="2.4" height="6" rx="1.2" fill="#475569" />
+        <rect x="18.6" y="3" width="2.4" height="6" rx="1.2" fill="#475569" />
+        {/* 3D Insulated Plug Body */}
+        <rect x="7.5" y="8.5" width="17" height="13" rx="4" fill="#2563eb" stroke="#1e3a8a" strokeWidth="1.6" />
+        <rect x="7.5" y="8.5" width="17" height="3" rx="1.5" fill="#60a5fa" />
+        {/* Cord */}
+        <path d="M16 21.5v6.5" stroke="#1e293b" strokeWidth="2.8" strokeLinecap="round" />
+        {/* Golden 3D Lightning Spark */}
+        <polygon points="17.2,11 12.8,15.8 15.8,15.8 14.5,19.8 19.2,14.8 16.2,14.8" fill="#fbbf24" stroke="#fef08a" strokeWidth="0.6" strokeLinejoin="round" />
       </svg>
     ),
   },
@@ -458,12 +358,28 @@ const ALL_SERVICES_SLIDESHOW = [
     name: 'Plumbing',
     category: 'Plumbing Services',
     icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 12h8" />
-        <path d="M9 7v5" />
-        <path d="M7 7h4" />
-        <path d="M12 12c1.5 0 3 .5 3 2v2a1 1 0 0 1-1 1h-2" />
-        <path d="M13 20.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5c0-1.5 2.5-4 2.5-4s2.5 2.5 2.5 4z" />
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        {/* T-Handle Valve */}
+        <rect x="8.5" y="4.5" width="9" height="2.6" rx="1.3" fill="#2563eb" stroke="#1e3a8a" strokeWidth="1.2" />
+        <rect x="11.8" y="7" width="2.4" height="4" fill="#64748b" />
+        {/* Wall Flange */}
+        <rect x="3.5" y="9.5" width="2.5" height="8" rx="1" fill="#334155" />
+        {/* Chrome Faucet Body */}
+        <path
+          d="M6 11h11.5c4 0 6.5 2.4 6.5 6.2V19h-4.5v-1.6c0-1.3-.9-2.1-2.2-2.1H6V11z"
+          fill="#cbd5e1"
+          stroke="#334155"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        {/* Glossy 3D Water Droplet */}
+        <path
+          d="M24.8 25c0 2-1.4 3.5-3.1 3.5s-3.1-1.5-3.1-3.5c0-2 3.1-5 3.1-5s3.1 3 3.1 5z"
+          fill="#0ea5e9"
+          stroke="#0369a1"
+          strokeWidth="1.3"
+        />
+        <circle cx="20.8" cy="25.2" r="0.8" fill="#e0f2fe" />
       </svg>
     ),
   },
@@ -472,8 +388,43 @@ const ALL_SERVICES_SLIDESHOW = [
     name: 'Carpenter',
     category: 'Carpentry Services',
     icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        {/* Wooden Hammer Handle */}
+        <path d="M6.5 25.5L19 13" stroke="#d97706" strokeWidth="3.8" strokeLinecap="round" />
+        <path d="M6.5 25.5L19 13" stroke="#fbbf24" strokeWidth="1.6" strokeLinecap="round" />
+        {/* Forged Steel Hammer Head */}
+        <path
+          d="M14.5 8.5l4-4c2-2 5-1.5 6.5 0l-3 3 2.5 2.5 2-2 2.5 2.5-3.5 3.5-2.5-2.5 1.5-1.5-2.5-2.5-4.5 4.5-3-3.5z"
+          fill="#475569"
+          stroke="#1e293b"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+        {/* Crossed Cobalt Wrench Accent */}
+        <circle cx="7" cy="25" r="1.4" fill="#fef3c7" />
+      </svg>
+    ),
+  },
+  {
+    id: 'dry_cleaning',
+    name: 'Dry Cleaning',
+    category: 'Dry Cleaning',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        {/* Plush Backrest */}
+        <rect x="6" y="10" width="20" height="9" rx="3.5" fill="#2563eb" stroke="#1e3a8a" strokeWidth="1.5" />
+        {/* Armrests & Base */}
+        <path
+          d="M3.5 15.5a2.5 2.5 0 0 1 5 0v2h15v-2a2.5 2.5 0 0 1 5 0v6a2 2 0 0 1-2 2h-21a2 2 0 0 1-2-2v-6z"
+          fill="#60a5fa"
+          stroke="#1e3a8a"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        {/* Wooden Legs */}
+        <path d="M6.5 23.5v3M25.5 23.5v3" stroke="#b45309" strokeWidth="2.4" strokeLinecap="round" />
+        {/* Golden Sparkle Stars */}
+        <path d="M16 3l1 2.2L19.2 6l-2.2 1-1 2.2-1-2.2L12.8 6 15 5.2 16 3z" fill="#fbbf24" stroke="#d97706" strokeWidth="0.6" />
       </svg>
     ),
   },
@@ -482,11 +433,181 @@ const ALL_SERVICES_SLIDESHOW = [
     name: 'Pest Control',
     category: 'Pest Control Services',
     icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <polyline points="9 11 11 13 15 9" />
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        {/* 3D Emerald Shield Left Facet */}
+        <path d="M16 3L6 7.2v8.3C6 22.8 10.4 27.6 16 29.2V3z" fill="#10b981" />
+        {/* 3D Emerald Shield Right Facet */}
+        <path d="M16 3l10 4.2v8.3c0 7.3-4.4 12.1-10 13.7V3z" fill="#059669" />
+        {/* Shield Border */}
+        <path
+          d="M16 3L6 7.2v8.3c0 7.3 4.4 12.1 10 13.7 5.6-1.6 10-6.4 10-13.7V7.2L16 3z"
+          stroke="#065f46"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        {/* Crisp White Checkmark */}
+        <polyline points="11.2 16 14.5 19.2 21 12.5" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
+  },
+];
+
+const MOBILE_EXPLORE_CATEGORIES = [
+  {
+    id: 'elec',
+    name: 'Electrician',
+    category: 'Electrician',
+    desc: 'Wiring, switches & appliance fixes',
+    badge: '30+ Services',
+    amcTag: '₹0 with AMC',
+    image: SERVICE_IMAGES.electrician,
+  },
+  {
+    id: 'plumb',
+    name: 'Plumbing',
+    category: 'Plumber',
+    desc: 'Pipes, taps, leakage & drainage',
+    badge: 'Taps & Pipes',
+    amcTag: '₹0 with AMC',
+    image: SERVICE_IMAGES.plumber,
+  },
+  {
+    id: 'carp',
+    name: 'Carpentry',
+    category: 'Carpenter',
+    desc: 'Furniture repair, locks & hinges',
+    badge: 'Hinges & Locks',
+    amcTag: '₹0 with AMC',
+    image: SERVICE_IMAGES.carpenter,
+  },
+  {
+    id: 'clean',
+    name: 'Dry Cleaning',
+    category: 'Dry Cleaning',
+    desc: 'Sofa, carpet & curtain deep care',
+    badge: 'Deep Cleaning',
+    amcTag: 'Doorstep Care',
+    image: SERVICE_IMAGES.dryCleaning,
+  },
+  {
+    id: 'pest',
+    name: 'Pest Control',
+    category: 'Pest Control',
+    desc: 'Cockroach, termite & bedbug treatment',
+    badge: '100% Safe Herbal',
+    amcTag: '30-Day Warranty',
+    image: SERVICE_IMAGES.pestControl,
+    fullWidth: true,
+  },
+];
+
+const MOBILE_POPULAR_SERVICES = [
+  {
+    id: 'pop_ac',
+    name: 'AC Foam-Jet Deep Service',
+    category: 'AC Services',
+    subCategory: 'AC',
+    rating: '4.9',
+    reviews: '2.4k',
+    duration: '45 mins',
+    price: '₹399',
+    amcNote: '₹0 Labor with AMC',
+    image: SERVICE_IMAGES.ac,
+  },
+  {
+    id: 'pop_mcb',
+    name: 'MCB & Switchboard Repair',
+    category: 'Electrician',
+    subCategory: 'MCB & Main Switch',
+    rating: '4.9',
+    reviews: '1.8k',
+    duration: '30 mins',
+    price: '₹149',
+    amcNote: '₹0 Labor with AMC',
+    image: SERVICE_IMAGES.mcb,
+  },
+  {
+    id: 'pop_tap',
+    name: 'Tap & Mixer Leakage Fix',
+    category: 'Plumber',
+    subCategory: 'Tap & Mixer',
+    rating: '4.8',
+    reviews: '1.5k',
+    duration: '30 mins',
+    price: '₹149',
+    amcNote: '₹0 Labor with AMC',
+    image: SERVICE_IMAGES.tap,
+  },
+  {
+    id: 'pop_pest',
+    name: 'Kitchen Cockroach Control',
+    category: 'Pest Control',
+    subCategory: 'Cockroach Control',
+    rating: '4.9',
+    reviews: '1.2k',
+    duration: '60 mins',
+    price: '₹499',
+    amcNote: 'Odorless Gel',
+    image: SERVICE_IMAGES.cockroach,
+  },
+  {
+    id: 'pop_sofa',
+    name: 'Sofa Deep Dry Cleaning',
+    category: 'Dry Cleaning',
+    subCategory: 'Fabric Sofa',
+    rating: '4.9',
+    reviews: '980',
+    duration: '60 mins',
+    price: '₹599',
+    amcNote: 'Eco Shampoo',
+    image: SERVICE_IMAGES.sofaFabric,
+  },
+];
+
+const MOBILE_TRUST_CARDS = [
+  {
+    id: 'certified',
+    title: 'Certified Specialists',
+    desc: 'Background-verified & trained experts',
+    badge: '100% Verified',
+    color: '#2563eb',
+    bg: '#eff6ff',
+    border: '#bfdbfe',
+    route: '/user/bookings/new',
+    iconName: 'shield',
+  },
+  {
+    id: 'quality',
+    title: 'Trusted Quality',
+    desc: 'Genuine spare parts & upfront quotes',
+    badge: 'Zero Hidden Fees',
+    color: '#059669',
+    bg: '#ecfdf5',
+    border: '#a7f3d0',
+    route: '/user/bookings/new',
+    iconName: 'check',
+  },
+  {
+    id: 'fast',
+    title: 'Fast & Reliable',
+    desc: 'On-time doorstep arrival & live tracking',
+    badge: '30-Min Dispatch',
+    color: '#4f46e5',
+    bg: '#eef2ff',
+    border: '#c7d2fe',
+    route: '/user/bookings',
+    iconName: 'clock',
+  },
+  {
+    id: 'expert',
+    title: 'Get Expert Help',
+    desc: '₹0 diagnostic visit & instant support',
+    badge: '24/7 Assistance',
+    color: '#d97706',
+    bg: '#fffbeb',
+    border: '#fde68a',
+    route: '/user/consultation',
+    iconName: 'headphones',
   },
 ];
 
@@ -501,7 +622,7 @@ const SEARCH_PLACEHOLDERS = [
 ];
 
 export default function HomeScreen({ onNavigate }) {
-  const { activeUser, updateProfile, banners } = useApp();
+  const { activeUser, updateProfile, banners, bookings } = useApp();
   const navigate = useNavigate();
 
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
@@ -623,6 +744,18 @@ export default function HomeScreen({ onNavigate }) {
 
   const activeHeroBanner = activeBannersList[currentHeroIdx % activeBannersList.length] || activeBannersList[0];
 
+  const liveActiveBooking = React.useMemo(() => {
+    if (!activeUser || isGuest || !Array.isArray(bookings)) return null;
+    const activeStatuses = ['CONFIRMED', 'ASSIGNED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'INSPECTION_DONE'];
+    return bookings.find((b) => {
+      const st = String(b?.status || '').toUpperCase();
+      if (!activeStatuses.includes(st)) return false;
+      if (b.user_id != null && activeUser.id != null && String(b.user_id) === String(activeUser.id)) return true;
+      if (b.user_phone && activeUser.phone && String(b.user_phone).slice(-10) === String(activeUser.phone).slice(-10)) return true;
+      return false;
+    }) || null;
+  }, [bookings, activeUser, isGuest]);
+
   const filteredSuggestions = searchQuery.trim()
     ? searchAllServices(searchQuery).slice(0, 8)
     : [];
@@ -733,7 +866,7 @@ export default function HomeScreen({ onNavigate }) {
   // Desktop Web View (Urban Company style) - strictly active on desktop viewports
   if (isDesktop) {
     return (
-      <View style={{ flex: 1, width: '100%', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+      <View style={{ flex: 1, width: '100%', minHeight: '100vh', backgroundColor: '#e4f0ff' }}>
         <HomeDesktopWebView
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -1213,187 +1346,246 @@ export default function HomeScreen({ onNavigate }) {
                 className={`amc-card-col ${isFullWidth ? 'amc-card-col-full' : ''}`}
                 style={{ position: 'relative' }}
               >
-                {/* Luminous Ambient Glow Orbs behind the frosted glass */}
-                {item.glowOrb1 && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '-6px',
-                      left: '14px',
-                      width: isFullWidth ? '160px' : '100px',
-                      height: isFullWidth ? '80px' : '60px',
-                      borderRadius: '50%',
-                      background: item.glowOrb1,
-                      filter: 'blur(28px)',
-                      opacity: 0.82,
-                      pointerEvents: 'none',
-                      zIndex: 0,
-                    }}
-                  />
-                )}
-                {item.glowOrb2 && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: '-6px',
-                      right: '16px',
-                      width: isFullWidth ? '150px' : '90px',
-                      height: isFullWidth ? '75px' : '55px',
-                      borderRadius: '50%',
-                      background: item.glowOrb2,
-                      filter: 'blur(26px)',
-                      opacity: 0.78,
-                      pointerEvents: 'none',
-                      zIndex: 0,
-                    }}
-                  />
-                )}
                 <TouchableOpacity
                   className="amc-card-press"
                   style={[
                     styles.amcLuxuryCard,
-                    styles.amcLuxuryCardFeatured,
                     {
+                      backgroundColor: '#ffffff',
                       backgroundImage: item.cardBg,
                       borderColor: item.borderColor,
                       boxShadow: item.boxShadow,
                       position: 'relative',
                       zIndex: 1,
                       height: '100%',
-                      minHeight: isFullWidth ? 88 : 'auto',
                       display: 'flex',
                       flexDirection: 'column',
-                      justifyContent: 'center',
-                      paddingHorizontal: isFullWidth ? 16 : 12,
-                      paddingVertical: isFullWidth ? 20 : 12,
+                      justifyContent: 'space-between',
+                      paddingHorizontal: isFullWidth ? 16 : 14,
+                      paddingVertical: isFullWidth ? 16 : 14,
                     },
                   ]}
                   onPress={() => handleAmcAction(item)}
                   activeOpacity={0.88}
                 >
-                  {/* Top ambient glass highlight line */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: '2px',
-                      background: item.topSheen || 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(147, 197, 253, 0.6) 50%, rgba(255,255,255,0) 100%)',
-                      pointerEvents: 'none',
-                    }}
-                  />
-
                   {isFullWidth ? (
                     /* Row 2: Full-width clean horizontal card for My Mechanic */
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 14 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
-                        <View
-                          style={[
-                            styles.amcLuxuryIconCircle,
-                            {
-                              background: item.iconBg,
-                              border: item.iconBorder,
-                              width: 44,
-                              height: 44,
-                              borderRadius: 22,
-                            },
-                          ]}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        gap: '12px',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: '12px',
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      >
+                        <div
+                          style={{
+                            backgroundColor: item.iconBg,
+                            border: item.iconBorder,
+                            width: '42px',
+                            height: '42px',
+                            borderRadius: '21px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            boxShadow: '0 4px 10px rgba(15, 23, 42, 0.08)',
+                          }}
                         >
                           {item.icon}
-                        </View>
-                        <View style={{ flex: 1, minWidth: 0 }}>
-                          <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 16, letterSpacing: -0.3, marginBottom: 2 }]}>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, minWidth: 0 }}>
+                          <span
+                            style={{
+                              color: item.titleColor,
+                              fontSize: '15px',
+                              fontWeight: 700,
+                              lineHeight: '19px',
+                              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+                            }}
+                          >
                             {item.title}
-                          </Text>
-                          <Text style={{ color: item.taglineColor || '#059669', fontSize: 12, fontWeight: '600', lineHeight: 16 }}>
+                          </span>
+                          <span
+                            style={{
+                              color: item.taglineColor,
+                              fontSize: '11.5px',
+                              fontWeight: 600,
+                              lineHeight: '15px',
+                              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+                            }}
+                          >
                             {item.tagline}
-                          </Text>
-                        </View>
-                      </View>
+                          </span>
+                        </div>
+                      </div>
 
-                      <View
-                        style={[
-                          styles.amcPlansActionPill,
-                          item.pillBtnBorder ? { borderWidth: 1.2, borderColor: item.pillBtnBorder } : {},
-                          { height: 34, paddingLeft: 14, paddingRight: 6, borderRadius: 999, flexShrink: 0 },
-                        ]}
+                      <div
+                        style={{
+                          backgroundColor: item.pillBtnBg,
+                          border: `1.2px solid ${item.pillBtnBorder}`,
+                          height: '32px',
+                          paddingLeft: '12px',
+                          paddingRight: '5px',
+                          borderRadius: '999px',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.14)',
+                        }}
                       >
-                        <Text style={[styles.amcPlansActionPillText, { color: item.pillBtnColor, fontSize: 12 }]}>
+                        <span
+                          style={{
+                            color: item.pillBtnColor,
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
                           {item.actionLabel}
-                        </Text>
-                        <View
-                          style={[
-                            styles.amcPlansActionPillArrow,
-                            { backgroundColor: item.pillArrowBg, width: 22, height: 22, borderRadius: 11, marginLeft: 6 },
-                          ]}
+                        </span>
+                        <div
+                          style={{
+                            backgroundColor: item.pillArrowBg,
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '10px',
+                            marginLeft: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
                         >
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={item.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="5" y1="12" x2="19" y2="12" />
                             <polyline points="12 5 19 12 12 19" />
                           </svg>
-                        </View>
-                      </View>
-                    </View>
+                        </div>
+                      </div>
+                    </div>
                   ) : (
                     /* Row 1: Side-by-side clean vertical cards */
-                    <View style={[styles.amcPlansBannerContent, { flex: 1, justifyContent: 'space-between' }]}>
-                      <View style={{ flexDirection: 'column' }}>
-                        {/* Top: Icon */}
-                        <View style={{ marginBottom: 8 }}>
-                          <View
-                            style={[
-                              styles.amcLuxuryIconCircle,
-                              {
-                                background: item.iconBg,
-                                border: item.iconBorder,
-                                width: 34,
-                                height: 34,
-                                borderRadius: 17,
-                              },
-                            ]}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        flex: 1,
+                        width: '100%',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {/* Top: Clean Circular Icon */}
+                        <div style={{ marginBottom: '10px' }}>
+                          <div
+                            style={{
+                              backgroundColor: item.iconBg,
+                              border: item.iconBorder,
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '18px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: '0 4px 10px rgba(15, 23, 42, 0.08)',
+                            }}
                           >
                             {item.icon}
-                          </View>
-                        </View>
+                          </div>
+                        </div>
 
                         {/* Title & Tagline */}
-                        <View style={{ flexDirection: 'column', gap: 2 }}>
-                          <Text style={[styles.amcLuxuryHeading, { color: item.titleColor, fontSize: 14, letterSpacing: -0.3 }]}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <span
+                            style={{
+                              color: item.titleColor,
+                              fontSize: '14px',
+                              fontWeight: 700,
+                              lineHeight: '18px',
+                              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+                            }}
+                          >
                             {item.title}
-                          </Text>
-                          <Text style={{ color: item.taglineColor || '#2563eb', fontSize: 10.5, fontWeight: '600', lineHeight: 14 }}>
+                          </span>
+                          <span
+                            style={{
+                              color: item.taglineColor,
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              lineHeight: '14.5px',
+                              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+                            }}
+                          >
                             {item.tagline}
-                          </Text>
-                        </View>
-                      </View>
+                          </span>
+                        </div>
+                      </div>
 
-                      {/* Bottom: Action Pill Button */}
-                      <View style={[styles.amcPlansFooterRow, { marginTop: 12 }]}>
-                        <View
-                          style={[
-                            styles.amcPlansActionPill,
-                            item.pillBtnBorder ? { borderWidth: 1.2, borderColor: item.pillBtnBorder } : {},
-                            { height: 26, paddingLeft: 9, paddingRight: 3 },
-                          ]}
+                      {/* Bottom: Sleek Pill Button */}
+                      <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                        <div
+                          style={{
+                            backgroundColor: item.pillBtnBg,
+                            border: `1.2px solid ${item.pillBtnBorder}`,
+                            height: '28px',
+                            paddingLeft: '10px',
+                            paddingRight: '4px',
+                            borderRadius: '999px',
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.14)',
+                          }}
                         >
-                          <Text style={[styles.amcPlansActionPillText, { color: item.pillBtnColor, fontSize: 10.5 }]}>
+                          <span
+                            style={{
+                              color: item.pillBtnColor,
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
                             {item.actionLabel}
-                          </Text>
-                          <View
-                            style={[
-                              styles.amcPlansActionPillArrow,
-                              { backgroundColor: item.pillArrowBg, width: 17, height: 17, borderRadius: 8.5, marginLeft: 4 },
-                            ]}
+                          </span>
+                          <div
+                            style={{
+                              backgroundColor: item.pillArrowBg,
+                              width: '18px',
+                              height: '18px',
+                              borderRadius: '9px',
+                              marginLeft: '5px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
                           >
                             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={item.pillArrowColor} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                               <line x1="5" y1="12" x2="19" y2="12" />
                               <polyline points="12 5 19 12 12 19" />
                             </svg>
-                          </View>
-                        </View>
-                      </View>
-                    </View>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </TouchableOpacity>
               </div>
@@ -1402,13 +1594,12 @@ export default function HomeScreen({ onNavigate }) {
         </div>
       </View>
 
-      {/* Home Services Section Header */}
+      {/* HOME SERVICES (Smooth Moving Marquee with Duotone Icons) */}
       <View style={styles.servicesHeaderBlock}>
         <Text style={styles.servicesHeaderTitle}>Home Services</Text>
         <Text style={styles.servicesHeaderSub}>Book professional help, anytime</Text>
       </View>
 
-      {/* Auto-scrolling Quick Services Icons */}
       <View style={styles.allServicesSection}>
         <style>{`
           @keyframes marqueeScroll {
@@ -1426,6 +1617,17 @@ export default function HomeScreen({ onNavigate }) {
                 <div
                   key={`${serviceItem.id}-${idx}`}
                   style={marqueeWebCss.card}
+                  onClick={() =>
+                    handleNav('/user/bookings/new', {
+                      state: {
+                        preSelectedCategory: serviceItem.category,
+                        preSelectedService: serviceItem.name,
+                        bookingMode: 'service',
+                      },
+                    })
+                  }
+                  role="button"
+                  tabIndex={0}
                 >
                   <div style={marqueeWebCss.squircle}>
                     {serviceItem.icon}
@@ -1442,12 +1644,21 @@ export default function HomeScreen({ onNavigate }) {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.servicesScrollContainer}
-            pointerEvents="none"
           >
             {ALL_SERVICES_SLIDESHOW.map((serviceItem) => (
-              <View
+              <TouchableOpacity
                 key={serviceItem.id}
                 style={styles.serviceSlideCardStatic}
+                activeOpacity={0.8}
+                onPress={() =>
+                  handleNav('/user/bookings/new', {
+                    state: {
+                      preSelectedCategory: serviceItem.category,
+                      preSelectedService: serviceItem.name,
+                      bookingMode: 'service',
+                    },
+                  })
+                }
               >
                 <View style={styles.serviceSquircleStatic}>
                   {serviceItem.icon}
@@ -1455,14 +1666,23 @@ export default function HomeScreen({ onNavigate }) {
                 <View style={styles.serviceLabelRowStatic}>
                   <Text style={styles.serviceSlideTitle}>{serviceItem.name}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         )}
       </View>
 
+      {/* YOUR HOME. OUR RESPONSIBILITY. (Clean 4-Pillar Trust Banner with Luxury Home Background) */}
       <View style={styles.trustBanner}>
-        <Text style={styles.trustTitle}>Your Home. Our Responsibility.</Text>
+        <Image
+          source={{ uri: SERVICE_IMAGES.trustBannerBg }}
+          style={styles.trustBannerBgImage}
+          resizeMode="cover"
+        />
+        <View style={styles.trustBannerOverlay} />
+        <Text style={styles.trustTitle}>
+          Your Home. <Text style={{ color: '#fbbf24' }}>Our Responsibility.</Text>
+        </Text>
         <View style={styles.trustRow}>
           {TRUST_FEATURES.map((item) => (
             <TouchableOpacity
@@ -1479,7 +1699,7 @@ export default function HomeScreen({ onNavigate }) {
                 }
                 handleNav(item.route, { state: {} });
               }}
-              activeOpacity={0.75}
+              activeOpacity={0.8}
             >
               <View style={styles.trustIconWrap}>{item.icon}</View>
               <Text style={styles.trustLabel}>{item.label}</Text>
@@ -1633,8 +1853,145 @@ export default function HomeScreen({ onNavigate }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff', width: '100%' },
-  content: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 100, gap: 12, width: '100%', boxSizing: 'border-box' },
+  container: {
+    flex: 1,
+    backgroundColor: '#e4f0ff',
+    width: '100%',
+    ...(Platform.OS === 'web'
+      ? { backgroundImage: 'linear-gradient(180deg, #dcebff 0%, #e8f2ff 50%, #dfeeff 100%)' }
+      : {}),
+  },
+  content: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 110, gap: 16, width: '100%', boxSizing: 'border-box' },
+
+  /* Location & Live Booking Bar */
+  locationAndLiveWrap: {
+    width: '100%',
+    gap: 10,
+    marginTop: 6,
+  },
+  locationBarCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#ffffff',
+    gap: 10,
+    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.08), 0 3px 8px rgba(37, 99, 235, 0.08)',
+  },
+  locationPinBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  locationBarLabel: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#2563eb',
+    letterSpacing: 0.6,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  locationBarAddress: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginTop: 1,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  locationChangePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    flexShrink: 0,
+  },
+  locationChangeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1e40af',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  locationChangeArrow: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#2563eb',
+    marginTop: -1,
+  },
+  liveBookingStripCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1.5,
+    borderColor: '#a7f3d0',
+    gap: 10,
+    boxShadow: '0 10px 24px rgba(15, 23, 42, 0.1), 0 4px 12px rgba(16, 185, 129, 0.14)',
+  },
+  livePulseDotWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  livePulseDotInner: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10b981',
+  },
+  liveStripBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#059669',
+    letterSpacing: 0.5,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  liveStripStepText: {
+    fontSize: 9.5,
+    fontWeight: '600',
+    color: '#475569',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  liveStripServiceTitle: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginTop: 2,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  liveStripTrackBtn: {
+    backgroundColor: '#059669',
+    borderRadius: 999,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    flexShrink: 0,
+  },
+  liveStripTrackText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#ffffff',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
 
   /* Luxury Frontpage Hero Section */
   luxuryHeroContainer: {
@@ -1657,7 +2014,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 38,
     backgroundColor: '#06112b',
-    boxShadow: '0 12px 32px rgba(9, 24, 54, 0.28)',
+    boxShadow: '0 14px 34px rgba(11, 25, 54, 0.28), 0 4px 12px rgba(37, 99, 235, 0.16)',
   },
   luxuryHeroBgImage: {
     position: 'absolute',
@@ -1976,8 +2333,8 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     height: 46,
     borderWidth: 1,
-    borderColor: 'rgba(226, 232, 240, 0.9)',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04)',
+    borderColor: '#ffffff',
+    boxShadow: '0 12px 28px rgba(15, 23, 42, 0.16), 0 4px 12px rgba(37, 99, 235, 0.14)',
   },
   floatingSearchInput: {
     flex: 1,
@@ -2029,31 +2386,31 @@ const styles = StyleSheet.create({
 
   servicesHeaderBlock: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
     paddingHorizontal: 2,
-    marginTop: 18,
+    marginTop: 6,
     marginBottom: 4,
     gap: 8,
   },
   servicesHeaderTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: '#0f172a',
-    letterSpacing: -0.3,
-    flexShrink: 0,
+    letterSpacing: -0.35,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
   },
   servicesHeaderSub: {
     fontSize: 12,
     fontWeight: '500',
     color: '#64748b',
-    textAlign: 'right',
-    flex: 1,
+    marginTop: 0,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
   },
   allServicesSection: {
-    marginTop: 4,
-    marginBottom: 6,
+    marginTop: 2,
+    marginBottom: 4,
     width: '100%',
   },
   servicesScrollContainer: {
@@ -2064,21 +2421,22 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   serviceSlideCardStatic: {
-    width: 76,
+    width: 72,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: 6,
+    gap: 5,
   },
   serviceSquircleStatic: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: '#eff6ff',
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#ffffff',
     borderWidth: 1.2,
-    borderColor: '#dbeafe',
+    borderColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.06)',
+    overflow: 'hidden',
+    boxShadow: '0 8px 18px rgba(15, 23, 42, 0.11), 0 3px 8px rgba(37, 99, 235, 0.1)',
   },
   serviceLabelRowStatic: {
     flexDirection: 'row',
@@ -2087,12 +2445,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   serviceSlideTitle: {
-    fontSize: 11.5,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: '#1e293b',
     textAlign: 'center',
     lineHeight: 14,
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
   },
   serviceArrowStatic: {
     fontSize: 12,
@@ -2113,6 +2471,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     position: 'relative',
     backgroundColor: '#03102e',
+    boxShadow: '0 14px 30px rgba(15, 23, 42, 0.2), 0 5px 14px rgba(37, 99, 235, 0.14)',
   },
   heroBannerImage: {
     width: '100%',
@@ -2122,10 +2481,7 @@ const styles = StyleSheet.create({
     display: 'block',
   },
   heroDotsContainer: {
-    position: 'absolute',
-    bottom: 8,
-    left: 0,
-    right: 0,
+    marginTop: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -2137,12 +2493,12 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   heroDotActive: {
-    width: 22,
-    backgroundColor: '#ffffff',
+    width: 24,
+    backgroundColor: '#2563eb',
   },
   heroDotInactive: {
     width: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: '#cbd5e1',
   },
 
   amcSection: {
@@ -2188,15 +2544,12 @@ const styles = StyleSheet.create({
   },
   amcLuxuryCard: {
     width: '100%',
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1.5,
     position: 'relative',
     cursor: 'pointer',
-    transition: 'transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s ease',
     boxSizing: 'border-box',
     overflow: 'hidden',
-    backdropFilter: 'blur(20px) saturate(190%)',
-    WebkitBackdropFilter: 'blur(20px) saturate(190%)',
   },
   amcLuxuryCardFeatured: {
     paddingVertical: 11,
@@ -2385,48 +2738,84 @@ const styles = StyleSheet.create({
 
   trustBanner: {
     width: '100%',
-    backgroundColor: '#0f1f3d',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    marginTop: 4,
-    gap: 14,
+    backgroundColor: '#0b1936',
+    borderRadius: 22,
+    paddingVertical: 22,
+    paddingHorizontal: 14,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(147, 197, 253, 0.35)',
+    boxShadow: '0 16px 36px rgba(11, 25, 54, 0.28), 0 6px 16px rgba(37, 99, 235, 0.16)',
+    position: 'relative',
+    overflow: 'hidden',
+    gap: 18,
+  },
+  trustBannerBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 0,
+  },
+  trustBannerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(8, 20, 44, 0.52)',
+    backgroundImage: 'linear-gradient(180deg, rgba(8, 20, 44, 0.38) 0%, rgba(8, 20, 44, 0.55) 55%, rgba(8, 20, 44, 0.78) 100%)',
+    zIndex: 1,
   },
   trustTitle: {
     color: '#ffffff',
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.25,
     textAlign: 'center',
-    fontFamily: 'Inter, sans-serif',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+    textShadow: '0 2px 8px rgba(0, 0, 0, 0.5)',
+    position: 'relative',
+    zIndex: 2,
   },
   trustRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    gap: 6,
+    gap: 8,
+    position: 'relative',
+    zIndex: 2,
   },
   trustItem: {
     flex: 1,
     alignItems: 'center',
-    gap: 8,
+    gap: 9,
     cursor: 'pointer',
   },
   trustIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(15, 31, 61, 0.65)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderColor: 'rgba(191, 219, 254, 0.55)',
     alignItems: 'center',
     justifyContent: 'center',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.28)',
   },
   trustLabel: {
     color: '#ffffff',
-    fontSize: 9,
-    fontWeight: '600',
+    fontSize: 10.5,
+    fontWeight: '700',
     textAlign: 'center',
-    lineHeight: 12,
-    fontFamily: 'Inter, sans-serif',
+    lineHeight: 14,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+    textShadow: '0 1px 4px rgba(0, 0, 0, 0.65)',
   },
 
   searchWrapper: {
@@ -2852,7 +3241,537 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     fontWeight: '600',
     fontSize: 13,
-    fontFamily: 'Inter, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+
+  /* Shared Section Headers */
+  sectionTitleBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 2,
+    marginBottom: 12,
+  },
+  sectionEyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 3,
+  },
+  sectionEyebrowDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#2563eb',
+  },
+  sectionEyebrowText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#2563eb',
+    letterSpacing: 0.8,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  sectionMainHeading: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.35,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  sectionViewAllPill: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+    borderRadius: 999,
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    boxShadow: '0 2px 6px rgba(37, 99, 235, 0.06)',
+  },
+  sectionViewAllText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#2563eb',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+
+  /* Explore Home Services Grid */
+  exploreSectionWrap: {
+    width: '100%',
+    marginTop: 4,
+  },
+  exploreCategoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+    width: '100%',
+  },
+  exploreCategoryCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    boxShadow: '0 4px 14px rgba(15, 23, 42, 0.05)',
+  },
+  exploreCategoryCardHalf: {
+    width: '48%',
+    flexGrow: 1,
+    minWidth: 148,
+  },
+  exploreCategoryCardFull: {
+    width: '100%',
+  },
+  exploreCardImageWrap: {
+    width: '100%',
+    height: 102,
+    backgroundColor: '#eff6ff',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  exploreCardImage: {
+    width: '100%',
+    height: '100%',
+    ...(Platform.OS === 'web' ? { objectFit: 'cover', objectPosition: 'center' } : {}),
+  },
+  exploreCardTagRow: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    right: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
+  exploreCardPrimaryTag: {
+    backgroundColor: 'rgba(15, 23, 42, 0.78)',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backdropFilter: 'blur(6px)',
+  },
+  exploreCardPrimaryTagText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#ffffff',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  exploreCardAmcTag: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    borderRadius: 999,
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+  },
+  exploreCardAmcTagText: {
+    fontSize: 8.5,
+    fontWeight: '800',
+    color: '#047857',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  exploreCardBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 11,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  exploreCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.2,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  exploreCardSub: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#475569',
+    marginTop: 2,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  exploreCardArrowCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  exploreCardArrowText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#2563eb',
+  },
+
+  /* Quick Appliance Dispatch Card */
+  quickDispatchCardWrap: {
+    width: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+  },
+  instantBadgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+  },
+  instantBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10b981',
+  },
+  instantBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#047857',
+    letterSpacing: 0.5,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+
+  /* Most Booked Popular Services Carousel */
+  popularSectionWrap: {
+    width: '100%',
+    marginTop: 2,
+  },
+  popularScrollContent: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingVertical: 4,
+    paddingRight: 8,
+  },
+  popularServiceCard: {
+    width: 214,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    boxShadow: '0 4px 14px rgba(15, 23, 42, 0.05)',
+    flexShrink: 0,
+  },
+  popularCardImgWrap: {
+    width: '100%',
+    height: 112,
+    backgroundColor: '#f8fafc',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  popularCardImg: {
+    width: '100%',
+    height: '100%',
+    ...(Platform.OS === 'web' ? { objectFit: 'cover', objectPosition: 'center' } : {}),
+  },
+  popularRatingPill: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(15, 23, 42, 0.84)',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  popularRatingStar: {
+    fontSize: 10,
+    color: '#fbbf24',
+    fontWeight: '800',
+  },
+  popularRatingText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#ffffff',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  popularRatingCount: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#cbd5e1',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  popularAmcChip: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+  },
+  popularAmcChipText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#1d4ed8',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  popularCardBody: {
+    padding: 12,
+    gap: 4,
+  },
+  popularCardTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.2,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  popularCardMeta: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: '#475569',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  popularCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  popularPriceLabel: {
+    fontSize: 9.5,
+    fontWeight: '600',
+    color: '#64748b',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  popularPriceValue: {
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  popularBookBtn: {
+    backgroundColor: '#2563eb',
+    borderRadius: 999,
+    paddingHorizontal: 13,
+    paddingVertical: 6.5,
+    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+  },
+  popularBookBtnText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#ffffff',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+
+  /* Modern 2x2 Trust Section & Social Proof Banner */
+  trustSectionContainer: {
+    width: '100%',
+    marginTop: 4,
+    gap: 12,
+  },
+  trustGridWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+    width: '100%',
+  },
+  trustModernCard: {
+    width: '48%',
+    flexGrow: 1,
+    minWidth: 145,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    gap: 6,
+    boxShadow: '0 3px 12px rgba(15, 23, 42, 0.04)',
+  },
+  trustModernIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trustModernBadge: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  trustModernBadgeText: {
+    fontSize: 8.5,
+    fontWeight: '800',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  trustModernTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginTop: 2,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  trustModernDesc: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#475569',
+    lineHeight: 15,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  socialProofFooterBanner: {
+    width: '100%',
+    backgroundColor: '#0b1936',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    borderWidth: 1,
+    borderColor: '#1e3a8a',
+    boxShadow: '0 8px 20px rgba(11, 25, 54, 0.18)',
+  },
+  socialProofMetricCol: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  socialProofValue: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#fbbf24',
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  socialProofLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#e2e8f0',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  socialProofDivider: {
+    width: 1,
+    height: 26,
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+  },
+
+  /* Sleek Royal Navy 2x2 Promise Card */
+  luxuryTrustCard: {
+    width: '100%',
+    backgroundColor: '#0b1936',
+    borderRadius: 20,
+    paddingVertical: 18,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: '#1e3a8a',
+    gap: 14,
+    boxShadow: '0 10px 28px rgba(11, 25, 54, 0.22)',
+  },
+  luxuryTrustHeader: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  luxuryTrustBadgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(37, 99, 235, 0.24)',
+    borderWidth: 1,
+    borderColor: 'rgba(96, 165, 250, 0.4)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    marginBottom: 2,
+  },
+  luxuryTrustBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#38bdf8',
+  },
+  luxuryTrustBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#93c5fd',
+    letterSpacing: 0.8,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  luxuryTrustHeading: {
+    fontSize: 16.5,
+    fontWeight: '800',
+    color: '#ffffff',
+    textAlign: 'center',
+    letterSpacing: -0.3,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  luxuryTrustSub: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#cbd5e1',
+    textAlign: 'center',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  luxuryTrustGridItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
+  luxuryTrustIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: 'rgba(37, 99, 235, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(96, 165, 250, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  luxuryTrustItemTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#ffffff',
+    lineHeight: 15,
+    fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+  },
+  luxuryTrustItemSub: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#93c5fd',
+    marginTop: 1,
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  },
+  luxuryTrustMetricsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.12)',
   },
 });
 
@@ -2900,16 +3819,16 @@ const marqueeWebCss = {
     width: '100%',
     overflow: 'hidden',
     position: 'relative',
-    padding: '6px 0',
-    margin: '2px 0 6px',
-    maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
-    WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
+    padding: '10px 0 14px',
+    margin: '2px 0 0',
+    maskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
+    WebkitMaskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
   },
   track: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: '18px',
+    alignItems: 'flex-start',
+    gap: '10px',
     width: 'max-content',
     animation: 'marqueeScroll 26s linear infinite',
     userSelect: 'none',
@@ -2918,24 +3837,22 @@ const marqueeWebCss = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: '7px',
-    width: '76px',
+    justifyContent: 'flex-start',
+    gap: '6px',
+    width: '72px',
     flexShrink: 0,
-    cursor: 'default',
-    pointerEvents: 'none',
+    cursor: 'pointer',
   },
   squircle: {
-    width: '64px',
-    height: '64px',
-    borderRadius: '20px',
-    background: 'linear-gradient(145deg, #f8faff 0%, #edf4fe 100%)',
-    border: '1.2px solid #d6e4ff',
+    width: '52px',
+    height: '52px',
+    borderRadius: '16px',
+    background: '#ffffff',
+    border: '1.2px solid #ffffff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.08), 0 1px 3px rgba(37, 99, 235, 0.04)',
-    pointerEvents: 'none',
+    boxShadow: '0 8px 18px rgba(15, 23, 42, 0.11), 0 3px 8px rgba(37, 99, 235, 0.1)',
   },
   labelWrap: {
     display: 'flex',
@@ -2943,17 +3860,15 @@ const marqueeWebCss = {
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    pointerEvents: 'none',
   },
   title: {
-    fontSize: '11.5px',
+    fontSize: '10.5px',
     fontWeight: 600,
-    color: '#1e293b',
+    color: '#0f172a',
     textAlign: 'center',
-    lineHeight: '14px',
-    fontFamily: "'Inter', sans-serif",
+    lineHeight: '13px',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
     whiteSpace: 'nowrap',
-    pointerEvents: 'none',
   },
 };
 
