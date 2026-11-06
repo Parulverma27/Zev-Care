@@ -8,13 +8,15 @@ import { resolveCategoryImageUri, resolveServiceItemImageUri } from '../../utils
 import { getHardcodedCatalogImage } from '../../utils/bundledImages';
 import { getProviderRatingStats, getPerformanceTier } from '../../utils/ratings';
 import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker';
+import FleetRadarMap from '../components/FleetRadarMap';
 
 export function AdminProvidersScreen() {
-  const { providers, setProviders, bookings, isCategoryAllowedForAdmin, adminUser } = useApp();
+  const { providers, setProviders, updateProviderDutyStatus, bookings, isCategoryAllowedForAdmin, adminUser } = useApp();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState(null);
+  const [viewMode, setViewMode] = useState('TABLE');
 
   const visibleProviders = (providers || []).filter((p) => {
     if (!adminUser || adminUser.role === 'SUPER_ADMIN') return true;
@@ -180,7 +182,56 @@ export function AdminProvidersScreen() {
           <Text style={styles.title}>Field Partner Management</Text>
           <Text style={styles.subtitle}>Approve, review, and track certified service technicians.</Text>
         </View>
-        <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* View Mode Switcher */}
+          <View style={{ flexDirection: 'row', backgroundColor: '#e2e8f0', padding: 3, borderRadius: 8 }}>
+            <TouchableOpacity
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 6,
+                backgroundColor: viewMode === 'TABLE' ? '#ffffff' : 'transparent',
+              }}
+              onPress={() => setViewMode('TABLE')}
+              activeOpacity={0.8}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={viewMode === 'TABLE' ? '#0f172a' : '#64748b'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M3 9h18" />
+                <path d="M3 15h18" />
+                <path d="M9 3v18" />
+              </svg>
+              <Text style={{ fontSize: 11.5, fontWeight: '700', color: viewMode === 'TABLE' ? '#0f172a' : '#64748b' }}>
+                Table View
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 6,
+                backgroundColor: viewMode === 'RADAR' ? '#ffffff' : 'transparent',
+              }}
+              onPress={() => setViewMode('RADAR')}
+              activeOpacity={0.8}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={viewMode === 'RADAR' ? '#2563eb' : '#64748b'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+              </svg>
+              <Text style={{ fontSize: 11.5, fontWeight: '700', color: viewMode === 'RADAR' ? '#2563eb' : '#64748b' }}>
+                Fleet Radar Map
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             style={{ backgroundColor: '#059669', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10 }}
             onPress={handleExportProviders}
@@ -192,7 +243,7 @@ export function AdminProvidersScreen() {
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-              <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 12.5 }}>Export Partners (Excel/CSV)</Text>
+              <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 12.5 }}>Export (CSV)</Text>
             </View>
           </TouchableOpacity>
 
@@ -208,7 +259,14 @@ export function AdminProvidersScreen() {
         </View>
       </View>
 
-      <View style={styles.tableCard}>
+      {viewMode === 'RADAR' ? (
+        <FleetRadarMap
+          providers={visibleProviders}
+          onSelectProvider={(p) => handleOpenDetailModal(p)}
+          onToggleDuty={(id, next) => updateProviderDutyStatus && updateProviderDutyStatus(id, next)}
+        />
+      ) : (
+        <View style={styles.tableCard}>
         <View style={styles.tableHeader}>
           <Text style={[styles.th, { flex: 1.5 }]}>Partner Name</Text>
           <Text style={[styles.th, { flex: 1.2 }]}>Phone</Text>
@@ -264,14 +322,22 @@ export function AdminProvidersScreen() {
                 ) : null}
               </View>
               <View style={{ flex: 0.9 }}>
-                <View style={[styles.statusPill, p.is_online !== false ? styles.activePill : styles.offlinePill]}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => updateProviderDutyStatus && updateProviderDutyStatus(p.id, p.is_online === false)}
+                  style={[styles.statusPill, p.is_online !== false ? styles.activePill : styles.offlinePill, { flexDirection: 'row', alignItems: 'center' }]}
+                >
+                  <View style={[styles.statusDot, { backgroundColor: p.is_online !== false ? '#10b981' : '#94a3b8' }]} />
                   <Text style={[styles.statusPillText, p.is_online !== false ? styles.activePillText : styles.offlinePillText]}>
-                    {p.is_online !== false ? 'ACTIVE' : 'OFFLINE'}
+                    {p.is_online !== false ? 'ONLINE' : 'OFFLINE'}
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
-              <View style={[styles.td, { flex: 0.9 }]}>
-                <Text style={{ color: '#d97706', fontWeight: '800', fontSize: 13 }}>★ {stats.rating}</Text>
+              <View style={[styles.td, { flex: 0.9, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#d97706" stroke="#d97706" strokeWidth="1">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <Text style={{ color: '#d97706', fontWeight: '800', fontSize: 13 }}>{stats.rating}</Text>
                 {stats.tier ? (
                   <Text style={{ fontSize: 9.5, fontWeight: '700', color: stats.tier.color }}>
                     {stats.tier.badge}
@@ -313,7 +379,8 @@ export function AdminProvidersScreen() {
           </View>
         );
       })}
-      </View>
+        </View>
+      )}
 
       {/* ADD / EDIT FIELD PARTNER MODAL */}
       <Modal visible={modalVisible} transparent animationType="slide">
@@ -399,11 +466,15 @@ export function AdminProvidersScreen() {
                 ) : (
                   <TouchableOpacity
                     onPress={() => setShowMapPicker(true)}
-                    style={[styles.coordsBadge, { backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }]}
+                    style={[styles.coordsBadge, { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', flexDirection: 'row', alignItems: 'center', gap: 6 }]}
                     activeOpacity={0.8}
                   >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
                     <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '600' }}>
-                      📍 Click "Pinpoint on Map" to select exact Google Maps coordinates
+                      Click "Pinpoint on Map" to select exact Google Maps coordinates
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -446,7 +517,10 @@ export function AdminProvidersScreen() {
                 <Text style={styles.mapModalSubtitle}>Search or drag pin to define field partner dispatch location</Text>
               </View>
               <TouchableOpacity onPress={() => setShowMapPicker(false)} style={styles.mapModalCloseBtn} activeOpacity={0.7}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#64748b' }}>✕</Text>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </TouchableOpacity>
             </View>
 
@@ -684,7 +758,13 @@ export function AdminServicesScreen() {
           <View style={styles.cardHeaderWithBtn}>
             <Text style={styles.sectionHeaderTitle}>Main Service Categories ({categories.length})</Text>
             <TouchableOpacity style={styles.addCatalogBtn} onPress={() => openCatModal()}>
-              <Text style={styles.addCatalogBtnText}>➕ Add Category</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <Text style={styles.addCatalogBtnText}>Add Category</Text>
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -740,7 +820,13 @@ export function AdminServicesScreen() {
               <Text style={styles.sectionHeaderSub}>Select to configure individual service items.</Text>
             </View>
             <TouchableOpacity style={styles.addCatalogBtn} onPress={() => openSubModal()}>
-              <Text style={styles.addCatalogBtnText}>➕ Add Sub-Category</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <Text style={styles.addCatalogBtnText}>Add Sub-Category</Text>
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -800,7 +886,13 @@ export function AdminServicesScreen() {
               <Text style={styles.sectionHeaderSub}>Configured for dispatch and booking checklists.</Text>
             </View>
             <TouchableOpacity style={styles.addCatalogBtn} onPress={() => openServiceModal()}>
-              <Text style={styles.addCatalogBtnText}>➕ Add Service</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <Text style={styles.addCatalogBtnText}>Add Service</Text>
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -1046,6 +1138,7 @@ const styles = StyleSheet.create({
   addPartnerBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 12 },
 
   statusPill: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start' },
+  statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
   statusPillText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
   activePill: { backgroundColor: '#ecfdf5' },
   activePillText: { color: '#047857' },

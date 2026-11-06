@@ -309,24 +309,24 @@ export default function ProviderProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#eff6ff', width: '100%' },
-  content: { padding: 16, gap: 14, width: '100%', boxSizing: 'border-box' },
+  container: { flex: 1, backgroundColor: '#f8fafc', width: '100%' },
+  content: { padding: 14, gap: 14, width: '100%', boxSizing: 'border-box' },
   header: { gap: 4, width: '100%' },
-  title: { fontSize: 20, fontWeight: '800', color: '#0f172a', lineHeight: 24 },
-  subtitle: { fontSize: 11.5, color: '#64748b', lineHeight: 15 },
+  title: { fontSize: 19, fontWeight: '900', color: '#0f172a', lineHeight: 24 },
+  subtitle: { fontSize: 11.5, color: '#64748b', lineHeight: 16 },
 
   profileCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#bfdbfe',
+    borderColor: '#e2e8f0',
     gap: 14,
-    shadowColor: '#1d4ed8',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -440,12 +440,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
     padding: 14,
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#bfdbfe',
+    borderColor: '#e2e8f0',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
   },
   ratingBoxRow: {
     flexDirection: 'row',
@@ -455,7 +460,7 @@ const styles = StyleSheet.create({
   metricVal: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1d4ed8',
+    color: '#0f172a',
   },
   metricLabel: {
     fontSize: 10.5,
@@ -465,11 +470,16 @@ const styles = StyleSheet.create({
 
   detailsCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: '#e2e8f0',
     gap: 12,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   cardSectionTitle: {
     fontSize: 13.5,

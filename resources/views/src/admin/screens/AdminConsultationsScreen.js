@@ -511,7 +511,12 @@ export default function AdminConsultationsScreen() {
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.td, { color: '#7c3aed', fontWeight: '700' }]}>{matchedProvider.name}</Text>
-                    <Text style={{ fontSize: 10.5, color: '#64748b' }}>★ {matchedProvider.rating || '5.0'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                      <Text style={{ fontSize: 10.5, color: '#64748b' }}>{matchedProvider.rating || '5.0'}</Text>
+                    </View>
                   </TouchableOpacity>
 
                   {/* SCHEDULE */}
@@ -715,7 +720,10 @@ export default function AdminConsultationsScreen() {
                 </Text>
               </View>
               <TouchableOpacity onPress={closeBookingModals} style={{ padding: 6 }}>
-                <Text style={{ fontSize: 18, color: '#64748b', fontWeight: '700' }}>✕</Text>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </TouchableOpacity>
             </View>
 
@@ -800,7 +808,15 @@ export default function AdminConsultationsScreen() {
               {providers.length > 0 ? providers.map((p, pIdx) => (
                 <View key={pIdx} style={styles.candidateCard}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.candName}>{p.name}  ★ {p.rating ?? '—'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <Text style={styles.candName}>{p.name}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                        <Text style={[styles.candName, { fontSize: 11, color: '#64748b' }]}>{p.rating ?? '—'}</Text>
+                      </View>
+                    </View>
                     <Text style={styles.candSub}>{p.location || '—'} · {p.phone || '—'}</Text>
                   </View>
                   <TouchableOpacity style={styles.assignSelectBtn} onPress={() => handleAssignAction(p.id)} disabled={submitting}>
@@ -844,8 +860,12 @@ export default function AdminConsultationsScreen() {
               )}
               <View style={[styles.modalReportRow, { marginTop: 6, alignItems: 'center' }]}>
                 {Boolean(selectedBooking?.resolution_video_url) && (
-                  <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#bfdbfe' }}>
-                    <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1d4ed8' }}>📹 Live Video Attached</Text>
+                  <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#bfdbfe', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="23 7 16 12 23 17 23 7" />
+                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                    </svg>
+                    <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1d4ed8' }}>Live Video Attached</Text>
                   </View>
                 )}
                 {Boolean(selectedBooking?.issue_media_url) && (
@@ -914,9 +934,14 @@ export default function AdminConsultationsScreen() {
                   </View>
                   <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '600' }}>MY MECHANIC TAX INVOICE</Text>
                 </View>
-                <View style={{ backgroundColor: selectedBooking?.bill_status === 'PAID' ? '#166534' : '#1e3a8a', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                <View style={{ backgroundColor: selectedBooking?.bill_status === 'PAID' ? '#166534' : '#1e3a8a', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  {selectedBooking?.bill_status === 'PAID' && (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
                   <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: '800' }}>
-                    {selectedBooking?.bill_status === 'PAID' ? '✓ SETTLED & PAID' : 'PENDING APPROVAL'}
+                    {selectedBooking?.bill_status === 'PAID' ? 'SETTLED & PAID' : 'PENDING APPROVAL'}
                   </Text>
                 </View>
               </View>
@@ -929,9 +954,12 @@ export default function AdminConsultationsScreen() {
             </View>
 
             <ScrollView style={{ padding: 20, maxHeight: 420 }} contentContainerStyle={{ gap: 14 }}>
-              <View style={{ backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', borderRadius: 8, padding: 10 }}>
+              <View style={{ backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', borderRadius: 8, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
                 <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#1d4ed8' }}>
-                  ✓ ₹0 Free Diagnostic Visit Applied (No Subscription Required)
+                  ₹0 Free Diagnostic Visit Applied (No Subscription Required)
                 </Text>
               </View>
 
@@ -1110,7 +1138,10 @@ export default function AdminConsultationsScreen() {
                 style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#64748b' }}>✕</Text>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </TouchableOpacity>
             </View>
 
@@ -1124,8 +1155,11 @@ export default function AdminConsultationsScreen() {
                   {liveTrackingBooking?.provider_phone || '+91 99887 76655'}
                 </Text>
                 {liveTrackingBooking?.status === 'PROVIDER_ARRIVED' ? (
-                  <View style={{ backgroundColor: '#ecfdf5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 2 }}>
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>✓ Doorstep Arrived</Text>
+                  <View style={{ backgroundColor: '#ecfdf5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>Doorstep Arrived</Text>
                   </View>
                 ) : (
                   <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 2 }}>
@@ -1151,7 +1185,9 @@ export default function AdminConsultationsScreen() {
             {liveTrackingBooking?.status === 'PROVIDER_ARRIVED' ? (
               <View style={{ backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0', padding: 10, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
                 <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#10b981', justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '800' }}>✓</Text>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: '#065f46' }}>
@@ -1202,9 +1238,16 @@ export default function AdminConsultationsScreen() {
             <Text style={styles.modalSub}>Work Order: {selectedBooking?.booking_id}</Text>
 
             <View style={{ alignItems: 'center', marginVertical: 12, gap: 4 }}>
-              <Text style={{ fontSize: 28, color: '#f59e0b', letterSpacing: 4 }}>
-                {'★'.repeat(selectedBooking?.user_rating || 5)}{'☆'.repeat(5 - (selectedBooking?.user_rating || 5))}
-              </Text>
+              <View style={{ flexDirection: 'row', gap: 4 }}>
+                {[1, 2, 3, 4, 5].map((s) => {
+                  const filled = s <= (selectedBooking?.user_rating || 5);
+                  return (
+                    <svg key={s} width="22" height="22" viewBox="0 0 24 24" fill={filled ? '#f59e0b' : 'none'} stroke="#f59e0b" strokeWidth="1.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  );
+                })}
+              </View>
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#0f172a' }}>
                 {selectedBooking?.user_rating || 5} out of 5 Stars
               </Text>

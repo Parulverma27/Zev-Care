@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, Platform, Linking } from 'react-native';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import ImageUploadField from '../../admin/components/ImageUploadField';
@@ -452,6 +452,47 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
     BOOKING_COMPLETED: 'COMPLETED & SETTLED',
   };
 
+  const getStatusConfig = (st) => {
+    switch (st) {
+      case 'PROVIDER_ASSIGNED':
+        return { label: 'Assigned to You', bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', dot: '#3b82f6' };
+      case 'PROVIDER_ACCEPTED':
+        return { label: 'Accepted by You', bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d', dot: '#22c55e' };
+      case 'PROVIDER_ON_THE_WAY':
+        return { label: 'En Route to Premises', bg: '#fef3c7', border: '#fde047', text: '#b45309', dot: '#eab308' };
+      case 'PROVIDER_ARRIVED':
+        return { label: isConsultationBk ? 'Arrived for Diagnosis' : 'Arrived on Site', bg: '#ecfdf5', border: '#a7f3d0', text: '#047857', dot: '#10b981' };
+      case 'ISSUE_INSPECTED':
+      case 'ASSIGNED_TO_ADMIN':
+        return { label: 'Inspection Sent to Admin', bg: '#fffbeb', border: '#fde68a', text: '#b45309', dot: '#f59e0b' };
+      case 'AWAITING_USER_APPROVAL':
+        return { label: 'Estimate with Customer', bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', dot: '#3b82f6' };
+      case 'SERVICE_IN_PROGRESS':
+        return { label: 'Repair in Progress', bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d', dot: '#22c55e' };
+      case 'BOOKING_COMPLETED':
+        return { label: 'Completed & Settled', bg: '#ecfdf5', border: '#a7f3d0', text: '#047857', dot: '#10b981' };
+      case 'ESTIMATE_REJECTED':
+        return { label: 'Declined by Customer (₹0)', bg: '#f1f5f9', border: '#cbd5e1', text: '#475569', dot: '#94a3b8' };
+      default:
+        return { label: statusLabels[st] || st, bg: '#f1f5f9', border: '#cbd5e1', text: '#475569', dot: '#94a3b8' };
+    }
+  };
+
+  const statusConfig = getStatusConfig(currentStatus);
+
+  const handleCallCustomer = () => {
+    if (customerPhone) {
+      Linking.openURL(`tel:${customerPhone}`).catch(() => {});
+    }
+  };
+
+  const handleOpenMap = () => {
+    if (customerAddress) {
+      const query = encodeURIComponent(customerAddress);
+      Linking.openURL(`https://maps.google.com/?q=${query}`).catch(() => {});
+    }
+  };
+
   const handleAction = (nextStatus) => {
     if (bk?.booking_id) {
       updateBookingStatus(bk.booking_id, nextStatus);
@@ -581,8 +622,16 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
           <ProviderIcon name="back" color="#0f172a" size={16} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Field Work Order Console</Text>
-          <Text style={styles.subtitle}>ID: {bk?.booking_id} • Status: {statusLabels[currentStatus] || currentStatus}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <Text style={styles.title}>Work Order Console</Text>
+            <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border }]}>
+              <View style={[styles.statusDot, { backgroundColor: statusConfig.dot }]} />
+              <Text style={[styles.statusBadgeText, { color: statusConfig.text }]}>
+                {statusConfig.label}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.subtitle}>Order #{bk?.booking_id} • Assigned Technician View</Text>
         </View>
       </View>
 
@@ -592,22 +641,27 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
           <View style={styles.consultationTopRow}>
             <View style={styles.consultationTag}>
               <ProviderIcon name="flash" color="#1d4ed8" size={13} />
-              <Text style={styles.consultationTagText}>FREE CONSULTATION</Text>
+              <Text style={styles.consultationTagText}>FREE CONSULTATION GUARANTEE</Text>
             </View>
             <View style={styles.freeBadge}>
-              <Text style={styles.freeBadgeText}>₹0 FREE VISIT</Text>
+              <Text style={styles.freeBadgeText}>₹0 VISIT FEE</Text>
             </View>
           </View>
           <Text style={styles.consultationHeadline}>On-Site Diagnosis & Upfront Quote Generation</Text>
           <Text style={styles.consultationBody}>
-            As a technician, assess the fault on-site and transmit an itemized quote (parts + labor). Repair begins only upon customer approval. If the customer declines, ₹0 is charged.
+            Assess the fault on-site and transmit an itemized technical report. Repair work begins only upon customer approval. If the customer declines, ₹0 is charged.
           </Text>
         </View>
       )}
 
       {/* Customer Info Card */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Customer & Premises</Text>
+        <View style={styles.cardHeaderWithBadge}>
+          <Text style={styles.cardSectionLabel}>CUSTOMER & PREMISES</Text>
+          <View style={styles.cardPillBadge}>
+            <Text style={styles.cardPillBadgeText}>Direct Booking</Text>
+          </View>
+        </View>
         <Text style={styles.custName}>{customerName}</Text>
         <View style={styles.infoRow}>
           <ProviderIcon name="phone" color="#64748b" size={13} />
@@ -622,6 +676,26 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
         <View style={styles.infoRow}>
           <ProviderIcon name="pin" color="#2563eb" size={13} />
           <Text style={styles.custAddr}>{customerAddress || '—'}</Text>
+        </View>
+
+        {/* 1-Tap Quick Action Buttons */}
+        <View style={styles.quickActionRow}>
+          <TouchableOpacity
+            style={styles.quickCallBtn}
+            onPress={handleCallCustomer}
+            activeOpacity={0.8}
+          >
+            <ProviderIcon name="phone" color="#ffffff" size={13} />
+            <Text style={styles.quickCallBtnText}>Call Customer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickNavBtn}
+            onPress={handleOpenMap}
+            activeOpacity={0.8}
+          >
+            <ProviderIcon name="pin" color="#1d4ed8" size={13} />
+            <Text style={styles.quickNavBtnText}>Open in Maps</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -701,7 +775,18 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
 
       {/* DYNAMIC PARTNER LIFECYCLE ACTION CONSOLE */}
       <View style={styles.actionConsole}>
-        <Text style={styles.consoleTitle}>Partner Lifecycle Workflow Action</Text>
+        <View style={styles.consoleHeaderRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardSectionLabel}>WORKFLOW STEP</Text>
+            <Text style={styles.consoleTitle}>Technician Action Console</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg, borderColor: statusConfig.border }]}>
+            <View style={[styles.statusDot, { backgroundColor: statusConfig.dot }]} />
+            <Text style={[styles.statusBadgeText, { color: statusConfig.text }]}>
+              {statusConfig.label}
+            </Text>
+          </View>
+        </View>
 
         {currentStatus === 'PROVIDER_ASSIGNED' && (
           <TouchableOpacity style={styles.actionBtn} onPress={() => handleAction('PROVIDER_ACCEPTED')}>
@@ -916,9 +1001,24 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
         )}
 
         {currentStatus === 'BOOKING_COMPLETED' && (
-          <View style={styles.completedBox}>
-            <ProviderIcon name="checkCircle" color="#1d4ed8" size={18} />
-            <Text style={styles.completedText}>WORK ORDER COMPLETED & SETTLED</Text>
+          <View style={styles.completedCard}>
+            <View style={styles.completedHeaderRow}>
+              <View style={styles.completedIconWrap}>
+                <ProviderIcon name="checkCircle" color="#059669" size={22} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.completedTitle}>Work Order Completed & Settled</Text>
+                <Text style={styles.completedSub}>Customer OTP verified. Payout credited to technician earnings account.</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.viewEarningsBtn}
+              onPress={() => navigate('/provider/earnings')}
+              activeOpacity={0.85}
+            >
+              <ProviderIcon name="earnings" color="#047857" size={14} />
+              <Text style={styles.viewEarningsBtnText}>View Earnings & Settlement →</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -1226,10 +1326,24 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
       <Modal visible={otpModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Verify Customer OTP Code</Text>
-            <Text style={styles.modalSub}>Ask the customer for their 4-digit completion code to finalize the job.</Text>
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalTitle}>Verify Customer OTP</Text>
+                <Text style={styles.modalSub}>Ask customer for their 4-digit completion code to finalize the job.</Text>
+              </View>
+              <TouchableOpacity onPress={() => setOtpModal(false)} style={styles.modalCloseIconBtn}>
+                <Text style={styles.modalCloseIconText}>✕</Text>
+              </TouchableOpacity>
+            </View>
 
             {otpError ? <Text style={styles.errorText}>{otpError}</Text> : null}
+
+            {bk?.completion_otp ? (
+              <View style={styles.otpHintBanner}>
+                <ProviderIcon name="key" color="#1d4ed8" size={13} />
+                <Text style={styles.otpHintText}>Customer Job Code: {bk.completion_otp}</Text>
+              </View>
+            ) : null}
 
             <TextInput
               style={styles.otpInput}
@@ -1237,7 +1351,8 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
               maxLength={4}
               value={enteredOtp}
               onChangeText={(val) => { setEnteredOtp(val); setOtpError(''); }}
-              placeholder="Enter customer's OTP"
+              placeholder="••••"
+              placeholderTextColor="#94a3b8"
             />
 
             <TouchableOpacity style={styles.primaryBtn} onPress={handleVerifyOtpSubmit}>
@@ -1281,29 +1396,92 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#eff6ff', width: '100%' },
+  container: { flex: 1, backgroundColor: '#f8fafc', width: '100%' },
   content: { padding: 14, gap: 14, width: '100%', boxSizing: 'border-box' },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, width: '100%' },
   backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: '#e2e8f0',
+    cursor: 'pointer',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  title: { fontSize: 18, fontWeight: '800', color: '#0f172a', lineHeight: 22 },
+  subtitle: { fontSize: 11.5, color: '#64748b', lineHeight: 15, marginTop: 1 },
+
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    gap: 8,
+    width: '100%',
+    boxSizing: 'border-box',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardTitle: { fontSize: 12, fontWeight: '700', color: '#2563eb' },
+  cardSectionLabel: { fontSize: 10.5, fontWeight: '800', color: '#64748b', letterSpacing: 0.6 },
+  cardHeaderWithBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 2 },
+  cardPillBadge: { backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1, borderColor: '#e2e8f0' },
+  cardPillBadgeText: { fontSize: 10, fontWeight: '700', color: '#475569' },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
+  statusDot: { width: 7, height: 7, borderRadius: 3.5 },
+  statusBadgeText: { fontSize: 10.5, fontWeight: '800', letterSpacing: 0.2 },
+
+  custName: { fontSize: 16, fontWeight: '800', color: '#0f172a', lineHeight: 20 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  custSub: { fontSize: 11.5, color: '#475569', lineHeight: 15 },
+  custAddr: { fontSize: 11.5, color: '#334155', lineHeight: 16, flex: 1 },
+
+  quickActionRow: { flexDirection: 'row', gap: 10, marginTop: 6, width: '100%' },
+  quickCallBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#059669',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
     cursor: 'pointer',
   },
-  title: { fontSize: 19, fontWeight: '800', color: '#0f172a', lineHeight: 22 },
-  subtitle: { fontSize: 11.5, color: '#64748b', lineHeight: 15 },
+  quickCallBtnText: { color: '#ffffff', fontSize: 12, fontWeight: '800' },
+  quickNavBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    cursor: 'pointer',
+  },
+  quickNavBtnText: { color: '#1d4ed8', fontSize: 12, fontWeight: '700' },
 
-  card: { backgroundColor: '#ffffff', borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#bfdbfe', gap: 6, width: '100%', boxSizing: 'border-box', shadowColor: '#1d4ed8', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
-  cardTitle: { fontSize: 12, fontWeight: '700', color: '#2563eb' },
-  custName: { fontSize: 15, fontWeight: '800', color: '#0f172a', lineHeight: 18 },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  custSub: { fontSize: 11, color: '#475569', lineHeight: 15 },
-  custAddr: { fontSize: 11, color: '#334155', lineHeight: 15, flex: 1 },
   callCustomerBtn: {
     marginTop: 8,
     flexDirection: 'row',
@@ -1397,16 +1575,98 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  actionConsole: { backgroundColor: '#ffffff', borderRadius: 20, padding: 16, borderWidth: 1.5, borderColor: '#bfdbfe', gap: 12, width: '100%', boxSizing: 'border-box', shadowColor: '#2563eb', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 3 },
-  consoleTitle: { fontSize: 13.5, fontWeight: '800', color: '#0f172a', lineHeight: 18, marginBottom: 2 },
-  actionBtn: { backgroundColor: '#2563eb', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 13, paddingHorizontal: 12, borderRadius: 12, width: '100%', boxSizing: 'border-box', shadowColor: '#2563eb', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 6, elevation: 3 },
-  actionBtnText: { color: '#ffffff', fontWeight: '800', fontSize: 12.5, letterSpacing: 0.2, textAlign: 'center', flexWrap: 'wrap', lineHeight: 16 },
+  actionConsole: {
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#dbeafe',
+    gap: 12,
+    width: '100%',
+    boxSizing: 'border-box',
+    shadowColor: '#1d4ed8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  consoleHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 4,
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  consoleTitle: { fontSize: 14, fontWeight: '800', color: '#0f172a', lineHeight: 18 },
+  actionBtn: {
+    backgroundColor: '#2563eb',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    width: '100%',
+    boxSizing: 'border-box',
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
+    cursor: 'pointer',
+  },
+  actionBtnText: { color: '#ffffff', fontWeight: '800', fontSize: 13, letterSpacing: 0.3, textAlign: 'center', flexWrap: 'wrap', lineHeight: 17 },
 
   waitBox: { backgroundColor: '#fef3c7', flexDirection: 'row', alignItems: 'center', gap: 8, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#fde047', width: '100%' },
   waitText: { color: '#92400e', fontWeight: '700', fontSize: 11.5, lineHeight: 16, flex: 1 },
 
-  completedBox: { backgroundColor: '#dbeafe', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#93c5fd', width: '100%' },
-  completedText: { color: '#1d4ed8', fontWeight: '800', fontSize: 13 },
+  completedBox: { backgroundColor: '#ecfdf5', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#a7f3d0', width: '100%' },
+  completedText: { color: '#059669', fontWeight: '800', fontSize: 13 },
+
+  completedCard: {
+    backgroundColor: '#ecfdf5',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#a7f3d0',
+    gap: 12,
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  completedHeaderRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  completedIconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#d1fae5', alignItems: 'center', justifyContent: 'center' },
+  completedTitle: { fontSize: 14, fontWeight: '800', color: '#065f46' },
+  completedSub: { fontSize: 11.5, color: '#047857', lineHeight: 16, marginTop: 2 },
+  viewEarningsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#6ee7b7',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    cursor: 'pointer',
+  },
+  viewEarningsBtnText: { fontSize: 12, fontWeight: '800', color: '#047857' },
+
+  otpHintBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 8,
+    padding: 8,
+    marginVertical: 4,
+  },
+  otpHintText: { fontSize: 11.5, color: '#1d4ed8', fontWeight: '700' },
 
   mediaRow: { flexDirection: 'row', gap: 10, width: '100%' },
   uploadBtn: { flex: 1, backgroundColor: '#eff6ff', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 11, paddingHorizontal: 10, borderRadius: 10, borderWidth: 1, borderColor: '#bfdbfe' },

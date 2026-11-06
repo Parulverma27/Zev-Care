@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import ZevotaLogo from '../components/ZevotaLogo';
@@ -23,17 +23,46 @@ export default function ProviderAppLayout() {
   const isJobDetail = /\/provider\/bookings\/[^/]+/.test(location.pathname);
   const showChrome = !isAuthPage;
 
+  const isOnline = activeProvider?.is_online !== false;
+  const firstName = activeProvider?.name ? activeProvider.name.split(' ')[0] : 'Partner';
+  const initial = activeProvider?.name ? activeProvider.name.charAt(0).toUpperCase() : 'P';
+  const shortTrade = activeProvider?.trade ? activeProvider.trade.split(' ')[0] : 'Expert';
+
   return (
     <View style={styles.container}>
       {showChrome && (
         <View style={styles.topHeader}>
-          <TouchableOpacity onPress={() => navigate('/provider/dashboard')}>
-            <ZevotaLogo size="header" light />
+          <TouchableOpacity
+            style={styles.brandRow}
+            onPress={() => navigate('/provider/dashboard')}
+            activeOpacity={0.85}
+          >
+            <ZevotaLogo size="header" />
+            <View style={styles.partnerBadge}>
+              <Text style={styles.partnerBadgeText}>PARTNER</Text>
+            </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.statusBox} onPress={() => navigate('/provider/profile')} activeOpacity={0.8}>
-            <View style={styles.onlineDot} />
-            <Text style={styles.statusText}>{activeProvider?.name || '\u2014'}</Text>
+          <TouchableOpacity
+            style={styles.statusBox}
+            onPress={() => navigate('/provider/profile')}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.onlinePill, isOnline ? styles.onlinePillActive : styles.onlinePillInactive]}>
+              <View style={[styles.onlineDot, isOnline ? styles.onlineDotActive : styles.onlineDotInactive]} />
+              <Text style={[styles.onlineStatusText, isOnline ? styles.onlineTextActive : styles.onlineTextInactive]}>
+                {isOnline ? 'Online' : 'Offline'}
+              </Text>
+            </View>
+
+            <View style={styles.partnerInfoWrap}>
+              <Text style={styles.partnerName} numberOfLines={1}>{firstName}</Text>
+              <Text style={styles.partnerTrade} numberOfLines={1}>{shortTrade}</Text>
+            </View>
+
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarInitial}>{initial}</Text>
+            </View>
           </TouchableOpacity>
         </View>
       )}
@@ -54,12 +83,18 @@ export default function ProviderAppLayout() {
             return (
               <TouchableOpacity
                 key={tab.key}
-                style={[styles.tabItem, isActive && styles.activeTabItem]}
+                style={styles.tabItem}
                 onPress={() => navigate(tab.path)}
                 activeOpacity={0.8}
               >
                 <View style={[styles.iconPill, isActive && styles.activeIconPill]}>
-                  <VectorTabIcon name={tab.icon} active={isActive} theme="provider" />
+                  <VectorTabIcon
+                    name={tab.icon}
+                    active={isActive}
+                    activeColor="#2563eb"
+                    inactiveColor="#64748b"
+                    theme="provider"
+                  />
                   <Text style={[styles.tabLabel, isActive && styles.activeLabel]} numberOfLines={1}>
                     {tab.label}
                   </Text>
@@ -74,72 +109,176 @@ export default function ProviderAppLayout() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#eff6ff', width: '100%', overflow: 'hidden' },
+  container: { flex: 1, backgroundColor: '#f8fafc', width: '100%', overflow: 'hidden' },
+
   topHeader: {
-    backgroundColor: '#1e3a8a',
+    backgroundColor: '#ffffff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     width: '100%',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+        }
+      : {
+          elevation: 2,
+        }),
+  },
+
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  partnerBadge: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  partnerBadgeText: {
+    color: '#2563eb',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
   },
 
   statusBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#1d4ed8',
-    paddingHorizontal: 10,
+    gap: 8,
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 14,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#3b82f6',
+    borderColor: '#e2e8f0',
     cursor: 'pointer',
   },
-  onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#60a5fa' },
-  statusText: { color: '#ffffff', fontSize: 12, fontWeight: '800' },
+  onlinePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  onlinePillActive: {
+    backgroundColor: '#ecfdf5',
+  },
+  onlinePillInactive: {
+    backgroundColor: '#f1f5f9',
+  },
+  onlineDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  onlineDotActive: {
+    backgroundColor: '#10b981',
+  },
+  onlineDotInactive: {
+    backgroundColor: '#94a3b8',
+  },
+  onlineStatusText: {
+    fontSize: 11,
+    fontWeight: '700',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  onlineTextActive: {
+    color: '#059669',
+  },
+  onlineTextInactive: {
+    color: '#64748b',
+  },
+
+  partnerInfoWrap: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  partnerName: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0f172a',
+    lineHeight: 14,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  partnerTrade: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#64748b',
+    lineHeight: 12,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  avatarCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#2563eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
+  },
 
   contentContainer: { flex: 1, width: '100%', overflow: 'hidden' },
 
   bottomBar: {
     flexDirection: 'row',
-    backgroundColor: '#0f172a',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopWidth: 1.5,
-    borderTopColor: 'rgba(59, 130, 246, 0.3)',
-    paddingTop: 8,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    paddingTop: 6,
     paddingBottom: 10,
     paddingHorizontal: 8,
     justifyContent: 'space-around',
     alignItems: 'center',
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
     width: '100%',
     boxSizing: 'border-box',
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: '0 -4px 16px rgba(15, 23, 42, 0.05)',
+        }
+      : {
+          elevation: 6,
+        }),
   },
-  tabItem: { alignItems: 'center', flex: 1, minWidth: 0, paddingHorizontal: 2 },
+  tabItem: { alignItems: 'center', flex: 1, minWidth: 0, paddingHorizontal: 3 },
   iconPill: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
     width: '100%',
-    maxWidth: 110,
+    maxWidth: 96,
   },
   activeIconPill: {
-    backgroundColor: '#2563eb',
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 4,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#dbeafe',
   },
-  tabLabel: { fontSize: 11, color: '#93c5fd', fontWeight: '600', marginTop: 2, textAlign: 'center' },
-  activeLabel: { color: '#ffffff', fontWeight: '800' },
+  tabLabel: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '600',
+    marginTop: 2,
+    textAlign: 'center',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+  },
+  activeLabel: {
+    color: '#1d4ed8',
+    fontWeight: '800',
+  },
 });

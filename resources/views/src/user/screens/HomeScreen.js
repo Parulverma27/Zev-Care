@@ -249,21 +249,19 @@ const ALL_SERVICES_SLIDESHOW = [
     category: 'AC Services',
     icon: (
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-        {/* Main 3D AC Body */}
-        <rect x="2.5" y="5" width="27" height="13" rx="3.5" fill="#f8fafc" stroke="#334155" strokeWidth="1.6" />
-        {/* Bottom 3D bevel */}
-        <path d="M4 14.5h24a1.5 1.5 0 0 1 1 2.5H3a1.5 1.5 0 0 1 1-2.5z" fill="#e2e8f0" />
-        {/* Blue brand accent strip */}
-        <line x1="5" y1="12" x2="27" y2="12" stroke="#2563eb" strokeWidth="1.6" strokeLinecap="round" />
-        {/* Dark air louver slot */}
-        <rect x="6" y="15" width="20" height="1.8" rx="0.9" fill="#1e293b" />
-        {/* LED temp display */}
-        <rect x="21" y="7.5" width="5.5" height="2.8" rx="1.2" fill="#0f172a" />
-        <circle cx="24.8" cy="8.9" r="0.8" fill="#10b981" />
-        {/* Cool 3D airflow waves */}
-        <path d="M9 21c0 2-1.8 3-1.8 5" stroke="#0284c7" strokeWidth="2" strokeLinecap="round" />
-        <path d="M16 21v5.5" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" />
-        <path d="M23 21c0 2 1.8 3 1.8 5" stroke="#0284c7" strokeWidth="2" strokeLinecap="round" />
+        {/* AC Unit Body */}
+        <rect x="3" y="6" width="26" height="14" rx="3" fill="#dbeafe" stroke="#2563eb" strokeWidth="1.8" />
+        {/* Vent Lines */}
+        <line x1="7" y1="16" x2="25" y2="16" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="7" y1="13.5" x2="25" y2="13.5" stroke="#93c5fd" strokeWidth="0.8" strokeLinecap="round" />
+        {/* LED Indicator */}
+        <circle cx="23" cy="9.5" r="1.2" fill="#2563eb" />
+        {/* Cool Air Waves */}
+        <path d="M10 23c0.8-1 2-1 2.8 0s2-1 2.8 0" stroke="#2563eb" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+        <path d="M16.4 23c0.8-1 2-1 2.8 0s2-1 2.8 0" stroke="#93c5fd" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+        {/* Snowflake */}
+        <line x1="16" y1="26" x2="16" y2="29" stroke="#2563eb" strokeWidth="1.4" strokeLinecap="round" />
+        <line x1="14.5" y1="27.5" x2="17.5" y2="27.5" stroke="#2563eb" strokeWidth="1.4" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -273,22 +271,19 @@ const ALL_SERVICES_SLIDESHOW = [
     category: 'Washing Machine Repair',
     icon: (
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-        {/* 3D Appliance Cabinet */}
-        <rect x="5" y="2.5" width="22" height="27" rx="3.5" fill="#f8fafc" stroke="#334155" strokeWidth="1.6" />
-        {/* Top Control Panel */}
-        <path d="M5.8 6a2.7 2.7 0 0 1 2.7-2.7h15a2.7 2.7 0 0 1 2.7 2.7v3.2H5.8V6z" fill="#e2e8f0" />
-        <line x1="5" y1="9.5" x2="27" y2="9.5" stroke="#475569" strokeWidth="1.4" />
-        {/* Detergent drawer & rotary dial */}
-        <rect x="7.5" y="5.2" width="5.5" height="2.2" rx="1" fill="#2563eb" />
-        <circle cx="22.5" cy="6.3" r="1.6" fill="#0f172a" />
-        <circle cx="18.5" cy="6.3" r="0.9" fill="#10b981" />
-        {/* Outer Chrome Drum Ring */}
-        <circle cx="16" cy="19.5" r="6.8" fill="#cbd5e1" stroke="#334155" strokeWidth="1.5" />
-        {/* Inner Glass Porthole */}
-        <circle cx="16" cy="19.5" r="4.8" fill="#1e3a8a" />
-        {/* Swirling Cyan Water Wave */}
-        <path d="M11.6 20c1.5-1.5 3 1.5 4.4 0s2.9-1.5 4.4 0a4.6 4.6 0 0 1-8.8 0z" fill="#38bdf8" />
-        <circle cx="14.5" cy="17" r="0.8" fill="#bae6fd" />
+        {/* Machine Body */}
+        <rect x="5" y="3" width="22" height="26" rx="3" fill="#dbeafe" stroke="#2563eb" strokeWidth="1.8" />
+        {/* Control Panel */}
+        <line x1="5" y1="10" x2="27" y2="10" stroke="#2563eb" strokeWidth="1.4" />
+        {/* Buttons */}
+        <circle cx="10" cy="6.5" r="1.3" fill="#2563eb" />
+        <circle cx="22" cy="6.5" r="1.8" stroke="#2563eb" strokeWidth="1.2" fill="none" />
+        {/* Drum Door - outer ring */}
+        <circle cx="16" cy="20" r="6.5" stroke="#2563eb" strokeWidth="1.8" fill="none" />
+        {/* Drum Door - inner glass */}
+        <circle cx="16" cy="20" r="4" fill="#bfdbfe" />
+        {/* Water swirl */}
+        <path d="M13 20c1-1.5 2.5 1.5 3.5 0s2 1.5 3 0" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" fill="none" />
       </svg>
     ),
   },
@@ -298,18 +293,17 @@ const ALL_SERVICES_SLIDESHOW = [
     category: 'Refrigerator Repair',
     icon: (
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-        {/* 3D Fridge Body */}
-        <rect x="7" y="2.5" width="18" height="27" rx="3" fill="#e2e8f0" stroke="#334155" strokeWidth="1.6" />
-        {/* Left light highlight panel */}
-        <path d="M8.5 3.5h7v25h-7a1.5 1.5 0 0 1-1.5-1.5v-22a1.5 1.5 0 0 1 1.5-1.5z" fill="#f8fafc" />
-        {/* Freezer / Fridge Divider */}
-        <line x1="7" y1="12.5" x2="25" y2="12.5" stroke="#334155" strokeWidth="1.6" />
-        {/* Chrome Handles */}
-        <line x1="10.5" y1="5.8" x2="10.5" y2="10" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" />
-        <line x1="10.5" y1="15.5" x2="10.5" y2="22.5" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" />
-        {/* Water / Ice Dispenser Recess */}
-        <rect x="18.5" y="16" width="4" height="5.2" rx="1" fill="#0f172a" />
-        <circle cx="20.5" cy="18.8" r="1" fill="#38bdf8" />
+        {/* Fridge Body */}
+        <rect x="7" y="2" width="18" height="27" rx="3" fill="#dbeafe" stroke="#2563eb" strokeWidth="1.8" />
+        {/* Freezer Divider */}
+        <line x1="7" y1="12" x2="25" y2="12" stroke="#2563eb" strokeWidth="1.6" />
+        {/* Freezer Handle */}
+        <line x1="21" y1="6" x2="21" y2="10" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" />
+        {/* Fridge Handle */}
+        <line x1="21" y1="15" x2="21" y2="22" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" />
+        {/* Feet */}
+        <rect x="9" y="29" width="3" height="1.5" rx="0.7" fill="#2563eb" />
+        <rect x="20" y="29" width="3" height="1.5" rx="0.7" fill="#2563eb" />
       </svg>
     ),
   },
@@ -319,18 +313,15 @@ const ALL_SERVICES_SLIDESHOW = [
     category: 'TV & AV Services',
     icon: (
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-        {/* Outer Dark Bezel */}
-        <rect x="2.5" y="5" width="27" height="17.5" rx="2.5" fill="#0f172a" stroke="#1e293b" strokeWidth="1.5" />
-        {/* Vivid Sapphire Display */}
-        <rect x="4.2" y="6.7" width="23.6" height="14.1" rx="1.2" fill="#2563eb" />
-        {/* Screen Diagonal Light Reflection */}
-        <path d="M6 6.7h7l-5 14.1H4.2V8a1.2 1.2 0 0 1 1.8-1.3z" fill="#3b82f6" />
-        <path d="M10 10l-2.5 5M14 10l-4 7" stroke="#93c5fd" strokeWidth="1.6" strokeLinecap="round" />
-        {/* Play Emblem */}
-        <polygon points="15,11.5 15,16 19,13.75" fill="#ffffff" />
-        {/* Metallic Stand */}
-        <path d="M16 22.5v4" stroke="#475569" strokeWidth="2.4" strokeLinecap="round" />
-        <path d="M10.5 26.8h11" stroke="#334155" strokeWidth="2.4" strokeLinecap="round" />
+        {/* TV Screen */}
+        <rect x="3" y="5" width="26" height="17" rx="2" fill="#dbeafe" stroke="#2563eb" strokeWidth="1.8" />
+        {/* Screen Inner */}
+        <rect x="5.5" y="7.5" width="21" height="12" rx="1" fill="#bfdbfe" />
+        {/* Play Button */}
+        <polygon points="14,10.5 14,16.5 19,13.5" fill="#2563eb" />
+        {/* Stand */}
+        <path d="M16 22v4" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" />
+        <path d="M10 27h12" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -340,16 +331,10 @@ const ALL_SERVICES_SLIDESHOW = [
     category: 'Electrical Services',
     icon: (
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-        {/* Metal Prongs */}
-        <rect x="11" y="3" width="2.4" height="6" rx="1.2" fill="#475569" />
-        <rect x="18.6" y="3" width="2.4" height="6" rx="1.2" fill="#475569" />
-        {/* 3D Insulated Plug Body */}
-        <rect x="7.5" y="8.5" width="17" height="13" rx="4" fill="#2563eb" stroke="#1e3a8a" strokeWidth="1.6" />
-        <rect x="7.5" y="8.5" width="17" height="3" rx="1.5" fill="#60a5fa" />
-        {/* Cord */}
-        <path d="M16 21.5v6.5" stroke="#1e293b" strokeWidth="2.8" strokeLinecap="round" />
-        {/* Golden 3D Lightning Spark */}
-        <polygon points="17.2,11 12.8,15.8 15.8,15.8 14.5,19.8 19.2,14.8 16.2,14.8" fill="#fbbf24" stroke="#fef08a" strokeWidth="0.6" strokeLinejoin="round" />
+        {/* Lightning Bolt */}
+        <path d="M18 3L10 17h5l-2 12 10-15h-5.5L18 3z" fill="#dbeafe" stroke="#2563eb" strokeWidth="1.8" strokeLinejoin="round" />
+        {/* Inner bolt highlight */}
+        <path d="M17 7l-5 9h3.5l-1.5 8 6.5-10h-3.5L17 7z" fill="#2563eb" opacity="0.25" />
       </svg>
     ),
   },
@@ -359,27 +344,16 @@ const ALL_SERVICES_SLIDESHOW = [
     category: 'Plumbing Services',
     icon: (
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-        {/* T-Handle Valve */}
-        <rect x="8.5" y="4.5" width="9" height="2.6" rx="1.3" fill="#2563eb" stroke="#1e3a8a" strokeWidth="1.2" />
-        <rect x="11.8" y="7" width="2.4" height="4" fill="#64748b" />
-        {/* Wall Flange */}
-        <rect x="3.5" y="9.5" width="2.5" height="8" rx="1" fill="#334155" />
-        {/* Chrome Faucet Body */}
-        <path
-          d="M6 11h11.5c4 0 6.5 2.4 6.5 6.2V19h-4.5v-1.6c0-1.3-.9-2.1-2.2-2.1H6V11z"
-          fill="#cbd5e1"
-          stroke="#334155"
-          strokeWidth="1.6"
-          strokeLinejoin="round"
-        />
-        {/* Glossy 3D Water Droplet */}
-        <path
-          d="M24.8 25c0 2-1.4 3.5-3.1 3.5s-3.1-1.5-3.1-3.5c0-2 3.1-5 3.1-5s3.1 3 3.1 5z"
-          fill="#0ea5e9"
-          stroke="#0369a1"
-          strokeWidth="1.3"
-        />
-        <circle cx="20.8" cy="25.2" r="0.8" fill="#e0f2fe" />
+        {/* Faucet Handle */}
+        <rect x="9" y="4" width="8" height="3" rx="1.5" fill="#2563eb" />
+        {/* Faucet Stem */}
+        <rect x="12" y="7" width="2.5" height="5" fill="#2563eb" />
+        {/* Faucet Body */}
+        <path d="M6 12h14.5c3 0 5.5 2 5.5 5v1.5h-4v-1c0-1.2-.8-2-2-2H6V12z" fill="#dbeafe" stroke="#2563eb" strokeWidth="1.8" strokeLinejoin="round" />
+        {/* Water Drop */}
+        <path d="M24 22c0 0-2.8 3.5-2.8 5.2a2.8 2.8 0 0 0 5.6 0C26.8 25.5 24 22 24 22z" fill="#2563eb" />
+        {/* Drop highlight */}
+        <ellipse cx="23.3" cy="26.5" rx="0.8" ry="1" fill="#bfdbfe" />
       </svg>
     ),
   },
@@ -389,19 +363,15 @@ const ALL_SERVICES_SLIDESHOW = [
     category: 'Carpentry Services',
     icon: (
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-        {/* Wooden Hammer Handle */}
-        <path d="M6.5 25.5L19 13" stroke="#d97706" strokeWidth="3.8" strokeLinecap="round" />
-        <path d="M6.5 25.5L19 13" stroke="#fbbf24" strokeWidth="1.6" strokeLinecap="round" />
-        {/* Forged Steel Hammer Head */}
-        <path
-          d="M14.5 8.5l4-4c2-2 5-1.5 6.5 0l-3 3 2.5 2.5 2-2 2.5 2.5-3.5 3.5-2.5-2.5 1.5-1.5-2.5-2.5-4.5 4.5-3-3.5z"
-          fill="#475569"
-          stroke="#1e293b"
-          strokeWidth="1.4"
-          strokeLinejoin="round"
-        />
-        {/* Crossed Cobalt Wrench Accent */}
-        <circle cx="7" cy="25" r="1.4" fill="#fef3c7" />
+        {/* Hammer Handle */}
+        <path d="M7 27L18 14" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" />
+        {/* Hammer Head */}
+        <rect x="15" y="5" width="13" height="6" rx="1.5" fill="#dbeafe" stroke="#2563eb" strokeWidth="1.8" transform="rotate(30 21 8)" />
+        {/* Head detail */}
+        <line x1="17.5" y1="7" x2="17.5" y2="12" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" transform="rotate(30 17.5 9.5)" />
+        {/* Nail */}
+        <line x1="25" y1="20" x2="25" y2="28" stroke="#93c5fd" strokeWidth="1.8" strokeLinecap="round" />
+        <line x1="23" y1="20" x2="27" y2="20" stroke="#2563eb" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -411,20 +381,15 @@ const ALL_SERVICES_SLIDESHOW = [
     category: 'Dry Cleaning',
     icon: (
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-        {/* Plush Backrest */}
-        <rect x="6" y="10" width="20" height="9" rx="3.5" fill="#2563eb" stroke="#1e3a8a" strokeWidth="1.5" />
-        {/* Armrests & Base */}
-        <path
-          d="M3.5 15.5a2.5 2.5 0 0 1 5 0v2h15v-2a2.5 2.5 0 0 1 5 0v6a2 2 0 0 1-2 2h-21a2 2 0 0 1-2-2v-6z"
-          fill="#60a5fa"
-          stroke="#1e3a8a"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-        {/* Wooden Legs */}
-        <path d="M6.5 23.5v3M25.5 23.5v3" stroke="#b45309" strokeWidth="2.4" strokeLinecap="round" />
-        {/* Golden Sparkle Stars */}
-        <path d="M16 3l1 2.2L19.2 6l-2.2 1-1 2.2-1-2.2L12.8 6 15 5.2 16 3z" fill="#fbbf24" stroke="#d97706" strokeWidth="0.6" />
+        {/* Hanger Hook */}
+        <path d="M16 3v2" stroke="#2563eb" strokeWidth="1.8" strokeLinecap="round" />
+        <circle cx="16" cy="3" r="1.5" stroke="#2563eb" strokeWidth="1.5" fill="none" />
+        {/* Hanger Triangle */}
+        <path d="M16 5L6 15h20L16 5z" fill="none" stroke="#2563eb" strokeWidth="1.8" strokeLinejoin="round" />
+        {/* Shirt/Garment */}
+        <path d="M8 15v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V15" fill="#dbeafe" stroke="#2563eb" strokeWidth="1.8" strokeLinejoin="round" />
+        {/* Sparkle */}
+        <path d="M22 7l0.7 1.5L24.2 9.2l-1.5 0.7L22 11.4l-0.7-1.5-1.5-0.7 1.5-0.7z" fill="#2563eb" />
       </svg>
     ),
   },
@@ -434,19 +399,20 @@ const ALL_SERVICES_SLIDESHOW = [
     category: 'Pest Control Services',
     icon: (
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-        {/* 3D Emerald Shield Left Facet */}
-        <path d="M16 3L6 7.2v8.3C6 22.8 10.4 27.6 16 29.2V3z" fill="#10b981" />
-        {/* 3D Emerald Shield Right Facet */}
-        <path d="M16 3l10 4.2v8.3c0 7.3-4.4 12.1-10 13.7V3z" fill="#059669" />
-        {/* Shield Border */}
-        <path
-          d="M16 3L6 7.2v8.3c0 7.3 4.4 12.1 10 13.7 5.6-1.6 10-6.4 10-13.7V7.2L16 3z"
-          stroke="#065f46"
-          strokeWidth="1.6"
-          strokeLinejoin="round"
-        />
-        {/* Crisp White Checkmark */}
-        <polyline points="11.2 16 14.5 19.2 21 12.5" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Shield */}
+        <path d="M16 3L6 7.5v7.5c0 7 4.5 12 10 13.5 5.5-1.5 10-6.5 10-13.5V7.5L16 3z" fill="#dbeafe" stroke="#2563eb" strokeWidth="1.8" strokeLinejoin="round" />
+        {/* Bug X-out */}
+        {/* Bug body */}
+        <ellipse cx="16" cy="17" rx="3" ry="4" fill="#bfdbfe" stroke="#2563eb" strokeWidth="1.2" />
+        {/* Bug head */}
+        <circle cx="16" cy="12.5" r="1.8" fill="#bfdbfe" stroke="#2563eb" strokeWidth="1.2" />
+        {/* Bug legs */}
+        <line x1="13" y1="15" x2="10.5" y2="13.5" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="19" y1="15" x2="21.5" y2="13.5" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="13" y1="18" x2="10.5" y2="19.5" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="19" y1="18" x2="21.5" y2="19.5" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" />
+        {/* Cross-out line */}
+        <line x1="11" y1="10" x2="21" y2="22" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
       </svg>
     ),
   },

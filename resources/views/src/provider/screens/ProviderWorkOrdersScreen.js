@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Linking } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import ProviderIcon from '../ProviderIcons';
@@ -15,7 +15,7 @@ export default function ProviderWorkOrdersScreen() {
   const statusLabels = {
     PENDING_ADMIN_REVIEW: 'PENDING REVIEW',
     ADMIN_ACCEPTED: 'ACCEPTED BY ADMIN',
-    PROVIDER_ASSIGNED: 'PARTNER ASSIGNED',
+    PROVIDER_ASSIGNED: 'ASSIGNED TO YOU',
     PROVIDER_ACCEPTED: 'ACCEPTED BY YOU',
     PROVIDER_ON_THE_WAY: 'EN ROUTE TO PREMISES',
     PROVIDER_ARRIVED: 'ARRIVED ON SITE',
@@ -25,6 +25,42 @@ export default function ProviderWorkOrdersScreen() {
     SERVICE_IN_PROGRESS: 'IN PROGRESS',
     ESTIMATE_REJECTED: 'DECLINED (₹0)',
     BOOKING_COMPLETED: 'COMPLETED & SETTLED',
+  };
+
+  const getStatusConfig = (st) => {
+    switch (st) {
+      case 'PROVIDER_ASSIGNED':
+        return { label: 'Assigned to You', bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', dot: '#3b82f6' };
+      case 'PROVIDER_ACCEPTED':
+        return { label: 'Accepted by You', bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d', dot: '#22c55e' };
+      case 'PROVIDER_ON_THE_WAY':
+        return { label: 'En Route to Premises', bg: '#fef3c7', border: '#fde047', text: '#b45309', dot: '#eab308' };
+      case 'PROVIDER_ARRIVED':
+        return { label: 'Arrived on Site', bg: '#ecfdf5', border: '#a7f3d0', text: '#047857', dot: '#10b981' };
+      case 'ISSUE_INSPECTED':
+      case 'ASSIGNED_TO_ADMIN':
+        return { label: 'Inspection with Admin', bg: '#fffbeb', border: '#fde68a', text: '#b45309', dot: '#f59e0b' };
+      case 'AWAITING_USER_APPROVAL':
+        return { label: 'Quote with Customer', bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', dot: '#3b82f6' };
+      case 'SERVICE_IN_PROGRESS':
+        return { label: 'Repair in Progress', bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d', dot: '#22c55e' };
+      case 'BOOKING_COMPLETED':
+        return { label: 'Completed & Settled', bg: '#ecfdf5', border: '#a7f3d0', text: '#047857', dot: '#10b981' };
+      case 'ESTIMATE_REJECTED':
+        return { label: 'Declined (₹0)', bg: '#f1f5f9', border: '#cbd5e1', text: '#475569', dot: '#94a3b8' };
+      default:
+        return { label: statusLabels[st] || st, bg: '#f1f5f9', border: '#cbd5e1', text: '#475569', dot: '#94a3b8' };
+    }
+  };
+
+  const handleCall = (e, phone) => {
+    e?.stopPropagation?.();
+    if (phone) Linking.openURL(`tel:${phone}`).catch(() => {});
+  };
+
+  const handleMap = (e, addr) => {
+    e?.stopPropagation?.();
+    if (addr) Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(addr)}`).catch(() => {});
   };
 
   const cleanPhone = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
@@ -98,8 +134,13 @@ export default function ProviderWorkOrdersScreen() {
           activeOpacity={0.8}
         >
           <Text style={[styles.filterChipText, filter === 'ALL' && styles.filterChipTextActive]}>
-            All Orders ({providerBookings.length})
+            All Orders
           </Text>
+          <View style={[styles.filterCountBadge, filter === 'ALL' && styles.filterCountBadgeActive]}>
+            <Text style={[styles.filterCountText, filter === 'ALL' && styles.filterCountTextActive]}>
+              {providerBookings.length}
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -108,8 +149,13 @@ export default function ProviderWorkOrdersScreen() {
           activeOpacity={0.8}
         >
           <Text style={[styles.filterChipText, filter === 'ACTIVE' && styles.filterChipTextActive]}>
-            Active ({activeJobs.length})
+            Active Queue
           </Text>
+          <View style={[styles.filterCountBadge, filter === 'ACTIVE' && styles.filterCountBadgeActive]}>
+            <Text style={[styles.filterCountText, filter === 'ACTIVE' && styles.filterCountTextActive]}>
+              {activeJobs.length}
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -118,8 +164,13 @@ export default function ProviderWorkOrdersScreen() {
           activeOpacity={0.8}
         >
           <Text style={[styles.filterChipText, filter === 'COMPLETED' && styles.filterChipTextActive]}>
-            Completed History ({completedJobs.length})
+            Completed History
           </Text>
+          <View style={[styles.filterCountBadge, filter === 'COMPLETED' && styles.filterCountBadgeActive]}>
+            <Text style={[styles.filterCountText, filter === 'COMPLETED' && styles.filterCountTextActive]}>
+              {completedJobs.length}
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -133,46 +184,74 @@ export default function ProviderWorkOrdersScreen() {
       ) : (
         filteredList.map((job) => {
           const isCompleted = job.status === 'BOOKING_COMPLETED';
+          const statusCfg = getStatusConfig(job.status);
 
           return (
             <View key={job.booking_id} style={[styles.jobCard, isCompleted ? styles.completedCard : styles.activeCard]}>
               {/* Card Top Header */}
               <View style={styles.jobHeader}>
-                <View style={[styles.statusBadge, isCompleted ? styles.completedBadge : styles.activeBadge]}>
-                  <ProviderIcon name={isCompleted ? 'checkCircle' : 'flash'} color={isCompleted ? '#1d4ed8' : '#2563eb'} size={12} />
-                  <Text style={[styles.statusText, isCompleted ? styles.completedStatusText : styles.activeStatusText]}>
-                    {statusLabels[job.status] || job.status}
+                <View style={[styles.statusBadge, { backgroundColor: statusCfg.bg, borderColor: statusCfg.border }]}>
+                  <View style={[styles.statusDot, { backgroundColor: statusCfg.dot }]} />
+                  <Text style={[styles.statusText, { color: statusCfg.text }]}>
+                    {statusCfg.label}
                   </Text>
                 </View>
-                <Text style={styles.jobId}>{job.booking_id}</Text>
+                <Text style={styles.jobId}>#{job.booking_id}</Text>
               </View>
 
               {/* Service & Category */}
               <Text style={styles.serviceName}>{job.service_name}</Text>
-              <Text style={styles.categoryTag}>{job.category_name} • {job.sub_category_name || 'General'}</Text>
-
-              {Boolean(job.isConsultation || job.booking_mode === 'consultation') && (
-                <View style={styles.consultationBadge}>
-                  <Text style={styles.consultationBadgeText}>⚡ ₹0 Free Diagnosis & Upfront Quote</Text>
-                </View>
-              )}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <Text style={styles.categoryTag}>{job.category_name} • {job.sub_category_name || 'General'}</Text>
+                {Boolean(job.isConsultation || job.booking_mode === 'consultation') && (
+                  <View style={styles.consultationBadge}>
+                    <Text style={styles.consultationBadgeText}>₹0 Free Diagnosis</Text>
+                  </View>
+                )}
+              </View>
 
               {/* Customer & Address Details */}
               <View style={styles.infoSection}>
-                <View style={styles.infoRow}>
-                  <ProviderIcon name="user" color="#64748b" size={13} />
-                  <Text style={styles.infoText}>Customer: <Text style={styles.boldText}>{job.user_name}</Text> ({job.user_phone})</Text>
+                <View style={styles.infoRowBetween}>
+                  <View style={styles.infoRow}>
+                    <ProviderIcon name="user" color="#64748b" size={13} />
+                    <Text style={styles.infoText}>
+                      Customer: <Text style={styles.boldText}>{job.user_name || 'Customer'}</Text>
+                    </Text>
+                  </View>
+                  {job.user_phone ? (
+                    <TouchableOpacity
+                      style={styles.quickCallPill}
+                      onPress={(e) => handleCall(e, job.user_phone)}
+                      activeOpacity={0.8}
+                    >
+                      <ProviderIcon name="phone" color="#059669" size={11} />
+                      <Text style={styles.quickCallPillText}>Call</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
 
-                <View style={styles.infoRow}>
-                  <ProviderIcon name="pin" color="#2563eb" size={13} />
-                  <Text style={styles.infoText}>{job.address_text}</Text>
+                <View style={styles.infoRowBetween}>
+                  <View style={[styles.infoRow, { flex: 1, paddingRight: 6 }]}>
+                    <ProviderIcon name="pin" color="#2563eb" size={13} />
+                    <Text style={styles.infoText} numberOfLines={2}>{job.address_text || 'Customer location'}</Text>
+                  </View>
+                  {job.address_text ? (
+                    <TouchableOpacity
+                      style={styles.quickNavPill}
+                      onPress={(e) => handleMap(e, job.address_text)}
+                      activeOpacity={0.8}
+                    >
+                      <ProviderIcon name="pin" color="#1d4ed8" size={11} />
+                      <Text style={styles.quickNavPillText}>Map</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
 
                 <View style={styles.infoRow}>
                   <ProviderIcon name="clock" color="#64748b" size={13} />
                   <Text style={styles.infoText}>
-                    {isCompleted ? `Completed: ${job.completed_date || job.scheduled_date}` : `Scheduled: ${job.scheduled_date}`}
+                    {isCompleted ? `Completed: ${job.completed_date || job.scheduled_date || 'Today'}` : `Scheduled: ${job.scheduled_date || 'Today'}`}
                   </Text>
                 </View>
               </View>
@@ -180,21 +259,21 @@ export default function ProviderWorkOrdersScreen() {
               {/* Technical Inspection Report Snippet (if available) */}
               {job.inspection_report ? (
                 <View style={styles.reportBox}>
-                  <Text style={styles.reportTitle}>Technical Report:</Text>
-                  <Text style={styles.reportText}>{job.inspection_report}</Text>
+                  <Text style={styles.reportTitle}>Inspection Findings</Text>
+                  <Text style={styles.reportText} numberOfLines={2}>{job.inspection_report}</Text>
                 </View>
               ) : null}
 
-
-
               {/* Console Navigation Action */}
               <TouchableOpacity
-                style={styles.consoleBtn}
+                style={[styles.consoleBtn, isCompleted && styles.consoleBtnCompleted]}
                 onPress={() => navigate(`/provider/bookings/${job.booking_id}`)}
                 activeOpacity={0.85}
               >
-                <Text style={styles.consoleBtnText}>Open Work Order Console</Text>
-                <ProviderIcon name="arrowRight" color="#ffffff" size={14} />
+                <Text style={[styles.consoleBtnText, isCompleted && styles.consoleBtnTextCompleted]}>
+                  {isCompleted ? 'View Completed Order Details' : 'Open Work Order Console'}
+                </Text>
+                <ProviderIcon name="arrowRight" color={isCompleted ? '#0f172a' : '#ffffff'} size={14} />
               </TouchableOpacity>
             </View>
           );
@@ -205,12 +284,12 @@ export default function ProviderWorkOrdersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#eff6ff', width: '100%' },
+  container: { flex: 1, backgroundColor: '#f8fafc', width: '100%' },
   content: { padding: 14, gap: 14, width: '100%', boxSizing: 'border-box' },
 
   header: { gap: 4, width: '100%' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { fontSize: 20, fontWeight: '900', color: '#0f172a' },
+  title: { fontSize: 19, fontWeight: '900', color: '#0f172a' },
   subtitle: { fontSize: 11.5, color: '#64748b', lineHeight: 16 },
 
   searchRow: {
@@ -219,41 +298,54 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#bfdbfe',
+    borderColor: '#e2e8f0',
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 9,
+    paddingVertical: 10,
     width: '100%',
-    shadowColor: '#1d4ed8',
-    shadowOffset: { width: 0, height: 2 },
+    boxSizing: 'border-box',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowRadius: 3,
+    elevation: 1,
   },
   searchInput: { flex: 1, fontSize: 12, color: '#0f172a', padding: 0 },
   clearSearchText: { fontSize: 11, color: '#2563eb', fontWeight: '700' },
 
   filterBar: { flexDirection: 'row', gap: 6, width: '100%', flexWrap: 'wrap' },
   filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 8,
     borderRadius: 10,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: '#e2e8f0',
     cursor: 'pointer',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
   },
   filterChipActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
-    shadowColor: '#2563eb',
+    backgroundColor: '#1d4ed8',
+    borderColor: '#1d4ed8',
+    shadowColor: '#1d4ed8',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
   },
-  filterChipText: { fontSize: 11, color: '#64748b', fontWeight: '700' },
+  filterChipText: { fontSize: 11.5, color: '#475569', fontWeight: '700' },
   filterChipTextActive: { color: '#ffffff', fontWeight: '800' },
+  filterCountBadge: { backgroundColor: '#f1f5f9', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 10 },
+  filterCountBadgeActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
+  filterCountText: { fontSize: 10, fontWeight: '800', color: '#64748b' },
+  filterCountTextActive: { color: '#ffffff' },
 
   emptyCard: {
     backgroundColor: '#ffffff',
@@ -271,47 +363,80 @@ const styles = StyleSheet.create({
 
   jobCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 18,
+    borderRadius: 16,
     padding: 16,
     gap: 10,
     width: '100%',
     boxSizing: 'border-box',
     borderWidth: 1,
-    shadowColor: '#1d4ed8',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
+    borderColor: '#e2e8f0',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  activeCard: { borderColor: '#2563eb', borderLeftWidth: 4, borderLeftColor: '#2563eb' },
-  completedCard: { borderColor: '#bfdbfe' },
+  activeCard: { borderLeftWidth: 4, borderLeftColor: '#2563eb' },
+  completedCard: { borderLeftWidth: 4, borderLeftColor: '#059669' },
 
   jobHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 6 },
-  activeBadge: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe' },
-  completedBadge: { backgroundColor: '#dbeafe', borderWidth: 1, borderColor: '#93c5fd' },
-  statusText: { fontSize: 9.5, fontWeight: '800' },
-  activeStatusText: { color: '#2563eb' },
-  completedStatusText: { color: '#1d4ed8' },
-  jobId: { fontSize: 11, fontWeight: '800', color: '#64748b' },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1 },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.2 },
+  jobId: { fontSize: 11, fontWeight: '700', color: '#64748b' },
 
-  serviceName: { fontSize: 16, fontWeight: '900', color: '#0f172a', lineHeight: 20 },
-  categoryTag: { fontSize: 11, color: '#2563eb', fontWeight: '700', marginTop: -4 },
+  serviceName: { fontSize: 15.5, fontWeight: '800', color: '#0f172a', lineHeight: 20 },
+  categoryTag: { fontSize: 11, color: '#2563eb', fontWeight: '700' },
+  consultationBadge: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  consultationBadgeText: {
+    color: '#1d4ed8',
+    fontSize: 10,
+    fontWeight: '800',
+  },
 
-  infoSection: { backgroundColor: '#f8fafc', padding: 10, borderRadius: 10, gap: 6, borderWidth: 1, borderColor: '#f1f5f9' },
+  infoSection: { backgroundColor: '#f8fafc', padding: 12, borderRadius: 12, gap: 8, borderWidth: 1, borderColor: '#f1f5f9' },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  infoRowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   infoText: { fontSize: 11.5, color: '#334155', flex: 1, lineHeight: 16 },
   boldText: { fontWeight: '800', color: '#0f172a' },
+
+  quickCallPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  quickCallPillText: { fontSize: 10.5, fontWeight: '800', color: '#065f46' },
+  quickNavPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  quickNavPillText: { fontSize: 10.5, fontWeight: '800', color: '#1d4ed8' },
 
   reportBox: { backgroundColor: '#eff6ff', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#bfdbfe', gap: 2 },
   reportTitle: { fontSize: 10, fontWeight: '800', color: '#1d4ed8', textTransform: 'uppercase' },
   reportText: { fontSize: 11, color: '#1e3a8a', lineHeight: 15 },
-
-  billSummaryRow: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 8 },
-  billLabel: { fontSize: 10, color: '#64748b', fontWeight: '600' },
-  billVal: { fontSize: 13, fontWeight: '800', color: '#0f172a', marginTop: 1 },
-  payoutLabel: { fontSize: 10, color: '#1d4ed8', fontWeight: '700' },
-  payoutVal: { fontSize: 15, fontWeight: '900', color: '#1d4ed8', marginTop: 1 },
 
   consoleBtn: {
     backgroundColor: '#2563eb',
@@ -319,29 +444,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 11,
+    paddingVertical: 12,
     borderRadius: 10,
     marginTop: 2,
     shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowRadius: 4,
+    elevation: 2,
+    cursor: 'pointer',
+  },
+  consoleBtnCompleted: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   consoleBtnText: { color: '#ffffff', fontWeight: '800', fontSize: 12 },
-  consultationBadge: {
-    backgroundColor: '#eff6ff',
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    alignSelf: 'flex-start',
-    marginTop: 2,
-  },
-  consultationBadgeText: {
-    color: '#1d4ed8',
-    fontSize: 10.5,
-    fontWeight: '800',
-  },
+  consoleBtnTextCompleted: { color: '#0f172a', fontWeight: '700', fontSize: 12 },
 });

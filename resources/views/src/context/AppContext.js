@@ -1239,16 +1239,96 @@ export function AppProvider({ children }) {
 
   // Synchronize activeProvider changes directly into the providers array dynamically
   useEffect(() => {
-    if (activeProvider && providers.length > 0) {
+    if (activeProvider) {
       setProviders((prevProviders) => {
-        const existing = prevProviders.find((p) => String(p.id) === String(activeProvider.id));
-        if (existing && JSON.stringify(existing) !== JSON.stringify(activeProvider)) {
-          return prevProviders.map((p) => (String(p.id) === String(activeProvider.id) ? { ...p, ...activeProvider } : p));
+        if (!prevProviders || prevProviders.length === 0) return prevProviders;
+        const isMatch = (p) =>
+          (p.id != null && activeProvider.id != null && String(p.id) === String(activeProvider.id)) ||
+          (p.phone && activeProvider.phone && String(p.phone).replace(/\D/g, '').slice(-10) === String(activeProvider.phone).replace(/\D/g, '').slice(-10));
+        const existing = prevProviders.find(isMatch);
+        if (existing && (existing.is_online !== activeProvider.is_online || JSON.stringify(existing) !== JSON.stringify(activeProvider))) {
+          const next = prevProviders.map((p) => (isMatch(p) ? { ...p, ...activeProvider, is_online: activeProvider.is_online } : p));
+          try {
+            localStorage.setItem('zevota_providers', JSON.stringify(next));
+          } catch (e) {}
+          return next;
         }
         return prevProviders;
       });
     }
   }, [activeProvider]);
+
+  // Real-time cross-tab & focus synchronization for providers state
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'zevota_providers' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            setProviders(parsed);
+          }
+        } catch (err) {}
+      }
+      if (e.key === 'zevota_active_provider' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed && typeof parsed === 'object') {
+            setActiveProvider(parsed);
+          }
+        } catch (err) {}
+      }
+    };
+
+    const handleCustomSync = (e) => {
+      if (e.detail?.key === 'zevota_providers' && Array.isArray(e.detail.value)) {
+        setProviders(e.detail.value);
+      }
+      if (e.detail?.key === 'zevota_active_provider' && e.detail.value) {
+        setActiveProvider(e.detail.value);
+      }
+    };
+
+    const handleWindowFocus = () => {
+      try {
+        const savedProviders = localStorage.getItem('zevota_providers');
+        if (savedProviders) {
+          const parsed = JSON.parse(savedProviders);
+          if (Array.isArray(parsed)) {
+            setProviders((prev) => {
+              if (JSON.stringify(prev) !== JSON.stringify(parsed)) {
+                return parsed;
+              }
+              return prev;
+            });
+          }
+        }
+        const savedActiveProv = localStorage.getItem('zevota_active_provider');
+        if (savedActiveProv) {
+          const parsed = JSON.parse(savedActiveProv);
+          if (parsed && typeof parsed === 'object') {
+            setActiveProvider((prev) => {
+              if (JSON.stringify(prev) !== JSON.stringify(parsed)) {
+                return parsed;
+              }
+              return prev;
+            });
+          }
+        }
+      } catch (err) {}
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('zevota_storage_sync', handleCustomSync);
+    window.addEventListener('focus', handleWindowFocus);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('zevota_storage_sync', handleCustomSync);
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -1923,6 +2003,41 @@ export function AppProvider({ children }) {
     return next;
   };
 
+  const updateProviderDutyStatus = (providerId, isOnline) => {
+    const onlineBool = Boolean(isOnline);
+    setProviders((prevProviders) => {
+      const isMatch = (p) =>
+        (p.id != null && providerId != null && String(p.id) === String(providerId)) ||
+        (p.phone && String(p.phone).replace(/\D/g, '').slice(-10) === String(providerId).replace(/\D/g, '').slice(-10));
+      const nextList = (prevProviders || []).map((p) => (isMatch(p) ? { ...p, is_online: onlineBool } : p));
+      try {
+        localStorage.setItem('zevota_providers', JSON.stringify(nextList));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('zevota_storage_sync', { detail: { key: 'zevota_providers', value: nextList } }));
+        }
+      } catch (e) {}
+      return nextList;
+    });
+
+    setActiveProvider((prev) => {
+      if (!prev) return prev;
+      const isMatch =
+        (prev.id != null && providerId != null && String(prev.id) === String(providerId)) ||
+        (prev.phone && String(prev.phone).replace(/\D/g, '').slice(-10) === String(providerId).replace(/\D/g, '').slice(-10));
+      if (isMatch) {
+        const next = { ...prev, is_online: onlineBool };
+        try {
+          localStorage.setItem('zevota_active_provider', JSON.stringify(next));
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('zevota_storage_sync', { detail: { key: 'zevota_active_provider', value: next } }));
+          }
+        } catch (e) {}
+        return next;
+      }
+      return prev;
+    });
+  };
+
   const updateProviderProfile = (profileData) => {
     if (!profileData) return;
     const current = activeProvider || {};
@@ -1935,16 +2050,25 @@ export function AppProvider({ children }) {
     setActiveProvider(updated);
     try {
       localStorage.setItem('zevota_active_provider', JSON.stringify(updated));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('zevota_storage_sync', { detail: { key: 'zevota_active_provider', value: updated } }));
+      }
     } catch (e) {}
 
     setProviders((prev) => {
       const currentList = prev || [];
-      const exists = currentList.some((p) => p.id === updated.id);
+      const isMatch = (p) =>
+        (p.id != null && updated.id != null && String(p.id) === String(updated.id)) ||
+        (p.phone && updated.phone && String(p.phone).replace(/\D/g, '').slice(-10) === String(updated.phone).replace(/\D/g, '').slice(-10));
+      const exists = currentList.some(isMatch);
       const nextList = exists
-        ? currentList.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
+        ? currentList.map((p) => (isMatch(p) ? { ...p, ...updated } : p))
         : [updated, ...currentList];
       try {
         localStorage.setItem('zevota_providers', JSON.stringify(nextList));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('zevota_storage_sync', { detail: { key: 'zevota_providers', value: nextList } }));
+        }
       } catch (e) {}
       return nextList;
     });
@@ -2035,6 +2159,7 @@ export function AppProvider({ children }) {
       bill_sent: false,
       bill_generated: false,
       completion_otp: '4829',
+      created_at: new Date().toISOString(),
     };
 
     setBookings([newBk, ...bookings]);
@@ -3215,6 +3340,7 @@ export function AppProvider({ children }) {
         updateProviderLocation,
         updateBookingArrivalTelemetry,
         updateProviderProfile,
+        updateProviderDutyStatus,
         calculateApplianceExtraCharge,
         subAdmins,
         setSubAdmins,

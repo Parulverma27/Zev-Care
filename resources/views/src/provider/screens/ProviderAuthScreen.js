@@ -8,7 +8,7 @@ import { useApp } from '../../context/AppContext';
 
 export default function ProviderAuthScreen({ onAuthComplete }) {
   const navigate = useNavigate();
-  const { setActiveProvider, providers } = useApp();
+  const { setActiveProvider, updateProviderProfile, providers } = useApp();
 
   // Steps: 'MOBILE' | 'OTP'
   const [step, setStep] = useState('MOBILE');
@@ -57,7 +57,8 @@ export default function ProviderAuthScreen({ onAuthComplete }) {
         status: 'APPROVED',
         location: 'Bandra West, Mumbai',
       };
-      if (setActiveProvider) setActiveProvider(matched);
+      if (updateProviderProfile) updateProviderProfile(matched);
+      else if (setActiveProvider) setActiveProvider(matched);
       if (onAuthComplete) onAuthComplete(matched);
       navigate('/provider/dashboard');
     } else {

@@ -197,7 +197,7 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
                       <View style={[styles.statusPill, provider?.is_online !== false ? styles.onlinePill : styles.offlinePill]}>
                         <View style={[styles.statusDot, { backgroundColor: provider?.is_online !== false ? '#10b981' : '#94a3b8' }]} />
                         <Text style={[styles.statusPillText, provider?.is_online !== false ? styles.onlineText : styles.offlineText]}>
-                          {provider?.is_online !== false ? 'ACTIVE' : 'OFFLINE'}
+                          {provider?.is_online !== false ? 'ONLINE' : 'OFFLINE'}
                         </Text>
                       </View>
                     </View>
@@ -248,7 +248,12 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
                   <View style={styles.metricCard}>
                     <Text style={styles.metricLabel}>AVERAGE RATING</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                      <Text style={[styles.metricValue, { color: '#d97706' }]}>★ {realRating}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="#d97706" stroke="#d97706" strokeWidth="1">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                        <Text style={[styles.metricValue, { color: '#d97706' }]}>{realRating}</Text>
+                      </View>
                       {performanceTier && (
                         <View style={{ backgroundColor: performanceTier.bg, borderColor: performanceTier.border, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 }}>
                           <Text style={{ fontSize: 10, fontWeight: '800', color: performanceTier.color }}>{performanceTier.badge}</Text>
@@ -478,7 +483,10 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
                     />
                     {jobSearch ? (
                       <TouchableOpacity onPress={() => setJobSearch('')} activeOpacity={0.7}>
-                        <Text style={{ fontSize: 11, color: '#94a3b8', fontWeight: '700' }}>✕</Text>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
                       </TouchableOpacity>
                     ) : null}
                   </View>
@@ -568,8 +576,11 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
 
                             {/* Customer Review if available */}
                             {(b.user_rating || b.provider_rating) && (
-                              <View style={styles.ratingBadge}>
-                                <Text style={styles.ratingBadgeStar}>★ {Number(b.user_rating || b.provider_rating).toFixed(1)}</Text>
+                              <View style={[styles.ratingBadge, { flexDirection: 'row', alignItems: 'center', gap: 3 }]}>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="#d97706" stroke="#d97706" strokeWidth="1">
+                                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                                <Text style={styles.ratingBadgeStar}>{Number(b.user_rating || b.provider_rating).toFixed(1)}</Text>
                               </View>
                             )}
                           </View>

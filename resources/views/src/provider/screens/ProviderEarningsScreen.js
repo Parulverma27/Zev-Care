@@ -42,62 +42,101 @@ export default function ProviderEarningsScreen() {
   // Compute real total from actual completed bookings only — no fallback hardcoded values
   const totalEarned = displaySettlements.reduce((sum, s) => sum + s.payout, 0);
   const totalCompletedJobs = completedBookings.length;
+  const avgPayout = totalCompletedJobs > 0 ? Math.round(totalEarned / totalCompletedJobs) : 0;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>Partner Earnings & Settlements</Text>
           <ProviderIcon name="wallet" color="#2563eb" size={20} />
         </View>
-        <Text style={styles.subtitle}>Track direct partner payouts, completed work order revenue, and settlements.</Text>
+        <Text style={styles.subtitle}>
+          Track your direct technician payouts, verified job revenue, and automated weekly settlements.
+        </Text>
       </View>
 
-      {/* Main Total Earnings Card */}
+      {/* Main Hero Total Earnings Card */}
       <View style={styles.earnCard}>
-        <Text style={styles.earnLabel}>Total Partner Revenue Earned (80%)</Text>
+        <View style={styles.earnCardHeader}>
+          <Text style={styles.earnLabel}>NET ACCUMULATED EARNINGS</Text>
+          <View style={styles.verifiedPayoutBadge}>
+            <ProviderIcon name="checkCircle" color="#10b981" size={11} />
+            <Text style={styles.verifiedPayoutText}>Direct Payout Active</Text>
+          </View>
+        </View>
+
         <Text style={styles.earnVal}>₹{totalEarned.toLocaleString()}</Text>
 
         <View style={styles.statsRow}>
-          <View style={{ flex: 1 }}>
+          <View style={styles.statTile}>
             <Text style={styles.statSub}>Completed Jobs</Text>
-            <Text style={styles.statBold}>{totalCompletedJobs} Jobs</Text>
+            <Text style={styles.statBold}>{totalCompletedJobs}</Text>
           </View>
 
-          <View style={{ flex: 1, alignItems: 'flex-end' }}>
-            <Text style={styles.statSub}>Partner Commission Share</Text>
-            <Text style={styles.statBold}>80% Direct Payout</Text>
+          <View style={styles.statTile}>
+            <Text style={styles.statSub}>Technician Share</Text>
+            <Text style={styles.statBold}>80% Direct</Text>
           </View>
+
+          <View style={[styles.statTile, { borderRightWidth: 0 }]}>
+            <Text style={styles.statSub}>Avg. Per Job</Text>
+            <Text style={styles.statBold}>₹{avgPayout.toLocaleString()}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Settlement Policy Info Banner */}
+      <View style={styles.policyBanner}>
+        <View style={styles.policyIconCircle}>
+          <ProviderIcon name="briefcase" color="#1d4ed8" size={14} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.policyTitle}>Weekly Automatic Direct Transfer</Text>
+          <Text style={styles.policySub}>
+            Earnings are deposited every Monday into your verified bank account. Zero service fee is deducted on ₹0 diagnostic visits.
+          </Text>
         </View>
       </View>
 
       {/* Completed Settlements Breakdown */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Recent Work Order Payouts</Text>
+        <View style={styles.cardHeaderRow}>
+          <Text style={styles.cardTitle}>Recent Work Order Settlements</Text>
+          <View style={styles.countBadge}>
+            <Text style={styles.countBadgeText}>{displaySettlements.length} Settled</Text>
+          </View>
+        </View>
 
         {displaySettlements.length === 0 ? (
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIconCircle}>
-              <ProviderIcon name="wallet" color="#3b82f6" size={28} />
+              <ProviderIcon name="wallet" color="#2563eb" size={26} />
             </View>
             <Text style={styles.emptyTitle}>No Settled Payouts Yet</Text>
             <Text style={styles.emptySubtitle}>
-              Completed work orders with approved customer billing will appear here with your 80% direct partner settlement.
+              Completed work orders with approved customer OTP will appear here with your 80% direct partner settlement.
             </Text>
           </View>
         ) : (
           displaySettlements.map((s, idx) => (
-            <View key={idx} style={styles.settleRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.settleService}>{s.service} ({s.booking_id})</Text>
-                <Text style={styles.settleCustomer}>Customer: {s.customer}</Text>
-                <Text style={styles.settleDate}>{s.date} • Total Bill: ₹{s.amount.toLocaleString()}</Text>
+            <View key={idx} style={[styles.settleRow, idx === displaySettlements.length - 1 && { borderBottomWidth: 0 }]}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <Text style={styles.settleService}>{s.service}</Text>
+                  <View style={styles.orderIdBadge}>
+                    <Text style={styles.orderIdBadgeText}>#{s.booking_id}</Text>
+                  </View>
+                </View>
+                <Text style={styles.settleCustomer}>Customer: <Text style={{ color: '#0f172a', fontWeight: '700' }}>{s.customer || 'Customer'}</Text></Text>
+                <Text style={styles.settleDate}>{s.date} • Total Job Bill: ₹{s.amount.toLocaleString()}</Text>
               </View>
 
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text style={styles.settlePayout}>+ ₹{s.payout.toLocaleString()}</Text>
+              <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+                <Text style={styles.settlePayout}>+₹{s.payout.toLocaleString()}</Text>
                 <View style={styles.settledBadge}>
-                  <ProviderIcon name="checkCircle" color="#1d4ed8" size={10} />
+                  <ProviderIcon name="checkCircle" color="#059669" size={10} />
                   <Text style={styles.settleStatus}>SETTLED</Text>
                 </View>
               </View>
@@ -110,33 +149,149 @@ export default function ProviderEarningsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#eff6ff' },
-  content: { padding: 16, gap: 16 },
-  header: { gap: 4 },
+  container: { flex: 1, backgroundColor: '#f8fafc', width: '100%' },
+  content: { padding: 14, gap: 14, width: '100%', boxSizing: 'border-box' },
+  header: { gap: 4, width: '100%' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { fontSize: 20, fontWeight: '900', color: '#0f172a' },
-  subtitle: { fontSize: 12, color: '#64748b' },
+  title: { fontSize: 19, fontWeight: '900', color: '#0f172a' },
+  subtitle: { fontSize: 11.5, color: '#64748b', lineHeight: 16 },
 
-  earnCard: { backgroundColor: '#1e3a8a', borderRadius: 20, padding: 20, gap: 14, shadowColor: '#1d4ed8', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12, elevation: 6 },
-  earnLabel: { color: '#93c5fd', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
-  earnVal: { color: '#ffffff', fontSize: 34, fontWeight: '900' },
-  statsRow: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: 12 },
-  statSub: { color: '#bfdbfe', fontSize: 11 },
-  statBold: { color: '#ffffff', fontSize: 14, fontWeight: '900', marginTop: 2 },
+  earnCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 18,
+    padding: 18,
+    gap: 12,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  earnCardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' },
+  earnLabel: { color: '#94a3b8', fontSize: 10.5, fontWeight: '800', letterSpacing: 0.6 },
+  verifiedPayoutBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  verifiedPayoutText: { color: '#34d399', fontSize: 10, fontWeight: '800' },
+  earnVal: { color: '#ffffff', fontSize: 32, fontWeight: '900', lineHeight: 36 },
 
-  card: { backgroundColor: '#ffffff', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: '#bfdbfe', gap: 10, shadowColor: '#1d4ed8', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  cardTitle: { fontSize: 14, fontWeight: '900', color: '#0f172a' },
+  statsRow: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#1e293b',
+    paddingTop: 12,
+    gap: 8,
+  },
+  statTile: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderRightColor: '#1e293b',
+    paddingRight: 6,
+  },
+  statSub: { color: '#64748b', fontSize: 10.5, fontWeight: '600' },
+  statBold: { color: '#ffffff', fontSize: 13.5, fontWeight: '800', marginTop: 2 },
 
-  settleRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-  settleService: { fontSize: 14, fontWeight: '800', color: '#0f172a' },
-  settleCustomer: { fontSize: 11, color: '#2563eb', fontWeight: '600', marginTop: 1 },
-  settleDate: { fontSize: 11, color: '#64748b', marginTop: 2 },
-  settlePayout: { fontSize: 15, fontWeight: '900', color: '#1d4ed8' },
-  settledBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#dbeafe', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 2 },
-  settleStatus: { fontSize: 9, color: '#1d4ed8', fontWeight: '800' },
+  policyBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 14,
+    padding: 12,
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  policyIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#dbeafe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  policyTitle: { fontSize: 12, fontWeight: '800', color: '#1e40af' },
+  policySub: { fontSize: 11, color: '#2563eb', lineHeight: 15, marginTop: 2 },
+
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    gap: 12,
+    width: '100%',
+    boxSizing: 'border-box',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  cardTitle: { fontSize: 14, fontWeight: '800', color: '#0f172a' },
+  countBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  countBadgeText: { fontSize: 10.5, fontWeight: '700', color: '#475569' },
+
+  settleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  settleService: { fontSize: 13.5, fontWeight: '800', color: '#0f172a' },
+  orderIdBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  orderIdBadgeText: { fontSize: 10, fontWeight: '700', color: '#64748b' },
+  settleCustomer: { fontSize: 11, color: '#475569', marginTop: 3 },
+  settleDate: { fontSize: 10.5, color: '#64748b', marginTop: 2 },
+  settlePayout: { fontSize: 15, fontWeight: '900', color: '#059669' },
+  settledBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 3,
+  },
+  settleStatus: { fontSize: 9.5, color: '#065f46', fontWeight: '800', letterSpacing: 0.3 },
 
   emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 28, paddingHorizontal: 16, gap: 8 },
-  emptyIconCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  emptyTitle: { fontSize: 15, fontWeight: '800', color: '#1e293b' },
-  emptySubtitle: { fontSize: 12, color: '#64748b', textAlign: 'center', lineHeight: 18, maxWidth: 300 },
+  emptyIconCircle: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  emptyTitle: { fontSize: 15, fontWeight: '800', color: '#0f172a' },
+  emptySubtitle: { fontSize: 11.5, color: '#64748b', textAlign: 'center', lineHeight: 16, maxWidth: 300 },
 });

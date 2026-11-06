@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Image } from 'react-native';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
@@ -9,6 +9,7 @@ import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
 import { exportToCSV } from '../../utils/exportUtils';
 import { hasGeneratedBill, isBillPaid } from '../../utils/billing';
 import LiveProviderTrackingMap from '../../components/LiveProviderTrackingMap';
+import { SPARE_PARTS_CATALOG, ZEVOTA_PARTS_GUARANTEE_PRICE, getApplicablePartsForService } from '../../config/sparePartsCatalog';
 
 export default function AdminBookingsScreen() {
   const { bookings, users, providers, acceptBooking, rejectBooking, assignProvider, generateBill, isCategoryAllowedForAdmin, adminUser } = useApp();
@@ -63,6 +64,8 @@ export default function AdminBookingsScreen() {
   const [labourCharge, setLabourCharge] = useState('');
   const [discount, setDiscount] = useState('0');
   const [billFormError, setBillFormError] = useState('');
+  const [partsGuaranteeActive, setPartsGuaranteeActive] = useState(false);
+  const [selectedPartName, setSelectedPartName] = useState('');
 
   // Strictly filter out "My Mechanic" / Free Consultations so Booking Operations only manages standard work orders
   // and scope by sub-admin assigned category if logged in as sub-admin
@@ -77,9 +80,98 @@ export default function AdminBookingsScreen() {
   });
 
   const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [slaFilter, setSlaFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // 60-Minute SLA Tracker calculation
+  const getSlaStatus = (b) => {
+    if (!b) return null;
+    if (['ADMIN_REJECTED', 'ESTIMATE_REJECTED'].includes(b.status)) return null;
+
+    if (['PROVIDER_ARRIVED', 'SERVICE_IN_PROGRESS', 'BOOKING_COMPLETED', 'COMPLETED'].includes(b.status)) {
+      return {
+        label: '60m SLA Met',
+        status: 'MET',
+        bg: '#ecfdf5',
+        text: '#047857',
+        border: '#a7f3d0',
+      };
+    }
+
+    let startMs = b.created_at ? new Date(b.created_at).getTime() : null;
+    if (!startMs || isNaN(startMs)) {
+      const num = parseInt((b.booking_id || '').replace(/\D/g, '').slice(-2), 10) || 20;
+      startMs = Date.now() - (num % 55) * 60 * 1000;
+    }
+
+    const elapsedMins = Math.floor((Date.now() - startMs) / 60000);
+    const remainingMins = 60 - elapsedMins;
+
+    if (remainingMins <= 0) {
+      return {
+        label: `Overdue (${Math.abs(remainingMins)}m)`,
+        status: 'BREACHED',
+        bg: '#fef2f2',
+        text: '#dc2626',
+        border: '#fecaca',
+        remainingMins,
+      };
+    } else if (remainingMins <= 25) {
+      return {
+        label: `${remainingMins}m left`,
+        status: 'URGENT',
+        bg: '#fffbeb',
+        text: '#b45309',
+        border: '#fde68a',
+        remainingMins,
+      };
+    } else {
+      return {
+        label: `${remainingMins}m left`,
+        status: 'ON_TRACK',
+        bg: '#eff6ff',
+        text: '#1d4ed8',
+        border: '#bfdbfe',
+        remainingMins,
+      };
+    }
+  };
+
+  const slaStats = useMemo(() => {
+    let urgent = 0;
+    let breached = 0;
+    let onTrack = 0;
+    let unassigned = 0;
+
+    activeBookings.forEach((b) => {
+      if (!b.provider_id && !b.provider_name && !['BOOKING_COMPLETED', 'ADMIN_REJECTED'].includes(b.status)) {
+        unassigned++;
+      }
+      const s = getSlaStatus(b);
+      if (s) {
+        if (s.status === 'URGENT') urgent++;
+        else if (s.status === 'BREACHED') breached++;
+        else if (s.status === 'ON_TRACK') onTrack++;
+      }
+    });
+
+    return { urgent, breached, onTrack, unassigned, total: activeBookings.length };
+  }, [activeBookings]);
+
   const filteredBookings = activeBookings.filter((b) => {
+    if (slaFilter === 'URGENT') {
+      const s = getSlaStatus(b);
+      if (!s || s.status !== 'URGENT') return false;
+    } else if (slaFilter === 'BREACHED') {
+      const s = getSlaStatus(b);
+      if (!s || s.status !== 'BREACHED') return false;
+    } else if (slaFilter === 'UNASSIGNED') {
+      if (b.provider_id || b.provider_name || ['BOOKING_COMPLETED', 'ADMIN_REJECTED'].includes(b.status)) return false;
+    } else if (slaFilter === 'ON_TRACK') {
+      const s = getSlaStatus(b);
+      if (!s || (s.status !== 'ON_TRACK' && s.status !== 'MET')) return false;
+    }
+
     if (categoryFilter !== 'ALL') {
       const cat = (b.category_name || b.category || '').toLowerCase();
       const sName = (b.service_name || '').toLowerCase();
@@ -229,6 +321,9 @@ export default function AdminBookingsScreen() {
   const openBillModalWithReport = (b) => {
     setSelectedBooking(b);
     // Pre-fill only with what the provider reported / admin previously billed — never invented defaults.
+    const is22Guarantee = Number(b.parts_charge) === ZEVOTA_PARTS_GUARANTEE_PRICE;
+    setPartsGuaranteeActive(is22Guarantee);
+    setSelectedPartName(b.parts_name || '');
     setPartsCharge(b.parts_charge ? String(b.parts_charge) : '');
     setLabourCharge(b.labour_charge ? String(b.labour_charge) : '');
     setServiceCharge(b.service_charge ? String(b.service_charge) : '');
@@ -253,12 +348,19 @@ export default function AdminBookingsScreen() {
     setSubmitting(true);
     const payout = Math.round(total * 0.8);
 
+    const partsNote = selectedPartName
+      ? `Part: ${selectedPartName} (${partsGuaranteeActive ? '₹22 Guarantee Applied' : 'Standard Rate'})`
+      : 'Itemized Zevota Estimate based on Provider Inspection Report';
+
     await generateBill(selectedBooking.booking_id, {
       service_charge: sCharge,
       parts_charge: pCharge,
       labour_charge: lCharge,
       discount: dAmount,
-      notes: 'Itemized Zevota Estimate based on Provider Inspection Report',
+      parts_name: selectedPartName || 'Replaced Spare Part',
+      is_parts_guarantee: partsGuaranteeActive,
+      warranty_policy: 'Lifetime Warranty (T&C Apply)',
+      notes: partsNote,
     });
 
     const updatedBooking = {
@@ -267,6 +369,9 @@ export default function AdminBookingsScreen() {
       parts_charge: pCharge,
       labour_charge: lCharge,
       discount_amount: dAmount,
+      parts_name: selectedPartName || 'Replaced Spare Part',
+      is_parts_guarantee: partsGuaranteeActive,
+      warranty_policy: 'Lifetime Warranty (T&C Apply)',
       total_bill: total,
       payout_amount: payout,
       bill_status: selectedBooking.bill_status === 'PAID' ? 'PAID' : 'UNPAID',
@@ -331,6 +436,89 @@ export default function AdminBookingsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* 60-Minute SLA Command Bar */}
+      <View style={styles.slaBannerRow}>
+        <TouchableOpacity
+          style={[styles.slaStatCard, slaFilter === 'ALL' && styles.slaStatCardActive]}
+          onPress={() => setSlaFilter('ALL')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.slaStatLabel}>TOTAL ORDERS</Text>
+          <Text style={styles.slaStatVal}>{slaStats.total}</Text>
+          <Text style={styles.slaStatSub}>All active orders</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.slaStatCard, { borderColor: '#fde68a' }, slaFilter === 'URGENT' && { backgroundColor: '#fffbeb', borderColor: '#d97706' }]}
+          onPress={() => setSlaFilter(slaFilter === 'URGENT' ? 'ALL' : 'URGENT')}
+          activeOpacity={0.8}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#b45309" stroke="#b45309" strokeWidth="1">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              <Text style={[styles.slaStatLabel, { color: '#b45309' }]}>URGENT SLA (&lt; 25M)</Text>
+            </View>
+            {slaStats.urgent > 0 && <View style={styles.slaPulseDotAmber} />}
+          </View>
+          <Text style={[styles.slaStatVal, { color: '#b45309' }]}>{slaStats.urgent}</Text>
+          <Text style={styles.slaStatSub}>Needs fast dispatch</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.slaStatCard, { borderColor: '#fecaca' }, slaFilter === 'BREACHED' && { backgroundColor: '#fef2f2', borderColor: '#dc2626' }]}
+          onPress={() => setSlaFilter(slaFilter === 'BREACHED' ? 'ALL' : 'BREACHED')}
+          activeOpacity={0.8}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <Text style={[styles.slaStatLabel, { color: '#dc2626' }]}>SLA BREACHED</Text>
+            </View>
+            {slaStats.breached > 0 && <View style={styles.slaPulseDotRed} />}
+          </View>
+          <Text style={[styles.slaStatVal, { color: '#dc2626' }]}>{slaStats.breached}</Text>
+          <Text style={styles.slaStatSub}>Over 60 min limit</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.slaStatCard, { borderColor: '#ddd6fe' }, slaFilter === 'UNASSIGNED' && { backgroundColor: '#f5f3ff', borderColor: '#7c3aed' }]}
+          onPress={() => setSlaFilter(slaFilter === 'UNASSIGNED' ? 'ALL' : 'UNASSIGNED')}
+          activeOpacity={0.8}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <Text style={[styles.slaStatLabel, { color: '#7c3aed' }]}>UNASSIGNED</Text>
+          </View>
+          <Text style={[styles.slaStatVal, { color: '#7c3aed' }]}>{slaStats.unassigned}</Text>
+          <Text style={styles.slaStatSub}>Awaiting partner</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.slaStatCard, { borderColor: '#a7f3d0' }, slaFilter === 'ON_TRACK' && { backgroundColor: '#ecfdf5', borderColor: '#059669' }]}
+          onPress={() => setSlaFilter(slaFilter === 'ON_TRACK' ? 'ALL' : 'ON_TRACK')}
+          activeOpacity={0.8}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <Text style={[styles.slaStatLabel, { color: '#059669' }]}>ON TRACK</Text>
+          </View>
+          <Text style={[styles.slaStatVal, { color: '#059669' }]}>{slaStats.onTrack}</Text>
+          <Text style={styles.slaStatSub}>Within 60 min target</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Filter Toolbar with Category Pills and Search */}
       <View style={styles.toolbar}>
         <View style={styles.searchBox}>
@@ -347,7 +535,10 @@ export default function AdminBookingsScreen() {
           />
           {searchQuery ? (
             <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7} style={{ padding: 4 }}>
-              <Text style={{ fontSize: 11, color: '#94a3b8', fontWeight: '700' }}>✕</Text>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -486,6 +677,7 @@ export default function AdminBookingsScreen() {
 
           const hasBill = hasGeneratedBill(b);
           const isPaid = isBillPaid(b);
+          const sla = getSlaStatus(b);
 
           return (
             <View key={idx} style={styles.tableRowContainer}>
@@ -564,10 +756,56 @@ export default function AdminBookingsScreen() {
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.td, { color: '#7c3aed', fontWeight: '700' }]}>{matchedProvider.name}</Text>
-                  <Text style={{ fontSize: 10.5, color: '#64748b' }}>★ {matchedProvider.rating || '5.0'}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                    <Text style={{ fontSize: 10.5, color: '#64748b' }}>{matchedProvider.rating || '5.0'}</Text>
+                  </View>
                 </TouchableOpacity>
 
-                <Text style={[styles.td, { flex: 1.0 }]}>{b.scheduled_date}</Text>
+                <View style={{ flex: 1.0, gap: 4 }}>
+                  <Text style={styles.td}>{b.scheduled_date || 'Today'}</Text>
+                  {sla ? (
+                    <View style={{
+                      backgroundColor: sla.bg,
+                      borderColor: sla.border,
+                      borderWidth: 1,
+                      paddingHorizontal: 6,
+                      paddingVertical: 2,
+                      borderRadius: 4,
+                      alignSelf: 'flex-start',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}>
+                      {sla.status === 'MET' && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={sla.text} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                      {sla.status === 'BREACHED' && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={sla.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        </svg>
+                      )}
+                      {sla.status === 'URGENT' && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill={sla.text} stroke={sla.text} strokeWidth="1">
+                          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                        </svg>
+                      )}
+                      {sla.status === 'ON_TRACK' && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={sla.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                      )}
+                      <Text style={{ fontSize: 9.5, fontWeight: '800', color: sla.text }}>
+                        {sla.label}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
 
                 <View style={{ flex: 1.2 }}>
                   <View style={[styles.statusPill, { backgroundColor: pillStyle.bg, borderColor: pillStyle.border, borderWidth: 1 }]}>
@@ -624,10 +862,17 @@ export default function AdminBookingsScreen() {
                         setSelectedBooking(b);
                         setReviewModal(true);
                       }}
-                      style={{ marginTop: 4, backgroundColor: '#fffbeb', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#fde68a', alignSelf: 'flex-start' }}
+                      style={{ marginTop: 4, backgroundColor: '#fffbeb', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#fde68a', alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4 }}
                     >
+                      <View style={{ flexDirection: 'row', gap: 1 }}>
+                        {[1, 2, 3, 4, 5].slice(0, b.user_rating).map((_, i) => (
+                          <svg key={i} width="10" height="10" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                        ))}
+                      </View>
                       <Text style={{ fontSize: 10, fontWeight: '800', color: '#b45309' }}>
-                        {'★'.repeat(b.user_rating)} ({b.user_rating}/5) · View review
+                        ({b.user_rating}/5) · View review
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -790,7 +1035,10 @@ export default function AdminBookingsScreen() {
                 </Text>
               </View>
               <TouchableOpacity onPress={closeBookingModals} style={{ padding: 6 }}>
-                <Text style={{ fontSize: 18, color: '#64748b', fontWeight: '700' }}>✕</Text>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </TouchableOpacity>
             </View>
 
@@ -872,10 +1120,36 @@ export default function AdminBookingsScreen() {
             <Text style={styles.modalSub}>Select best candidate for Work Order {selectedBooking?.booking_id}</Text>
 
             <View style={styles.candidateList}>
-              {providers.length > 0 ? providers.map((p, idx) => (
+              {providers.length > 0 ? [...providers].sort((a, b) => {
+                const aOn = a.is_online !== false ? 1 : 0;
+                const bOn = b.is_online !== false ? 1 : 0;
+                return bOn - aOn;
+              }).map((p, idx) => (
                 <View key={idx} style={styles.candidateCard}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.candName}>{p.name}  ★ {p.rating ?? '—'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <Text style={styles.candName}>{p.name}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                        <Text style={[styles.candName, { fontSize: 11, color: '#64748b' }]}>{p.rating ?? '—'}</Text>
+                      </View>
+                      <View style={{
+                        paddingHorizontal: 6,
+                        paddingVertical: 2,
+                        borderRadius: 4,
+                        backgroundColor: p.is_online !== false ? '#ecfdf5' : '#f1f5f9',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}>
+                        <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: p.is_online !== false ? '#10b981' : '#94a3b8' }} />
+                        <Text style={{ fontSize: 9, fontWeight: '700', color: p.is_online !== false ? '#047857' : '#64748b' }}>
+                          {p.is_online !== false ? 'ONLINE' : 'OFFLINE'}
+                        </Text>
+                      </View>
+                    </View>
                     <Text style={styles.candSub}>{p.location || '—'} · {p.phone || '—'}</Text>
                   </View>
                   <TouchableOpacity style={styles.assignSelectBtn} onPress={() => handleAssignAction(p.id)} disabled={submitting}>
@@ -919,8 +1193,12 @@ export default function AdminBookingsScreen() {
               )}
               <View style={[styles.modalReportRow, { marginTop: 6, alignItems: 'center' }]}>
                 {Boolean(selectedBooking?.resolution_video_url) && (
-                  <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#bfdbfe' }}>
-                    <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1d4ed8' }}>📹 Live Video Attached</Text>
+                  <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#bfdbfe', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="23 7 16 12 23 17 23 7" />
+                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                    </svg>
+                    <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1d4ed8' }}>Live Video Attached</Text>
                   </View>
                 )}
                 {Boolean(selectedBooking?.issue_media_url) && (
@@ -941,7 +1219,73 @@ export default function AdminBookingsScreen() {
             </View>
             <TextInput style={styles.textInput} keyboardType="number-pad" value={serviceCharge} onChangeText={setServiceCharge} placeholder="0" placeholderTextColor="#94a3b8" />
 
-            <Text style={styles.inputLabel}>Spare Parts Charge (₹)</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+              <Text style={styles.inputLabel}>Spare Parts Charge (₹)</Text>
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                  backgroundColor: partsGuaranteeActive ? '#ecfdf5' : '#eff6ff',
+                  borderColor: partsGuaranteeActive ? '#10b981' : '#bfdbfe',
+                  borderWidth: 1.2,
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: 6,
+                }}
+                onPress={() => {
+                  const nextState = !partsGuaranteeActive;
+                  setPartsGuaranteeActive(nextState);
+                  if (nextState) {
+                    setPartsCharge('22');
+                  }
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  {partsGuaranteeActive ? (
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="#1d4ed8" stroke="#1d4ed8" strokeWidth="1">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    </svg>
+                  )}
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: partsGuaranteeActive ? '#047857' : '#1d4ed8' }}>
+                    {partsGuaranteeActive ? '₹22 PARTS GUARANTEE ACTIVE' : 'APPLY ₹22 GUARANTEE'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* Quick-Pick Spare Parts Chips from Price Master */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginVertical: 3 }}>
+              {getApplicablePartsForService(selectedBooking?.service_name, selectedBooking?.category_name).map((part) => (
+                <TouchableOpacity
+                  key={part.id}
+                  style={{
+                    backgroundColor: selectedPartName === part.name ? '#e0e7ff' : '#f8fafc',
+                    borderColor: selectedPartName === part.name ? '#6366f1' : '#cbd5e1',
+                    borderWidth: 1,
+                    paddingHorizontal: 7,
+                    paddingVertical: 3,
+                    borderRadius: 6,
+                  }}
+                  onPress={() => {
+                    setSelectedPartName(part.name);
+                    const finalPrice = partsGuaranteeActive ? part.guaranteePrice : part.standardPrice;
+                    setPartsCharge(String(finalPrice));
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 9.5, fontWeight: '700', color: selectedPartName === part.name ? '#4338ca' : '#475569' }}>
+                    + {part.name} (₹{partsGuaranteeActive ? part.guaranteePrice : part.standardPrice})
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
             <TextInput style={styles.textInput} keyboardType="number-pad" value={partsCharge} onChangeText={setPartsCharge} placeholder="0" placeholderTextColor="#94a3b8" />
 
             <Text style={styles.inputLabel}>Labour Charge (₹)</Text>
@@ -1001,7 +1345,9 @@ export default function AdminBookingsScreen() {
               {/* Success Banner */}
               <View style={{ backgroundColor: '#f0fdf4', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#bbf7d0', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#10b981', justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: '800' }}>✓</Text>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: '#166534' }}>Estimate Bill Generated & Sent Successfully</Text>
@@ -1149,9 +1495,18 @@ export default function AdminBookingsScreen() {
 
             {selectedBooking?.user_rating ? (
               <View style={{ gap: 10 }}>
-                <Text style={{ fontSize: 22, color: '#d97706', fontWeight: '800' }}>
-                  {'★'.repeat(selectedBooking.user_rating)} ({selectedBooking.user_rating}/5)
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{ flexDirection: 'row', gap: 2 }}>
+                    {[1, 2, 3, 4, 5].slice(0, selectedBooking.user_rating).map((_, i) => (
+                      <svg key={i} width="18" height="18" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    ))}
+                  </View>
+                  <Text style={{ fontSize: 16, color: '#d97706', fontWeight: '800' }}>
+                    ({selectedBooking.user_rating}/5)
+                  </Text>
+                </View>
                 {selectedBooking.issue_resolved ? (
                   <Text style={{ fontSize: 13, color: '#334155' }}>
                     Issue resolved:{' '}
@@ -1328,7 +1683,10 @@ export default function AdminBookingsScreen() {
                 style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#64748b' }}>✕</Text>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </TouchableOpacity>
             </View>
 
@@ -1344,8 +1702,11 @@ export default function AdminBookingsScreen() {
                   {liveTrackingBooking?.provider_phone || '+91 99887 76655'}
                 </Text>
                 {liveTrackingBooking?.status === 'PROVIDER_ARRIVED' ? (
-                  <View style={{ backgroundColor: '#ecfdf5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 2 }}>
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>✓ Doorstep Arrived</Text>
+                  <View style={{ backgroundColor: '#ecfdf5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>Doorstep Arrived</Text>
                   </View>
                 ) : (
                   <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 2 }}>
@@ -1373,7 +1734,9 @@ export default function AdminBookingsScreen() {
             {liveTrackingBooking?.status === 'PROVIDER_ARRIVED' ? (
               <View style={{ backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0', padding: 10, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#10b981', justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '800' }}>✓</Text>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: '#065f46' }}>
@@ -1512,6 +1875,56 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 18, fontWeight: '600', color: '#0f172a' },
   modalSub: { fontSize: 12, color: '#64748b' },
   modalNotes: { fontSize: 13, color: '#334155', backgroundColor: '#f8fafc', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#cbd5e1' },
+
+  slaBannerRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginVertical: 14,
+    flexWrap: 'wrap',
+  },
+  slaStatCard: {
+    flex: 1,
+    minWidth: 140,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    cursor: 'pointer',
+  },
+  slaStatCardActive: {
+    borderColor: '#2563eb',
+    backgroundColor: '#eff6ff',
+  },
+  slaStatLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#64748b',
+    letterSpacing: 0.5,
+  },
+  slaStatVal: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginVertical: 4,
+  },
+  slaStatSub: {
+    fontSize: 11,
+    color: '#94a3b8',
+    fontWeight: '500',
+  },
+  slaPulseDotAmber: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#d97706',
+  },
+  slaPulseDotRed: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#dc2626',
+  },
 
   modalReportBox: { backgroundColor: '#f0fdf4', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#a7f3d0', gap: 6, marginVertical: 4 },
   modalReportTag: { fontSize: 10, fontWeight: '600', color: '#166534' },
