@@ -78,23 +78,19 @@ const CloseIcon = ({ color = '#94a3b8', size = 16 }) => (
 );
 
 const AVAILABLE_CATEGORIES = [
-  'Electrical',
+  'Electrician',
   'Plumbing',
-  'AC Services',
-  'Carpentry',
-  'Cleaning',
   'Pest Control',
-  'Appliances',
+  'Dry Cleaning',
+  'Carpentry',
 ];
 
 const CATEGORY_COLORS = {
-  'Electrical': { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
+  'Electrician': { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
   'Plumbing': { bg: '#ecfeff', text: '#0e7490', border: '#a5f3fc' },
-  'AC Services': { bg: '#e0f2fe', text: '#0369a1', border: '#bae6fd' },
-  'Carpentry': { bg: '#fffbeb', text: '#b45309', border: '#fde68a' },
   'Pest Control': { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
-  'Cleaning': { bg: '#faf5ff', text: '#7e22ce', border: '#e9d5ff' },
-  'Appliances': { bg: '#fdf2f8', text: '#be185d', border: '#fbcfe8' },
+  'Dry Cleaning': { bg: '#faf5ff', text: '#7e22ce', border: '#e9d5ff' },
+  'Carpentry': { bg: '#fffbeb', text: '#b45309', border: '#fde68a' },
 };
 
 export default function AdminSubAdminsScreen() {
@@ -130,7 +126,7 @@ export default function AdminSubAdminsScreen() {
     password: '',
     phone: '',
     status: 'ACTIVE',
-    assigned_categories: ['Electrical'],
+    assigned_categories: ['Electrician'],
     permissions: {
       can_dispatch_partners: true,
       can_approve_estimates: true,
@@ -148,7 +144,7 @@ export default function AdminSubAdminsScreen() {
       password: '',
       phone: '',
       status: 'ACTIVE',
-      assigned_categories: ['Electrical'],
+      assigned_categories: ['Electrician'],
       permissions: {
         can_dispatch_partners: true,
         can_approve_estimates: true,
@@ -170,7 +166,7 @@ export default function AdminSubAdminsScreen() {
       status: subAdmin.status || 'ACTIVE',
       assigned_categories: Array.isArray(subAdmin.assigned_categories)
         ? [...subAdmin.assigned_categories]
-        : ['Electrical'],
+        : ['Electrician'],
       permissions: {
         can_dispatch_partners: !!subAdmin.permissions?.can_dispatch_partners,
         can_approve_estimates: !!subAdmin.permissions?.can_approve_estimates,

@@ -304,7 +304,7 @@ export default {
         email: 'anil@zevotacare.com',
         password_hash: defaultPassword,
         phone: '+91 98111 22001',
-        assigned_categories: JSON.stringify(['Electrical', 'AC Services']),
+        assigned_categories: JSON.stringify(['Electrician']),
         permissions: JSON.stringify({
           can_dispatch_partners: true,
           can_approve_estimates: true,
@@ -368,7 +368,7 @@ export default {
         email: 'pooja@zevotacare.com',
         password_hash: defaultPassword,
         phone: '+91 98111 22005',
-        assigned_categories: JSON.stringify(['Cleaning']),
+        assigned_categories: JSON.stringify(['Dry Cleaning']),
         permissions: JSON.stringify({
           can_dispatch_partners: true,
           can_approve_estimates: true,

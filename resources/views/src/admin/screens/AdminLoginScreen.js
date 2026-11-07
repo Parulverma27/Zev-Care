@@ -263,7 +263,7 @@ export default function AdminLoginScreen() {
               </TouchableOpacity>
               <TouchableOpacity style={styles.demoChip} onPress={() => fillSubAdmin('Anil', 'anil@zevotacare.com')}>
                 <ChartBarIcon color="#2563eb" size={14} />
-                <Text style={styles.demoChipText}>Electrical</Text>
+                <Text style={styles.demoChipText}>Electrician</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.demoChip} onPress={() => fillSubAdmin('Sunil', 'sunil@zevotacare.com')}>
                 <ScaleIcon color="#2563eb" size={14} />

@@ -1616,9 +1616,30 @@ export function AppProvider({ children }) {
       return true;
     }
     const target = (catName || '').toLowerCase().trim();
+    if (!target) return false;
+
+    // Normalize synonyms across the 5 platform categories:
+    // Electrician, Plumbing, Pest Control, Dry Cleaning, Carpentry
+    const norm = (str) => {
+      const s = (str || '').toLowerCase().trim();
+      if (s.includes('electr')) return 'electrician';
+      if (s.includes('plumb')) return 'plumbing';
+      if (s.includes('pest')) return 'pest control';
+      if (s.includes('clean') || s.includes('dry')) return 'dry cleaning';
+      if (s.includes('carpent') || s.includes('wood')) return 'carpentry';
+      return s;
+    };
+
+    const targetNorm = norm(target);
+
     return admin.assigned_categories.some((c) => {
-      const canonical = c.toLowerCase().trim();
-      return target.includes(canonical) || canonical.includes(target);
+      const canonical = (c || '').toLowerCase().trim();
+      const canonicalNorm = norm(canonical);
+      return (
+        targetNorm === canonicalNorm ||
+        target.includes(canonical) ||
+        canonical.includes(target)
+      );
     });
   };
 
