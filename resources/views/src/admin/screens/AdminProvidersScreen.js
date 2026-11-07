@@ -21,8 +21,14 @@ export function AdminProvidersScreen() {
   const visibleProviders = (providers || []).filter((p) => {
     if (!adminUser || adminUser.role === 'SUPER_ADMIN') return true;
     if (typeof isCategoryAllowedForAdmin === 'function') {
-      const pCats = p.categories || (p.category ? [p.category] : []);
-      if (pCats.length === 0) return true;
+      let pCats = Array.isArray(p.categories) ? [...p.categories] : (p.category ? [p.category] : []);
+      if (pCats.length === 0 && p.categories_json) {
+        try {
+          const parsed = JSON.parse(p.categories_json);
+          if (Array.isArray(parsed)) pCats = parsed;
+        } catch (e) {}
+      }
+      if (pCats.length === 0) return false;
       return pCats.some((c) => isCategoryAllowedForAdmin(c));
     }
     return true;

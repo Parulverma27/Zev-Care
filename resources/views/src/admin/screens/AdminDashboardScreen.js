@@ -15,15 +15,62 @@ import {
 } from '../components/AdminIcons';
 
 export default function AdminDashboardScreen({ onNavigate }) {
-  const { bookings, users, providers, categories, userAppliances, wallet } = useApp();
+  const {
+    bookings,
+    users,
+    providers,
+    categories,
+    userAppliances,
+    wallet,
+    adminUser,
+    isCategoryAllowedForAdmin,
+  } = useApp();
   const navigate = useNavigate();
+
+  const isSubAdmin = adminUser?.role === 'SUB_ADMIN';
 
   const handleNav = (path) => {
     if (navigate) navigate(path);
     else if (onNavigate) onNavigate(path);
   };
 
+  // Scope Bookings by Category if Sub-Admin
+  const scopedBookings = (bookings || []).filter((b) => {
+    if (typeof isCategoryAllowedForAdmin === 'function') {
+      const cat = b.category_name || b.category || b.service_name || '';
+      return isCategoryAllowedForAdmin(cat);
+    }
+    return true;
+  });
+
+  // Scope Providers by Category if Sub-Admin
+  const scopedProviders = (providers || []).filter((p) => {
+    if (!isSubAdmin) return true;
+    if (typeof isCategoryAllowedForAdmin !== 'function') return true;
+
+    // Check categories array or categories_json
+    let provCats = Array.isArray(p.categories) ? p.categories : [];
+    if (provCats.length === 0 && p.categories_json) {
+      try {
+        provCats = JSON.parse(p.categories_json);
+      } catch (e) {}
+    }
+    return provCats.some((cat) => isCategoryAllowedForAdmin(cat));
+  });
+
+  // Scope Categories
+  const scopedCategories = (categories || []).filter((c) => {
+    if (typeof isCategoryAllowedForAdmin === 'function') {
+      return isCategoryAllowedForAdmin(c.name);
+    }
+    return true;
+  });
+
   const getPlatformRevenue = () => {
+    if (isSubAdmin) {
+      // Sub-admin sees revenue from their scoped completed bookings
+      return scopedBookings.reduce((sum, b) => sum + (Number(b.total_bill) || 0), 0);
+    }
     const txs = wallet?.transactions || [];
     const planRevenue = txs
       .filter((tx) => tx.type === 'PLAN_PURCHASE')
@@ -32,27 +79,38 @@ export default function AdminDashboardScreen({ onNavigate }) {
   };
 
   const isConsultation = (b) => Boolean(b?.isConsultation || b?.booking_mode === 'consultation');
-  const regularBookings = (bookings || []).filter((b) => !isConsultation(b));
-  const consultationBookings = (bookings || []).filter((b) => isConsultation(b));
+  const regularBookings = scopedBookings.filter((b) => !isConsultation(b));
+  const consultationBookings = scopedBookings.filter((b) => isConsultation(b));
 
   const stats = [
-    { title: 'Customers & Properties', val: (users || []).length, color: '#2563eb', bg: '#eff6ff', icon: UsersIcon, path: '/admin/users' },
-    { title: 'Service Providers', val: (providers || []).length, color: '#059669', bg: '#ecfdf5', icon: ProvidersIcon, path: '/admin/providers' },
+    ...(!isSubAdmin
+      ? [{ title: 'Customers & Properties', val: (users || []).length, color: '#2563eb', bg: '#eff6ff', icon: UsersIcon, path: '/admin/users' }]
+      : []),
+    { title: 'Service Providers', val: scopedProviders.length, color: '#059669', bg: '#ecfdf5', icon: ProvidersIcon, path: '/admin/providers' },
     { title: 'Service Bookings', val: regularBookings.length, color: '#7c3aed', bg: '#f5f3ff', icon: BookingsIcon, path: '/admin/bookings' },
     { title: 'My Mechanic Orders', val: consultationBookings.length, color: '#0284c7', bg: '#f0f9ff', icon: BookingsIcon, path: '/admin/consultations' },
-    { title: 'Wallet Transactions', val: `₹${getPlatformRevenue().toLocaleString('en-IN')}`, color: '#d97706', bg: '#fffbe6', icon: FinanceIcon, path: '/admin/finance' },
+    {
+      title: isSubAdmin ? 'Category Order Value' : 'Wallet Transactions',
+      val: `₹${getPlatformRevenue().toLocaleString('en-IN')}`,
+      color: '#d97706',
+      bg: '#fffbe6',
+      icon: FinanceIcon,
+      path: '/admin/finance',
+    },
   ];
 
-  const reportedBookings = (bookings || []).filter((b) => b.status === 'ASSIGNED_TO_ADMIN' || b.inspection_report);
-  const pendingApplianceUploads = (userAppliances || []).filter((a) => a.mediaStatus === 'PENDING_REVIEW');
+  const reportedBookings = scopedBookings.filter((b) => b.status === 'ASSIGNED_TO_ADMIN' || b.inspection_report);
+  const pendingApplianceUploads = isSubAdmin
+    ? []
+    : (userAppliances || []).filter((a) => a.mediaStatus === 'PENDING_REVIEW');
 
   const getCategoryStats = () => {
     const statsMap = {};
-    (categories || []).forEach((cat) => {
+    scopedCategories.forEach((cat) => {
       statsMap[cat.name] = { name: cat.name, count: 0, revenue: 0 };
     });
 
-    (bookings || []).forEach((b) => {
+    scopedBookings.forEach((b) => {
       const catName = b.category_name || 'Electrical';
       if (!statsMap[catName]) {
         statsMap[catName] = { name: catName, count: 0, revenue: 0 };
@@ -64,7 +122,7 @@ export default function AdminDashboardScreen({ onNavigate }) {
     const list = Object.values(statsMap);
     const grandTotalRevenue = list.reduce((acc, item) => acc + item.revenue, 0);
 
-    if (grandTotalRevenue === 0) {
+    if (grandTotalRevenue === 0 && !isSubAdmin) {
       return [
         { cat: 'Electrical Services', jobs: `${(bookings || []).filter((b) => b.category_name === 'Electrical').length} Bookings`, total: '₹8,000', pct: '100% share' },
         { cat: 'Plumbing Services', jobs: '0 Bookings', total: '₹0', pct: '0% share' },
@@ -73,10 +131,10 @@ export default function AdminDashboardScreen({ onNavigate }) {
     }
 
     return list
-      .filter((item) => item.count > 0 || item.revenue > 0)
+      .filter((item) => item.count > 0 || item.revenue > 0 || isSubAdmin)
       .sort((a, b) => b.revenue - a.revenue)
       .map((item) => {
-        const pct = Math.round((item.revenue / grandTotalRevenue) * 100);
+        const pct = grandTotalRevenue > 0 ? Math.round((item.revenue / grandTotalRevenue) * 100) : 100;
         return {
           cat: item.name,
           jobs: `${item.count} Bookings`,
@@ -89,9 +147,15 @@ export default function AdminDashboardScreen({ onNavigate }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <Text style={styles.title}>Operational Analytics & Dispatch Dashboard</Text>
+        <Text style={styles.title}>
+          {isSubAdmin
+            ? `${(adminUser?.assigned_categories || []).join(', ')} Department Console`
+            : 'Operational Analytics & Dispatch Dashboard'}
+        </Text>
         <Text style={styles.subtitle}>
-          Real-time monitoring of provider field inspection reports, subscription wallets & partner performance.
+          {isSubAdmin
+            ? `Category-scoped monitoring for ${adminUser?.name || 'Department Manager'}. Only data in your assigned vertical is displayed.`
+            : 'Real-time monitoring of provider field inspection reports, subscription wallets & partner performance.'}
         </Text>
       </View>
 

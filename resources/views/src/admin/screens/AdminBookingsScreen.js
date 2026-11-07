@@ -79,6 +79,21 @@ export default function AdminBookingsScreen() {
     return true;
   });
 
+  const availableCandidateProviders = (providers || []).filter((p) => {
+    if (!adminUser || adminUser.role === 'SUPER_ADMIN') return true;
+    if (typeof isCategoryAllowedForAdmin === 'function') {
+      let pCats = Array.isArray(p.categories) ? [...p.categories] : (p.category ? [p.category] : []);
+      if (pCats.length === 0 && p.categories_json) {
+        try {
+          const parsed = JSON.parse(p.categories_json);
+          if (Array.isArray(parsed)) pCats = parsed;
+        } catch (e) {}
+      }
+      return pCats.some((c) => isCategoryAllowedForAdmin(c));
+    }
+    return true;
+  });
+
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [slaFilter, setSlaFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -1120,7 +1135,7 @@ export default function AdminBookingsScreen() {
             <Text style={styles.modalSub}>Select best candidate for Work Order {selectedBooking?.booking_id}</Text>
 
             <View style={styles.candidateList}>
-              {providers.length > 0 ? [...providers].sort((a, b) => {
+              {availableCandidateProviders.length > 0 ? [...availableCandidateProviders].sort((a, b) => {
                 const aOn = a.is_online !== false ? 1 : 0;
                 const bOn = b.is_online !== false ? 1 : 0;
                 return bOn - aOn;

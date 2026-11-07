@@ -5,10 +5,12 @@ import UserProfileModal from '../components/UserProfileModal';
 import { exportToCSV } from '../../utils/exportUtils';
 
 export function AdminFinanceScreen() {
-  const { wallet, users, providers } = useApp() || {};
+  const { wallet, users, providers, adminUser, isCategoryAllowedForAdmin } = useApp() || {};
   const [activeTab, setActiveTab] = useState('PAYOUTS'); // 'PAYOUTS' | 'WALLET'
   const [selectedUser, setSelectedUser] = useState(null);
   const [userModalVisible, setUserModalVisible] = useState(false);
+
+  const isSubAdmin = adminUser?.role === 'SUB_ADMIN';
 
   // Partner Weekly Settlements State
   const [partnerPayouts, setPartnerPayouts] = useState(() => {
@@ -142,11 +144,25 @@ export function AdminFinanceScreen() {
 
   const transactionsList = wallet?.transactions || [];
 
-  const pendingPayoutTotal = partnerPayouts
+  const visiblePayouts = partnerPayouts.filter((p) => {
+    if (!isSubAdmin) return true;
+    if (typeof isCategoryAllowedForAdmin !== 'function') return true;
+    const prov = (providers || []).find((pr) => pr.id === p.provider_id);
+    if (!prov) return true;
+    let provCats = Array.isArray(prov.categories) ? prov.categories : (prov.category ? [prov.category] : []);
+    if (provCats.length === 0 && prov.categories_json) {
+      try {
+        provCats = JSON.parse(prov.categories_json);
+      } catch (e) {}
+    }
+    return provCats.some((c) => isCategoryAllowedForAdmin(c));
+  });
+
+  const pendingPayoutTotal = visiblePayouts
     .filter((p) => p.status === 'PENDING_APPROVAL')
     .reduce((sum, p) => sum + Number(p.total_earnings || 0), 0);
 
-  const settledPayoutTotal = partnerPayouts
+  const settledPayoutTotal = visiblePayouts
     .filter((p) => p.status === 'SETTLED')
     .reduce((sum, p) => sum + Number(p.total_earnings || 0), 0);
 
@@ -163,7 +179,7 @@ export function AdminFinanceScreen() {
         { label: 'Status', accessor: (p) => p.status },
         { label: 'UTR Reference', accessor: (p) => p.utr_ref || 'N/A' },
       ];
-      exportToCSV('Zevota_Partner_Payouts_Report', columns, partnerPayouts);
+      exportToCSV('Zevota_Partner_Payouts_Report', columns, visiblePayouts);
       return;
     }
 
@@ -292,7 +308,7 @@ export function AdminFinanceScreen() {
               <Text style={[styles.th, { flex: 1.2, textAlign: 'right' }]}>Action</Text>
             </View>
 
-            {partnerPayouts.map((p, idx) => (
+            {visiblePayouts.map((p, idx) => (
               <View key={idx} style={styles.tableRow}>
                 <Text style={[styles.tdBold, { flex: 1.1 }]}>{p.payout_id}</Text>
                 <View style={{ flex: 1.4 }}>

@@ -84,17 +84,14 @@ const ScaleIcon = ({ color = '#2563eb', size = 14 }) => (
 export default function AdminLoginScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setAdminUser, adminUser } = useApp() || {};
+  const { adminLogin, adminUser } = useApp() || {};
 
-  const [email, setEmail] = useState('admin@zevotacare.com');
-  const [password, setPassword] = useState('admin123');
-  const [selectedRole, setSelectedRole] = useState('Super Admin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-
-  const roles = ['Super Admin', 'Operations Manager', 'Dispute Auditor', 'Support Desk'];
 
   useEffect(() => {
     if (adminUser) {
@@ -103,12 +100,12 @@ export default function AdminLoginScreen() {
     }
   }, [adminUser, location.state, navigate]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setErrorMsg('');
 
     if (!email || !email.includes('@')) {
-      setErrorMsg('Please enter a valid admin email address.');
+      setErrorMsg('Please enter a valid email address.');
       return;
     }
     if (!password || password.length < 4) {
@@ -118,34 +115,35 @@ export default function AdminLoginScreen() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      const adminPayload = {
-        id: 'ADM-901',
-        name: email.split('@')[0].toUpperCase(),
-        email: email,
-        role: selectedRole,
-        login_time: new Date().toLocaleTimeString(),
-        permissions: ['FULL_ACCESS', 'FINANCIAL_AUDIT', 'DISPATCH', 'DISPUTES'],
-      };
-
-      if (typeof setAdminUser === 'function') {
-        setAdminUser(adminPayload);
+    try {
+      if (typeof adminLogin === 'function') {
+        const result = await adminLogin(email.trim(), password);
+        if (result?.success) {
+          navigate(location.state?.from && String(location.state.from).startsWith('/admin')
+            ? location.state.from
+            : '/admin/dashboard');
+        } else {
+          setErrorMsg(result?.message || 'Login failed. Check your credentials.');
+        }
+      } else {
+        setErrorMsg('Login service unavailable. Please try again.');
       }
-      try {
-        localStorage.setItem('zevota_active_admin', JSON.stringify(adminPayload));
-      } catch (err) {}
-
-      navigate(location.state?.from && String(location.state.from).startsWith('/admin')
-        ? location.state.from
-        : '/admin/dashboard');
-    }, 600);
+    } catch (err) {
+      setErrorMsg('Login failed. Please check your connection.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const fillDemo = (roleName) => {
-    setSelectedRole(roleName);
-    setEmail(`${roleName.toLowerCase().replace(/\s+/g, '.')}@zevotacare.com`);
+  const fillSuperAdmin = () => {
+    setEmail('admin@zevotacare.com');
     setPassword('admin123');
+    setErrorMsg('');
+  };
+
+  const fillSubAdmin = (name, emailAddr) => {
+    setEmail(emailAddr);
+    setPassword('subadmin123');
     setErrorMsg('');
   };
 
@@ -169,31 +167,13 @@ export default function AdminLoginScreen() {
                 <Text style={styles.securityBadgeText}>256-BIT SSL ENCRYPTED</Text>
               </View>
               <View style={styles.versionBadge}>
-                <Text style={styles.versionBadgeText}>PORTAL v2.4</Text>
+                <Text style={styles.versionBadgeText}>PORTAL v2.5</Text>
               </View>
             </View>
             <Text style={styles.titleText}>Admin Control Portal</Text>
             <Text style={styles.subTitleText}>
-              Sign in with administrative credentials to access operations, dispatch & financial audit logs.
+              Sign in as Super Admin or Category Sub-Admin to access your operational dashboard.
             </Text>
-          </View>
-
-          {/* Quick Role Selector */}
-          <View style={styles.roleContainer}>
-            <Text style={styles.inputLabel}>SELECT ADMINISTRATIVE ROLE</Text>
-            <View style={styles.rolePillsRow}>
-              {roles.map((role) => (
-                <TouchableOpacity
-                  key={role}
-                  style={[styles.rolePill, selectedRole === role && styles.activeRolePill]}
-                  onPress={() => setSelectedRole(role)}
-                >
-                  <Text style={[styles.rolePillText, selectedRole === role && styles.activeRolePillText]}>
-                    {role}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
           </View>
 
           {/* Error Message Alert */}
@@ -206,7 +186,7 @@ export default function AdminLoginScreen() {
 
           {/* Form Fields */}
           <View style={styles.formGroup}>
-            <Text style={styles.inputLabel}>ADMIN EMAIL ADDRESS</Text>
+            <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
             <View style={styles.inputWrapper}>
               <View style={styles.iconBox}>
                 <MailIcon color="#64748b" size={18} />
@@ -247,7 +227,7 @@ export default function AdminLoginScreen() {
           <View style={styles.optionsRow}>
             <TouchableOpacity style={styles.checkboxRow} onPress={() => setRememberMe(!rememberMe)}>
               <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-                {rememberMe && <Text style={styles.checkmark}>✓</Text>}
+                {rememberMe && <Text style={styles.checkmark}>{'✓'}</Text>}
               </View>
               <Text style={styles.checkboxLabel}>Remember my session</Text>
             </TouchableOpacity>
@@ -275,19 +255,19 @@ export default function AdminLoginScreen() {
 
           {/* Quick Demo Fill Credentials */}
           <View style={styles.demoSection}>
-            <Text style={styles.demoSectionTitle}>ONE-CLICK DEMO CREDENTIALS</Text>
+            <Text style={styles.demoSectionTitle}>QUICK LOGIN CREDENTIALS</Text>
             <View style={styles.demoButtonsRow}>
-              <TouchableOpacity style={styles.demoChip} onPress={() => fillDemo('Super Admin')}>
+              <TouchableOpacity style={styles.demoChip} onPress={fillSuperAdmin}>
                 <CrownIcon color="#2563eb" size={14} />
                 <Text style={styles.demoChipText}>Super Admin</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.demoChip} onPress={() => fillDemo('Operations Manager')}>
+              <TouchableOpacity style={styles.demoChip} onPress={() => fillSubAdmin('Anil', 'anil@zevotacare.com')}>
                 <ChartBarIcon color="#2563eb" size={14} />
-                <Text style={styles.demoChipText}>Operations</Text>
+                <Text style={styles.demoChipText}>Electrical</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.demoChip} onPress={() => fillDemo('Dispute Auditor')}>
+              <TouchableOpacity style={styles.demoChip} onPress={() => fillSubAdmin('Sunil', 'sunil@zevotacare.com')}>
                 <ScaleIcon color="#2563eb" size={14} />
-                <Text style={styles.demoChipText}>Auditor</Text>
+                <Text style={styles.demoChipText}>Plumbing</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -295,7 +275,7 @@ export default function AdminLoginScreen() {
           {/* Footer Security Note */}
           <View style={styles.footerNote}>
             <Text style={styles.footerNoteText}>
-              Zevota Cloud Core Services • All IP login attempts monitored for compliance.
+              Zevota Cloud Core Services{' '}{'•'}{' '}All login attempts are authenticated against the server.
             </Text>
           </View>
         </View>

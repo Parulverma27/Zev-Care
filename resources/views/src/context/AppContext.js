@@ -1469,152 +1469,129 @@ export function AppProvider({ children }) {
     } catch (e) {}
   }, [chats]);
 
-  // Sub-Admin Category Management State
-  const DEFAULT_SUB_ADMINS = [
-    {
-      id: 1,
-      name: 'Anil Verma',
-      email: 'anil.electrical@zevotacare.com',
-      phone: '+91 98112 33441',
-      role: 'SUB_ADMIN',
-      status: 'ACTIVE',
-      assigned_categories: ['Electrical & AC', 'Appliances'],
-      permissions: {
-        can_dispatch_partners: true,
-        can_approve_estimates: true,
-        can_manage_catalog_rates: true,
-        can_resolve_complaints: true,
-      },
-      created_at: '2026-10-15T10:00:00Z',
-    },
-    {
-      id: 2,
-      name: 'Sunil Sharma',
-      email: 'sunil.plumbing@zevotacare.com',
-      phone: '+91 98112 33442',
-      role: 'SUB_ADMIN',
-      status: 'ACTIVE',
-      assigned_categories: ['Plumbing'],
-      permissions: {
-        can_dispatch_partners: true,
-        can_approve_estimates: true,
-        can_manage_catalog_rates: true,
-        can_resolve_complaints: true,
-      },
-      created_at: '2026-10-18T11:30:00Z',
-    },
-    {
-      id: 3,
-      name: 'Ramesh Gupta',
-      email: 'ramesh.carpentry@zevotacare.com',
-      phone: '+91 98112 33443',
-      role: 'SUB_ADMIN',
-      status: 'ACTIVE',
-      assigned_categories: ['Carpentry'],
-      permissions: {
-        can_dispatch_partners: true,
-        can_approve_estimates: true,
-        can_manage_catalog_rates: true,
-        can_resolve_complaints: true,
-      },
-      created_at: '2026-10-20T09:15:00Z',
-    },
-    {
-      id: 4,
-      name: 'Deepak Mehta',
-      email: 'deepak.pest@zevotacare.com',
-      phone: '+91 98112 33444',
-      role: 'SUB_ADMIN',
-      status: 'ACTIVE',
-      assigned_categories: ['Pest Control'],
-      permissions: {
-        can_dispatch_partners: true,
-        can_approve_estimates: true,
-        can_manage_catalog_rates: true,
-        can_resolve_complaints: true,
-      },
-      created_at: '2026-10-22T14:40:00Z',
-    },
-    {
-      id: 5,
-      name: 'Pooja Kulkarni',
-      email: 'pooja.cleaning@zevotacare.com',
-      phone: '+91 98112 33445',
-      role: 'SUB_ADMIN',
-      status: 'ACTIVE',
-      assigned_categories: ['Cleaning'],
-      permissions: {
-        can_dispatch_partners: true,
-        can_approve_estimates: true,
-        can_manage_catalog_rates: true,
-        can_resolve_complaints: true,
-      },
-      created_at: '2026-10-25T16:20:00Z',
-    },
-  ];
+  // Sub-Admin Category Management State — backed by /api/admin/subadmins
+  const [subAdmins, setSubAdmins] = useState([]);
+  const [subAdminsLoaded, setSubAdminsLoaded] = useState(false);
 
-  const [subAdmins, setSubAdmins] = useState(() => {
+  /** Fetch sub-admins from backend API */
+  const fetchSubAdmins = async () => {
     try {
-      const storedVersion = localStorage.getItem(SUB_ADMINS_VERSION_KEY);
-      if (storedVersion !== SUB_ADMINS_VERSION) {
-        localStorage.removeItem('zevota_subadmins');
-        localStorage.setItem(SUB_ADMINS_VERSION_KEY, SUB_ADMINS_VERSION);
-        return DEFAULT_SUB_ADMINS;
+      const res = await axios.get(`${API_BASE}/admin/subadmins`);
+      if (res.data?.success && Array.isArray(res.data.subAdmins)) {
+        setSubAdmins(res.data.subAdmins);
       }
-      const saved = localStorage.getItem('zevota_subadmins');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (e) {}
-    return DEFAULT_SUB_ADMINS;
-  });
+    } catch (e) {
+      console.warn('Failed to fetch sub-admins from API, using local fallback:', e.message);
+      // Fallback: try localStorage
+      try {
+        const saved = localStorage.getItem('zevota_subadmins');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) setSubAdmins(parsed);
+        }
+      } catch (le) {}
+    } finally {
+      setSubAdminsLoaded(true);
+    }
+  };
 
+  // Load sub-admins when admin is logged in
   useEffect(() => {
+    if (adminUser && adminUser.role === 'SUPER_ADMIN') {
+      fetchSubAdmins();
+    }
+  }, [adminUser]);
+
+  /** Login admin via backend API */
+  const adminLogin = async (email, password) => {
     try {
-      localStorage.setItem('zevota_subadmins', JSON.stringify(subAdmins));
-    } catch (e) {}
-  }, [subAdmins]);
-
-  const addSubAdmin = (data) => {
-    const newSubAdmin = {
-      id: Date.now(),
-      name: data.name?.trim() || 'Sub-Admin',
-      email: data.email?.trim() || '',
-      phone: data.phone?.trim() || '',
-      role: 'SUB_ADMIN',
-      status: data.status || 'ACTIVE',
-      assigned_categories: Array.isArray(data.assigned_categories) && data.assigned_categories.length > 0
-        ? data.assigned_categories
-        : ['Electrical & AC'],
-      permissions: data.permissions || {
-        can_dispatch_partners: true,
-        can_approve_estimates: true,
-        can_manage_catalog_rates: true,
-        can_resolve_complaints: true,
-      },
-      created_at: new Date().toISOString(),
-    };
-    setSubAdmins((prev) => [newSubAdmin, ...prev]);
-    return newSubAdmin;
+      const res = await axios.post(`${API_BASE}/admin/login`, { email, password });
+      if (res.data?.success && res.data.admin) {
+        const admin = res.data.admin;
+        setAdminUser(admin);
+        return { success: true, admin };
+      }
+      return { success: false, message: 'Login failed.' };
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Login failed. Check your credentials.';
+      return { success: false, message: msg };
+    }
   };
 
-  const updateSubAdmin = (id, data) => {
-    setSubAdmins((prev) =>
-      prev.map((sa) => (sa.id === id ? { ...sa, ...data } : sa))
-    );
+  const addSubAdmin = async (data) => {
+    try {
+      const res = await axios.post(`${API_BASE}/admin/subadmins`, {
+        name: data.name?.trim() || 'Sub-Admin',
+        email: data.email?.trim() || '',
+        password: data.password || 'subadmin123',
+        phone: data.phone?.trim() || '',
+        assigned_categories: Array.isArray(data.assigned_categories) && data.assigned_categories.length > 0
+          ? data.assigned_categories
+          : ['Electrical'],
+        permissions: data.permissions || {
+          can_dispatch_partners: true,
+          can_approve_estimates: false,
+          can_manage_catalog_rates: false,
+          can_resolve_complaints: false,
+        },
+      });
+      if (res.data?.success && res.data.subAdmin) {
+        setSubAdmins((prev) => [res.data.subAdmin, ...prev]);
+        return res.data.subAdmin;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to create sub-admin:', err.response?.data?.message || err.message);
+      return null;
+    }
   };
 
-  const deleteSubAdmin = (id) => {
-    setSubAdmins((prev) => prev.filter((sa) => sa.id !== id));
+  const updateSubAdmin = async (id, data) => {
+    try {
+      const res = await axios.put(`${API_BASE}/admin/subadmins/${id}`, data);
+      if (res.data?.success && res.data.subAdmin) {
+        setSubAdmins((prev) =>
+          prev.map((sa) => (sa.id === id ? { ...sa, ...res.data.subAdmin } : sa))
+        );
+        return res.data.subAdmin;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to update sub-admin:', err.response?.data?.message || err.message);
+      return null;
+    }
   };
 
-  const toggleSubAdminStatus = (id) => {
-    setSubAdmins((prev) =>
-      prev.map((sa) =>
-        sa.id === id ? { ...sa, status: sa.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' } : sa
-      )
-    );
+  const deleteSubAdmin = async (id) => {
+    try {
+      const res = await axios.delete(`${API_BASE}/admin/subadmins/${id}`);
+      if (res.data?.success) {
+        setSubAdmins((prev) => prev.filter((sa) => sa.id !== id));
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('Failed to delete sub-admin:', err.response?.data?.message || err.message);
+      return false;
+    }
+  };
+
+  const toggleSubAdminStatus = async (id) => {
+    try {
+      const res = await axios.patch(`${API_BASE}/admin/subadmins/${id}/status`);
+      if (res.data?.success && res.data.subAdmin) {
+        setSubAdmins((prev) =>
+          prev.map((sa) =>
+            sa.id === id ? { ...sa, status: res.data.subAdmin.status } : sa
+          )
+        );
+        return res.data.subAdmin;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to toggle sub-admin status:', err.response?.data?.message || err.message);
+      return null;
+    }
   };
 
   const switchAdminAccount = (account) => {
@@ -3350,6 +3327,8 @@ export function AppProvider({ children }) {
         toggleSubAdminStatus,
         switchAdminAccount,
         isCategoryAllowedForAdmin,
+        adminLogin,
+        fetchSubAdmins,
       }}
     >
       {children}

@@ -3,6 +3,7 @@ import Provider from './Provider.js';
 import Booking from './Booking.js';
 import WalletTransaction from './WalletTransaction.js';
 import SubscriptionPlan from './SubscriptionPlan.js';
+import SubAdmin from './SubAdmin.js';
 import { Category, SubCategory, Service } from './Service.js';
 import { Dispute, Banner, Notification, Chat } from './Dispute.js';
 
@@ -31,6 +32,7 @@ export {
   Booking,
   WalletTransaction,
   SubscriptionPlan,
+  SubAdmin,
   Category,
   SubCategory,
   Service,

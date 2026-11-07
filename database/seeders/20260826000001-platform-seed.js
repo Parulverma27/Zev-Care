@@ -2,6 +2,8 @@
  * Comprehensive Seeder for Zevota Care PRD Platform
  */
 
+import { hashPassword } from '../../app/utils/password.js';
+
 export default {
   async up(queryInterface, Sequelize) {
     const now = new Date();
@@ -293,9 +295,95 @@ export default {
         updated_at: now,
       },
     ]);
+
+    // 8. Sub-Admins (category-scoped admin accounts)
+    const defaultPassword = await hashPassword('subadmin123');
+    await queryInterface.bulkInsert('sub_admins', [
+      {
+        name: 'Anil Verma',
+        email: 'anil@zevotacare.com',
+        password_hash: defaultPassword,
+        phone: '+91 98111 22001',
+        assigned_categories: JSON.stringify(['Electrical', 'AC Services']),
+        permissions: JSON.stringify({
+          can_dispatch_partners: true,
+          can_approve_estimates: true,
+          can_manage_catalog_rates: false,
+          can_resolve_complaints: true,
+        }),
+        status: 'ACTIVE',
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        name: 'Sunil Sharma',
+        email: 'sunil@zevotacare.com',
+        password_hash: defaultPassword,
+        phone: '+91 98111 22002',
+        assigned_categories: JSON.stringify(['Plumbing']),
+        permissions: JSON.stringify({
+          can_dispatch_partners: true,
+          can_approve_estimates: true,
+          can_manage_catalog_rates: true,
+          can_resolve_complaints: false,
+        }),
+        status: 'ACTIVE',
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        name: 'Ramesh Gupta',
+        email: 'ramesh@zevotacare.com',
+        password_hash: defaultPassword,
+        phone: '+91 98111 22003',
+        assigned_categories: JSON.stringify(['Carpentry']),
+        permissions: JSON.stringify({
+          can_dispatch_partners: true,
+          can_approve_estimates: false,
+          can_manage_catalog_rates: false,
+          can_resolve_complaints: true,
+        }),
+        status: 'ACTIVE',
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        name: 'Deepak Mehta',
+        email: 'deepak@zevotacare.com',
+        password_hash: defaultPassword,
+        phone: '+91 98111 22004',
+        assigned_categories: JSON.stringify(['Pest Control']),
+        permissions: JSON.stringify({
+          can_dispatch_partners: true,
+          can_approve_estimates: true,
+          can_manage_catalog_rates: true,
+          can_resolve_complaints: true,
+        }),
+        status: 'ACTIVE',
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        name: 'Pooja Kulkarni',
+        email: 'pooja@zevotacare.com',
+        password_hash: defaultPassword,
+        phone: '+91 98111 22005',
+        assigned_categories: JSON.stringify(['Cleaning']),
+        permissions: JSON.stringify({
+          can_dispatch_partners: true,
+          can_approve_estimates: true,
+          can_manage_catalog_rates: false,
+          can_resolve_complaints: true,
+        }),
+        status: 'ACTIVE',
+        created_at: now,
+        updated_at: now,
+      },
+    ]);
   },
 
   async down(queryInterface) {
+    await queryInterface.bulkDelete('sub_admins', null, {});
     await queryInterface.bulkDelete('banners', null, {});
     await queryInterface.bulkDelete('services', null, {});
     await queryInterface.bulkDelete('sub_categories', null, {});

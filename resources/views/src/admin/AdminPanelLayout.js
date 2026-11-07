@@ -50,7 +50,7 @@ export default function AdminPanelLayout() {
     {
       section: 'PEOPLE & ACCESS',
       items: [
-        { path: '/admin/users', icon: UsersIcon, label: 'Customers & Properties' },
+        { path: '/admin/users', icon: UsersIcon, label: 'Customers & Properties', superAdminOnly: true },
         { path: '/admin/providers', icon: ProvidersIcon, label: 'Service Providers' },
         { path: '/admin/subadmins', icon: SubAdminsIcon, label: 'Category Sub-Admins', superAdminOnly: true },
       ],
@@ -58,17 +58,17 @@ export default function AdminPanelLayout() {
     {
       section: 'CATALOG & PLANS',
       items: [
-        { path: '/admin/categories', icon: CategoriesIcon, label: 'Services & Categories' },
-        { path: '/admin/plans', icon: AmcPlansIcon, label: 'AMC Plans' },
-        { path: '/admin/service-areas', icon: ServiceAreasIcon, label: 'Serviceable Areas & Pincodes' },
+        { path: '/admin/categories', icon: CategoriesIcon, label: 'Services & Categories', superAdminOnly: true },
+        { path: '/admin/plans', icon: AmcPlansIcon, label: 'AMC Plans', superAdminOnly: true },
+        { path: '/admin/service-areas', icon: ServiceAreasIcon, label: 'Serviceable Areas & Pincodes', superAdminOnly: true },
       ],
     },
     {
       section: 'FINANCE & MARKETING',
       items: [
-        { path: '/admin/user-services', icon: UserServicesIcon, label: 'Customer Billing & Spend' },
+        { path: '/admin/user-services', icon: UserServicesIcon, label: 'Customer Billing & Spend', superAdminOnly: true },
         { path: '/admin/finance', icon: FinanceIcon, label: 'Wallet Transactions' },
-        { path: '/admin/banners', icon: BannersIcon, label: 'App Banners & Offers' },
+        { path: '/admin/banners', icon: BannersIcon, label: 'App Banners & Offers', superAdminOnly: true },
       ],
     },
   ];
@@ -193,7 +193,7 @@ export default function AdminPanelLayout() {
                 <Text style={styles.headerBreadcrumb}>Home / Admin / {getPageTitle()}</Text>
               </View>
               <View style={styles.headerRightRow}>
-                {/* Department / Role Switcher */}
+                {/* Department / Role Badge */}
                 <View style={{ position: 'relative' }}>
                   {isSubAdmin ? (
                     <View style={styles.activeSubAdminHeaderBadge}>
@@ -201,12 +201,6 @@ export default function AdminPanelLayout() {
                       <Text style={styles.activeSubAdminBadgeText}>
                         {adminUser?.name} ({(adminUser?.assigned_categories || []).join(', ')})
                       </Text>
-                      <TouchableOpacity
-                        style={styles.switchBackSuperAdminBtn}
-                        onPress={handleSwitchToSuperAdmin}
-                      >
-                        <Text style={styles.switchBackSuperAdminBtnText}>↩ Switch to Super Admin</Text>
-                      </TouchableOpacity>
                     </View>
                   ) : (
                     <TouchableOpacity

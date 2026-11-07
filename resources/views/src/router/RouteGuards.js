@@ -66,5 +66,13 @@ export function AdminProtectedRoute({ children }) {
   if (!adminUser && !isLogin) {
     return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />;
   }
+
+  // Super-admin only routes protection: Sub-Admin management is strictly Super Admin
+  if (adminUser && adminUser.role !== 'SUPER_ADMIN') {
+    if (location.pathname.startsWith('/admin/subadmins')) {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+  }
+
   return children;
 }

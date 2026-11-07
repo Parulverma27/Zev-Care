@@ -7,22 +7,90 @@ import {
   ScrollView,
   TextInput,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 
+// Real Vector SVG Icons (No Emojis)
+const CrownIcon = ({ color = '#2563eb', size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
+  </svg>
+);
+
+const UserIcon = ({ color = '#64748b', size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const EyeIcon = ({ color = '#1d4ed8', size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EditIcon = ({ color = '#3b82f6', size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    <path d="m15 5 4 4" />
+  </svg>
+);
+
+const TrashIcon = ({ color = '#dc2626', size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 6h18" />
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    <line x1="10" y1="11" x2="10" y2="17" />
+    <line x1="14" y1="11" x2="14" y2="17" />
+  </svg>
+);
+
+const CheckIcon = ({ color = '#ffffff', size = 12 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const PlusIcon = ({ color = '#ffffff', size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
+
+const LockIcon = ({ color = '#64748b', size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const CloseIcon = ({ color = '#94a3b8', size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
 const AVAILABLE_CATEGORIES = [
-  'Electrical & AC',
+  'Electrical',
   'Plumbing',
+  'AC Services',
   'Carpentry',
-  'Pest Control',
   'Cleaning',
+  'Pest Control',
   'Appliances',
 ];
 
 const CATEGORY_COLORS = {
-  'Electrical & AC': { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
+  'Electrical': { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
   'Plumbing': { bg: '#ecfeff', text: '#0e7490', border: '#a5f3fc' },
+  'AC Services': { bg: '#e0f2fe', text: '#0369a1', border: '#bae6fd' },
   'Carpentry': { bg: '#fffbeb', text: '#b45309', border: '#fde68a' },
   'Pest Control': { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
   'Cleaning': { bg: '#faf5ff', text: '#7e22ce', border: '#e9d5ff' },
@@ -45,14 +113,17 @@ export default function AdminSubAdminsScreen() {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubAdmin, setEditingSubAdmin] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionError, setActionError] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
     phone: '',
     status: 'ACTIVE',
-    assigned_categories: ['Electrical & AC'],
+    assigned_categories: ['Electrical'],
     permissions: {
       can_dispatch_partners: true,
       can_approve_estimates: true,
@@ -63,12 +134,14 @@ export default function AdminSubAdminsScreen() {
 
   const openAddModal = () => {
     setEditingSubAdmin(null);
+    setActionError('');
     setFormData({
       name: '',
       email: '',
+      password: '',
       phone: '',
       status: 'ACTIVE',
-      assigned_categories: ['Electrical & AC'],
+      assigned_categories: ['Electrical'],
       permissions: {
         can_dispatch_partners: true,
         can_approve_estimates: true,
@@ -81,14 +154,16 @@ export default function AdminSubAdminsScreen() {
 
   const openEditModal = (subAdmin) => {
     setEditingSubAdmin(subAdmin);
+    setActionError('');
     setFormData({
       name: subAdmin.name || '',
       email: subAdmin.email || '',
+      password: '', // blank means keep unchanged
       phone: subAdmin.phone || '',
       status: subAdmin.status || 'ACTIVE',
       assigned_categories: Array.isArray(subAdmin.assigned_categories)
         ? [...subAdmin.assigned_categories]
-        : ['Electrical & AC'],
+        : ['Electrical'],
       permissions: {
         can_dispatch_partners: !!subAdmin.permissions?.can_dispatch_partners,
         can_approve_estimates: !!subAdmin.permissions?.can_approve_estimates,
@@ -127,26 +202,40 @@ export default function AdminSubAdminsScreen() {
     }));
   };
 
-  const handleSaveSubAdmin = () => {
+  const handleSaveSubAdmin = async () => {
+    setActionError('');
     if (!formData.name.trim() || !formData.email.trim()) {
-      alert('Please enter sub-admin name and email.');
+      setActionError('Please enter sub-admin name and email.');
+      return;
+    }
+    if (!editingSubAdmin && (!formData.password || formData.password.length < 4)) {
+      setActionError('Please provide a secure initial password (minimum 4 characters).');
       return;
     }
     if (formData.assigned_categories.length === 0) {
-      alert('Please assign at least one category vertical.');
+      setActionError('Please assign at least one category vertical.');
       return;
     }
 
-    if (editingSubAdmin) {
-      if (typeof updateSubAdmin === 'function') {
-        updateSubAdmin(editingSubAdmin.id, formData);
+    setIsSubmitting(true);
+    try {
+      if (editingSubAdmin) {
+        if (typeof updateSubAdmin === 'function') {
+          const payload = { ...formData };
+          if (!payload.password) delete payload.password;
+          await updateSubAdmin(editingSubAdmin.id, payload);
+        }
+      } else {
+        if (typeof addSubAdmin === 'function') {
+          await addSubAdmin(formData);
+        }
       }
-    } else {
-      if (typeof addSubAdmin === 'function') {
-        addSubAdmin(formData);
-      }
+      setIsModalOpen(false);
+    } catch (err) {
+      setActionError(err.message || 'Operation failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsModalOpen(false);
   };
 
   const handleSwitchPersona = (subAdmin) => {
@@ -189,7 +278,8 @@ export default function AdminSubAdminsScreen() {
           </Text>
         </View>
         <TouchableOpacity style={styles.primaryAddBtn} onPress={openAddModal}>
-          <Text style={styles.primaryAddBtnText}>+ Create New Sub-Admin</Text>
+          <PlusIcon color="#ffffff" size={14} />
+          <Text style={styles.primaryAddBtnText}>Create New Sub-Admin</Text>
         </TouchableOpacity>
       </View>
 
@@ -214,9 +304,16 @@ export default function AdminSubAdminsScreen() {
         </View>
         <View style={styles.kpiCard}>
           <Text style={styles.kpiLabel}>Current Admin Session</Text>
-          <Text style={[styles.kpiValue, { fontSize: 16, color: '#1e293b' }]} numberOfLines={1}>
-            {adminUser?.role === 'SUPER_ADMIN' ? '👑 Super Admin' : `👤 ${adminUser?.name || 'Sub-Admin'}`}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginVertical: 4 }}>
+            {adminUser?.role === 'SUPER_ADMIN' ? (
+              <CrownIcon color="#2563eb" size={16} />
+            ) : (
+              <UserIcon color="#059669" size={16} />
+            )}
+            <Text style={[styles.kpiValue, { fontSize: 16, color: '#1e293b', marginVertical: 0 }]} numberOfLines={1}>
+              {adminUser?.role === 'SUPER_ADMIN' ? 'Super Admin' : (adminUser?.name || 'Sub-Admin')}
+            </Text>
+          </View>
           <Text style={styles.kpiSub}>
             {adminUser?.role === 'SUPER_ADMIN'
               ? 'Unrestricted omni-category view'
@@ -237,7 +334,7 @@ export default function AdminSubAdminsScreen() {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearBtn}>
-              <Text style={styles.clearBtnText}>✕</Text>
+              <CloseIcon color="#94a3b8" size={14} />
             </TouchableOpacity>
           )}
         </View>
@@ -351,22 +448,26 @@ export default function AdminSubAdminsScreen() {
                   <View style={[styles.tdCell, { flex: 2.5, flexDirection: 'row', flexWrap: 'wrap', gap: 4 }]}>
                     {sa.permissions?.can_dispatch_partners && (
                       <View style={styles.permPill}>
-                        <Text style={styles.permPillText}>✓ Dispatch Partners</Text>
+                        <CheckIcon color="#059669" size={10} />
+                        <Text style={styles.permPillText}>Dispatch Partners</Text>
                       </View>
                     )}
                     {sa.permissions?.can_approve_estimates && (
                       <View style={styles.permPill}>
-                        <Text style={styles.permPillText}>✓ Approve Estimates</Text>
+                        <CheckIcon color="#059669" size={10} />
+                        <Text style={styles.permPillText}>Approve Estimates</Text>
                       </View>
                     )}
                     {sa.permissions?.can_manage_catalog_rates && (
                       <View style={styles.permPill}>
-                        <Text style={styles.permPillText}>✓ Manage Rates</Text>
+                        <CheckIcon color="#059669" size={10} />
+                        <Text style={styles.permPillText}>Manage Rates</Text>
                       </View>
                     )}
                     {sa.permissions?.can_resolve_complaints && (
                       <View style={styles.permPill}>
-                        <Text style={styles.permPillText}>✓ Resolve Complaints</Text>
+                        <CheckIcon color="#059669" size={10} />
+                        <Text style={styles.permPillText}>Resolve Complaints</Text>
                       </View>
                     )}
                   </View>
@@ -401,7 +502,8 @@ export default function AdminSubAdminsScreen() {
                       onPress={() => handleSwitchPersona(sa)}
                       title="Experience portal as this Sub-Admin"
                     >
-                      <Text style={styles.switchPersonaBtnText}>👁 View Scoped</Text>
+                      <EyeIcon color="#1d4ed8" size={13} />
+                      <Text style={styles.switchPersonaBtnText}>View Scoped</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -409,7 +511,7 @@ export default function AdminSubAdminsScreen() {
                       onPress={() => openEditModal(sa)}
                       title="Edit Sub-Admin"
                     >
-                      <Text style={styles.actionIconBtnText}>✏️</Text>
+                      <EditIcon color="#3b82f6" size={14} />
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -421,7 +523,7 @@ export default function AdminSubAdminsScreen() {
                       }}
                       title="Delete Sub-Admin"
                     >
-                      <Text style={[styles.actionIconBtnText, { color: '#dc2626' }]}>🗑</Text>
+                      <TrashIcon color="#dc2626" size={14} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -441,13 +543,19 @@ export default function AdminSubAdminsScreen() {
                   {editingSubAdmin ? 'Edit Category Sub-Admin' : 'Create Category Sub-Admin'}
                 </Text>
                 <Text style={styles.modalSubtitle}>
-                  Configure assigned categories and permission boundaries for this manager.
+                  Configure credentials, assigned categories, and permission boundaries.
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setIsModalOpen(false)} style={styles.modalCloseBtn}>
-                <Text style={styles.modalCloseBtnText}>✕</Text>
+                <CloseIcon color="#94a3b8" size={16} />
               </TouchableOpacity>
             </View>
+
+            {!!actionError && (
+              <View style={styles.modalErrorBox}>
+                <Text style={styles.modalErrorText}>{actionError}</Text>
+              </View>
+            )}
 
             <ScrollView style={styles.modalFormScroll}>
               {/* Name */}
@@ -487,6 +595,29 @@ export default function AdminSubAdminsScreen() {
                     onChangeText={(val) => setFormData((p) => ({ ...p, phone: val }))}
                   />
                 </View>
+              </View>
+
+              {/* Password */}
+              <View style={styles.formGroup}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  <LockIcon color="#475569" size={13} />
+                  <Text style={styles.formLabel}>
+                    {editingSubAdmin ? 'New Password (Optional)' : 'Login Password *'}
+                  </Text>
+                </View>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder={editingSubAdmin ? 'Leave blank to keep existing password' : 'Enter login password for this sub-admin'}
+                  placeholderTextColor="#94a3b8"
+                  secureTextEntry
+                  value={formData.password}
+                  onChangeText={(val) => setFormData((p) => ({ ...p, password: val }))}
+                />
+                <Text style={styles.formHelp}>
+                  {editingSubAdmin
+                    ? 'Only provide a new password if you want to reset credentials for this sub-admin.'
+                    : 'The sub-admin will use this password along with their email address to log into their portal.'}
+                </Text>
               </View>
 
               {/* Category Assignment Chips */}
@@ -548,7 +679,7 @@ export default function AdminSubAdminsScreen() {
                       ]}
                     >
                       {formData.permissions.can_dispatch_partners && (
-                        <Text style={styles.checkboxCheck}>✓</Text>
+                        <CheckIcon color="#ffffff" size={10} />
                       )}
                     </View>
                     <View style={{ flex: 1, marginLeft: 10 }}>
@@ -570,7 +701,7 @@ export default function AdminSubAdminsScreen() {
                       ]}
                     >
                       {formData.permissions.can_approve_estimates && (
-                        <Text style={styles.checkboxCheck}>✓</Text>
+                        <CheckIcon color="#ffffff" size={10} />
                       )}
                     </View>
                     <View style={{ flex: 1, marginLeft: 10 }}>
@@ -592,7 +723,7 @@ export default function AdminSubAdminsScreen() {
                       ]}
                     >
                       {formData.permissions.can_manage_catalog_rates && (
-                        <Text style={styles.checkboxCheck}>✓</Text>
+                        <CheckIcon color="#ffffff" size={10} />
                       )}
                     </View>
                     <View style={{ flex: 1, marginLeft: 10 }}>
@@ -614,7 +745,7 @@ export default function AdminSubAdminsScreen() {
                       ]}
                     >
                       {formData.permissions.can_resolve_complaints && (
-                        <Text style={styles.checkboxCheck}>✓</Text>
+                        <CheckIcon color="#ffffff" size={10} />
                       )}
                     </View>
                     <View style={{ flex: 1, marginLeft: 10 }}>
@@ -671,10 +802,18 @@ export default function AdminSubAdminsScreen() {
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setIsModalOpen(false)}>
                 <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveSubAdmin}>
-                <Text style={styles.saveBtnText}>
-                  {editingSubAdmin ? 'Update Sub-Admin' : 'Create Sub-Admin'}
-                </Text>
+              <TouchableOpacity
+                style={[styles.saveBtn, isSubmitting && { opacity: 0.7 }]}
+                onPress={handleSaveSubAdmin}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="#ffffff" size="small" />
+                ) : (
+                  <Text style={styles.saveBtnText}>
+                    {editingSubAdmin ? 'Update Sub-Admin' : 'Create Sub-Admin'}
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -695,6 +834,9 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: '700', color: '#0f172a' },
   headerSubtitle: { fontSize: 13, color: '#64748b', marginTop: 4 },
   primaryAddBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: '#2563eb',
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -728,9 +870,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 40,
   },
-  searchInput: { flex: 1, fontSize: 13, color: '#0f172a', outlineStyle: 'none' },
+  searchInput: { flex: 1, fontSize: 13, color: '#0f172a' },
   clearBtn: { padding: 4 },
-  clearBtnText: { color: '#94a3b8', fontSize: 13 },
   categoryFilterScroll: { flex: 1 },
   catFilterChip: {
     paddingHorizontal: 12,
@@ -799,6 +940,9 @@ const styles = StyleSheet.create({
   },
   categoryBadgeText: { fontSize: 11, fontWeight: '600' },
   permPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#e2e8f0',
@@ -814,6 +958,9 @@ const styles = StyleSheet.create({
   statusBadgeTextActive: { color: '#15803d' },
   statusBadgeTextInactive: { color: '#64748b' },
   switchPersonaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: '#eff6ff',
     borderWidth: 1,
     borderColor: '#bfdbfe',
@@ -830,7 +977,6 @@ const styles = StyleSheet.create({
     borderColor: '#e2e8f0',
     backgroundColor: '#ffffff',
   },
-  actionIconBtnText: { fontSize: 12 },
   emptyState: { padding: 40, alignItems: 'center', justifyContent: 'center' },
   emptyStateTitle: { fontSize: 16, fontWeight: '600', color: '#334155', marginBottom: 6 },
   emptyStateSub: { fontSize: 13, color: '#94a3b8' },
@@ -865,7 +1011,16 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 18, fontWeight: '700', color: '#0f172a' },
   modalSubtitle: { fontSize: 12, color: '#64748b', marginTop: 2 },
   modalCloseBtn: { padding: 4 },
-  modalCloseBtnText: { fontSize: 16, color: '#94a3b8' },
+  modalErrorBox: {
+    backgroundColor: '#fef2f2',
+    borderLeftWidth: 4,
+    borderLeftColor: '#ef4444',
+    padding: 12,
+    marginHorizontal: 20,
+    marginTop: 12,
+    borderRadius: 4,
+  },
+  modalErrorText: { color: '#dc2626', fontSize: 12, fontWeight: '600' },
   modalFormScroll: { padding: 20 },
   formGroup: { marginBottom: 16 },
   formRow: { flexDirection: 'row' },
@@ -880,7 +1035,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#0f172a',
     backgroundColor: '#ffffff',
-    outlineStyle: 'none',
   },
   categoryChipsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   categorySelectChip: {
@@ -914,7 +1068,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   checkboxBoxActive: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-  checkboxCheck: { color: '#ffffff', fontSize: 11, fontWeight: '700' },
   permTitle: { fontSize: 12, fontWeight: '600', color: '#1e293b' },
   permSub: { fontSize: 11, color: '#64748b', marginTop: 1 },
   statusToggleRow: { flexDirection: 'row', gap: 12 },

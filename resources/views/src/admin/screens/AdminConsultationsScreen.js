@@ -11,7 +11,7 @@ import { hasGeneratedBill, isBillPaid } from '../../utils/billing';
 import LiveProviderTrackingMap from '../../components/LiveProviderTrackingMap';
 
 export default function AdminConsultationsScreen() {
-  const { bookings, users, providers, acceptBooking, rejectBooking, assignProvider, generateBill, isCategoryAllowedForAdmin } = useApp();
+  const { bookings, users, providers, acceptBooking, rejectBooking, assignProvider, generateBill, isCategoryAllowedForAdmin, adminUser } = useApp();
   const { bookingId: routeBookingId } = useParams();
   const navigate = useNavigate();
 
@@ -80,6 +80,21 @@ export default function AdminConsultationsScreen() {
     if (typeof isCategoryAllowedForAdmin === 'function') {
       const cat = b.category_name || b.category || b.service_name || '';
       if (!isCategoryAllowedForAdmin(cat)) return false;
+    }
+    return true;
+  });
+
+  const availableCandidateProviders = (providers || []).filter((p) => {
+    if (!adminUser || adminUser.role === 'SUPER_ADMIN') return true;
+    if (typeof isCategoryAllowedForAdmin === 'function') {
+      let pCats = Array.isArray(p.categories) ? [...p.categories] : (p.category ? [p.category] : []);
+      if (pCats.length === 0 && p.categories_json) {
+        try {
+          const parsed = JSON.parse(p.categories_json);
+          if (Array.isArray(parsed)) pCats = parsed;
+        } catch (e) {}
+      }
+      return pCats.some((c) => isCategoryAllowedForAdmin(c));
     }
     return true;
   });
@@ -805,7 +820,7 @@ export default function AdminConsultationsScreen() {
             <Text style={styles.modalSub}>Select certified technician for Work Order {selectedBooking?.booking_id}</Text>
 
             <View style={styles.candidateList}>
-              {providers.length > 0 ? providers.map((p, pIdx) => (
+              {availableCandidateProviders.length > 0 ? availableCandidateProviders.map((p, pIdx) => (
                 <View key={pIdx} style={styles.candidateCard}>
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>

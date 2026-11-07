@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import userController from '../app/controllers/UserController.js';
+import adminController from '../app/controllers/AdminController.js';
 import { validateRequest } from '../app/middlewares/validateRequest.js';
 import { userStoreRules, userUpdateRules } from '../app/http/requests/index.js';
 import Razorpay from 'razorpay';
@@ -185,5 +186,13 @@ router.put(
   userController.update.bind(userController)
 );
 router.delete('/users/:id', userController.destroy.bind(userController));
+
+// ── Admin Authentication & Sub-Admin CRUD ────────────────────────────
+router.post('/admin/login', adminController.login.bind(adminController));
+router.get('/admin/subadmins', adminController.listSubAdmins.bind(adminController));
+router.post('/admin/subadmins', adminController.createSubAdmin.bind(adminController));
+router.put('/admin/subadmins/:id', adminController.updateSubAdmin.bind(adminController));
+router.delete('/admin/subadmins/:id', adminController.deleteSubAdmin.bind(adminController));
+router.patch('/admin/subadmins/:id/status', adminController.toggleSubAdminStatus.bind(adminController));
 
 export default router;
