@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -107,7 +107,14 @@ export default function AdminSubAdminsScreen() {
     deleteSubAdmin,
     toggleSubAdminStatus,
     switchAdminAccount,
+    fetchSubAdmins,
   } = useApp() || {};
+
+  useEffect(() => {
+    if (typeof fetchSubAdmins === 'function') {
+      fetchSubAdmins();
+    }
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('ALL');

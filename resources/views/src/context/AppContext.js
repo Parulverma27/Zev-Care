@@ -16,7 +16,14 @@ import { storeMedia, loadAllStoredMedia, getStoredMedia, getCachedMedia } from '
 
 const AppContext = createContext();
 
-const API_BASE = 'http://127.0.0.1:3000/api';
+const getApiBase = () => {
+  if (typeof window !== 'undefined' && window.location) {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:3000/api`;
+  }
+  return 'http://localhost:3000/api';
+};
+
 const CATALOG_VERSION_KEY = 'zevota_catalog_version';
 const BOOKINGS_VERSION = 'v11-consultation-orders'; // bump to force-reset cached bookings
 const BOOKINGS_VERSION_KEY = 'zevota_bookings_version';
@@ -251,7 +258,12 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('zevota_active_admin');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.id) return parsed;
+        if (parsed && (parsed.id || parsed.email)) {
+          if (parsed.email === 'admin@zevotacare.com' || parsed.role === 'Super Admin') {
+            parsed.role = 'SUPER_ADMIN';
+          }
+          return parsed;
+        }
       }
     } catch (e) {}
     return null;
@@ -1476,7 +1488,7 @@ export function AppProvider({ children }) {
   /** Fetch sub-admins from backend API */
   const fetchSubAdmins = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/admin/subadmins`);
+      const res = await axios.get(`${getApiBase()}/admin/subadmins`);
       if (res.data?.success && Array.isArray(res.data.subAdmins)) {
         setSubAdmins(res.data.subAdmins);
       }
@@ -1505,7 +1517,7 @@ export function AppProvider({ children }) {
   /** Login admin via backend API */
   const adminLogin = async (email, password) => {
     try {
-      const res = await axios.post(`${API_BASE}/admin/login`, { email, password });
+      const res = await axios.post(`${getApiBase()}/admin/login`, { email, password });
       if (res.data?.success && res.data.admin) {
         const admin = res.data.admin;
         setAdminUser(admin);
@@ -1520,7 +1532,7 @@ export function AppProvider({ children }) {
 
   const addSubAdmin = async (data) => {
     try {
-      const res = await axios.post(`${API_BASE}/admin/subadmins`, {
+      const res = await axios.post(`${getApiBase()}/admin/subadmins`, {
         name: data.name?.trim() || 'Sub-Admin',
         email: data.email?.trim() || '',
         password: data.password || 'subadmin123',
@@ -1548,7 +1560,7 @@ export function AppProvider({ children }) {
 
   const updateSubAdmin = async (id, data) => {
     try {
-      const res = await axios.put(`${API_BASE}/admin/subadmins/${id}`, data);
+      const res = await axios.put(`${getApiBase()}/admin/subadmins/${id}`, data);
       if (res.data?.success && res.data.subAdmin) {
         setSubAdmins((prev) =>
           prev.map((sa) => (sa.id === id ? { ...sa, ...res.data.subAdmin } : sa))
@@ -1564,7 +1576,7 @@ export function AppProvider({ children }) {
 
   const deleteSubAdmin = async (id) => {
     try {
-      const res = await axios.delete(`${API_BASE}/admin/subadmins/${id}`);
+      const res = await axios.delete(`${getApiBase()}/admin/subadmins/${id}`);
       if (res.data?.success) {
         setSubAdmins((prev) => prev.filter((sa) => sa.id !== id));
         return true;
@@ -1578,7 +1590,7 @@ export function AppProvider({ children }) {
 
   const toggleSubAdminStatus = async (id) => {
     try {
-      const res = await axios.patch(`${API_BASE}/admin/subadmins/${id}/status`);
+      const res = await axios.patch(`${getApiBase()}/admin/subadmins/${id}/status`);
       if (res.data?.success && res.data.subAdmin) {
         setSubAdmins((prev) =>
           prev.map((sa) =>

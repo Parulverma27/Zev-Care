@@ -68,7 +68,12 @@ export function AdminProtectedRoute({ children }) {
   }
 
   // Super-admin only routes protection: Sub-Admin management is strictly Super Admin
-  if (adminUser && adminUser.role !== 'SUPER_ADMIN') {
+  const isSuper =
+    adminUser?.role === 'SUPER_ADMIN' ||
+    adminUser?.role === 'Super Admin' ||
+    adminUser?.email === 'admin@zevotacare.com';
+
+  if (adminUser && !isSuper) {
     if (location.pathname.startsWith('/admin/subadmins')) {
       return <Navigate to="/admin/dashboard" replace />;
     }
