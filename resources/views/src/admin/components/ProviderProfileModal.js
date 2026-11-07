@@ -2,13 +2,66 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import { getProviderRatingStats, getPerformanceTier } from '../../utils/ratings';
+import {
+  formatDateKey,
+  formatDecimalToTime,
+  getProviderDailyTimetable,
+  normalizeCategoryName,
+} from '../../utils/scheduleUtils';
 
-export default function ProviderProfileModal({ visible, provider, onClose, onEdit }) {
+export default function ProviderProfileModal({ visible, provider, onClose, onEdit, initialTab = 'overview' }) {
   const { bookings } = useApp() || {};
 
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'jobs'
+  const [activeTab, setActiveTab] = useState(initialTab || 'overview'); // 'overview' | 'jobs' | 'schedule'
   const [jobFilter, setJobFilter] = useState('ALL'); // 'ALL' | 'COMPLETED' | 'ACTIVE'
   const [jobSearch, setJobSearch] = useState('');
+  const [selectedScheduleDate, setSelectedScheduleDate] = useState(() => formatDateKey(new Date()));
+
+  React.useEffect(() => {
+    if (visible && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [visible, initialTab]);
+
+  const handlePrevDay = () => {
+    const d = new Date(selectedScheduleDate);
+    d.setDate(d.getDate() - 1);
+    setSelectedScheduleDate(formatDateKey(d));
+  };
+
+  const handleNextDay = () => {
+    const d = new Date(selectedScheduleDate);
+    d.setDate(d.getDate() + 1);
+    setSelectedScheduleDate(formatDateKey(d));
+  };
+
+  const handleToday = () => {
+    setSelectedScheduleDate(formatDateKey(new Date()));
+  };
+
+  const timetableData = useMemo(() => {
+    return getProviderDailyTimetable(provider, selectedScheduleDate, bookings || []);
+  }, [provider, selectedScheduleDate, bookings]);
+
+  const weekDays = useMemo(() => {
+    const base = new Date();
+    const days = [];
+    for (let i = -3; i <= 3; i++) {
+      const d = new Date(base);
+      d.setDate(d.getDate() + i);
+      const key = formatDateKey(d);
+      const tData = getProviderDailyTimetable(provider, key, bookings || []);
+      days.push({
+        dateKey: key,
+        dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayNum: d.getDate(),
+        isToday: key === formatDateKey(new Date()),
+        isSelected: key === selectedScheduleDate,
+        bookedCount: tData.bookedCount,
+      });
+    }
+    return days;
+  }, [provider, bookings, selectedScheduleDate]);
 
   const cleanPhone = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
 
@@ -177,6 +230,27 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
               <View style={[styles.tabBadge, activeTab === 'jobs' && styles.tabBadgeActive]}>
                 <Text style={[styles.tabBadgeText, activeTab === 'jobs' && styles.tabBadgeTextActive]}>
                   {providerBookings.length}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabBtn, activeTab === 'schedule' && styles.tabBtnActive]}
+              onPress={() => setActiveTab('schedule')}
+              activeOpacity={0.8}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={activeTab === 'schedule' ? '#7c3aed' : '#64748b'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <Text style={[styles.tabBtnText, activeTab === 'schedule' && styles.tabBtnTextActive]}>
+                Schedule & Timetable
+              </Text>
+              <View style={[styles.tabBadge, activeTab === 'schedule' && styles.tabBadgeActive, timetableData.bookedCount > 0 && { backgroundColor: '#eff6ff' }]}>
+                <Text style={[styles.tabBadgeText, activeTab === 'schedule' && styles.tabBadgeTextActive, timetableData.bookedCount > 0 && { color: '#1d4ed8' }]}>
+                  {timetableData.bookedCount} Today
                 </Text>
               </View>
             </TouchableOpacity>
@@ -432,7 +506,7 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
                   </View>
                 </View>
               </View>
-            ) : (
+            ) : activeTab === 'jobs' ? (
               /* ── TAB 2: JOBS DONE / WORK ORDERS ── */
               <View style={{ gap: 14 }}>
                 {/* Filter and Search Bar */}
@@ -612,6 +686,239 @@ export default function ProviderProfileModal({ visible, provider, onClose, onEdi
                     </Text>
                   </View>
                 )}
+              </View>
+            ) : (
+              /* ── TAB 3: SCHEDULE & TIMETABLE ── */
+              <View style={{ gap: 16 }}>
+                {/* Day Navigator */}
+                <View style={styles.scheduleNavRow}>
+                  <View style={styles.scheduleNavDateWrap}>
+                    <TouchableOpacity onPress={handlePrevDay} style={styles.navArrowBtn} activeOpacity={0.7}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </TouchableOpacity>
+                    <View style={{ alignItems: 'center' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={styles.scheduleDateHeading}>
+                          {new Date(selectedScheduleDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                        </Text>
+                        {selectedScheduleDate === formatDateKey(new Date()) && (
+                          <View style={styles.todayPill}>
+                            <Text style={styles.todayPillText}>TODAY</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.scheduleDateSub}>Daily Dispatch Roster & Assignment Windows</Text>
+                    </View>
+                    <TouchableOpacity onPress={handleNextDay} style={styles.navArrowBtn} activeOpacity={0.7}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </TouchableOpacity>
+                  </View>
+
+                  {selectedScheduleDate !== formatDateKey(new Date()) && (
+                    <TouchableOpacity onPress={handleToday} style={styles.jumpTodayBtn} activeOpacity={0.8}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      <Text style={styles.jumpTodayText}>Jump to Today</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* 7-Day Mini Strip */}
+                <View style={styles.weekStripWrap}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.weekStripContent}>
+                    {weekDays.map((day) => (
+                      <TouchableOpacity
+                        key={day.dateKey}
+                        style={[
+                          styles.weekDayChip,
+                          day.isSelected && styles.weekDayChipSelected,
+                          day.isToday && !day.isSelected && styles.weekDayChipToday,
+                        ]}
+                        onPress={() => setSelectedScheduleDate(day.dateKey)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.weekDayName, day.isSelected && styles.weekDayNameSelected]}>
+                          {day.dayName}
+                        </Text>
+                        <Text style={[styles.weekDayNum, day.isSelected && styles.weekDayNumSelected]}>
+                          {day.dayNum}
+                        </Text>
+                        <View style={[
+                          styles.dayDotBadge,
+                          day.bookedCount > 0
+                            ? (day.isSelected ? styles.dayDotActiveLight : styles.dayDotActive)
+                            : (day.isSelected ? styles.dayDotEmptyLight : styles.dayDotEmpty)
+                        ]}>
+                          <Text style={[
+                            styles.dayDotText,
+                            day.isSelected && { color: day.bookedCount > 0 ? '#ffffff' : '#e9d5ff' },
+                            !day.isSelected && day.bookedCount > 0 && { color: '#ffffff' }
+                          ]}>
+                            {day.bookedCount > 0 ? `${day.bookedCount} booked` : 'Free'}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+
+                {/* Metrics Bar */}
+                <View style={styles.timetableMetricsRow}>
+                  <View style={styles.timetableMetricCard}>
+                    <View style={styles.timetableMetricIconBox}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                      </svg>
+                    </View>
+                    <View>
+                      <Text style={styles.timetableMetricValue}>{timetableData.bookedCount}</Text>
+                      <Text style={styles.timetableMetricLabel}>Bookings Scheduled</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.timetableMetricCard}>
+                    <View style={[styles.timetableMetricIconBox, { backgroundColor: '#fef3c7' }]}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                    </View>
+                    <View>
+                      <Text style={[styles.timetableMetricValue, { color: '#d97706' }]}>{timetableData.occupiedHours}h</Text>
+                      <Text style={styles.timetableMetricLabel}>Occupied Window</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.timetableMetricCard}>
+                    <View style={[styles.timetableMetricIconBox, { backgroundColor: provider.is_online !== false ? '#ecfdf5' : '#f1f5f9' }]}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={provider.is_online !== false ? '#059669' : '#64748b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                        <line x1="12" y1="2" x2="12" y2="12" />
+                      </svg>
+                    </View>
+                    <View>
+                      <Text style={[styles.timetableMetricValue, { color: provider.is_online !== false ? '#059669' : '#64748b' }]}>
+                        {provider.is_online !== false ? 'On Duty' : 'Off Duty'}
+                      </Text>
+                      <Text style={styles.timetableMetricLabel}>Partner Duty Status</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Timeline Grid */}
+                <View style={styles.slotGridWrap}>
+                  <View style={styles.slotGridHeader}>
+                    <Text style={styles.slotGridTitle}>Full-Day Timeline (08:00 AM — 08:00 PM)</Text>
+                    <Text style={styles.slotGridSubtitle}>Hourly dispatch capacity & active work assignment breakdown</Text>
+                  </View>
+
+                  <View style={{ gap: 10 }}>
+                    {timetableData.slots.map((slot) => {
+                      const isBooked = slot.isBooked && slot.booking;
+                      const b = slot.booking;
+                      const badge = isBooked ? getStatusBadge(b.status) : null;
+                      return (
+                        <View
+                          key={slot.hour}
+                          style={[
+                            styles.slotRow,
+                            isBooked ? styles.slotRowBooked : styles.slotRowFree,
+                          ]}
+                        >
+                          {/* Time indicator column */}
+                          <View style={styles.slotTimeCol}>
+                            <Text style={[styles.slotTimeText, isBooked && styles.slotTimeTextBooked]}>
+                              {slot.label}
+                            </Text>
+                            <View style={[styles.slotStatusIndicator, isBooked ? styles.indicatorBusy : styles.indicatorFree]}>
+                              <Text style={[styles.slotStatusIndicatorText, isBooked ? styles.indicatorBusyText : styles.indicatorFreeText]}>
+                                {isBooked ? 'BUSY' : 'FREE'}
+                              </Text>
+                            </View>
+                          </View>
+
+                          {/* Slot content details */}
+                          <View style={styles.slotBodyCol}>
+                            {isBooked ? (
+                              <View style={{ gap: 6 }}>
+                                <View style={styles.slotBookedHeader}>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                    <View style={styles.jobIdPill}>
+                                      <Text style={styles.jobIdText}>#{b.booking_id || `BK-${b.id}`}</Text>
+                                    </View>
+                                    <Text style={styles.slotServiceTitle}>{b.service_name || 'Service Booking'}</Text>
+                                    <View style={styles.slotCategoryPill}>
+                                      <Text style={styles.slotCategoryPillText}>{normalizeCategoryName(b.category_name || b.service_name)}</Text>
+                                    </View>
+                                  </View>
+                                  {badge && (
+                                    <View style={[styles.statusBadge, { backgroundColor: badge.bg, borderColor: badge.border }]}>
+                                      <Text style={[styles.statusBadgeText, { color: badge.text }]}>{badge.label}</Text>
+                                    </View>
+                                  )}
+                                </View>
+
+                                {/* Details row: customer + location + scheduled time window */}
+                                <View style={styles.slotMetaRow}>
+                                  <View style={styles.slotMetaItem}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                      <circle cx="12" cy="7" r="4" />
+                                    </svg>
+                                    <Text style={styles.slotMetaText}>
+                                      {b.user_name || 'Customer'} {b.user_phone ? `(${b.user_phone})` : ''}
+                                    </Text>
+                                  </View>
+
+                                  {(b.address_text || b.address) && (
+                                    <View style={styles.slotMetaItem}>
+                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                        <circle cx="12" cy="10" r="3" />
+                                      </svg>
+                                      <Text style={styles.slotMetaText} numberOfLines={1}>
+                                        {b.address_text || b.address}
+                                      </Text>
+                                    </View>
+                                  )}
+
+                                  <View style={styles.slotMetaItem}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <polyline points="12 6 12 12 16 14" />
+                                    </svg>
+                                    <Text style={[styles.slotMetaText, { color: '#1d4ed8', fontWeight: '600' }]}>
+                                      Window: {formatDecimalToTime(slot.timeRange.startHour)} — {formatDecimalToTime(slot.timeRange.endHour)} ({slot.timeRange.durationHours}h)
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
+                            ) : (
+                              <View style={styles.slotFreeContent}>
+                                <View style={styles.slotFreeIcon}>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                </View>
+                                <View>
+                                  <Text style={styles.slotFreeTitle}>Available for assignment</Text>
+                                  <Text style={styles.slotFreeSub}>No bookings scheduled in this time slot</Text>
+                                </View>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
               </View>
             )}
           </ScrollView>
@@ -1178,6 +1485,326 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748b',
     textAlign: 'center',
+  },
+
+  /* ── Timetable & Schedule Styles ── */
+  scheduleNavRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  scheduleNavDateWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  navArrowBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  scheduleDateHeading: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  scheduleDateSub: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 1,
+  },
+  todayPill: {
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  todayPillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#2563eb',
+    letterSpacing: 0.5,
+  },
+  jumpTodayBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#f5f3ff',
+    borderWidth: 1,
+    borderColor: '#ddd6fe',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    cursor: 'pointer',
+  },
+  jumpTodayText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#7c3aed',
+  },
+
+  weekStripWrap: {
+    backgroundColor: '#ffffff',
+  },
+  weekStripContent: {
+    gap: 8,
+    paddingVertical: 2,
+  },
+  weekDayChip: {
+    width: 76,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    gap: 3,
+    cursor: 'pointer',
+  },
+  weekDayChipSelected: {
+    backgroundColor: '#7c3aed',
+    borderColor: '#7c3aed',
+    boxShadow: '0 4px 12px rgba(124, 58, 237, 0.25)',
+  },
+  weekDayChipToday: {
+    borderColor: '#7c3aed',
+    backgroundColor: '#faf5ff',
+  },
+  weekDayName: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+  },
+  weekDayNameSelected: {
+    color: '#ffffff',
+  },
+  weekDayNum: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  weekDayNumSelected: {
+    color: '#ffffff',
+  },
+  dayDotBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginTop: 2,
+  },
+  dayDotActive: {
+    backgroundColor: '#ef4444',
+  },
+  dayDotActiveLight: {
+    backgroundColor: '#dc2626',
+  },
+  dayDotEmpty: {
+    backgroundColor: '#e2e8f0',
+  },
+  dayDotEmptyLight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  dayDotText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+
+  timetableMetricsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  timetableMetricCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  timetableMetricIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timetableMetricValue: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  timetableMetricLabel: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 1,
+  },
+
+  slotGridWrap: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 16,
+    gap: 14,
+  },
+  slotGridHeader: {
+    gap: 2,
+  },
+  slotGridTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0f172a',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  slotGridSubtitle: {
+    fontSize: 11.5,
+    color: '#64748b',
+  },
+
+  slotRow: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+  },
+  slotRowBooked: {
+    borderColor: '#fed7aa',
+    backgroundColor: '#fffaf5',
+    boxShadow: '0 2px 6px rgba(249, 115, 22, 0.06)',
+  },
+  slotRowFree: {
+    borderColor: '#f1f5f9',
+    backgroundColor: '#ffffff',
+  },
+  slotTimeCol: {
+    width: 140,
+    padding: 12,
+    borderRightWidth: 1,
+    borderRightColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    gap: 4,
+  },
+  slotTimeText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  slotTimeTextBooked: {
+    color: '#c2410c',
+  },
+  slotStatusIndicator: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  indicatorBusy: {
+    backgroundColor: '#ffedd5',
+  },
+  indicatorBusyText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#c2410c',
+  },
+  indicatorFree: {
+    backgroundColor: '#ecfdf5',
+  },
+  indicatorFreeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#059669',
+  },
+
+  slotBodyCol: {
+    flex: 1,
+    padding: 12,
+    justifyContent: 'center',
+  },
+  slotBookedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  slotServiceTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  slotCategoryPill: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  slotCategoryPillText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  slotMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    flexWrap: 'wrap',
+    marginTop: 2,
+  },
+  slotMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  slotMetaText: {
+    fontSize: 11.5,
+    color: '#475569',
+  },
+
+  slotFreeContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  slotFreeIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#ecfdf5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slotFreeTitle: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#059669',
+  },
+  slotFreeSub: {
+    fontSize: 11,
+    color: '#94a3b8',
   },
 
   actionsRow: {

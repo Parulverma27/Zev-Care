@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Image } from 'react-native';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
@@ -9,6 +9,13 @@ import { downloadInvoicePDF } from '../../utils/pdfInvoiceGenerator';
 import { exportToCSV } from '../../utils/exportUtils';
 import { hasGeneratedBill, isBillPaid } from '../../utils/billing';
 import LiveProviderTrackingMap from '../../components/LiveProviderTrackingMap';
+import {
+  checkProviderAvailability,
+  normalizeCategoryName,
+  getProviderCanonicalCategory,
+  extractBookingTimeRange,
+  formatDecimalToTime,
+} from '../../utils/scheduleUtils';
 
 export default function AdminConsultationsScreen() {
   const { bookings, users, providers, acceptBooking, rejectBooking, assignProvider, generateBill, isCategoryAllowedForAdmin, adminUser } = useApp();
@@ -18,6 +25,8 @@ export default function AdminConsultationsScreen() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [liveTrackingBooking, setLiveTrackingBooking] = useState(null);
   const [assignModal, setAssignModal] = useState(false);
+  const [assignCategoryFilter, setAssignCategoryFilter] = useState('MATCHING'); // 'MATCHING' | 'ALL'
+  const [conflictModalData, setConflictModalData] = useState(null); // { provider, avail }
   const [billModal, setBillModal] = useState(false);
   const [reportModal, setReportModal] = useState(false);
   const [viewBillModal, setViewBillModal] = useState(false);
@@ -29,6 +38,7 @@ export default function AdminConsultationsScreen() {
   const [modalUserVisible, setModalUserVisible] = useState(false);
   const [modalProvider, setModalProvider] = useState(null);
   const [modalProviderVisible, setModalProviderVisible] = useState(false);
+  const [modalProviderTab, setModalProviderTab] = useState('overview');
 
   // Customer Media Modal state
   const [customerMediaModal, setCustomerMediaModal] = useState(false);
@@ -98,6 +108,46 @@ export default function AdminConsultationsScreen() {
     }
     return true;
   });
+
+  const bookingCanonicalCategory = useMemo(() => {
+    if (!selectedBooking) return null;
+    return normalizeCategoryName(selectedBooking.category_name || selectedBooking.service_name);
+  }, [selectedBooking]);
+
+  const bookingTargetRange = useMemo(() => {
+    if (!selectedBooking) return null;
+    return extractBookingTimeRange(selectedBooking);
+  }, [selectedBooking]);
+
+  const candidateProvidersWithAvail = useMemo(() => {
+    if (!assignModal || !selectedBooking) return [];
+    return availableCandidateProviders.map((p) => {
+      const pCat = getProviderCanonicalCategory(p);
+      const avail = checkProviderAvailability(p, selectedBooking, bookings || []);
+      const matchesCategory = bookingCanonicalCategory ? pCat === bookingCanonicalCategory : true;
+      return {
+        ...p,
+        providerCategory: pCat,
+        matchesCategory,
+        avail,
+      };
+    });
+  }, [assignModal, selectedBooking, availableCandidateProviders, bookings, bookingCanonicalCategory]);
+
+  const displayedCandidateProviders = useMemo(() => {
+    let list = candidateProvidersWithAvail;
+    if (assignCategoryFilter === 'MATCHING' && bookingCanonicalCategory) {
+      const matching = list.filter((p) => p.matchesCategory);
+      if (matching.length > 0) {
+        list = matching;
+      }
+    }
+    return [...list].sort((a, b) => {
+      const scoreA = (a.is_online !== false ? 10 : 0) + (a.avail?.isAvailable ? 5 : 0);
+      const scoreB = (b.is_online !== false ? 10 : 0) + (b.avail?.isAvailable ? 5 : 0);
+      return scoreB - scoreA;
+    });
+  }, [candidateProvidersWithAvail, assignCategoryFilter, bookingCanonicalCategory]);
 
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -816,40 +866,339 @@ export default function AdminConsultationsScreen() {
         </View>
       </Modal>
 
-      {/* DISPATCH FIELD TECHNICIAN MODAL */}
+      {/* DISPATCH FIELD TECHNICIAN MODAL WITH SMART DISPATCH & TIMETABLE CONFLICT CHECK */}
       <Modal visible={assignModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Dispatch Field Technician</Text>
-            <Text style={styles.modalSub}>Select certified technician for Work Order {selectedBooking?.booking_id}</Text>
-
-            <View style={styles.candidateList}>
-              {availableCandidateProviders.length > 0 ? availableCandidateProviders.map((p, pIdx) => (
-                <View key={pIdx} style={styles.candidateCard}>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                      <Text style={styles.candName}>{p.name}</Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                        <Text style={[styles.candName, { fontSize: 11, color: '#64748b' }]}>{p.rating ?? '—'}</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.candSub}>{p.location || '—'} · {p.phone || '—'}</Text>
-                  </View>
-                  <TouchableOpacity style={styles.assignSelectBtn} onPress={() => handleAssignAction(p.id)} disabled={submitting}>
-                    <Text style={styles.assignSelectBtnText}>{submitting ? 'Dispatching...' : 'Assign Technician'}</Text>
-                  </TouchableOpacity>
-                </View>
-              )) : (
-                <Text style={{ textAlign: 'center', color: '#64748b', padding: 12 }}>No technicians available.</Text>
-              )}
+          <View style={[styles.modalContent, { maxWidth: 660 }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <View style={{ gap: 3 }}>
+                <Text style={styles.modalTitle}>Dispatch Field Technician</Text>
+                <Text style={styles.modalSub}>
+                  Work Order #{selectedBooking?.booking_id || '—'} • {bookingCanonicalCategory || 'General'}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setAssignModal(false)} activeOpacity={0.7} style={{ padding: 4 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.closeModalBtn} onPress={() => setAssignModal(false)}>
+            {/* Target Window & Category Header Strip */}
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#f8fafc',
+              padding: 10,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: '#e2e8f0',
+              marginTop: 10,
+              flexWrap: 'wrap',
+              gap: 8,
+            }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <Text style={{ fontSize: 12, color: '#334155', fontWeight: '600' }}>
+                  Target Slot: <Text style={{ color: '#0f172a', fontWeight: '800' }}>
+                    {bookingTargetRange ? `${bookingTargetRange.dateKey} (${bookingTargetRange.timeLabel})` : (selectedBooking?.scheduled_date || 'Standard Slot')}
+                  </Text>
+                </Text>
+              </View>
+
+              {/* Filter Switch Chips */}
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                <TouchableOpacity
+                  style={{
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 6,
+                    backgroundColor: assignCategoryFilter === 'MATCHING' ? '#7c3aed' : '#ffffff',
+                    borderWidth: 1,
+                    borderColor: assignCategoryFilter === 'MATCHING' ? '#7c3aed' : '#cbd5e1',
+                  }}
+                  onPress={() => setAssignCategoryFilter('MATCHING')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: assignCategoryFilter === 'MATCHING' ? '#ffffff' : '#475569' }}>
+                    {bookingCanonicalCategory} ({candidateProvidersWithAvail.filter((p) => p.matchesCategory).length})
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 6,
+                    backgroundColor: assignCategoryFilter === 'ALL' ? '#7c3aed' : '#ffffff',
+                    borderWidth: 1,
+                    borderColor: assignCategoryFilter === 'ALL' ? '#7c3aed' : '#cbd5e1',
+                  }}
+                  onPress={() => setAssignCategoryFilter('ALL')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: assignCategoryFilter === 'ALL' ? '#ffffff' : '#475569' }}>
+                    All Categories ({candidateProvidersWithAvail.length})
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Candidate Providers List */}
+            <ScrollView style={{ maxHeight: 380, marginTop: 12 }} showsVerticalScrollIndicator={false}>
+              <View style={{ gap: 10 }}>
+                {displayedCandidateProviders.length > 0 ? (
+                  displayedCandidateProviders.map((p) => {
+                    const avail = p.avail;
+                    const isBusy = avail?.statusLabel === 'BUSY';
+                    const isAvail = avail?.isAvailable;
+                    const isOff = avail?.isOffline;
+
+                    return (
+                      <View
+                        key={p.id}
+                        style={{
+                          backgroundColor: isBusy ? '#fffaf5' : '#ffffff',
+                          borderRadius: 12,
+                          borderWidth: 1,
+                          borderColor: isBusy ? '#fed7aa' : '#e2e8f0',
+                          padding: 12,
+                          gap: 8,
+                        }}
+                      >
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                          <View style={{ flex: 1, gap: 4 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              <Text style={styles.candName}>{p.name}</Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+                                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                                <Text style={[styles.candName, { fontSize: 11, color: '#64748b' }]}>{p.rating ?? '—'}</Text>
+                              </View>
+
+                              {/* Canonical Category Badge */}
+                              <View style={{
+                                paddingHorizontal: 6,
+                                paddingVertical: 2,
+                                borderRadius: 4,
+                                backgroundColor: '#f1f5f9',
+                                borderWidth: 1,
+                                borderColor: '#e2e8f0',
+                              }}>
+                                <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#475569' }}>
+                                  {p.providerCategory}
+                                </Text>
+                              </View>
+
+                              {/* Online / Offline status */}
+                              <View style={{
+                                paddingHorizontal: 6,
+                                paddingVertical: 2,
+                                borderRadius: 4,
+                                backgroundColor: p.is_online !== false ? '#ecfdf5' : '#f1f5f9',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 4,
+                              }}>
+                                <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: p.is_online !== false ? '#10b981' : '#94a3b8' }} />
+                                <Text style={{ fontSize: 9, fontWeight: '700', color: p.is_online !== false ? '#047857' : '#64748b' }}>
+                                  {p.is_online !== false ? 'ONLINE' : 'OFFLINE'}
+                                </Text>
+                              </View>
+                            </View>
+
+                            <Text style={styles.candSub}>{p.location || 'Hub Center'} · {p.phone || '—'}</Text>
+                          </View>
+
+                          {/* Action Buttons: Timetable & Dispatch */}
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <TouchableOpacity
+                              style={{
+                                paddingHorizontal: 9,
+                                paddingVertical: 7,
+                                borderRadius: 8,
+                                backgroundColor: '#f5f3ff',
+                                borderWidth: 1,
+                                borderColor: '#ddd6fe',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 4,
+                                cursor: 'pointer',
+                              }}
+                              onPress={() => {
+                                setModalProvider(p);
+                                setModalProviderTab('schedule');
+                                setModalProviderVisible(true);
+                              }}
+                              activeOpacity={0.8}
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                              </svg>
+                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#7c3aed' }}>Timetable</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              style={[
+                                styles.assignSelectBtn,
+                                isBusy && { backgroundColor: '#ea580c' },
+                              ]}
+                              onPress={() => {
+                                if (isBusy) {
+                                  setConflictModalData({ provider: p, avail });
+                                } else {
+                                  handleAssignAction(p.id);
+                                }
+                              }}
+                              disabled={submitting}
+                              activeOpacity={0.85}
+                            >
+                              <Text style={styles.assignSelectBtnText}>
+                                {submitting ? 'Dispatching...' : isBusy ? 'Assign (Conflict)' : 'Assign Technician'}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+
+                        {/* Real-Time Timetable Availability Banner */}
+                        <View style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 6,
+                          paddingHorizontal: 8,
+                          paddingVertical: 5,
+                          borderRadius: 6,
+                          backgroundColor: isBusy ? '#fff7ed' : isAvail ? '#f0fdf4' : '#f8fafc',
+                          borderWidth: 1,
+                          borderColor: isBusy ? '#fed7aa' : isAvail ? '#bbf7d0' : '#e2e8f0',
+                        }}>
+                          {isBusy ? (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c2410c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                              <line x1="12" y1="9" x2="12" y2="13" />
+                              <line x1="12" y1="17" x2="12.01" y2="17" />
+                            </svg>
+                          ) : isAvail ? (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          ) : (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10" />
+                              <line x1="12" y1="8" x2="12" y2="12" />
+                            </svg>
+                          )}
+                          <Text style={{
+                            fontSize: 11,
+                            fontWeight: '600',
+                            color: isBusy ? '#c2410c' : isAvail ? '#15803d' : '#64748b',
+                            flex: 1,
+                          }}>
+                            {isBusy
+                              ? `Schedule Conflict: Booked on #${avail.conflictBooking?.booking_id || 'another job'} (${avail.timeRange?.timeLabel || 'overlapping time'})`
+                              : isAvail
+                              ? 'Free & Ready: No scheduling conflicts found for this slot'
+                              : 'Technician currently off-duty'}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  })
+                ) : (
+                  <View style={{ padding: 24, alignItems: 'center', gap: 6 }}>
+                    <Text style={{ textAlign: 'center', color: '#64748b', fontSize: 13 }}>
+                      No {assignCategoryFilter === 'MATCHING' ? bookingCanonicalCategory : ''} technicians found.
+                    </Text>
+                    {assignCategoryFilter === 'MATCHING' && (
+                      <TouchableOpacity onPress={() => setAssignCategoryFilter('ALL')}>
+                        <Text style={{ color: '#7c3aed', fontWeight: '700', fontSize: 12 }}>
+                          View all registered technicians across categories
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity style={[styles.closeModalBtn, { marginTop: 14 }]} onPress={() => setAssignModal(false)}>
               <Text style={styles.closeModalBtnText}>Close</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* SCHEDULING CONFLICT CONFIRMATION MODAL */}
+      <Modal visible={!!conflictModalData} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxWidth: 440, padding: 20 }]}>
+            <View style={{ alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff7ed', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </View>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0f172a', textAlign: 'center' }}>
+                Scheduling Conflict Detected
+              </Text>
+              <Text style={{ fontSize: 13, color: '#475569', textAlign: 'center', lineHeight: 18 }}>
+                <Text style={{ fontWeight: '700', color: '#0f172a' }}>{conflictModalData?.provider?.name}</Text> is already booked for{' '}
+                <Text style={{ fontWeight: '700', color: '#c2410c' }}>
+                  #{conflictModalData?.avail?.conflictBooking?.booking_id || 'another job'}
+                </Text>{' '}
+                during this time window ({conflictModalData?.avail?.timeRange?.timeLabel || 'overlapping'}).
+              </Text>
+              <Text style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
+                Assigning anyway will double-book this technician for two overlapping tasks.
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: '#ea580c',
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+                onPress={() => {
+                  const provId = conflictModalData?.provider?.id;
+                  setConflictModalData(null);
+                  if (provId) handleAssignAction(provId);
+                }}
+              >
+                <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 12.5 }}>Assign Anyway</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: '#f1f5f9',
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+                onPress={() => setConflictModalData(null)}
+              >
+                <Text style={{ color: '#475569', fontWeight: '700', fontSize: 12.5 }}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -1064,7 +1413,8 @@ export default function AdminConsultationsScreen() {
       <ProviderProfileModal
         visible={modalProviderVisible}
         provider={modalProvider}
-        onClose={() => { setModalProviderVisible(false); setModalProvider(null); }}
+        initialTab={modalProviderTab}
+        onClose={() => { setModalProviderVisible(false); setModalProvider(null); setModalProviderTab('overview'); }}
       />
 
       {/* Customer Uploaded Photo & Media Modal */}
