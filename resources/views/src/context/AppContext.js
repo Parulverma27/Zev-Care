@@ -316,7 +316,7 @@ export function AppProvider({ children }) {
   };
 
   // Platform Data
-  const SUBSCRIPTION_PLANS_VERSION = 'v5-amc-7999-10999-14999-60min-task-done';
+  const SUBSCRIPTION_PLANS_VERSION = 'v6-amc-no-labor-no-savings';
   const [subscriptionPlans, setSubscriptionPlans] = useState(() => {
     try {
       const v = localStorage.getItem('zevota_subscription_plans_version');
@@ -336,14 +336,13 @@ export function AppProvider({ children }) {
         parts_coverage_cap: 100000.0,
         priority_sla_hours: 1,
         applicable_services: 'Add Any Home Appliance (AC, Refrigerator, TV, Washing Machine, Geyser, RO & more)',
-        service_limits: '12 Months Contract • ₹0 Labor Guaranteed',
+        service_limits: '12 Months Contract Protection',
         description: 'Zevota घर की बचत • ₹1,00,000 Annual Coverage for parts & repairs.',
         features_json: JSON.stringify([
           '₹1,00,000 Annual Coverage for Parts & Repairs',
           '12 Months Contract',
           'Task Done in 60 Mins (Complaint Resolved)',
           'Add Any Appliance of Your Choice',
-          '₹0 Free Labor on all complaint visits',
         ]),
         is_recommended: false,
       },
@@ -357,14 +356,13 @@ export function AppProvider({ children }) {
         parts_coverage_cap: 150000.0,
         priority_sla_hours: 1,
         applicable_services: 'Add Any Home Appliance (AC, Refrigerator, TV, Washing Machine, Geyser, RO & more)',
-        service_limits: '12 Months Contract • ₹0 Labor Guaranteed',
+        service_limits: '12 Months Contract Protection',
         description: 'Zevota घर की बचत • ₹1,50,000 Comprehensive Coverage for all home appliances.',
         features_json: JSON.stringify([
           '₹1,50,000 Annual Coverage for Parts & Repairs',
           '12 Months Contract',
           'Task Done in 60 Mins (Complaint Resolved)',
           'Add Any Appliance of Your Choice',
-          '₹0 Free Labor on all complaint visits',
         ]),
         is_recommended: true,
       },
@@ -378,14 +376,13 @@ export function AppProvider({ children }) {
         parts_coverage_cap: 250000.0,
         priority_sla_hours: 1,
         applicable_services: 'Add Any Home Appliance (AC, Refrigerator, TV, Washing Machine, Geyser, RO & more)',
-        service_limits: '12 Months Contract • ₹0 Labor Guaranteed',
+        service_limits: '12 Months Contract Protection',
         description: 'Zevota घर की बचत • ₹2,50,000 Maximum Protection for all home appliances.',
         features_json: JSON.stringify([
           '₹2,50,000 Annual Coverage for Parts & Repairs',
           '12 Months Contract',
           'Task Done in 60 Mins (Complaint Resolved)',
           'Add Any Appliance of Your Choice',
-          '₹0 Free Labor on all complaint visits',
         ]),
         is_recommended: false,
       },

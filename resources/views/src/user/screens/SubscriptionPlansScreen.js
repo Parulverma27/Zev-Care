@@ -1652,7 +1652,7 @@ export default function SubscriptionPlansScreen({ onNavigate, isMyAmcOnly = fals
               {/* Specs Bar */}
               <View style={styles.amcSpecsBox}>
                 <View style={styles.amcSpecItem}>
-                  <Text style={styles.amcSpecLabel}>ANNUAL COVERAGE</Text>
+                  <Text style={styles.amcSpecLabel}>COVERAGE</Text>
                   <Text style={[styles.amcSpecVal, { color: '#0f172a' }]}>
                     {theme.annualServiceCapText || theme.coverageLimitText || '₹1,00,000'}
                   </Text>
@@ -1660,12 +1660,12 @@ export default function SubscriptionPlansScreen({ onNavigate, isMyAmcOnly = fals
                 <View style={styles.amcSpecDivider} />
                 <View style={styles.amcSpecItem}>
                   <Text style={styles.amcSpecLabel}>APPLIANCES</Text>
-                  <Text style={[styles.amcSpecVal, { color: '#0284c7' }]}>Add Any Appliance</Text>
+                  <Text style={[styles.amcSpecVal, { color: '#0284c7' }]}>Any Appliance</Text>
                 </View>
                 <View style={styles.amcSpecDivider} />
                 <View style={styles.amcSpecItem}>
-                  <Text style={styles.amcSpecLabel}>TASK COMPLETION</Text>
-                  <Text style={[styles.amcSpecVal, { color: '#16a34a' }]}>Done in 60 Mins</Text>
+                  <Text style={styles.amcSpecLabel}>TASK SLA</Text>
+                  <Text style={[styles.amcSpecVal, { color: '#16a34a' }]}>60 Mins</Text>
                 </View>
               </View>
 
@@ -1679,18 +1679,6 @@ export default function SubscriptionPlansScreen({ onNavigate, isMyAmcOnly = fals
                     <Text style={styles.featureText}>{feat}</Text>
                   </View>
                 ))}
-              </View>
-
-              {/* AMC Savings Strip */}
-              <View style={styles.savingsCallout}>
-                <IconSavings size={15} color="#15803d" />
-                <Text style={styles.savingsText}>
-                  Est. Annual Savings:{' '}
-                  <Text style={{ fontWeight: '700', color: '#15803d' }}>
-                    ₹{(plan.price * 0.45).toLocaleString('en-IN')}+
-                  </Text>{' '}
-                  vs ad-hoc repair bills
-                </Text>
               </View>
 
               {/* ============================================================= */}
@@ -1845,15 +1833,15 @@ export default function SubscriptionPlansScreen({ onNavigate, isMyAmcOnly = fals
             </View>
           </View>
 
-          {/* Pillar 3: 12 Months Contract & ₹0 Labor */}
+          {/* Pillar 3: 12 Months Contract */}
           <View style={[styles.planHighlightItem, isDesktopWeb && styles.planHighlightItemDesktop]}>
             <View style={[styles.planHighlightIconWrap, { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }]}>
               <AppIcon name="award" size={16} color="#15803d" strokeWidth={2.4} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.planHighlightItemTitle}>12 Months Contract • ₹0 Labor</Text>
+              <Text style={styles.planHighlightItemTitle}>12 Months Contract Protection</Text>
               <Text style={styles.planHighlightItemDesc}>
-                Full 365 days of comprehensive contract protection with ₹0 labor and zero inspection charges on every complaint visit.
+                Full 365 days of comprehensive contract coverage across all registered home appliances.
               </Text>
             </View>
           </View>
@@ -2773,7 +2761,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f5f9',
     borderRadius: 12,
     paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
@@ -2781,30 +2769,29 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
     minWidth: 0,
   },
   amcSpecLabel: {
-    fontSize: 8.5,
+    fontSize: 9,
     fontWeight: '700',
     color: '#64748b',
     letterSpacing: 0.3,
     textAlign: 'center',
-    whiteSpace: 'nowrap',
+    marginBottom: 3,
   },
   amcSpecVal: {
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: '800',
     color: '#0f172a',
-    marginTop: 3,
     textAlign: 'center',
-    whiteSpace: 'nowrap',
+    lineHeight: 14,
   },
   amcSpecDivider: {
     width: 1,
-    height: 28,
+    height: 24,
     backgroundColor: '#cbd5e1',
-    marginHorizontal: 2,
+    marginHorizontal: 1,
     flexShrink: 0,
   },
 
