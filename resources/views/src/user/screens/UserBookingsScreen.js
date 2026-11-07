@@ -71,18 +71,7 @@ export default function UserBookingsScreen() {
             <Text style={styles.bookBtnText}>Book a Service</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.switchDemoBtn}
-            onPress={() => {
-              const defaultUser = (users || []).find((u) => u.id === 1 || u.name === 'Rahul Sharma');
-              if (defaultUser && typeof setActiveUser === 'function') {
-                setActiveUser(defaultUser);
-              }
-            }}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.switchDemoBtnText}>Switch to Rahul Sharma (4 Bookings)</Text>
-          </TouchableOpacity>
+
         </View>
       ) : (
         <View style={styles.list}>
@@ -238,21 +227,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   bookBtnText: { color: '#ffffff', fontSize: 14, fontWeight: '700' },
-  switchDemoBtn: {
-    marginTop: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor: '#eff6ff',
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-  },
-  switchDemoBtnText: {
-    color: '#1d4ed8',
-    fontSize: 13,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
   list: { gap: 12 },
   card: {
     backgroundColor: '#ffffff',
