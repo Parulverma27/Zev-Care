@@ -8,6 +8,20 @@ const loadLeafletAssets = () => {
     if (typeof window === 'undefined') return reject(new Error('Window is undefined'));
     if (window.L) return resolve(window.L);
 
+    const timer = setTimeout(() => {
+      reject(new Error('Leaflet assets load timeout'));
+    }, 2500);
+
+    const safeResolve = (L) => {
+      clearTimeout(timer);
+      resolve(L);
+    };
+
+    const safeReject = (err) => {
+      clearTimeout(timer);
+      reject(err);
+    };
+
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
       link.id = 'leaflet-css';
@@ -18,16 +32,20 @@ const loadLeafletAssets = () => {
 
     if (document.getElementById('leaflet-js')) {
       const script = document.getElementById('leaflet-js');
-      script.addEventListener('load', () => resolve(window.L));
-      script.addEventListener('error', (err) => reject(err));
+      if (window.L) {
+        safeResolve(window.L);
+        return;
+      }
+      script.addEventListener('load', () => safeResolve(window.L));
+      script.addEventListener('error', (err) => safeReject(err));
       return;
     }
 
     const script = document.createElement('script');
     script.id = 'leaflet-js';
     script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = () => resolve(window.L);
-    script.onerror = (err) => reject(err);
+    script.onload = () => safeResolve(window.L);
+    script.onerror = (err) => safeReject(err);
     document.head.appendChild(script);
   });
 };
@@ -69,6 +87,61 @@ export default function FleetRadarMap({
       return;
     }
 
+    // Safety fallback timer to guarantee UI never gets stuck on an empty box
+    const fallbackTimer = setTimeout(() => {
+      if (isMounted) {
+        setMapEngine((cur) => {
+          if (cur === 'init') {
+            setMapLoading(false);
+            return 'radar';
+          }
+          return cur;
+        });
+      }
+    }, 2000);
+
+    // Fallback: Leaflet + OpenStreetMap
+    const initLeaflet = () => {
+      loadLeafletAssets()
+        .then((L) => {
+          if (!isMounted || !mapContainerRef.current) return;
+
+          try {
+            if (!leafletMapInstance.current) {
+              const map = L.map(mapContainerRef.current, {
+                center: [defaultCenter.lat, defaultCenter.lng],
+                zoom: 12,
+                zoomControl: true,
+              });
+
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors',
+              }).addTo(map);
+
+              leafletMapInstance.current = map;
+
+              setTimeout(() => { if (map && typeof map.invalidateSize === 'function') map.invalidateSize(); }, 150);
+              setTimeout(() => { if (map && typeof map.invalidateSize === 'function') map.invalidateSize(); }, 400);
+            }
+
+            setMapEngine('leaflet');
+            renderLeafletMarkers(L);
+            setMapLoading(false);
+          } catch (e) {
+            console.warn('Leaflet initialization error, using visual radar fallback:', e);
+            setMapEngine('radar');
+            setMapLoading(false);
+          }
+        })
+        .catch(() => {
+          if (isMounted) {
+            setMapEngine('radar');
+            setMapLoading(false);
+          }
+        });
+    };
+
     // Attempt Google Maps First
     loadGoogleMapsScript()
       .then((mapsObj) => {
@@ -109,47 +182,9 @@ export default function FleetRadarMap({
         }
       });
 
-    // Fallback: Leaflet + OpenStreetMap
-    const initLeaflet = () => {
-      loadLeafletAssets()
-        .then((L) => {
-          if (!isMounted || !mapContainerRef.current) return;
-
-          try {
-            if (!leafletMapInstance.current) {
-              const map = L.map(mapContainerRef.current, {
-                center: [defaultCenter.lat, defaultCenter.lng],
-                zoom: 12,
-                zoomControl: true,
-              });
-
-              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '© OpenStreetMap contributors',
-              }).addTo(map);
-
-              leafletMapInstance.current = map;
-            }
-
-            setMapEngine('leaflet');
-            renderLeafletMarkers(L);
-            setMapLoading(false);
-          } catch (e) {
-            console.warn('Leaflet initialization error, using visual radar fallback:', e);
-            setMapEngine('radar');
-            setMapLoading(false);
-          }
-        })
-        .catch(() => {
-          if (isMounted) {
-            setMapEngine('radar');
-            setMapLoading(false);
-          }
-        });
-    };
-
     return () => {
       isMounted = false;
+      clearTimeout(fallbackTimer);
       clearMarkers();
       if (leafletMapInstance.current) {
         try {

@@ -124,9 +124,11 @@ export default function AdminDashboardScreen({ onNavigate }) {
 
     if (grandTotalRevenue === 0 && !isSubAdmin) {
       return [
-        { cat: 'Electrical Services', jobs: `${(bookings || []).filter((b) => b.category_name === 'Electrical').length} Bookings`, total: '₹8,000', pct: '100% share' },
+        { cat: 'Electrician Services', jobs: `${(bookings || []).filter((b) => (b.category_name || '').toLowerCase().includes('electr')).length} Bookings`, total: '₹8,000', pct: '100% share' },
         { cat: 'Plumbing Services', jobs: '0 Bookings', total: '₹0', pct: '0% share' },
-        { cat: 'AC Services', jobs: '0 Bookings', total: '₹0', pct: '0% share' },
+        { cat: 'Carpentry Services', jobs: '0 Bookings', total: '₹0', pct: '0% share' },
+        { cat: 'Pest Control Services', jobs: '0 Bookings', total: '₹0', pct: '0% share' },
+        { cat: 'Dry Cleaning Services', jobs: '0 Bookings', total: '₹0', pct: '0% share' },
       ];
     }
 

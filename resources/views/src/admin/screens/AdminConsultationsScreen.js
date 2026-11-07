@@ -111,7 +111,7 @@ export default function AdminConsultationsScreen() {
 
       const f = categoryFilter.toLowerCase();
       if (f === 'electrical' || f === 'electrician') {
-        if (!combined.includes('electr') && !combined.includes('mcb') && !combined.includes('switch') && !combined.includes('fan') && !combined.includes('wiring') && !combined.includes('ac') && !combined.includes('appliance') && !combined.includes('geyser')) {
+        if (!combined.includes('electr') && !combined.includes('mcb') && !combined.includes('switch') && !combined.includes('fan') && !combined.includes('wiring') && !combined.includes('geyser')) {
           return false;
         }
       } else if (f === 'plumbing') {
@@ -122,8 +122,12 @@ export default function AdminConsultationsScreen() {
         if (!combined.includes('carpent') && !combined.includes('wood') && !combined.includes('door') && !combined.includes('cupboard') && !combined.includes('furniture')) {
           return false;
         }
-      } else if (f === 'ac' || f === 'appliances') {
-        if (!combined.includes('ac') && !combined.includes('cooler') && !combined.includes('refriger') && !combined.includes('washing') && !combined.includes('appliance')) {
+      } else if (f === 'pest control') {
+        if (!combined.includes('pest') && !combined.includes('termite') && !combined.includes('cockroach') && !combined.includes('bedbug') && !combined.includes('spray')) {
+          return false;
+        }
+      } else if (f === 'dry cleaning') {
+        if (!combined.includes('clean') && !combined.includes('sofa') && !combined.includes('curtain') && !combined.includes('carpet') && !combined.includes('fabric')) {
           return false;
         }
       } else if (!combined.includes(f)) {
@@ -354,7 +358,7 @@ export default function AdminConsultationsScreen() {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          {['ALL', 'Electrical', 'Plumbing', 'AC', 'Appliances', 'Carpentry'].map((trade) => {
+          {['ALL', 'Electrician', 'Plumbing', 'Carpentry', 'Pest Control', 'Dry Cleaning'].map((trade) => {
             const isActive = categoryFilter === trade;
             return (
               <TouchableOpacity

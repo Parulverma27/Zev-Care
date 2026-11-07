@@ -234,7 +234,21 @@ export default function AdminSubAdminsScreen() {
       if (editingSubAdmin) {
         if (typeof updateSubAdmin === 'function') {
           const payload = { ...formData };
-          if (!payload.password) delete payload.password;
+          if (payload.password && payload.password.trim()) {
+            if (!isSuperAdmin) {
+              setActionError('Only the Super Admin is authorized to change sub-admin passwords.');
+              setIsSubmitting(false);
+              return;
+            }
+            if (payload.password.trim().length < 4) {
+              setActionError('New password must be at least 4 characters long.');
+              setIsSubmitting(false);
+              return;
+            }
+            payload.password = payload.password.trim();
+          } else {
+            delete payload.password;
+          }
           await updateSubAdmin(editingSubAdmin.id, payload);
         }
       } else {
