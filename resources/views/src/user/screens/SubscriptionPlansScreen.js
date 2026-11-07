@@ -1649,23 +1649,23 @@ export default function SubscriptionPlansScreen({ onNavigate, isMyAmcOnly = fals
                 </View>
               )}
 
-              {/* Specs Bar: All plans have UNLIMITED appliances */}
+              {/* Specs Bar */}
               <View style={styles.amcSpecsBox}>
                 <View style={styles.amcSpecItem}>
-                  <Text style={styles.amcSpecLabel}>ANNUAL SERVICE CAP</Text>
+                  <Text style={styles.amcSpecLabel}>ANNUAL COVERAGE</Text>
                   <Text style={[styles.amcSpecVal, { color: '#0f172a' }]}>
-                    {theme.annualServiceCapText || theme.coverageLimitText || '₹1 Lakh'}
+                    {theme.annualServiceCapText || theme.coverageLimitText || '₹1,00,000'}
                   </Text>
                 </View>
                 <View style={styles.amcSpecDivider} />
                 <View style={styles.amcSpecItem}>
                   <Text style={styles.amcSpecLabel}>APPLIANCES</Text>
-                  <Text style={[styles.amcSpecVal, { color: '#0284c7' }]}>Unlimited</Text>
+                  <Text style={[styles.amcSpecVal, { color: '#0284c7' }]}>Add Any Appliance</Text>
                 </View>
                 <View style={styles.amcSpecDivider} />
                 <View style={styles.amcSpecItem}>
-                  <Text style={styles.amcSpecLabel}>BREAKDOWN LABOR</Text>
-                  <Text style={[styles.amcSpecVal, { color: '#16a34a' }]}>₹0 Free</Text>
+                  <Text style={styles.amcSpecLabel}>TASK COMPLETION</Text>
+                  <Text style={[styles.amcSpecVal, { color: '#16a34a' }]}>Done in 60 Mins</Text>
                 </View>
               </View>
 
@@ -1801,6 +1801,76 @@ export default function SubscriptionPlansScreen({ onNavigate, isMyAmcOnly = fals
             </View>
           );
         })}
+      </View>
+
+      {/* ===================================================================== */}
+      {/* ZEVOTA घर की बचत — PLAN HIGHLIGHTS & DETAILS                           */}
+      {/* ===================================================================== */}
+      <View style={[styles.planHighlightsCard, isDesktopWeb && styles.planHighlightsCardDesktop]}>
+        <View style={styles.planHighlightsHeader}>
+          <View style={styles.planHighlightsBadge}>
+            <AppIcon name="shield" size={13} color="#1d4ed8" strokeWidth={2.4} />
+            <Text style={styles.planHighlightsBadgeText}>ZEVOTA घर की बचत</Text>
+          </View>
+          <Text style={styles.planHighlightsTitle}>Plan Details & Breakdown Protection</Text>
+          <Text style={styles.planHighlightsSub}>
+            Transparent terms and coverage details for all Zevota Care subscription plans.
+          </Text>
+        </View>
+
+        <View style={[styles.planHighlightsGrid, isDesktopWeb && styles.planHighlightsGridDesktop]}>
+          {/* Pillar 1: Add Any Appliance */}
+          <View style={[styles.planHighlightItem, isDesktopWeb && styles.planHighlightItemDesktop]}>
+            <View style={[styles.planHighlightIconWrap, { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}>
+              <IconPlus size={16} color="#1d4ed8" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.planHighlightItemTitle}>Add Any Appliance</Text>
+              <Text style={styles.planHighlightItemDesc}>
+                Customers can add and protect any appliance of their choice — Air Conditioners, Refrigerators, Televisions, Washing Machines, Geysers, Water Purifiers (RO), Microwave Ovens, and more.
+              </Text>
+            </View>
+          </View>
+
+          {/* Pillar 2: Task Done in 60 Minutes */}
+          <View style={[styles.planHighlightItem, isDesktopWeb && styles.planHighlightItemDesktop]}>
+            <View style={[styles.planHighlightIconWrap, { backgroundColor: '#fef3c7', borderColor: '#fde68a' }]}>
+              <AppIcon name="clock" size={16} color="#b45309" strokeWidth={2.4} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.planHighlightItemTitle}>Task Done in 60 Minutes</Text>
+              <Text style={styles.planHighlightItemDesc}>
+                Every complaint repair task is diagnosed, serviced, and completed within 60 minutes by our verified master technicians.
+              </Text>
+            </View>
+          </View>
+
+          {/* Pillar 3: 12 Months Contract & ₹0 Labor */}
+          <View style={[styles.planHighlightItem, isDesktopWeb && styles.planHighlightItemDesktop]}>
+            <View style={[styles.planHighlightIconWrap, { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }]}>
+              <AppIcon name="award" size={16} color="#15803d" strokeWidth={2.4} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.planHighlightItemTitle}>12 Months Contract • ₹0 Labor</Text>
+              <Text style={styles.planHighlightItemDesc}>
+                Full 365 days of comprehensive contract protection with ₹0 labor and zero inspection charges on every complaint visit.
+              </Text>
+            </View>
+          </View>
+
+          {/* Pillar 4: High Annual Coverage Caps */}
+          <View style={[styles.planHighlightItem, isDesktopWeb && styles.planHighlightItemDesktop]}>
+            <View style={[styles.planHighlightIconWrap, { backgroundColor: '#faf5ff', borderColor: '#e9d5ff' }]}>
+              <AppIcon name="crown" size={16} color="#7e22ce" strokeWidth={2.4} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.planHighlightItemTitle}>High Annual Coverage Cap</Text>
+              <Text style={styles.planHighlightItemDesc}>
+                Dedicated coverage limits — ₹1,00,000 (Silver), ₹1,50,000 (Gold), and ₹2,50,000 (Diamond) covering repair parts and servicing.
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
 
       {/* Live Support Help Card for AMC Plans */}
@@ -3313,5 +3383,97 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     overflow: 'hidden',
+  },
+  /* Plan Details Highlights Section */
+  planHighlightsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    borderWidth: 1.2,
+    borderColor: '#e2e8f0',
+    padding: 18,
+    marginHorizontal: 0,
+    marginTop: 18,
+    marginBottom: 8,
+    boxShadow: '0 4px 18px rgba(0, 0, 0, 0.04)',
+    gap: 16,
+  },
+  planHighlightsCardDesktop: {
+    padding: 24,
+    borderRadius: 22,
+  },
+  planHighlightsHeader: {
+    gap: 6,
+  },
+  planHighlightsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  planHighlightsBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1d4ed8',
+    letterSpacing: 0.5,
+  },
+  planHighlightsTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.3,
+  },
+  planHighlightsSub: {
+    fontSize: 12.5,
+    color: '#64748b',
+    lineHeight: 18,
+  },
+  planHighlightsGrid: {
+    flexDirection: 'column',
+    gap: 10,
+  },
+  planHighlightsGridDesktop: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  planHighlightItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 12,
+    width: '100%',
+  },
+  planHighlightItemDesktop: {
+    width: 'calc(50% - 6px)',
+  },
+  planHighlightIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  planHighlightItemTitle: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: 2,
+  },
+  planHighlightItemDesc: {
+    fontSize: 11.5,
+    color: '#475569',
+    lineHeight: 16,
   },
 });

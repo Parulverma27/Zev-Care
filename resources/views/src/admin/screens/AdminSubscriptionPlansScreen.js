@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal 
 import { useApp } from '../../context/AppContext';
 import ConfirmDeleteModal from '../../components/ConfirmDeleteModal';
 import { getPlanTheme } from '../../config/planTheme';
+import { AppIcon } from '../../components/AppIcons';
 
 export function AdminSubscriptionPlansScreen() {
   const { subscriptionPlans, setSubscriptionPlans } = useApp();
@@ -136,9 +137,10 @@ export function AdminSubscriptionPlansScreen() {
               </View>
               
               <Text style={styles.planDesc}>{plan.description}</Text>
-              <View style={[styles.creditBox, { backgroundColor: theme.creditBoxBg, borderColor: theme.creditBoxBorder, borderWidth: 1 }]}>
+              <View style={[styles.creditBox, { backgroundColor: theme.creditBoxBg, borderColor: theme.creditBoxBorder, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                <AppIcon name="shield" size={13} color={theme.creditTextColor} />
                 <Text style={[styles.creditText, { color: theme.creditTextColor }]}>
-                  🛡️ {theme.preventiveVisits} Free Visits • Parts Cap: ₹{theme.partsCap.toLocaleString('en-IN')}
+                  {theme.preventiveVisits} Free Visits • Parts Cap: ₹{theme.partsCap.toLocaleString('en-IN')}
                 </Text>
               </View>
 

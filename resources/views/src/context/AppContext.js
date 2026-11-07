@@ -316,74 +316,76 @@ export function AppProvider({ children }) {
   };
 
   // Platform Data
+  const SUBSCRIPTION_PLANS_VERSION = 'v5-amc-7999-10999-14999-60min-task-done';
   const [subscriptionPlans, setSubscriptionPlans] = useState(() => {
     try {
-      const saved = localStorage.getItem('zevota_subscription_plans');
-      if (saved) return JSON.parse(saved);
+      const v = localStorage.getItem('zevota_subscription_plans_version');
+      if (v === SUBSCRIPTION_PLANS_VERSION) {
+        const saved = localStorage.getItem('zevota_subscription_plans');
+        if (saved) return JSON.parse(saved);
+      }
     } catch (e) {}
     return [
       {
         id: 1,
         name: 'Silver Home AMC',
-        price: 100000.0,
+        price: 7999.0,
         wallet_credit: 100000.0,
         validity_months: 12,
         preventive_visits_count: 2,
-        parts_coverage_cap: 15000.0,
-        priority_sla_hours: 4,
-        applicable_services: '1-2 BHK Home, ACs, Electrical, Plumbing & Major Appliances',
-        service_limits: '2 Free Preventive Visits + Unlimited Breakdown Calls',
-        description: 'Essential Annual Maintenance Contract for standard apartments & modern homes.',
+        parts_coverage_cap: 100000.0,
+        priority_sla_hours: 1,
+        applicable_services: 'Add Any Home Appliance (AC, Refrigerator, TV, Washing Machine, Geyser, RO & more)',
+        service_limits: '12 Months Contract • ₹0 Labor Guaranteed',
+        description: 'Zevota घर की बचत • ₹1,00,000 Annual Coverage for parts & repairs.',
         features_json: JSON.stringify([
-          '2 Free Preventive Maintenance Services / Year',
-          '100% Free Labor on all breakdown repairs',
-          '₹15,000 Annual Spare Parts Protection Allowance',
-          'Standard 4-Hour Response SLA',
-          'Covers 1-2 BHK Home & Registered Appliances',
+          '₹1,00,000 Annual Coverage for Parts & Repairs',
+          '12 Months Contract',
+          'Task Done in 60 Mins (Complaint Resolved)',
+          'Add Any Appliance of Your Choice',
+          '₹0 Free Labor on all complaint visits',
         ]),
         is_recommended: false,
       },
       {
         id: 2,
         name: 'Gold Comprehensive AMC',
-        price: 500000.0,
-        wallet_credit: 500000.0,
+        price: 10999.0,
+        wallet_credit: 150000.0,
         validity_months: 12,
         preventive_visits_count: 4,
-        parts_coverage_cap: 40000.0,
-        priority_sla_hours: 2,
-        applicable_services: '3-4 BHK Homes, Multi-ACs, Refrigerators, RO, Washing Machines & Full Electrics',
-        service_limits: '4 Free Preventive Visits + Unlimited 2-Hour Priority Visits',
-        description: 'Most Popular UrbanClap VIP Club AMC for full home coverage & priority care.',
+        parts_coverage_cap: 150000.0,
+        priority_sla_hours: 1,
+        applicable_services: 'Add Any Home Appliance (AC, Refrigerator, TV, Washing Machine, Geyser, RO & more)',
+        service_limits: '12 Months Contract • ₹0 Labor Guaranteed',
+        description: 'Zevota घर की बचत • ₹1,50,000 Comprehensive Coverage for all home appliances.',
         features_json: JSON.stringify([
-          '4 Free Preventive Maintenance Services / Year',
-          'Unlimited Breakdown Visits (₹0 Labor Guaranteed)',
-          '₹40,000 Annual Spare Parts Protection Cap',
-          'Priority 2-Hour Dispatch SLA',
-          'Dedicated Account Manager & Top-Tier Technicians',
-          'Complete Home & Multi-Appliance Protection',
+          '₹1,50,000 Annual Coverage for Parts & Repairs',
+          '12 Months Contract',
+          'Task Done in 60 Mins (Complaint Resolved)',
+          'Add Any Appliance of Your Choice',
+          '₹0 Free Labor on all complaint visits',
         ]),
         is_recommended: true,
       },
       {
         id: 3,
-        name: 'Platinum Villa AMC',
-        price: 1000000.0,
-        wallet_credit: 1000000.0,
-        validity_months: 24,
+        name: 'Diamond / Platinum AMC',
+        price: 14999.0,
+        wallet_credit: 250000.0,
+        validity_months: 12,
         preventive_visits_count: 6,
-        parts_coverage_cap: 100000.0,
+        parts_coverage_cap: 250000.0,
         priority_sla_hours: 1,
-        applicable_services: 'Luxury Villas, High-End Smart Homes & Commercial Appliances',
-        service_limits: '6 Free Preventive Visits + Unlimited 1-Hour Emergency Calls',
-        description: 'Ultimate VIP protection with dedicated concierge & comprehensive coverage.',
+        applicable_services: 'Add Any Home Appliance (AC, Refrigerator, TV, Washing Machine, Geyser, RO & more)',
+        service_limits: '12 Months Contract • ₹0 Labor Guaranteed',
+        description: 'Zevota घर की बचत • ₹2,50,000 Maximum Protection for all home appliances.',
         features_json: JSON.stringify([
-          '6 Free Preventive Maintenance Services / Year',
-          'Unlimited 24/7 Breakdown Visits (₹0 Labor)',
-          '₹1,00,000 Comprehensive Spare Parts Allowance',
-          'Express 1-Hour Emergency Arrival Guarantee',
-          'VIP Key Account Manager & Free Annual Deep Audit',
-          'Covers Luxury Villas, Multi-ACs & High-End Gear',
+          '₹2,50,000 Annual Coverage for Parts & Repairs',
+          '12 Months Contract',
+          'Task Done in 60 Mins (Complaint Resolved)',
+          'Add Any Appliance of Your Choice',
+          '₹0 Free Labor on all complaint visits',
         ]),
         is_recommended: false,
       },
@@ -392,6 +394,7 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     try {
+      localStorage.setItem('zevota_subscription_plans_version', SUBSCRIPTION_PLANS_VERSION);
       localStorage.setItem('zevota_subscription_plans', JSON.stringify(subscriptionPlans));
     } catch (e) {}
   }, [subscriptionPlans]);
