@@ -15,6 +15,7 @@ import {
   getProviderCanonicalCategory,
   extractBookingTimeRange,
   formatDecimalToTime,
+  formatDateKey,
 } from '../../utils/scheduleUtils';
 
 export default function AdminConsultationsScreen() {
