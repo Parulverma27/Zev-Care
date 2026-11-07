@@ -10,6 +10,97 @@ import { getProviderRatingStats, getPerformanceTier } from '../../utils/ratings'
 import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker';
 import FleetRadarMap from '../components/FleetRadarMap';
 
+const PLATFORM_CATEGORIES = [
+  'Electrician',
+  'Plumbing',
+  'Pest Control',
+  'Dry Cleaning',
+  'Carpentry',
+];
+
+const CATEGORY_ICONS = {
+  Electrician: ({ size = 14, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  ),
+  Plumbing: ({ size = 14, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+    </svg>
+  ),
+  'Pest Control': ({ size = 14, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  ),
+  'Dry Cleaning': ({ size = 14, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z" />
+    </svg>
+  ),
+  Carpentry: ({ size = 14, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m15 12-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 0 1 0-3L12 9" />
+      <path d="M17.64 15 22 10.64" />
+      <path d="m20.91 3.26-6.36 6.36" />
+      <path d="m14 2 2 2-7.5 7.5-2-2z" />
+    </svg>
+  ),
+};
+
+const CATEGORY_THEMES = {
+  Electrician: { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
+  Plumbing: { bg: '#ecfeff', text: '#0e7490', border: '#a5f3fc' },
+  'Pest Control': { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
+  'Dry Cleaning': { bg: '#faf5ff', text: '#7e22ce', border: '#e9d5ff' },
+  Carpentry: { bg: '#fffbeb', text: '#b45309', border: '#fde68a' },
+};
+
+const CATEGORY_SKILLS = {
+  Electrician: ['Fan Repair & Fitting', 'Wiring & MCB Repair', 'Switch & Socket Replacement', 'Geyser Installation', 'Chandelier Installation', 'Appliance Servicing'],
+  Plumbing: ['Tap & Mixer Repair', 'Pipe Leakage Fix', 'Drain Blockage Removal', 'Water Tank Cleaning', 'Bathroom Fitting', 'Wash Basin Installation'],
+  'Pest Control': ['Cockroach Pest Control', 'Termite Treatment', 'Bedbug Eradication', 'Mosquito Fogging', 'General Pest Spray'],
+  'Dry Cleaning': ['Sofa Deep Cleaning', 'Carpet Dry Cleaning', 'Curtain Steam Clean', 'Mattress Sanitization', 'Dining Chair Cleaning'],
+  Carpentry: ['Door Lock & Handle', 'Cupboard & Drawer Repair', 'Furniture Assembly', 'Bed & Table Repair', 'Wood Polish & Varnishing'],
+};
+
+const normalizeCategory = (catStr) => {
+  if (!catStr) return null;
+  const s = String(catStr).toLowerCase();
+  if (s.includes('electr')) return 'Electrician';
+  if (s.includes('plumb')) return 'Plumbing';
+  if (s.includes('pest')) return 'Pest Control';
+  if (s.includes('clean') || s.includes('dry')) return 'Dry Cleaning';
+  if (s.includes('carpent') || s.includes('wood')) return 'Carpentry';
+  return null;
+};
+
+const getProviderCanonicalCategory = (p) => {
+  if (!p) return 'Electrician';
+  if (p.category) {
+    const norm = normalizeCategory(p.category);
+    if (norm) return norm;
+  }
+  let cats = Array.isArray(p.categories) ? p.categories : [];
+  if (cats.length === 0 && p.categories_json) {
+    try {
+      const parsed = JSON.parse(p.categories_json);
+      if (Array.isArray(parsed)) cats = parsed;
+    } catch (e) {}
+  }
+  if (cats.length > 0) {
+    const norm = normalizeCategory(cats[0]);
+    if (norm) return norm;
+  }
+  if (p.trade) {
+    const norm = normalizeCategory(p.trade);
+    if (norm) return norm;
+  }
+  return 'Electrician';
+};
+
 export function AdminProvidersScreen() {
   const { providers, setProviders, updateProviderDutyStatus, bookings, isCategoryAllowedForAdmin, adminUser } = useApp();
 
@@ -17,19 +108,32 @@ export function AdminProvidersScreen() {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [viewMode, setViewMode] = useState('TABLE');
+  const [categoryTab, setCategoryTab] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const visibleProviders = (providers || []).filter((p) => {
+  const scopedProviders = (providers || []).filter((p) => {
     if (!adminUser || adminUser.role === 'SUPER_ADMIN') return true;
     if (typeof isCategoryAllowedForAdmin === 'function') {
-      let pCats = Array.isArray(p.categories) ? [...p.categories] : (p.category ? [p.category] : []);
-      if (pCats.length === 0 && p.categories_json) {
-        try {
-          const parsed = JSON.parse(p.categories_json);
-          if (Array.isArray(parsed)) pCats = parsed;
-        } catch (e) {}
+      const pCat = getProviderCanonicalCategory(p);
+      return isCategoryAllowedForAdmin(pCat);
+    }
+    return true;
+  });
+
+  const visibleProviders = scopedProviders.filter((p) => {
+    if (categoryTab !== 'ALL') {
+      if (getProviderCanonicalCategory(p) !== categoryTab) return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const pName = (p.name || '').toLowerCase();
+      const pPhone = (p.phone || '').toLowerCase();
+      const pTrade = (p.trade || '').toLowerCase();
+      const pCat = getProviderCanonicalCategory(p).toLowerCase();
+      const pLoc = (p.location || '').toLowerCase();
+      if (!pName.includes(q) && !pPhone.includes(q) && !pTrade.includes(q) && !pCat.includes(q) && !pLoc.includes(q)) {
+        return false;
       }
-      if (pCats.length === 0) return false;
-      return pCats.some((c) => isCategoryAllowedForAdmin(c));
     }
     return true;
   });
@@ -74,6 +178,11 @@ export function AdminProvidersScreen() {
   const [editId, setEditId] = useState(null);
   const [partnerName, setPartnerName] = useState('');
   const [partnerPhone, setPartnerPhone] = useState('');
+  const [partnerEmail, setPartnerEmail] = useState('');
+  const [partnerCategory, setPartnerCategory] = useState('Electrician');
+  const [partnerTrade, setPartnerTrade] = useState('');
+  const [partnerExperience, setPartnerExperience] = useState('3-5 Years Experience');
+  const [partnerServices, setPartnerServices] = useState([]);
   const [partnerAadhar, setPartnerAadhar] = useState('');
   const [partnerRating, setPartnerRating] = useState('5.0');
   const [partnerJobs, setPartnerJobs] = useState('0');
@@ -93,9 +202,15 @@ export function AdminProvidersScreen() {
 
   const openModal = (p = null) => {
     if (p) {
+      const canonCat = getProviderCanonicalCategory(p);
       setEditId(p.id);
       setPartnerName(p.name || '');
       setPartnerPhone(p.phone || '');
+      setPartnerEmail(p.email || '');
+      setPartnerCategory(canonCat);
+      setPartnerTrade(p.trade || `${canonCat} Specialist`);
+      setPartnerExperience(p.experience || '3-5 Years Experience');
+      setPartnerServices(Array.isArray(p.services) ? [...p.services] : (CATEGORY_SKILLS[canonCat] || []).slice(0, 3));
       setPartnerAadhar(p.aadhar ? formatAadharNumber(p.aadhar) : '');
       setPartnerRating(String(p.rating ?? '5.0'));
       setPartnerJobs(String(p.total_jobs ?? '0'));
@@ -106,6 +221,11 @@ export function AdminProvidersScreen() {
       setEditId(null);
       setPartnerName('');
       setPartnerPhone('');
+      setPartnerEmail('');
+      setPartnerCategory('Electrician');
+      setPartnerTrade('Certified Electrician Specialist');
+      setPartnerExperience('3-5 Years Experience');
+      setPartnerServices(CATEGORY_SKILLS.Electrician.slice(0, 3));
       setPartnerAadhar('');
       setPartnerRating('5.0');
       setPartnerJobs('0');
@@ -122,11 +242,32 @@ export function AdminProvidersScreen() {
     setDetailModalVisible(true);
   };
 
+  const toggleSkill = (skill) => {
+    setPartnerServices((prev) => {
+      if (prev.includes(skill)) {
+        return prev.filter((s) => s !== skill);
+      }
+      return [...prev, skill];
+    });
+  };
+
+  const handleSelectCategory = (cat) => {
+    setPartnerCategory(cat);
+    if (!editId || !partnerTrade) {
+      setPartnerTrade(`${cat} Specialist`);
+    }
+    // Set default skills for this category if currently empty or switched
+    const defaultSkills = CATEGORY_SKILLS[cat] || [];
+    setPartnerServices(defaultSkills.slice(0, 3));
+  };
+
   const handleAddPartner = () => {
     if (!partnerName.trim() || !partnerPhone.trim()) return;
 
     const cleanAadhar = (partnerAadhar || '').replace(/\D/g, '').slice(0, 12);
     const formattedAadhar = cleanAadhar.length > 0 ? formatAadharNumber(cleanAadhar) : '';
+    const canonCat = partnerCategory || 'Electrician';
+    const skills = partnerServices.length > 0 ? partnerServices : (CATEGORY_SKILLS[canonCat] || []).slice(0, 3);
 
     const existing = editId ? providers.find((p) => p.id === editId) : null;
     const newPartner = {
@@ -134,12 +275,22 @@ export function AdminProvidersScreen() {
       id: editId || Date.now(),
       name: partnerName.trim(),
       phone: partnerPhone.trim(),
+      email: partnerEmail.trim() || undefined,
       aadhar: formattedAadhar,
+      category: canonCat,
+      categories: [canonCat],
+      categories_json: JSON.stringify([canonCat]),
+      trade: partnerTrade.trim() || `${canonCat} Specialist`,
+      experience: partnerExperience,
+      services: skills,
+      services_json: JSON.stringify(skills),
       coords: partnerCoords,
       rating: parseFloat(partnerRating) || 5.0,
       total_jobs: parseInt(partnerJobs) || 0,
       earnings: parseFloat(partnerEarnings) || 0.0,
       location: partnerLocation.trim() || 'DLF Cyber City, Sector 24, Gurugram',
+      is_online: existing?.is_online !== undefined ? existing.is_online : true,
+      status: existing?.status || 'APPROVED',
     };
 
     if (editId) {
@@ -265,6 +416,78 @@ export function AdminProvidersScreen() {
         </View>
       </View>
 
+      {/* CATEGORY FILTER TABS & SEARCH BAR */}
+      <View style={styles.filterSection}>
+        <View style={styles.searchBarWrap}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <TextInput
+            style={styles.searchBarInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search technician by name, phone, trade, or location..."
+            placeholderTextColor="#94a3b8"
+          />
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => setSearchQuery('')} style={{ padding: 4 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
+          <TouchableOpacity
+            style={[styles.categoryTabPill, categoryTab === 'ALL' && styles.categoryTabPillActive]}
+            onPress={() => setCategoryTab('ALL')}
+            activeOpacity={0.8}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={categoryTab === 'ALL' ? '#1d4ed8' : '#64748b'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
+            <Text style={[styles.categoryTabPillText, categoryTab === 'ALL' && styles.categoryTabPillTextActive]}>
+              All Categories ({scopedProviders.length})
+            </Text>
+          </TouchableOpacity>
+
+          {PLATFORM_CATEGORIES.map((cat) => {
+            if (adminUser && adminUser.role !== 'SUPER_ADMIN' && typeof isCategoryAllowedForAdmin === 'function' && !isCategoryAllowedForAdmin(cat)) {
+              return null;
+            }
+            const count = scopedProviders.filter((p) => getProviderCanonicalCategory(p) === cat).length;
+            const isActive = categoryTab === cat;
+            const IconComp = CATEGORY_ICONS[cat];
+            const theme = CATEGORY_THEMES[cat] || { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' };
+            return (
+              <TouchableOpacity
+                key={cat}
+                style={[
+                  styles.categoryTabPill,
+                  isActive && {
+                    backgroundColor: theme.bg,
+                    borderColor: theme.border,
+                  },
+                ]}
+                onPress={() => setCategoryTab(cat)}
+                activeOpacity={0.8}
+              >
+                {IconComp && <IconComp size={12} color={isActive ? theme.text : '#64748b'} />}
+                <Text style={[styles.categoryTabPillText, isActive && { color: theme.text, fontWeight: '700' }]}>
+                  {cat} ({count})
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
       {viewMode === 'RADAR' ? (
         <FleetRadarMap
           providers={visibleProviders}
@@ -274,35 +497,47 @@ export function AdminProvidersScreen() {
       ) : (
         <View style={styles.tableCard}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.th, { flex: 1.5 }]}>Partner Name</Text>
-          <Text style={[styles.th, { flex: 1.2 }]}>Phone</Text>
-          <Text style={[styles.th, { flex: 0.9 }]}>Status</Text>
-          <Text style={[styles.th, { flex: 0.9 }]}>Rating</Text>
-          <Text style={[styles.th, { flex: 0.9 }]}>Jobs Done</Text>
-          <Text style={[styles.th, { flex: 1.1 }]}>Total Revenue</Text>
+          <Text style={[styles.th, { flex: 1.8 }]}>Partner & Category</Text>
+          <Text style={[styles.th, { flex: 1.2 }]}>Phone & Area</Text>
+          <Text style={[styles.th, { flex: 0.9 }]}>Duty Status</Text>
+          <Text style={[styles.th, { flex: 0.8 }]}>Rating</Text>
+          <Text style={[styles.th, { flex: 0.8 }]}>Jobs Done</Text>
+          <Text style={[styles.th, { flex: 1.0 }]}>Total Revenue</Text>
           <Text style={[styles.th, { flex: 1.5, textAlign: 'right' }]}>Actions</Text>
         </View>
 
         {visibleProviders.map((p, idx) => {
           const stats = getProviderStats(p);
+          const pCat = getProviderCanonicalCategory(p);
+          const theme = CATEGORY_THEMES[pCat] || { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' };
+          const CatIcon = CATEGORY_ICONS[pCat];
           return (
             <View key={idx} style={styles.tableRow}>
-              <View style={{ flex: 1.5, gap: 3 }}>
+              <View style={{ flex: 1.8, gap: 4 }}>
                 <TouchableOpacity onPress={() => handleOpenDetailModal(p)} onClick={() => handleOpenDetailModal(p)} activeOpacity={0.7}>
-                  <Text style={[styles.tdBold, { color: '#7c3aed' }]}>{p.name}</Text>
+                  <Text style={[styles.tdBold, { color: '#0f172a' }]}>{p.name}</Text>
                 </TouchableOpacity>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <View style={[styles.categoryBadgeMini, { backgroundColor: theme.bg, borderColor: theme.border }]}>
+                    {CatIcon && <CatIcon size={10} color={theme.text} />}
+                    <Text style={[styles.categoryBadgeMiniText, { color: theme.text }]}>{pCat}</Text>
+                  </View>
+                  {p.trade && p.trade !== pCat ? (
+                    <Text style={styles.tradeSubText} numberOfLines={1}>{p.trade}</Text>
+                  ) : null}
+                </View>
+
                 {p.aadhar ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
-                    <Text style={{ fontSize: 10.5, color: '#047857', fontWeight: '700' }}>
+                    <Text style={{ fontSize: 10, color: '#047857', fontWeight: '700' }}>
                       UIDAI: {p.aadhar}
                     </Text>
                   </View>
-                ) : (
-                  <Text style={{ fontSize: 10, color: '#94a3b8' }}>UIDAI: Pending</Text>
-                )}
+                ) : null}
               </View>
 
               <View style={{ flex: 1.2, gap: 3 }}>
@@ -395,11 +630,114 @@ export function AdminProvidersScreen() {
             <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ gap: 12 }}>
               <Text style={styles.modalTitle}>{editId ? 'Edit Field Partner' : 'Add Certified Field Partner'}</Text>
               
+              {/* PRIMARY PLATFORM CATEGORY SELECTION */}
+              <View style={{ gap: 6 }}>
+                <Text style={styles.inputLabel}>Primary Platform Category *</Text>
+                <View style={styles.categorySelectGrid}>
+                  {PLATFORM_CATEGORIES.map((cat) => {
+                    const isSelected = partnerCategory === cat;
+                    const IconComp = CATEGORY_ICONS[cat];
+                    const theme = CATEGORY_THEMES[cat] || { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' };
+                    return (
+                      <TouchableOpacity
+                        key={cat}
+                        onPress={() => handleSelectCategory(cat)}
+                        style={[
+                          styles.categorySelectCard,
+                          isSelected && {
+                            backgroundColor: theme.bg,
+                            borderColor: theme.border,
+                            borderWidth: 2,
+                          },
+                        ]}
+                        activeOpacity={0.8}
+                      >
+                        {IconComp && <IconComp size={15} color={isSelected ? theme.text : '#64748b'} />}
+                        <Text style={[styles.categorySelectCardText, isSelected && { color: theme.text, fontWeight: '700' }]}>
+                          {cat}
+                        </Text>
+                        {isSelected ? (
+                          <View style={{ marginLeft: 'auto' }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={theme.text} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </View>
+                        ) : null}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
               <Text style={styles.inputLabel}>Partner Name *</Text>
               <TextInput style={styles.textInput} value={partnerName} onChangeText={setPartnerName} placeholder="e.g. Ramesh Kumar" />
 
-              <Text style={styles.inputLabel}>Phone Number *</Text>
-              <TextInput style={styles.textInput} value={partnerPhone} onChangeText={setPartnerPhone} placeholder="e.g. +91 99887 76655" keyboardType="phone-pad" />
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.inputLabel}>Phone Number *</Text>
+                  <TextInput style={styles.textInput} value={partnerPhone} onChangeText={setPartnerPhone} placeholder="e.g. +91 99887 76655" keyboardType="phone-pad" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.inputLabel}>Email Address</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={partnerEmail}
+                    onChangeText={setPartnerEmail}
+                    placeholder="partner@zevotacare.com"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+              </View>
+
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.inputLabel}>Trade / Designation</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={partnerTrade}
+                    onChangeText={setPartnerTrade}
+                    placeholder={`e.g. Certified ${partnerCategory} Specialist`}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.inputLabel}>Experience Level</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={partnerExperience}
+                    onChangeText={setPartnerExperience}
+                    placeholder="e.g. 5+ Years Experience"
+                  />
+                </View>
+              </View>
+
+              {/* DYNAMIC CATEGORY SKILLS */}
+              <View style={{ gap: 6 }}>
+                <Text style={styles.inputLabel}>
+                  Assigned Skills & Capabilities ({partnerServices.length} selected)
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                  {(CATEGORY_SKILLS[partnerCategory] || []).map((skill) => {
+                    const isSelected = partnerServices.includes(skill);
+                    return (
+                      <TouchableOpacity
+                        key={skill}
+                        onPress={() => toggleSkill(skill)}
+                        style={[
+                          styles.skillPill,
+                          isSelected && styles.skillPillActive,
+                        ]}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.skillPillText, isSelected && styles.skillPillTextActive]}>
+                          {isSelected ? '✓ ' : '+ '}
+                          {skill}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
 
               {/* AADHAAR NUMBER FIELD */}
               <View style={{ gap: 4 }}>
@@ -1253,5 +1591,137 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     cursor: 'pointer',
+  },
+  filterSection: {
+    gap: 10,
+    marginBottom: 6,
+  },
+  searchBarWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  searchBarInput: {
+    flex: 1,
+    fontSize: 12.5,
+    color: '#0f172a',
+    outlineStyle: 'none',
+  },
+  categoryScroll: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 2,
+  },
+  categoryTabPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  categoryTabPillActive: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#bfdbfe',
+  },
+  categoryTabPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  categoryTabPillTextActive: {
+    color: '#1d4ed8',
+    fontWeight: '700',
+  },
+  categoryBadgeMini: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    borderWidth: 1,
+  },
+  categoryBadgeMiniText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+  },
+  tradeSubText: {
+    fontSize: 10.5,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  categorySelectGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  categorySelectCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    minWidth: '47%',
+  },
+  categorySelectCardText: {
+    fontSize: 12,
+    color: '#475569',
+    fontWeight: '600',
+  },
+  skillPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  skillPillActive: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#bfdbfe',
+  },
+  skillPillText: {
+    fontSize: 11,
+    color: '#475569',
+    fontWeight: '500',
+  },
+  skillPillTextActive: {
+    color: '#1d4ed8',
+    fontWeight: '700',
+  },
+  expPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  expPillActive: {
+    backgroundColor: '#0f172a',
+    borderColor: '#0f172a',
+  },
+  expPillText: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '600',
+  },
+  expPillTextActive: {
+    color: '#ffffff',
+    fontWeight: '700',
   },
 });
