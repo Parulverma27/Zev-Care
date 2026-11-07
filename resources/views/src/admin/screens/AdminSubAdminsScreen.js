@@ -77,13 +77,6 @@ const CloseIcon = ({ color = '#94a3b8', size = 16 }) => (
   </svg>
 );
 
-const KeyIcon = ({ color = '#b45309', size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m21 2-2 2m-1.5 1.5L14 9a6 6 0 1 0 2 2l3.5-3.5" />
-    <circle cx="8" cy="16" r="3" />
-  </svg>
-);
-
 const AVAILABLE_CATEGORIES = [
   'Electrician',
   'Plumbing',
@@ -125,51 +118,13 @@ export default function AdminSubAdminsScreen() {
   const [editingSubAdmin, setEditingSubAdmin] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState('');
+  const [showFormPassword, setShowFormPassword] = useState(false);
 
-  // Dedicated Password Reset Modal State
-  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
-  const [passwordTargetSubAdmin, setPasswordTargetSubAdmin] = useState(null);
-  const [newPasswordVal, setNewPasswordVal] = useState('');
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [passwordSuccessMsg, setPasswordSuccessMsg] = useState('');
-  const [passwordErrorMsg, setPasswordErrorMsg] = useState('');
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-
-  const openPasswordModal = (sa) => {
-    setPasswordTargetSubAdmin(sa);
-    setNewPasswordVal('');
-    setPasswordErrorMsg('');
-    setPasswordSuccessMsg('');
-    setShowNewPassword(false);
-    setPasswordModalOpen(true);
-  };
-
-  const handleUpdatePassword = async () => {
-    if (!newPasswordVal || newPasswordVal.length < 4) {
-      setPasswordErrorMsg('Password must be at least 4 characters.');
-      return;
-    }
-    setIsUpdatingPassword(true);
-    setPasswordErrorMsg('');
-    try {
-      if (typeof updateSubAdmin === 'function') {
-        const res = await updateSubAdmin(passwordTargetSubAdmin.id, { password: newPasswordVal });
-        if (res) {
-          setPasswordSuccessMsg(`Password successfully updated for ${passwordTargetSubAdmin.name}!`);
-          setTimeout(() => {
-            setPasswordModalOpen(false);
-            setPasswordSuccessMsg('');
-          }, 1200);
-        } else {
-          setPasswordErrorMsg('Failed to update password. Please try again.');
-        }
-      }
-    } catch (err) {
-      setPasswordErrorMsg(err.message || 'Failed to update password.');
-    } finally {
-      setIsUpdatingPassword(false);
-    }
-  };
+  const isSuperAdmin =
+    !adminUser ||
+    adminUser.role === 'SUPER_ADMIN' ||
+    adminUser.role === 'Super Admin' ||
+    adminUser.email === 'admin@zevotacare.com';
 
   // Form State
   const [formData, setFormData] = useState({
@@ -190,6 +145,7 @@ export default function AdminSubAdminsScreen() {
   const openAddModal = () => {
     setEditingSubAdmin(null);
     setActionError('');
+    setShowFormPassword(false);
     setFormData({
       name: '',
       email: '',
@@ -210,6 +166,7 @@ export default function AdminSubAdminsScreen() {
   const openEditModal = (subAdmin) => {
     setEditingSubAdmin(subAdmin);
     setActionError('');
+    setShowFormPassword(false);
     setFormData({
       name: subAdmin.name || '',
       email: subAdmin.email || '',
@@ -570,14 +527,6 @@ export default function AdminSubAdminsScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.actionIconBtn, { borderColor: '#fde68a', backgroundColor: '#fffbeb' }]}
-                      onPress={() => openPasswordModal(sa)}
-                      title="Change Password"
-                    >
-                      <KeyIcon color="#b45309" size={14} />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
                       style={[styles.actionIconBtn, { borderColor: '#fee2e2' }]}
                       onPress={() => {
                         if (window.confirm(`Delete sub-admin ${sa.name}?`)) {
@@ -660,28 +609,95 @@ export default function AdminSubAdminsScreen() {
                 </View>
               </View>
 
-              {/* Password */}
-              <View style={styles.formGroup}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                  <LockIcon color="#475569" size={13} />
-                  <Text style={styles.formLabel}>
-                    {editingSubAdmin ? 'New Password (Optional)' : 'Login Password *'}
+              {/* Password - Super Admin Restricted when Editing */}
+              {editingSubAdmin ? (
+                isSuperAdmin ? (
+                  <View style={styles.formGroup}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <LockIcon color="#b45309" size={13} />
+                        <Text style={[styles.formLabel, { color: '#0f172a' }]}>
+                          Change Password (Super Admin Only)
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => setFormData((p) => ({ ...p, password: `Zevota@${Math.floor(1000 + Math.random() * 9000)}` }))}
+                      >
+                        <Text style={{ fontSize: 11, color: '#2563eb', fontWeight: '600' }}>🎲 Generate Password</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={{ position: 'relative' }}>
+                      <TextInput
+                        style={[styles.formInput, { paddingRight: 50 }]}
+                        placeholder="Leave blank to keep existing password"
+                        placeholderTextColor="#94a3b8"
+                        secureTextEntry={!showFormPassword}
+                        value={formData.password}
+                        onChangeText={(val) => setFormData((p) => ({ ...p, password: val }))}
+                      />
+                      {formData.password ? (
+                        <TouchableOpacity
+                          style={{ position: 'absolute', right: 10, top: 10, padding: 2 }}
+                          onPress={() => setShowFormPassword((p) => !p)}
+                        >
+                          <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '700' }}>
+                            {showFormPassword ? 'HIDE' : 'SHOW'}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                    <Text style={styles.formHelp}>
+                      As Super Admin, enter a new password (min 4 chars) to update credentials immediately, or leave blank to keep current password.
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.formGroup}>
+                    <Text style={styles.formLabel}>Sub-Admin Password</Text>
+                    <View style={{ padding: 10, backgroundColor: '#f1f5f9', borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0' }}>
+                      <Text style={{ fontSize: 12, color: '#64748b' }}>
+                        🔒 Password resets are restricted exclusively to the Super Admin.
+                      </Text>
+                    </View>
+                  </View>
+                )
+              ) : (
+                <View style={styles.formGroup}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <LockIcon color="#475569" size={13} />
+                      <Text style={styles.formLabel}>Login Password *</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => setFormData((p) => ({ ...p, password: `Zevota@${Math.floor(1000 + Math.random() * 9000)}` }))}
+                    >
+                      <Text style={{ fontSize: 11, color: '#2563eb', fontWeight: '600' }}>🎲 Generate Password</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{ position: 'relative' }}>
+                    <TextInput
+                      style={[styles.formInput, { paddingRight: 50 }]}
+                      placeholder="Enter initial login password for this sub-admin"
+                      placeholderTextColor="#94a3b8"
+                      secureTextEntry={!showFormPassword}
+                      value={formData.password}
+                      onChangeText={(val) => setFormData((p) => ({ ...p, password: val }))}
+                    />
+                    {formData.password ? (
+                      <TouchableOpacity
+                        style={{ position: 'absolute', right: 10, top: 10, padding: 2 }}
+                        onPress={() => setShowFormPassword((p) => !p)}
+                      >
+                        <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '700' }}>
+                          {showFormPassword ? 'HIDE' : 'SHOW'}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                  <Text style={styles.formHelp}>
+                    The sub-admin will use this password along with their email address to log into their departmental portal.
                   </Text>
                 </View>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder={editingSubAdmin ? 'Leave blank to keep existing password' : 'Enter login password for this sub-admin'}
-                  placeholderTextColor="#94a3b8"
-                  secureTextEntry
-                  value={formData.password}
-                  onChangeText={(val) => setFormData((p) => ({ ...p, password: val }))}
-                />
-                <Text style={styles.formHelp}>
-                  {editingSubAdmin
-                    ? 'Only provide a new password if you want to reset credentials for this sub-admin.'
-                    : 'The sub-admin will use this password along with their email address to log into their portal.'}
-                </Text>
-              </View>
+              )}
 
               {/* Category Assignment Chips */}
               <View style={styles.formGroup}>
@@ -876,92 +892,6 @@ export default function AdminSubAdminsScreen() {
                   <Text style={styles.saveBtnText}>
                     {editingSubAdmin ? 'Update Sub-Admin' : 'Create Sub-Admin'}
                   </Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Dedicated Change Password Modal */}
-      <Modal visible={passwordModalOpen} transparent animationType="fade" onRequestClose={() => setPasswordModalOpen(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { maxWidth: 480 }]}>
-            <View style={styles.modalHeader}>
-              <View>
-                <Text style={styles.modalTitle}>Change Sub-Admin Password</Text>
-                <Text style={styles.modalSubtitle}>
-                  Updating credentials for {passwordTargetSubAdmin?.name} ({passwordTargetSubAdmin?.email})
-                </Text>
-              </View>
-              <TouchableOpacity onPress={() => setPasswordModalOpen(false)} style={styles.modalCloseBtn}>
-                <CloseIcon color="#94a3b8" size={16} />
-              </TouchableOpacity>
-            </View>
-
-            {!!passwordSuccessMsg && (
-              <View style={[styles.modalErrorBox, { backgroundColor: '#f0fdf4', borderLeftColor: '#10b981' }]}>
-                <Text style={[styles.modalErrorText, { color: '#047857' }]}>{passwordSuccessMsg}</Text>
-              </View>
-            )}
-
-            {!!passwordErrorMsg && (
-              <View style={styles.modalErrorBox}>
-                <Text style={styles.modalErrorText}>{passwordErrorMsg}</Text>
-              </View>
-            )}
-
-            <View style={{ padding: 20 }}>
-              <View style={styles.formGroup}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <Text style={styles.formLabel}>New Password *</Text>
-                  <TouchableOpacity
-                    onPress={() => setNewPasswordVal(`Zevota@${Math.floor(1000 + Math.random() * 9000)}`)}
-                  >
-                    <Text style={{ fontSize: 11, color: '#2563eb', fontWeight: '600' }}>🎲 Generate Password</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={{ position: 'relative' }}>
-                  <TextInput
-                    style={[styles.formInput, { paddingRight: 40 }]}
-                    placeholder="Enter new secure password (min 4 chars)"
-                    placeholderTextColor="#94a3b8"
-                    secureTextEntry={!showNewPassword}
-                    value={newPasswordVal}
-                    onChangeText={setNewPasswordVal}
-                  />
-                  <TouchableOpacity
-                    style={{ position: 'absolute', right: 10, top: 10, padding: 2 }}
-                    onPress={() => setShowNewPassword((p) => !p)}
-                  >
-                    <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '600' }}>
-                      {showNewPassword ? 'HIDE' : 'SHOW'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.formHelp}>
-                  The sub-admin will be required to use this new password immediately on next login.
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => setPasswordModalOpen(false)}
-                disabled={isUpdatingPassword}
-              >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.saveBtn, isUpdatingPassword && { opacity: 0.7 }]}
-                onPress={handleUpdatePassword}
-                disabled={isUpdatingPassword}
-              >
-                {isUpdatingPassword ? (
-                  <ActivityIndicator color="#ffffff" size="small" />
-                ) : (
-                  <Text style={styles.saveBtnText}>Save New Password</Text>
                 )}
               </TouchableOpacity>
             </View>
