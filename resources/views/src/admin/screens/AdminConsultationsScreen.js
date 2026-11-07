@@ -26,6 +26,7 @@ export default function AdminConsultationsScreen() {
   const [liveTrackingBooking, setLiveTrackingBooking] = useState(null);
   const [assignModal, setAssignModal] = useState(false);
   const [assignCategoryFilter, setAssignCategoryFilter] = useState('MATCHING'); // 'MATCHING' | 'ALL'
+  const [assignDispatchSlotMode, setAssignDispatchSlotMode] = useState('TODAY'); // 'TODAY' | 'TOMORROW_10' | 'TOMORROW_14'
   const [conflictModalData, setConflictModalData] = useState(null); // { provider, avail }
   const [billModal, setBillModal] = useState(false);
   const [reportModal, setReportModal] = useState(false);
@@ -119,11 +120,71 @@ export default function AdminConsultationsScreen() {
     return extractBookingTimeRange(selectedBooking);
   }, [selectedBooking]);
 
+  const selectedDispatchSlot = useMemo(() => {
+    if (!selectedBooking) return null;
+    const origRange = extractBookingTimeRange(selectedBooking);
+    if (!origRange) return null;
+
+    const now = new Date();
+    const todayKey = formatDateKey(now);
+    const nowDecimal = now.getHours() + now.getMinutes() / 60;
+
+    if (origRange.isOverdue) {
+      if (assignDispatchSlotMode === 'TOMORROW_10') {
+        const tom = new Date();
+        tom.setDate(tom.getDate() + 1);
+        const tomKey = formatDateKey(tom);
+        return {
+          dateKey: tomKey,
+          startHour: 10.0,
+          endHour: 10.0 + origRange.duration,
+          duration: origRange.duration,
+          timeLabel: `10:00 AM - ${formatDecimalToTime(10.0 + origRange.duration)}`,
+          displayLabel: 'Tomorrow (10:00 AM)',
+          isOverdueResolved: true,
+          dateFormatted: `Tomorrow, 10:00 AM`,
+          originalRange: origRange,
+        };
+      }
+      if (assignDispatchSlotMode === 'TOMORROW_14') {
+        const tom = new Date();
+        tom.setDate(tom.getDate() + 1);
+        const tomKey = formatDateKey(tom);
+        return {
+          dateKey: tomKey,
+          startHour: 14.0,
+          endHour: 14.0 + origRange.duration,
+          duration: origRange.duration,
+          timeLabel: `02:00 PM - ${formatDecimalToTime(14.0 + origRange.duration)}`,
+          displayLabel: 'Tomorrow (02:00 PM)',
+          isOverdueResolved: true,
+          dateFormatted: `Tomorrow, 02:00 PM`,
+          originalRange: origRange,
+        };
+      }
+      // Default: TODAY immediate
+      const nearestHour = Math.min(19, Math.max(8, Math.ceil(nowDecimal * 2) / 2));
+      return {
+        dateKey: todayKey,
+        startHour: nearestHour,
+        endHour: nearestHour + origRange.duration,
+        duration: origRange.duration,
+        timeLabel: `${formatDecimalToTime(nearestHour)} - ${formatDecimalToTime(nearestHour + origRange.duration)}`,
+        displayLabel: `Today (${formatDecimalToTime(nearestHour)})`,
+        isOverdueResolved: true,
+        dateFormatted: `Today, ${formatDecimalToTime(nearestHour)}`,
+        originalRange: origRange,
+      };
+    }
+
+    return origRange;
+  }, [selectedBooking, assignDispatchSlotMode]);
+
   const candidateProvidersWithAvail = useMemo(() => {
     if (!assignModal || !selectedBooking) return [];
     return availableCandidateProviders.map((p) => {
       const pCat = getProviderCanonicalCategory(p);
-      const avail = checkProviderAvailability(p, selectedBooking, bookings || []);
+      const avail = checkProviderAvailability(p, selectedBooking, bookings || [], selectedDispatchSlot);
       const matchesCategory = bookingCanonicalCategory ? pCat === bookingCanonicalCategory : true;
       return {
         ...p,
@@ -132,7 +193,7 @@ export default function AdminConsultationsScreen() {
         avail,
       };
     });
-  }, [assignModal, selectedBooking, availableCandidateProviders, bookings, bookingCanonicalCategory]);
+  }, [assignModal, selectedBooking, availableCandidateProviders, bookings, bookingCanonicalCategory, selectedDispatchSlot]);
 
   const displayedCandidateProviders = useMemo(() => {
     let list = candidateProvidersWithAvail;
@@ -237,7 +298,8 @@ export default function AdminConsultationsScreen() {
   const handleAssignAction = async (providerId) => {
     if (!selectedBooking) return;
     setSubmitting(true);
-    await assignProvider(selectedBooking.booking_id, providerId);
+    const newScheduledDate = selectedDispatchSlot?.isOverdueResolved ? selectedDispatchSlot.dateFormatted : null;
+    await assignProvider(selectedBooking.booking_id, providerId, newScheduledDate);
     setSubmitting(false);
     setAssignModal(false);
   };
@@ -885,6 +947,37 @@ export default function AdminConsultationsScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* If the original booking schedule is overdue / delayed */}
+            {bookingTargetRange?.isOverdue && (
+              <View style={{
+                backgroundColor: '#fff7ed',
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: '#fdba74',
+                padding: 10,
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: 8,
+                marginTop: 10,
+              }}>
+                <View style={{ marginTop: 2 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </View>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#c2410c' }}>
+                    Schedule Delayed / Overdue ({bookingTargetRange.dateKey})
+                  </Text>
+                  <Text style={{ fontSize: 11, color: '#9a3412', lineHeight: 16 }}>
+                    Customer's requested slot was <Text style={{ fontWeight: '700' }}>{bookingTargetRange.dateKey} ({bookingTargetRange.timeLabel})</Text> ({bookingTargetRange.overdueDays} day{bookingTargetRange.overdueDays > 1 ? 's' : ''} ago). Technician dispatch will activate for the slot selected below.
+                  </Text>
+                </View>
+              </View>
+            )}
+
             {/* Target Window & Category Header Strip */}
             <View style={{
               flexDirection: 'row',
@@ -905,9 +998,12 @@ export default function AdminConsultationsScreen() {
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
                 <Text style={{ fontSize: 12, color: '#334155', fontWeight: '600' }}>
-                  Target Slot: <Text style={{ color: '#0f172a', fontWeight: '800' }}>
-                    {bookingTargetRange ? `${bookingTargetRange.dateKey} (${bookingTargetRange.timeLabel})` : (selectedBooking?.scheduled_date || 'Standard Slot')}
+                  Dispatch Slot: <Text style={{ color: '#0f172a', fontWeight: '800' }}>
+                    {selectedDispatchSlot ? `${selectedDispatchSlot.dateKey} (${selectedDispatchSlot.timeLabel})` : (selectedBooking?.scheduled_date || 'Standard Slot')}
                   </Text>
+                  {selectedDispatchSlot?.isOverdueResolved && (
+                    <Text style={{ color: '#2563eb', fontWeight: '700', fontSize: 11 }}> [Rescheduled]</Text>
+                  )}
                 </Text>
               </View>
 
@@ -948,6 +1044,74 @@ export default function AdminConsultationsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+
+            {/* Quick Reschedule Strip if Overdue */}
+            {bookingTargetRange?.isOverdue && (
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+                backgroundColor: '#ffffff',
+                padding: 8,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: '#e2e8f0',
+                marginTop: 6,
+                flexWrap: 'wrap',
+              }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>Assign Window:</Text>
+                <TouchableOpacity
+                  style={{
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 6,
+                    backgroundColor: assignDispatchSlotMode === 'TODAY' ? '#0f172a' : '#f1f5f9',
+                    borderWidth: 1,
+                    borderColor: assignDispatchSlotMode === 'TODAY' ? '#0f172a' : '#e2e8f0',
+                  }}
+                  onPress={() => setAssignDispatchSlotMode('TODAY')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: assignDispatchSlotMode === 'TODAY' ? '#ffffff' : '#475569' }}>
+                    Today (Immediate)
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 6,
+                    backgroundColor: assignDispatchSlotMode === 'TOMORROW_10' ? '#0f172a' : '#f1f5f9',
+                    borderWidth: 1,
+                    borderColor: assignDispatchSlotMode === 'TOMORROW_10' ? '#0f172a' : '#e2e8f0',
+                  }}
+                  onPress={() => setAssignDispatchSlotMode('TOMORROW_10')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: assignDispatchSlotMode === 'TOMORROW_10' ? '#ffffff' : '#475569' }}>
+                    Tomorrow 10:00 AM
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 6,
+                    backgroundColor: assignDispatchSlotMode === 'TOMORROW_14' ? '#0f172a' : '#f1f5f9',
+                    borderWidth: 1,
+                    borderColor: assignDispatchSlotMode === 'TOMORROW_14' ? '#0f172a' : '#e2e8f0',
+                  }}
+                  onPress={() => setAssignDispatchSlotMode('TOMORROW_14')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: assignDispatchSlotMode === 'TOMORROW_14' ? '#ffffff' : '#475569' }}>
+                    Tomorrow 02:00 PM
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* Candidate Providers List */}
             <ScrollView style={{ maxHeight: 380, marginTop: 12 }} showsVerticalScrollIndicator={false}>
@@ -1063,7 +1227,13 @@ export default function AdminConsultationsScreen() {
                               activeOpacity={0.85}
                             >
                               <Text style={styles.assignSelectBtnText}>
-                                {submitting ? 'Dispatching...' : isBusy ? 'Assign (Conflict)' : 'Assign Technician'}
+                                {submitting
+                                  ? 'Dispatching...'
+                                  : isBusy
+                                  ? 'Assign (Conflict)'
+                                  : selectedDispatchSlot?.isOverdueResolved
+                                  ? `Assign for ${selectedDispatchSlot.displayLabel ? selectedDispatchSlot.displayLabel.split(' ')[0] : 'Today'}`
+                                  : 'Assign Technician'}
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -1105,6 +1275,8 @@ export default function AdminConsultationsScreen() {
                           }}>
                             {isBusy
                               ? `Schedule Conflict: Booked on #${avail.conflictBooking?.booking_id || 'another job'} (${avail.timeRange?.timeLabel || 'overlapping time'})`
+                              : selectedDispatchSlot?.isOverdueResolved
+                              ? `✓ Overdue Resolved: Technician is Free for ${selectedDispatchSlot?.displayLabel || 'Today'}`
                               : isAvail
                               ? 'Free & Ready: No scheduling conflicts found for this slot'
                               : 'Technician currently off-duty'}

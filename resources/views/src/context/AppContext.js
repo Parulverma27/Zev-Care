@@ -2239,7 +2239,7 @@ export function AppProvider({ children }) {
     return newBk;
   };
 
-  const assignProvider = (bookingId, providerId) => {
+  const assignProvider = (bookingId, providerId, newScheduledDate = null) => {
     const prov = providers.find((p) => p.id === providerId);
     if (!prov) return;
     setBookings((prev) =>
@@ -2259,6 +2259,7 @@ export function AppProvider({ children }) {
           provider_lng: b.provider_lng || bLng + 0.0065,
           last_location_update: new Date().toISOString(),
           status: 'PROVIDER_ASSIGNED',
+          ...(newScheduledDate ? { scheduled_date: newScheduledDate } : {}),
         };
       })
     );

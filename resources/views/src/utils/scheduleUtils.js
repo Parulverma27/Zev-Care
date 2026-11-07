@@ -107,11 +107,43 @@ export const formatDateKey = (date = new Date()) => {
 /**
  * Extracts date key and decimal time range from a booking's scheduled_date
  */
-export const extractBookingTimeRange = (booking) => {
-  if (!booking) return null;
+/**
+ * Extracts date key and decimal time range from a booking's scheduled_date,
+ * and detects whether the slot is overdue / past due.
+ */
+export const extractBookingTimeRange = (booking, overrideSlot = null) => {
+  if (!booking && !overrideSlot) return null;
+
+  const now = new Date();
+  const todayKey = formatDateKey(now);
+
+  if (overrideSlot) {
+    const startHour = Number(overrideSlot.startHour) || 10.0;
+    const cat = normalizeCategoryName(overrideSlot.category || booking?.category_name || booking?.service_name);
+    const duration = overrideSlot.duration || CATEGORY_DURATION_HOURS[cat] || 1.5;
+    const endHour = startHour + duration;
+    const dateKey = overrideSlot.dateKey || todayKey;
+
+    const nowDecimal = now.getHours() + now.getMinutes() / 60;
+    const isPastDate = dateKey < todayKey;
+    const isPastTime = dateKey === todayKey && endHour <= nowDecimal;
+    const isOverdue = isPastDate || isPastTime;
+
+    return {
+      dateKey,
+      startHour,
+      endHour,
+      duration,
+      timeLabel: `${formatDecimalToTime(startHour)} - ${formatDecimalToTime(endHour)}`,
+      isOverdue,
+      isPastDate,
+      overdueDays: isPastDate ? Math.max(1, Math.round((new Date(todayKey + 'T00:00:00') - new Date(dateKey + 'T00:00:00')) / 86400000)) : 0,
+      raw: overrideSlot.raw || `${dateKey} (${formatDecimalToTime(startHour)})`,
+      isRescheduled: true,
+    };
+  }
 
   const raw = String(booking.scheduled_date || booking.date || '').trim();
-  const todayKey = formatDateKey(new Date());
 
   // Date determination
   let dateKey = todayKey;
@@ -133,19 +165,37 @@ export const extractBookingTimeRange = (booking) => {
   const duration = CATEGORY_DURATION_HOURS[cat] || 1.5;
   const endHour = startHour + duration;
 
+  const nowDecimal = now.getHours() + now.getMinutes() / 60;
+  const isPastDate = dateKey < todayKey;
+  const isPastTime = dateKey === todayKey && endHour <= nowDecimal;
+  const isOverdue = isPastDate || isPastTime;
+
+  let overdueDays = 0;
+  if (isPastDate) {
+    const d1 = new Date(dateKey + 'T00:00:00');
+    const d2 = new Date(todayKey + 'T00:00:00');
+    overdueDays = Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)));
+  }
+
   return {
     dateKey,
     startHour,
     endHour,
     duration,
     timeLabel: `${formatDecimalToTime(startHour)} - ${formatDecimalToTime(endHour)}`,
+    isOverdue,
+    isPastDate,
+    overdueDays,
+    raw,
   };
 };
 
 /**
  * Checks whether a provider is free or busy for a target booking
+ * If the booking's original slot is overdue and no override is provided,
+ * checks provider availability against TODAY's immediate schedule window.
  */
-export const checkProviderAvailability = (provider, targetBooking, allBookings = []) => {
+export const checkProviderAvailability = (provider, targetBooking, allBookings = [], overrideRange = null) => {
   if (!provider) return { isAvailable: false, statusLabel: 'OFFLINE', statusMessage: 'No provider selected' };
 
   const provIdStr = String(provider.id || '');
@@ -161,8 +211,8 @@ export const checkProviderAvailability = (provider, targetBooking, allBookings =
     };
   }
 
-  const targetRange = extractBookingTimeRange(targetBooking);
-  if (!targetRange) {
+  const rawRange = overrideRange || extractBookingTimeRange(targetBooking);
+  if (!rawRange) {
     return {
       isAvailable: true,
       statusLabel: 'FREE',
@@ -170,7 +220,28 @@ export const checkProviderAvailability = (provider, targetBooking, allBookings =
     };
   }
 
-  // Find all active bookings for this provider on the target date
+  const now = new Date();
+  const todayKey = formatDateKey(now);
+  const nowDecimal = now.getHours() + now.getMinutes() / 60;
+
+  // If the booking is overdue and admin hasn't overridden with a custom slot,
+  // effective evaluation window is TODAY (Immediate next window)
+  const isOverdue = Boolean(rawRange.isOverdue && !overrideRange);
+  const effectiveRange = isOverdue
+    ? {
+        dateKey: todayKey,
+        startHour: Math.max(8, Math.min(19, Math.ceil(nowDecimal * 2) / 2)),
+        endHour: Math.max(8, Math.min(19, Math.ceil(nowDecimal * 2) / 2)) + rawRange.duration,
+        duration: rawRange.duration,
+        timeLabel: `Today (Immediate)`,
+        isOverdue: true,
+        overdueDays: rawRange.overdueDays,
+        originalDateKey: rawRange.dateKey,
+        originalTimeLabel: rawRange.timeLabel,
+      }
+    : rawRange;
+
+  // Find all active bookings for this provider on the effective target date
   const providerActiveBookings = (allBookings || []).filter((b) => {
     // Exclude the current target booking itself
     if (targetBooking?.id != null && b.id === targetBooking.id) return false;
@@ -197,29 +268,45 @@ export const checkProviderAvailability = (provider, targetBooking, allBookings =
     return activeStatuses.includes(b.status);
   });
 
-  // Check for time overlap on the same date
+  // Check for time overlap on the effective date
   for (const b of providerActiveBookings) {
     const range = extractBookingTimeRange(b);
-    if (range && range.dateKey === targetRange.dateKey) {
+    if (range && range.dateKey === effectiveRange.dateKey) {
       // Overlap condition: startA < endB && endA > startB
-      const isOverlap = targetRange.startHour < range.endHour && targetRange.endHour > range.startHour;
+      const isOverlap = effectiveRange.startHour < range.endHour && effectiveRange.endHour > range.startHour;
       if (isOverlap) {
         return {
           isAvailable: false,
           conflictBooking: b,
           statusLabel: 'BUSY',
-          statusMessage: `Occupied on ${b.booking_id || 'booking'} until ${formatDecimalToTime(range.endHour)}`,
+          statusMessage: isOverdue
+            ? `Original slot expired. Partner has conflict today on #${b.booking_id || 'booking'} until ${formatDecimalToTime(range.endHour)}`
+            : `Occupied on #${b.booking_id || 'booking'} until ${formatDecimalToTime(range.endHour)}`,
           timeRange: range,
+          isOverdue,
+          effectiveRange,
         };
       }
     }
   }
 
+  if (isOverdue) {
+    return {
+      isAvailable: true,
+      statusLabel: 'OVERDUE_FREE',
+      statusMessage: `Original slot expired (${effectiveRange.originalDateKey}). Partner is free for Today's immediate dispatch`,
+      isOverdue: true,
+      overdueDays: effectiveRange.overdueDays,
+      effectiveRange,
+    };
+  }
+
   return {
     isAvailable: true,
     statusLabel: 'FREE',
-    statusMessage: `Free at ${formatDecimalToTime(targetRange.startHour)} (${providerActiveBookings.length} other jobs today)`,
+    statusMessage: `Free at ${formatDecimalToTime(effectiveRange.startHour)} (${providerActiveBookings.length} other jobs on this date)`,
     otherJobsTodayCount: providerActiveBookings.length,
+    effectiveRange,
   };
 };
 
