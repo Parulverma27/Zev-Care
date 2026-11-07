@@ -131,6 +131,7 @@ export default function AdminSubAdminsScreen() {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     phone: '',
     status: 'ACTIVE',
     assigned_categories: ['Electrician'],
@@ -150,6 +151,7 @@ export default function AdminSubAdminsScreen() {
       name: '',
       email: '',
       password: '',
+      confirmPassword: '',
       phone: '',
       status: 'ACTIVE',
       assigned_categories: ['Electrician'],
@@ -171,6 +173,7 @@ export default function AdminSubAdminsScreen() {
       name: subAdmin.name || '',
       email: subAdmin.email || '',
       password: '', // blank means keep unchanged
+      confirmPassword: '',
       phone: subAdmin.phone || '',
       status: subAdmin.status || 'ACTIVE',
       assigned_categories: Array.isArray(subAdmin.assigned_categories)
@@ -220,9 +223,15 @@ export default function AdminSubAdminsScreen() {
       setActionError('Please enter sub-admin name and email.');
       return;
     }
-    if (!editingSubAdmin && (!formData.password || formData.password.length < 4)) {
-      setActionError('Please provide a secure initial password (minimum 4 characters).');
-      return;
+    if (!editingSubAdmin) {
+      if (!formData.password || formData.password.length < 4) {
+        setActionError('Please enter a password with at least 4 characters.');
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setActionError('Password and Confirm Password do not match.');
+        return;
+      }
     }
     if (formData.assigned_categories.length === 0) {
       setActionError('Please assign at least one category vertical.');
@@ -234,6 +243,7 @@ export default function AdminSubAdminsScreen() {
       if (editingSubAdmin) {
         if (typeof updateSubAdmin === 'function') {
           const payload = { ...formData };
+          delete payload.confirmPassword;
           if (payload.password && payload.password.trim()) {
             if (!isSuperAdmin) {
               setActionError('Only the Super Admin is authorized to change sub-admin passwords.');
@@ -245,6 +255,11 @@ export default function AdminSubAdminsScreen() {
               setIsSubmitting(false);
               return;
             }
+            if (payload.password !== formData.confirmPassword) {
+              setActionError('New password and Confirm password do not match.');
+              setIsSubmitting(false);
+              return;
+            }
             payload.password = payload.password.trim();
           } else {
             delete payload.password;
@@ -253,7 +268,9 @@ export default function AdminSubAdminsScreen() {
         }
       } else {
         if (typeof addSubAdmin === 'function') {
-          await addSubAdmin(formData);
+          const payload = { ...formData };
+          delete payload.confirmPassword;
+          await addSubAdmin(payload);
         }
       }
       setIsModalOpen(false);
@@ -627,41 +644,55 @@ export default function AdminSubAdminsScreen() {
               {editingSubAdmin ? (
                 isSuperAdmin ? (
                   <View style={styles.formGroup}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <LockIcon color="#b45309" size={13} />
-                        <Text style={[styles.formLabel, { color: '#0f172a' }]}>
+                        <Text style={[styles.formLabel, { color: '#0f172a', marginBottom: 0 }]}>
                           Change Password (Super Admin Only)
                         </Text>
                       </View>
                       <TouchableOpacity
-                        onPress={() => setFormData((p) => ({ ...p, password: `Zevota@${Math.floor(1000 + Math.random() * 9000)}` }))}
+                        onPress={() => setShowFormPassword((p) => !p)}
+                        style={{ paddingHorizontal: 6, paddingVertical: 2 }}
                       >
-                        <Text style={{ fontSize: 11, color: '#2563eb', fontWeight: '600' }}>🎲 Generate Password</Text>
+                        <Text style={{ fontSize: 11, color: '#2563eb', fontWeight: '700' }}>
+                          {showFormPassword ? 'Hide Passwords' : 'Show Passwords'}
+                        </Text>
                       </TouchableOpacity>
                     </View>
-                    <View style={{ position: 'relative' }}>
+
+                    {/* New Password */}
+                    <View style={{ marginBottom: 10 }}>
+                      <Text style={[styles.formLabel, { fontSize: 11.5, color: '#475569', marginBottom: 4 }]}>
+                        New Password
+                      </Text>
                       <TextInput
-                        style={[styles.formInput, { paddingRight: 50 }]}
-                        placeholder="Leave blank to keep existing password"
+                        style={styles.formInput}
+                        placeholder="Enter new password (leave blank to keep current)"
                         placeholderTextColor="#94a3b8"
                         secureTextEntry={!showFormPassword}
                         value={formData.password}
                         onChangeText={(val) => setFormData((p) => ({ ...p, password: val }))}
                       />
-                      {formData.password ? (
-                        <TouchableOpacity
-                          style={{ position: 'absolute', right: 10, top: 10, padding: 2 }}
-                          onPress={() => setShowFormPassword((p) => !p)}
-                        >
-                          <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '700' }}>
-                            {showFormPassword ? 'HIDE' : 'SHOW'}
-                          </Text>
-                        </TouchableOpacity>
-                      ) : null}
                     </View>
+
+                    {/* Confirm New Password */}
+                    <View>
+                      <Text style={[styles.formLabel, { fontSize: 11.5, color: '#475569', marginBottom: 4 }]}>
+                        Confirm New Password
+                      </Text>
+                      <TextInput
+                        style={styles.formInput}
+                        placeholder="Re-enter new password to confirm"
+                        placeholderTextColor="#94a3b8"
+                        secureTextEntry={!showFormPassword}
+                        value={formData.confirmPassword}
+                        onChangeText={(val) => setFormData((p) => ({ ...p, confirmPassword: val }))}
+                      />
+                    </View>
+
                     <Text style={styles.formHelp}>
-                      As Super Admin, enter a new password (min 4 chars) to update credentials immediately, or leave blank to keep current password.
+                      Leave both fields blank to keep current password. To change, type the desired password in both fields (min 4 chars).
                     </Text>
                   </View>
                 ) : (
@@ -676,37 +707,51 @@ export default function AdminSubAdminsScreen() {
                 )
               ) : (
                 <View style={styles.formGroup}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <LockIcon color="#475569" size={13} />
-                      <Text style={styles.formLabel}>Login Password *</Text>
+                      <Text style={[styles.formLabel, { marginBottom: 0 }]}>Portal Login Password *</Text>
                     </View>
                     <TouchableOpacity
-                      onPress={() => setFormData((p) => ({ ...p, password: `Zevota@${Math.floor(1000 + Math.random() * 9000)}` }))}
+                      onPress={() => setShowFormPassword((p) => !p)}
+                      style={{ paddingHorizontal: 6, paddingVertical: 2 }}
                     >
-                      <Text style={{ fontSize: 11, color: '#2563eb', fontWeight: '600' }}>🎲 Generate Password</Text>
+                      <Text style={{ fontSize: 11, color: '#2563eb', fontWeight: '700' }}>
+                        {showFormPassword ? 'Hide Passwords' : 'Show Passwords'}
+                      </Text>
                     </TouchableOpacity>
                   </View>
-                  <View style={{ position: 'relative' }}>
+
+                  {/* Initial Password */}
+                  <View style={{ marginBottom: 10 }}>
+                    <Text style={[styles.formLabel, { fontSize: 11.5, color: '#475569', marginBottom: 4 }]}>
+                      Initial Password *
+                    </Text>
                     <TextInput
-                      style={[styles.formInput, { paddingRight: 50 }]}
-                      placeholder="Enter initial login password for this sub-admin"
+                      style={styles.formInput}
+                      placeholder="Enter initial login password (min 4 chars)"
                       placeholderTextColor="#94a3b8"
                       secureTextEntry={!showFormPassword}
                       value={formData.password}
                       onChangeText={(val) => setFormData((p) => ({ ...p, password: val }))}
                     />
-                    {formData.password ? (
-                      <TouchableOpacity
-                        style={{ position: 'absolute', right: 10, top: 10, padding: 2 }}
-                        onPress={() => setShowFormPassword((p) => !p)}
-                      >
-                        <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '700' }}>
-                          {showFormPassword ? 'HIDE' : 'SHOW'}
-                        </Text>
-                      </TouchableOpacity>
-                    ) : null}
                   </View>
+
+                  {/* Confirm Password */}
+                  <View>
+                    <Text style={[styles.formLabel, { fontSize: 11.5, color: '#475569', marginBottom: 4 }]}>
+                      Confirm Password *
+                    </Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="Re-enter password to confirm"
+                      placeholderTextColor="#94a3b8"
+                      secureTextEntry={!showFormPassword}
+                      value={formData.confirmPassword}
+                      onChangeText={(val) => setFormData((p) => ({ ...p, confirmPassword: val }))}
+                    />
+                  </View>
+
                   <Text style={styles.formHelp}>
                     The sub-admin will use this password along with their email address to log into their departmental portal.
                   </Text>
