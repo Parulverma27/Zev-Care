@@ -833,6 +833,16 @@ export default function BookingDetailScreen() {
             ))}
           </View>
         ) : null}
+
+        {Array.isArray(bk?.issueMedia?.videos) && bk.issueMedia.videos.filter((v) => v && v.uri).length > 0 ? (
+          <View style={{ marginTop: 8, gap: 8 }}>
+            {bk.issueMedia.videos.filter((v) => v && v.uri).map((v, i) => (
+              <View key={`im-vid-${i}`} style={{ width: '100%', borderRadius: 12, overflow: 'hidden', backgroundColor: '#0f172a' }}>
+                <video src={resolveImageUri(v.uri)} controls style={{ width: '100%', maxHeight: 240, display: 'block' }} />
+              </View>
+            ))}
+          </View>
+        ) : null}
       </View>
 
       {/* 10-Stage Connected Visual Timeline */}

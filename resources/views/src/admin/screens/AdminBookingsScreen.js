@@ -46,22 +46,48 @@ export default function AdminBookingsScreen() {
   const [customerMediaModal, setCustomerMediaModal] = useState(false);
   const [mediaBooking, setMediaBooking] = useState(null);
 
+  const isVideoMedia = (uri, typeHint) => {
+    if (typeHint === 'video') return true;
+    if (!uri || typeof uri !== 'string') return false;
+    const clean = uri.trim().toLowerCase();
+    if (clean.startsWith('auto-verified://')) return false;
+    return (
+      clean.startsWith('data:video/') ||
+      clean.includes('.webm') ||
+      clean.includes('.mp4') ||
+      clean.includes('.mov') ||
+      clean.includes('.mkv') ||
+      clean.includes('video') ||
+      (clean.startsWith('blob:') && typeHint !== 'photo')
+    );
+  };
+
   const getAllBookingMediaItems = (b) => {
     if (!b) return [];
     const items = [];
-    if (Array.isArray(b.issueMedia?.photos)) {
-      b.issueMedia.photos.forEach((p) => {
-        if (p?.uri) items.push({ type: 'photo', uri: p.uri });
-      });
-    }
+    const seenUris = new Set();
+
     if (Array.isArray(b.issueMedia?.videos)) {
       b.issueMedia.videos.forEach((v) => {
-        if (v?.uri) items.push({ type: 'video', uri: v.uri });
+        if (v?.uri && !seenUris.has(v.uri)) {
+          seenUris.add(v.uri);
+          items.push({ type: 'video', uri: v.uri });
+        }
+      });
+    }
+    if (Array.isArray(b.issueMedia?.photos)) {
+      b.issueMedia.photos.forEach((p) => {
+        if (p?.uri && !seenUris.has(p.uri)) {
+          seenUris.add(p.uri);
+          items.push({ type: isVideoMedia(p.uri, p.type) ? 'video' : 'photo', uri: p.uri });
+        }
       });
     }
     const fallbackUrl = b.issue_media_url || b.mediaUrl || b.media_url;
-    if (items.length === 0 && fallbackUrl) {
-      items.push({ type: 'photo', uri: fallbackUrl });
+    if (items.length === 0 && fallbackUrl && !seenUris.has(fallbackUrl)) {
+      seenUris.add(fallbackUrl);
+      const isVideo = isVideoMedia(fallbackUrl, b.issue_media_type || b.media_type || b.type);
+      items.push({ type: isVideo ? 'video' : 'photo', uri: fallbackUrl });
     }
     return items;
   };
@@ -845,36 +871,56 @@ export default function AdminBookingsScreen() {
                       {b.issue || b.issue_description}
                     </Text>
                   )}
-                  {getAllBookingMediaItems(b).length > 0 && (
-                    <TouchableOpacity
-                      style={{
-                        marginTop: 4,
-                        backgroundColor: '#eff6ff',
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                        borderRadius: 6,
-                        borderWidth: 1,
-                        borderColor: '#bfdbfe',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 4,
-                        alignSelf: 'flex-start',
-                      }}
-                      onPress={() => {
-                        setMediaBooking(b);
-                        setCustomerMediaModal(true);
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                        <circle cx="12" cy="13" r="4" />
-                      </svg>
-                      <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1d4ed8' }}>
-                        View Photo ({getAllBookingMediaItems(b).length})
-                      </Text>
-                    </TouchableOpacity>
-                  )}
+                  {getAllBookingMediaItems(b).length > 0 && (() => {
+                    const mediaItems = getAllBookingMediaItems(b);
+                    const videoCount = mediaItems.filter((m) => m.type === 'video').length;
+                    const photoCount = mediaItems.filter((m) => m.type === 'photo').length;
+                    const hasOnlyVideo = videoCount > 0 && photoCount === 0;
+                    const hasBoth = videoCount > 0 && photoCount > 0;
+                    const labelText = hasOnlyVideo
+                      ? `View Video (${videoCount})`
+                      : hasBoth
+                        ? `View Photo & Video (${mediaItems.length})`
+                        : `View Photo (${photoCount})`;
+
+                    return (
+                      <TouchableOpacity
+                        style={{
+                          marginTop: 4,
+                          backgroundColor: '#eff6ff',
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                          borderRadius: 6,
+                          borderWidth: 1,
+                          borderColor: '#bfdbfe',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 4,
+                          alignSelf: 'flex-start',
+                        }}
+                        onPress={() => {
+                          setMediaBooking(b);
+                          setCustomerMediaModal(true);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        {hasOnlyVideo || hasBoth ? (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="23 7 16 12 23 17 23 7" />
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                          </svg>
+                        ) : (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                            <circle cx="12" cy="13" r="4" />
+                          </svg>
+                        )}
+                        <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1d4ed8' }}>
+                          {labelText}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })()}
                 </View>
 
                 {/* Clickable Provider Name */}
@@ -2146,10 +2192,10 @@ export default function AdminBookingsScreen() {
               {getAllBookingMediaItems(mediaBooking).length > 0 ? (
                 getAllBookingMediaItems(mediaBooking).map((item, index) => (
                   <View key={index} style={{ gap: 6, backgroundColor: '#0f172a', padding: 8, borderRadius: 12, overflow: 'hidden' }}>
-                    {item.type === 'video' ? (
+                    {item.type === 'video' || isVideoMedia(item.uri, item.type) ? (
                       <AdminVideoPlayer
                         src={item.uri}
-                        label="Original Customer Video"
+                        label={getAllBookingMediaItems(mediaBooking).filter((m) => m.type === 'video').length > 1 ? `Original Customer Video ${index + 1}` : 'Original Customer Video'}
                       />
                     ) : (
                       <>
@@ -2163,7 +2209,7 @@ export default function AdminBookingsScreen() {
                 ))
               ) : (
                 <Text style={{ fontSize: 13, color: '#64748b', textAlign: 'center', padding: 20 }}>
-                  No photo attached for this booking.
+                  No media (photo/video) attached for this booking.
                 </Text>
               )}
             </ScrollView>
