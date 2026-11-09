@@ -832,6 +832,11 @@ export default function AdminBookingsScreen() {
           const hasBill = hasGeneratedBill(b);
           const isPaid = isBillPaid(b);
           const sla = getSlaStatus(b);
+          const isLiveTrackable =
+            b.status !== 'COMPLETED' &&
+            b.status !== 'CANCELLED' &&
+            b.status !== 'REJECTED' &&
+            ['PROVIDER_ACCEPTED', 'PROVIDER_ON_THE_WAY', 'PROVIDER_ARRIVED', 'SERVICE_IN_PROGRESS', 'IN_PROGRESS'].includes(b.status);
 
           return (
             <View key={idx} style={styles.tableRowContainer}>
@@ -938,8 +943,8 @@ export default function AdminBookingsScreen() {
                     </View>
                   </TouchableOpacity>
 
-                  {/* One-Click Live Track Pill directly under Partner */}
-                  {isAssigned && (
+                  {/* One-Click Live Track Pill directly under Partner (Only when accepted & service not completed) */}
+                  {isLiveTrackable && (
                     <TouchableOpacity
                       onPress={() => setLiveTrackingBooking(b)}
                       style={{
@@ -1126,8 +1131,8 @@ export default function AdminBookingsScreen() {
                         <Text style={styles.actionBtnText}>{isAssigned ? 'Reassign Partner' : 'Assign Partner'}</Text>
                       </TouchableOpacity>
 
-                      {/* LIVE TRACK BUTTON */}
-                      {(isAssigned || ['PROVIDER_ASSIGNED', 'PROVIDER_ACCEPTED', 'PROVIDER_ON_THE_WAY', 'PROVIDER_ARRIVED', 'SERVICE_IN_PROGRESS', 'INSPECTION_RECEIVED', 'INSPECTIONRECEIVED'].includes(b.status)) && (
+                      {/* LIVE TRACK BUTTON (Only when technician has accepted & service is not completed) */}
+                      {isLiveTrackable && (
                         <TouchableOpacity
                           style={[styles.actionBtn, { backgroundColor: '#7c3aed', flexDirection: 'row', alignItems: 'center', gap: 5 }]}
                           onPress={() => setLiveTrackingBooking(b)}
