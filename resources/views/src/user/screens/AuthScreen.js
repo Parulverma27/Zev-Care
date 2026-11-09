@@ -488,24 +488,24 @@ export default function AuthScreen() {
                     zIndex: activeSlideIndex === idx ? 2 : 1,
                     overflow: 'hidden',
                     backgroundColor: slide.bg,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '54px 24px 112px',
+                    padding: 0,
+                    margin: 0,
                     boxSizing: 'border-box',
                   }}
                 >
-                  {/* Full Image Display - Contain ensures 100% of the graphic is visible */}
+                  {/* Full-Bleed Graphic Image - Zero border */}
                   <img
                     src={slide.url}
                     alt={slide.caption}
                     style={{
                       width: '100%',
                       height: '100%',
-                      objectFit: 'contain',
-                      objectPosition: 'center',
+                      objectFit: 'cover',
+                      objectPosition: 'center top',
                       display: 'block',
+                      margin: 0,
+                      padding: 0,
+                      border: 'none',
                     }}
                   />
 
@@ -513,39 +513,39 @@ export default function AuthScreen() {
                   <div
                     style={{
                       position: 'absolute',
-                      top: '20px',
+                      top: '22px',
                       left: '22px',
                       zIndex: 6,
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '7px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                      backgroundColor: 'rgba(3, 16, 46, 0.72)',
                       backdropFilter: 'blur(12px)',
                       WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(2, 132, 199, 0.22)',
-                      boxShadow: '0 4px 14px rgba(2, 132, 199, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.22)',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
                       borderRadius: '20px',
                       padding: '6px 14px',
-                      color: '#0369a1',
+                      color: '#ffffff',
                       fontSize: '11px',
                       fontWeight: 800,
                       letterSpacing: '0.8px',
                       fontFamily: "'Inter', sans-serif",
                     }}
                   >
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#0284c7', boxShadow: '0 0 8px #0284c7' }} />
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#38bdf8', boxShadow: '0 0 8px #38bdf8' }} />
                     <span>{slide.tag || 'ZEVOTA CARE'}</span>
                   </div>
 
-                  {/* Clean Bottom Banner & Typography */}
+                  {/* Cinematic Bottom Gradient & Typography */}
                   <div
                     style={{
                       position: 'absolute',
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      padding: '20px 28px 38px',
-                      background: 'linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.92) 28%, rgba(255, 255, 255, 0.98) 100%)',
+                      padding: '40px 30px 42px',
+                      background: 'linear-gradient(180deg, rgba(3, 16, 46, 0) 0%, rgba(3, 16, 46, 0.45) 30%, rgba(3, 16, 46, 0.88) 75%, rgba(3, 16, 46, 0.96) 100%)',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '6px',
@@ -558,7 +558,7 @@ export default function AuthScreen() {
                         margin: 0,
                         fontSize: '20px',
                         fontWeight: 800,
-                        color: '#0a1633',
+                        color: '#ffffff',
                         lineHeight: 1.25,
                         fontFamily: "'Outfit', 'Inter', sans-serif",
                         letterSpacing: '-0.3px',
@@ -570,7 +570,7 @@ export default function AuthScreen() {
                       style={{
                         margin: 0,
                         fontSize: '13px',
-                        color: '#475569',
+                        color: 'rgba(255, 255, 255, 0.88)',
                         lineHeight: 1.45,
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                       }}
@@ -592,8 +592,8 @@ export default function AuthScreen() {
                     style={{
                       ...desktopStyles.desktopDotBtn,
                       width: activeSlideIndex === idx ? 28 : 8,
-                      backgroundColor: activeSlideIndex === idx ? '#0284c7' : 'rgba(15, 23, 42, 0.22)',
-                      boxShadow: activeSlideIndex === idx ? '0 2px 8px rgba(2, 132, 199, 0.45)' : 'none',
+                      backgroundColor: activeSlideIndex === idx ? '#ffffff' : 'rgba(255, 255, 255, 0.45)',
+                      boxShadow: activeSlideIndex === idx ? '0 0 10px rgba(255, 255, 255, 0.85)' : 'none',
                     }}
                   />
                 ))}
@@ -1080,16 +1080,14 @@ export default function AuthScreen() {
               inset: 0,
               width: '100%',
               height: '100%',
-              padding: '8px 12px 26px',
+              padding: 0,
               margin: 0,
               boxSizing: 'border-box',
               backgroundColor: slide.bg,
               opacity: activeSlideIndex === idx ? 1 : 0,
               transition: 'opacity 0.8s ease-in-out',
               zIndex: activeSlideIndex === idx ? 2 : 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              overflow: 'hidden',
             }}
           >
             <img
@@ -1111,7 +1109,8 @@ export default function AuthScreen() {
               style={{
                 ...css.dot,
                 width: activeSlideIndex === idx ? 20 : 6,
-                backgroundColor: activeSlideIndex === idx ? '#0284c7' : 'rgba(15, 23, 42, 0.22)',
+                backgroundColor: activeSlideIndex === idx ? '#ffffff' : 'rgba(255, 255, 255, 0.55)',
+                boxShadow: activeSlideIndex === idx ? '0 1px 6px rgba(0, 0, 0, 0.45)' : '0 1px 3px rgba(0, 0, 0, 0.35)',
               }}
             />
           ))}
@@ -2028,17 +2027,19 @@ const css = {
   hero: {
     position: 'relative',
     width: '100%',
-    height: 310,
-    maxHeight: '40vh',
+    aspectRatio: '1.25 / 1',
+    maxHeight: 330,
     overflow: 'hidden',
     flexShrink: 0,
     zIndex: 1,
+    padding: 0,
+    margin: 0,
     transition: 'background-color 0.8s ease-in-out',
   },
   heroImage: {
     width: '100%',
     height: '100%',
-    objectFit: 'contain',
+    objectFit: 'cover',
     objectPosition: 'center top',
     display: 'block',
     border: 'none',
@@ -2047,7 +2048,7 @@ const css = {
   },
   dotsContainer: {
     position: 'absolute',
-    bottom: 22,
+    bottom: 14,
     left: 0,
     right: 0,
     display: 'flex',
@@ -2066,7 +2067,7 @@ const css = {
     cursor: 'pointer',
     transition: 'all 0.3s ease-in-out',
     outline: 'none',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.15)',
+    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.4)',
   },
   loginHeader: {
     display: 'flex',
@@ -2094,14 +2095,14 @@ const css = {
     position: 'relative',
     zIndex: 2,
     backgroundColor: '#ffffff',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     padding: '16px 20px 24px',
-    boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.05)',
+    boxShadow: '0 -8px 25px rgba(0, 0, 0, 0.06)',
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    marginTop: -16,
+    marginTop: -8,
   },
   card: { display: 'flex', flexDirection: 'column', gap: 10 },
   errorBox: {
