@@ -974,47 +974,8 @@ export default function AdminBookingsScreen() {
                   )}
                 </View>
 
-                <View style={{ flex: 1.0, gap: 4 }}>
+                <View style={{ flex: 1.0 }}>
                   <Text style={styles.td}>{b.scheduled_date || 'Today'}</Text>
-                  {sla ? (
-                    <View style={{
-                      backgroundColor: sla.bg,
-                      borderColor: sla.border,
-                      borderWidth: 1,
-                      paddingHorizontal: 6,
-                      paddingVertical: 2,
-                      borderRadius: 4,
-                      alignSelf: 'flex-start',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 4,
-                    }}>
-                      {sla.status === 'MET' && (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={sla.text} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                      {sla.status === 'BREACHED' && (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={sla.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                        </svg>
-                      )}
-                      {sla.status === 'URGENT' && (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill={sla.text} stroke={sla.text} strokeWidth="1">
-                          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                        </svg>
-                      )}
-                      {sla.status === 'ON_TRACK' && (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={sla.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10" />
-                          <polyline points="12 6 12 12 16 14" />
-                        </svg>
-                      )}
-                      <Text style={{ fontSize: 9.5, fontWeight: '800', color: sla.text }}>
-                        {sla.label}
-                      </Text>
-                    </View>
-                  ) : null}
                 </View>
 
                 <View style={{ flex: 1.2 }}>
