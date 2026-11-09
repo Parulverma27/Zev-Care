@@ -47,6 +47,13 @@ const SLIDE_CONFIGS = [
     caption: 'Expert Bathroom & Kitchen Plumbing',
     sub: 'Taps, diverter valves, pipeline leaks & drain blockages resolved promptly.',
   },
+  {
+    url: SERVICE_IMAGES.loginSlide6,
+    bg: '#f8fafc',
+    tag: 'CARPENTRY & FURNITURE EXPERTS',
+    caption: 'Master Carpentry & Custom Fittings',
+    sub: 'Furniture repair, door locks, hinges, modular fittings & wooden restoration.',
+  },
 ].filter((s) => Boolean(s.url));
 
 function getPage(pathname) {
