@@ -12,6 +12,12 @@ export default function ServiceBrowseScreen({ onNavigate }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isConsultation = (location.pathname || '').includes('consultation');
+  const isServiceBooking =
+    (location.pathname || '').includes('service') ||
+    location.state?.bookingMode === 'service';
+  const isComplaint = !isConsultation && !isServiceBooking;
+  const activeBookingMode = isConsultation ? 'consultation' : isServiceBooking ? 'service' : 'complaint';
+
   const [searchQuery, setSearchQuery] = useState('');
   const { width } = useWindowDimensions();
   const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
@@ -37,6 +43,19 @@ export default function ServiceBrowseScreen({ onNavigate }) {
   const [gateContext, setGateContext] = useState({ title: '', message: '', isGuestGate: false });
 
   const checkCanBookComplaint = () => {
+    if (isServiceBooking) {
+      if (isAnonymous) {
+        setGateContext({
+          title: 'Sign In / Register Required',
+          message: 'Please sign in or register to book your service.',
+          isGuestGate: true,
+        });
+        setShowGateModal(true);
+        return false;
+      }
+      return true;
+    }
+
     if (isConsultation) {
       // My Mechanic is free for ANY logged-in user, even without an active AMC plan
       if (isAnonymous) {
@@ -95,7 +114,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
     const payload = {
       state: {
         preSelectedCategory: cat?.name,
-        bookingMode: isConsultation ? 'consultation' : 'complaint',
+        bookingMode: activeBookingMode,
       },
     };
     if (navigate) navigate('/user/bookings/new', payload);
@@ -189,7 +208,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
           isCoveredByAmc: true,
           is_covered_by_amc: true,
         },
-        bookingMode: 'complaint',
+        bookingMode: activeBookingMode,
       },
     };
     if (navigate) navigate('/user/bookings/new', payload);
@@ -229,7 +248,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
         preSelectedCategory: item.category_name,
         preSelectedSubCategory: item.sub_category_name || item.name,
         preSelectedService: item.name,
-        bookingMode: isConsultation ? 'consultation' : 'complaint',
+        bookingMode: activeBookingMode,
       },
     };
     if (navigate) navigate('/user/bookings/new', payload);
@@ -306,18 +325,25 @@ export default function ServiceBrowseScreen({ onNavigate }) {
         <View style={styles.headerTextCol}>
           <View style={styles.titleRow}>
             <Text style={[styles.title, isDesktopWeb && styles.titleDesktop]}>
-              {isConsultation ? 'Book Free Consultation' : 'AMC Complaints & Repair'}
+              {isConsultation ? 'Book Free Consultation' : isServiceBooking ? 'Book a Service' : 'AMC Complaints & Repair'}
             </Text>
             {isConsultation && (
               <View style={styles.freeBadgePill}>
                 <Text style={styles.freeBadgePillText}>₹0 FREE</Text>
               </View>
             )}
+            {isServiceBooking && (
+              <View style={[styles.freeBadgePill, { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}>
+                <Text style={[styles.freeBadgePillText, { color: '#2563eb' }]}>EXPRESS DISPATCH</Text>
+              </View>
+            )}
           </View>
           <Text style={[styles.subtitle, isDesktopWeb && styles.subtitleDesktop]}>
             {isConsultation
               ? 'Expert on-site inspection & diagnosis across all home appliances with zero visitation fee'
-              : 'Report any appliance breakdown or maintenance issue under your active AMC protection plan'}
+              : isServiceBooking
+                ? 'Book certified specialists for repair, maintenance, and installations at transparent pricing'
+                : 'Report any appliance breakdown or maintenance issue under your active AMC protection plan'}
           </Text>
         </View>
       </View>
@@ -361,7 +387,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
       ) : null}
 
       {/* Warning banner when visiting Complaints without active AMC Plan */}
-      {!isConsultation && !hasActiveAmc && (
+      {!isConsultation && !isServiceBooking && !hasActiveAmc && (
         <View style={styles.planWarningBanner}>
           <View style={styles.planWarningLeft}>
             <View style={styles.planWarningIcon}>
@@ -408,7 +434,9 @@ export default function ServiceBrowseScreen({ onNavigate }) {
           placeholder={
             isConsultation
               ? 'Search appliance or problem (e.g. AC, Fridge, Geyser)...'
-              : 'Search service to raise complaint...'
+              : isServiceBooking
+                ? 'Search service or appliance to book (e.g. AC, Tap, Fan, Sofa)...'
+                : 'Search service to raise complaint...'
           }
           placeholderTextColor="#94a3b8"
           value={searchQuery}
@@ -452,7 +480,9 @@ export default function ServiceBrowseScreen({ onNavigate }) {
                 </Text>
               </View>
               <View style={styles.bookFreeBtn}>
-                <Text style={styles.bookFreeBtnText}>Raise ›</Text>
+                <Text style={styles.bookFreeBtnText}>
+                  {isConsultation ? 'Free Consult ›' : isServiceBooking ? 'Book Now ›' : 'Raise ›'}
+                </Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -476,7 +506,7 @@ export default function ServiceBrowseScreen({ onNavigate }) {
               </View>
               <View style={styles.bookFreeBtn}>
                 <Text style={styles.bookFreeBtnText}>
-                  {isConsultation ? 'Free Consult ›' : 'Raise ›'}
+                  {isConsultation ? 'Free Consult ›' : isServiceBooking ? 'Book Now ›' : 'Raise ›'}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -484,8 +514,8 @@ export default function ServiceBrowseScreen({ onNavigate }) {
         </View>
       )}
 
-      {/* 3-in-a-Row Appliances Grid (Only for AMC Complaints, NOT for My Mechanic) */}
-      {!isConsultation && hasActiveAmc && userPlanAppliances.length > 0 && (
+      {/* 3-in-a-Row Appliances Grid */}
+      {!isConsultation && userPlanAppliances.length > 0 && (
         <PlanAppliancesComplaintGrid
           appliances={userPlanAppliances}
           onSelectAppliance={handleSelectApplianceForComplaint}
@@ -499,11 +529,13 @@ export default function ServiceBrowseScreen({ onNavigate }) {
           title={
             isConsultation
               ? 'Select Category for Free Consultation'
-              : userPlanAppliances.length > 0
-                ? 'Or Browse by Category'
-                : 'Select Category'
+              : isServiceBooking
+                ? (userPlanAppliances.length > 0 ? 'Or Browse Services by Category' : 'Choose a Service Category')
+                : (userPlanAppliances.length > 0 ? 'Or Browse by Category' : 'Select Category')
           }
           onSelectCategory={openBookingForCategory}
+          isComplaint={isComplaint}
+        />
           isComplaint={true}
         />
         <View style={{ marginTop: 22, marginBottom: 12 }}>

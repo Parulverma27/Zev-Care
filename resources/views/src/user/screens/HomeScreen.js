@@ -17,7 +17,7 @@ const zevotaCareWordmark = require('../../../assets/zevota-care-wordmark.png');
 const TRUST_FEATURES = [
   {
     label: 'Certified\nSpecialists',
-    route: '/user/bookings/new',
+    route: '/user/services',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -27,7 +27,7 @@ const TRUST_FEATURES = [
   },
   {
     label: 'Trusted\nQuality',
-    route: '/user/bookings/new',
+    route: '/user/services',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -539,7 +539,7 @@ const MOBILE_TRUST_CARDS = [
     color: '#2563eb',
     bg: '#eff6ff',
     border: '#bfdbfe',
-    route: '/user/bookings/new',
+    route: '/user/services',
     iconName: 'shield',
   },
   {
@@ -550,7 +550,7 @@ const MOBILE_TRUST_CARDS = [
     color: '#059669',
     bg: '#ecfdf5',
     border: '#a7f3d0',
-    route: '/user/bookings/new',
+    route: '/user/services',
     iconName: 'check',
   },
   {
@@ -1184,7 +1184,7 @@ export default function HomeScreen({ onNavigate }) {
                       key={banner.id || idx}
                       onClick={() => {
                         if (!isSwiping) {
-                          handleNav(banner?.redirect_url || '/user/bookings/new');
+                          handleNav(banner?.redirect_url || '/user/services');
                         }
                       }}
                       style={{
@@ -1213,7 +1213,7 @@ export default function HomeScreen({ onNavigate }) {
           ) : (
             <TouchableOpacity
               activeOpacity={0.9}
-              onPress={() => handleNav(activeHeroBanner?.redirect_url || '/user/bookings/new')}
+              onPress={() => handleNav(activeHeroBanner?.redirect_url || '/user/services')}
             >
               <Image
                 source={{ uri: resolveImageUri(activeHeroBanner?.image_url, SERVICE_IMAGES.homeHeroBanner) }}

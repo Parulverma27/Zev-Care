@@ -28,6 +28,7 @@ import ApplianceAddWizard, {
 } from '../../components/appliances/ApplianceAddWizard';
 import AppliancePaymentPromptModal from '../../components/appliances/AppliancePaymentPromptModal';
 import { AppIcon } from '../../components/AppIcons';
+import ServiceBrowseScreen from './ServiceBrowseScreen';
 import BookingApplianceSelectStep from '../../components/booking/BookingApplianceSelectStep';
 import BookingIssueStep from '../../components/booking/BookingIssueStep';
 import BookingIssueOtherStep from '../../components/booking/BookingIssueOtherStep';
@@ -298,9 +299,10 @@ export default function BookingFlowScreen({ onNavigate }) {
         setStep(getInitialStepForCategory(preSelectedCategory));
       }
       setSkippedCategoryStep(true);
-    } else if (isComplaint) {
-      if (navigate) navigate('/user/complains', { replace: true });
-      else if (onNavigate) onNavigate('/user/complains');
+    } else {
+      const targetRoute = isComplaint ? '/user/complains' : isConsultation ? '/user/consultation' : '/user/services';
+      if (navigate) navigate(targetRoute, { replace: true });
+      else if (onNavigate) onNavigate(targetRoute);
     }
   }, [preSelectedCategory, preSelectedSubCategory, preSelectedService, preSelectedAppliance, isGuest, isComplaint, hasActiveAmc]);
 
@@ -1582,44 +1584,12 @@ export default function BookingFlowScreen({ onNavigate }) {
 
     // ── CATEGORY (step 1) ──
     return (
-      <ScrollView style={styles.container} contentContainerStyle={[styles.pad, isDesktopWeb && styles.padDesktop]}>
-        <View style={styles.rowHeader}>
-          <TouchableOpacity style={styles.backBtn} onPress={goBack}>
-            <Text style={styles.backChevron}>‹</Text>
-          </TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.h1}>{isConsultation ? 'Book a free consultation' : 'What can we help with?'}</Text>
-            <Text style={styles.sub}>
-              {isConsultation
-                ? 'Choose a service. This visit is free for logged-in users, with or without an AMC plan.'
-                : 'Choose a service category.'}
-            </Text>
-          </View>
-        </View>
-        <div style={isDesktopWeb ? categoryGridCss.desktopWrapper : { display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {(categories || []).map((cat) => (
-            <TouchableOpacity
-              key={cat.id || cat.name}
-              style={[styles.catCard, isDesktopWeb && styles.catCardDesktop]}
-              onPress={() => selectCategoryAndNext(cat.name)}
-            >
-              <Image
-                source={{ uri: resolveCategoryImageUri(cat.name, cat.image_url, true) }}
-                style={[styles.catImg, isDesktopWeb && styles.catImgDesktop]}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.catTitle, isDesktopWeb && styles.catTitleDesktop]}>{cat.name}</Text>
-                <Text style={[styles.catSub, isDesktopWeb && styles.catSubDesktop]}>{cat.description}</Text>
-                <Text style={styles.badge}>
-                  {countServicesInCategory(cat.name, services)} services
-                </Text>
-              </View>
-              <Text style={styles.chevron}>›</Text>
-            </TouchableOpacity>
-          ))}
-          <LiveSupportOptionCard onPress={goLiveSupport} />
-        </div>
-      </ScrollView>
+      <ServiceBrowseScreen
+        onNavigate={(targetPath, targetOpts) => {
+          if (navigate) navigate(targetPath, targetOpts);
+          else if (onNavigate) onNavigate(targetPath, targetOpts);
+        }}
+      />
     );
   };
 

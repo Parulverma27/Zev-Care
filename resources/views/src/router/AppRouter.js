@@ -82,6 +82,8 @@ export default function AppRouter() {
           <Route path="plans" element={<Protected><SubscriptionPlansScreen /></Protected>} />
           <Route path="complains" element={<Protected><ServiceBrowseScreen /></Protected>} />
           <Route path="consultation" element={<Protected><ServiceBrowseScreen /></Protected>} />
+          <Route path="services" element={<Protected><ServiceBrowseScreen /></Protected>} />
+          <Route path="book-service" element={<Protected><ServiceBrowseScreen /></Protected>} />
           <Route path="property-verification" element={<Protected><PropertyVerificationScreen /></Protected>} />
           <Route path="categories" element={<Protected><HomeScreen /></Protected>} />
           <Route path="bookings/new" element={<Protected><BookingFlowScreen /></Protected>} />

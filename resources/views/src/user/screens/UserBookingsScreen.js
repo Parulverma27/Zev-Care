@@ -65,7 +65,7 @@ export default function UserBookingsScreen() {
           </Text>
           <TouchableOpacity
             style={styles.bookBtn}
-            onPress={() => navigate('/user/bookings/new', { state: {} })}
+            onPress={() => navigate('/user/services')}
             activeOpacity={0.88}
           >
             <Text style={styles.bookBtnText}>Book a Service</Text>

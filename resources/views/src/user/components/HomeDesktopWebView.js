@@ -25,7 +25,7 @@ const PROMO_SLIDES = [
     image: banner2Uri,
     alt: 'Your Home. Our Responsibility. Trusted experts for every home service.',
     ctaLabel: 'Book a Service',
-    target: '/user/bookings/new',
+    target: '/user/services',
   },
   {
     id: 3,
@@ -786,7 +786,7 @@ export default function HomeDesktopWebView({
                 type="button"
                 className="zc-desktop-btn-primary"
                 style={primaryCtaBtnStyle}
-                onClick={() => onNavigate('/user/bookings/new')}
+                onClick={() => onNavigate('/user/services')}
               >
                 <span>Book a Service</span>
                 <span style={{ fontSize: '15px' }}>→</span>
