@@ -114,11 +114,11 @@ export const SERVICE_IMAGES = {
   other: getImageUrl(require('../../assets/services/catalog/home-appliances.png')),
 
   // Banners & Slideshows (promotional — hardcoded)
-  heroBanner: getImageUrl(require('../../assets/hero-banner-1.png')),
-  homeHeroBanner: getImageUrl(require('../../assets/hero-banner-1.png')),
-  heroBanner1: getImageUrl(require('../../assets/hero-banner-1.png')),
-  heroBanner2: getImageUrl(require('../../assets/hero-banner-2.png')),
-  heroBanner3: getImageUrl(require('../../assets/hero-banner-3.png')),
+  heroBanner: getImageUrl(require('../../assets/hero-banner-1.jpg')),
+  homeHeroBanner: getImageUrl(require('../../assets/hero-banner-1.jpg')),
+  heroBanner1: getImageUrl(require('../../assets/hero-banner-1.jpg')),
+  heroBanner2: getImageUrl(require('../../assets/hero-banner-2.jpg')),
+  heroBanner3: getImageUrl(require('../../assets/hero-banner-3.jpg')),
   footerBanner: getImageUrl(require('../../assets/services/footer-banner.jpg')),
   trustBannerBg: getImageUrl(require('../../assets/trust-banner-bg.jpg')),
   myAppliancesHero: getImageUrl(require('../../assets/my-appliances-hero.jpg')),

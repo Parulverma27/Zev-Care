@@ -100,8 +100,11 @@ export const SERVICE_IMAGES = {
   glass: c('curtains.png'),
   other: c('home-appliances.png'),
 
-  heroBanner: '/assets/home-hero-banner.png',
-  homeHeroBanner: '/assets/home-hero-banner.png',
+  heroBanner: '/assets/hero-banner-1.jpg',
+  homeHeroBanner: '/assets/hero-banner-1.jpg',
+  heroBanner1: '/assets/hero-banner-1.jpg',
+  heroBanner2: '/assets/hero-banner-2.jpg',
+  heroBanner3: '/assets/hero-banner-3.jpg',
   footerBanner: '/assets/services/footer-banner.jpg',
   homeHeaderBg: '/assets/home-header-bg.jpg',
   amcPlanBg: '/assets/amc-plan-card-bg.jpg',

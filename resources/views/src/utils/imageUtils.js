@@ -10,8 +10,8 @@ import {
 export const DEFAULT_BANNERS = [
   {
     id: 1,
-    title: 'Expert Care, Right at Home',
-    description: 'Reliable, fast, hassle-free home services at your doorstep.',
+    title: 'Lifetime Warranty on Repaired Parts',
+    description: 'Because Your Home Deserves the Best! Certified Specialists, Trusted Quality.',
     image_url: SERVICE_IMAGES.heroBanner1,
     type: 'hero',
     status: 'ACTIVE',
@@ -19,8 +19,8 @@ export const DEFAULT_BANNERS = [
   },
   {
     id: 2,
-    title: 'Your Home. Our Responsibility.',
-    description: 'Trusted experts for every home service.',
+    title: 'Every Home Appliance Repair in Just 60 Min!',
+    description: 'Right at Your Doorstep! Fast Service. Happy Home.',
     image_url: SERVICE_IMAGES.heroBanner2,
     type: 'hero',
     status: 'ACTIVE',
@@ -28,19 +28,19 @@ export const DEFAULT_BANNERS = [
   },
   {
     id: 3,
-    title: 'Home Problems? Consider Them Solved.',
-    description: 'Professional home services, just one booking away.',
+    title: 'Every Part. Any Size. Just ₹22!',
+    description: 'Big or Small, We Repair It All! Your Home Repairs Made Affordable.',
     image_url: SERVICE_IMAGES.heroBanner3,
     type: 'hero',
     status: 'ACTIVE',
-    redirect_url: '/user/consultation',
+    redirect_url: '/user/bookings/new',
   },
 ];
 
 export { CATEGORY_IMAGE_FALLBACKS, SERVICE_ITEM_IMAGE_KEYS as SERVICE_ITEM_IMAGE_FALLBACKS };
 
 export const BANNERS_VERSION_KEY = 'zevota_banners_version';
-export const BANNERS_VERSION = '14-design-pdf-clean';
+export const BANNERS_VERSION = '15-brand-hero-banners';
 
 export function isStaleLocalImageUrl(url) {
   if (!url || typeof url !== 'string') return true;

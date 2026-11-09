@@ -1174,10 +1174,10 @@ export default function HomeScreen({ onNavigate }) {
                 {activeBannersList.map((banner, idx) => {
                   const bannerFallback =
                     banner?.id === 2 || banner?.id === 5
-                      ? (SERVICE_IMAGES.heroBanner2 || '/assets/hero-banner-2.png')
+                      ? (SERVICE_IMAGES.heroBanner2 || '/assets/hero-banner-2.jpg')
                       : banner?.id === 3 || banner?.id === 6
-                        ? (SERVICE_IMAGES.heroBanner3 || '/assets/hero-banner-3.png')
-                        : (SERVICE_IMAGES.heroBanner1 || '/assets/hero-banner-1.png');
+                        ? (SERVICE_IMAGES.heroBanner3 || '/assets/hero-banner-3.jpg')
+                        : (SERVICE_IMAGES.heroBanner1 || '/assets/hero-banner-1.jpg');
                   const bannerUri = resolveImageUri(banner?.image_url, bannerFallback);
                   return (
                     <div
