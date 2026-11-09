@@ -20,20 +20,6 @@ const SLIDE_CONFIGS = [
     sub: 'Electrician, plumber, carpenter, pest control & deep cleaning in 15 minutes.',
   },
   {
-    url: SERVICE_IMAGES.loginSlide2,
-    bg: '#f8fafc',
-    tag: 'DEEP CLEANING & UPHOLSTERY',
-    caption: 'Professional Sofa, Carpet & Bed Cleaning',
-    sub: 'Powerful deep-extraction steam cleaning and fabric sanitization.',
-  },
-  {
-    url: SERVICE_IMAGES.loginSlide3,
-    bg: '#f8fafc',
-    tag: 'PEST CONTROL SPECIALISTS',
-    caption: '100% Pest-Free Guarantee for Your Home',
-    sub: 'Safe, odorless cockroach, termite & bedbug treatments with lasting protection.',
-  },
-  {
     url: SERVICE_IMAGES.loginSlide4,
     bg: '#f8fafc',
     tag: 'ELECTRICAL & APPLIANCES',
@@ -53,6 +39,20 @@ const SLIDE_CONFIGS = [
     tag: 'CARPENTRY & FURNITURE EXPERTS',
     caption: 'Master Carpentry & Custom Fittings',
     sub: 'Furniture repair, door locks, hinges, modular fittings & wooden restoration.',
+  },
+  {
+    url: SERVICE_IMAGES.loginSlide2,
+    bg: '#f8fafc',
+    tag: 'DEEP CLEANING & UPHOLSTERY',
+    caption: 'Professional Sofa, Carpet & Bed Cleaning',
+    sub: 'Powerful deep-extraction steam cleaning and fabric sanitization.',
+  },
+  {
+    url: SERVICE_IMAGES.loginSlide3,
+    bg: '#f8fafc',
+    tag: 'PEST CONTROL SPECIALISTS',
+    caption: '100% Pest-Free Guarantee for Your Home',
+    sub: 'Safe, odorless cockroach, termite & bedbug treatments with lasting protection.',
   },
 ].filter((s) => Boolean(s.url));
 
@@ -487,16 +487,23 @@ export default function AuthScreen() {
                     transition: 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
                     zIndex: activeSlideIndex === idx ? 2 : 1,
                     overflow: 'hidden',
+                    backgroundColor: slide.bg,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '54px 24px 112px',
+                    boxSizing: 'border-box',
                   }}
                 >
-                  {/* Full-Bleed Graphic Image */}
+                  {/* Full Image Display - Contain ensures 100% of the graphic is visible */}
                   <img
                     src={slide.url}
                     alt={slide.caption}
                     style={{
                       width: '100%',
                       height: '100%',
-                      objectFit: 'cover',
+                      objectFit: 'contain',
                       objectPosition: 'center',
                       display: 'block',
                     }}
@@ -506,41 +513,42 @@ export default function AuthScreen() {
                   <div
                     style={{
                       position: 'absolute',
-                      top: '22px',
+                      top: '20px',
                       left: '22px',
                       zIndex: 6,
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '7px',
-                      backgroundColor: 'rgba(3, 16, 46, 0.72)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.92)',
                       backdropFilter: 'blur(12px)',
                       WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(255, 255, 255, 0.22)',
+                      border: '1px solid rgba(2, 132, 199, 0.22)',
+                      boxShadow: '0 4px 14px rgba(2, 132, 199, 0.1)',
                       borderRadius: '20px',
                       padding: '6px 14px',
-                      color: '#ffffff',
+                      color: '#0369a1',
                       fontSize: '11px',
                       fontWeight: 800,
                       letterSpacing: '0.8px',
                       fontFamily: "'Inter', sans-serif",
                     }}
                   >
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#38bdf8', boxShadow: '0 0 8px #38bdf8' }} />
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#0284c7', boxShadow: '0 0 8px #0284c7' }} />
                     <span>{slide.tag || 'ZEVOTA CARE'}</span>
                   </div>
 
-                  {/* Deep Cinematic Bottom Gradient & Typography */}
+                  {/* Clean Bottom Banner & Typography */}
                   <div
                     style={{
                       position: 'absolute',
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      padding: '48px 30px 48px',
-                      background: 'linear-gradient(180deg, rgba(3, 16, 46, 0) 0%, rgba(3, 16, 46, 0.55) 30%, rgba(3, 16, 46, 0.92) 75%, rgba(3, 16, 46, 0.98) 100%)',
+                      padding: '20px 28px 38px',
+                      background: 'linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.92) 28%, rgba(255, 255, 255, 0.98) 100%)',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '8px',
+                      gap: '6px',
                       boxSizing: 'border-box',
                       zIndex: 5,
                     }}
@@ -548,9 +556,9 @@ export default function AuthScreen() {
                     <h3
                       style={{
                         margin: 0,
-                        fontSize: '22px',
+                        fontSize: '20px',
                         fontWeight: 800,
-                        color: '#ffffff',
+                        color: '#0a1633',
                         lineHeight: 1.25,
                         fontFamily: "'Outfit', 'Inter', sans-serif",
                         letterSpacing: '-0.3px',
@@ -562,8 +570,8 @@ export default function AuthScreen() {
                       style={{
                         margin: 0,
                         fontSize: '13px',
-                        color: 'rgba(255, 255, 255, 0.85)',
-                        lineHeight: 1.5,
+                        color: '#475569',
+                        lineHeight: 1.45,
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                       }}
                     >
@@ -584,8 +592,8 @@ export default function AuthScreen() {
                     style={{
                       ...desktopStyles.desktopDotBtn,
                       width: activeSlideIndex === idx ? 28 : 8,
-                      backgroundColor: activeSlideIndex === idx ? '#ffffff' : 'rgba(255, 255, 255, 0.42)',
-                      boxShadow: activeSlideIndex === idx ? '0 0 10px rgba(255, 255, 255, 0.85)' : 'none',
+                      backgroundColor: activeSlideIndex === idx ? '#0284c7' : 'rgba(15, 23, 42, 0.22)',
+                      boxShadow: activeSlideIndex === idx ? '0 2px 8px rgba(2, 132, 199, 0.45)' : 'none',
                     }}
                   />
                 ))}
@@ -1072,7 +1080,7 @@ export default function AuthScreen() {
               inset: 0,
               width: '100%',
               height: '100%',
-              padding: 0,
+              padding: '8px 12px 26px',
               margin: 0,
               boxSizing: 'border-box',
               backgroundColor: slide.bg,
@@ -1102,8 +1110,8 @@ export default function AuthScreen() {
               aria-label={`Go to slide ${idx + 1}`}
               style={{
                 ...css.dot,
-                width: activeSlideIndex === idx ? 18 : 6,
-                backgroundColor: activeSlideIndex === idx ? '#ffffff' : 'rgba(255, 255, 255, 0.45)',
+                width: activeSlideIndex === idx ? 20 : 6,
+                backgroundColor: activeSlideIndex === idx ? '#0284c7' : 'rgba(15, 23, 42, 0.22)',
               }}
             />
           ))}
@@ -1646,7 +1654,7 @@ const desktopStyles = {
   leftHeroPane: {
     width: '50%',
     minWidth: '450px',
-    backgroundColor: '#03102e',
+    backgroundColor: '#f8fafc',
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
@@ -2020,8 +2028,8 @@ const css = {
   hero: {
     position: 'relative',
     width: '100%',
-    aspectRatio: '1492 / 1054',
-    maxHeight: 285,
+    height: 310,
+    maxHeight: '40vh',
     overflow: 'hidden',
     flexShrink: 0,
     zIndex: 1,
@@ -2030,8 +2038,8 @@ const css = {
   heroImage: {
     width: '100%',
     height: '100%',
-    objectFit: 'cover',
-    objectPosition: 'center center',
+    objectFit: 'contain',
+    objectPosition: 'center top',
     display: 'block',
     border: 'none',
     margin: 0,
@@ -2039,7 +2047,7 @@ const css = {
   },
   dotsContainer: {
     position: 'absolute',
-    bottom: 10,
+    bottom: 22,
     left: 0,
     right: 0,
     display: 'flex',
@@ -2058,7 +2066,7 @@ const css = {
     cursor: 'pointer',
     transition: 'all 0.3s ease-in-out',
     outline: 'none',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.15)',
   },
   loginHeader: {
     display: 'flex',
@@ -2093,7 +2101,7 @@ const css = {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    marginTop: -20,
+    marginTop: -16,
   },
   card: { display: 'flex', flexDirection: 'column', gap: 10 },
   errorBox: {
