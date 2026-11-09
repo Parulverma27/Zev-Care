@@ -924,19 +924,50 @@ export default function AdminBookingsScreen() {
                 </View>
 
                 {/* Clickable Provider Name */}
-                <TouchableOpacity
-                  style={{ flex: 1.2 }}
-                  onPress={() => { setModalProvider(matchedProvider); setModalProviderVisible(true); }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.td, { color: '#7c3aed', fontWeight: '700' }]}>{matchedProvider.name}</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                    <Text style={{ fontSize: 10.5, color: '#64748b' }}>{matchedProvider.rating || '5.0'}</Text>
-                  </View>
-                </TouchableOpacity>
+                <View style={{ flex: 1.2 }}>
+                  <TouchableOpacity
+                    onPress={() => { setModalProvider(matchedProvider); setModalProviderVisible(true); }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.td, { color: '#7c3aed', fontWeight: '700' }]}>{matchedProvider.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                      <Text style={{ fontSize: 10.5, color: '#64748b' }}>{matchedProvider.rating || '5.0'}</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* One-Click Live Track Pill directly under Partner */}
+                  {isAssigned && (
+                    <TouchableOpacity
+                      onPress={() => setLiveTrackingBooking(b)}
+                      style={{
+                        marginTop: 4,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                        backgroundColor: '#f5f3ff',
+                        borderWidth: 1,
+                        borderColor: '#ddd6fe',
+                        paddingHorizontal: 7,
+                        paddingVertical: 3,
+                        borderRadius: 6,
+                        alignSelf: 'flex-start',
+                        cursor: 'pointer',
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' }} />
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                        <line x1="8" y1="2" x2="8" y2="18" />
+                        <line x1="16" y1="6" x2="16" y2="22" />
+                      </svg>
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#7c3aed' }}>Live Track</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
 
                 <View style={{ flex: 1.0, gap: 4 }}>
                   <Text style={styles.td}>{b.scheduled_date || 'Today'}</Text>
@@ -1096,7 +1127,7 @@ export default function AdminBookingsScreen() {
                       </TouchableOpacity>
 
                       {/* LIVE TRACK BUTTON */}
-                      {['PROVIDER_ASSIGNED', 'PROVIDER_ACCEPTED', 'PROVIDER_ON_THE_WAY', 'PROVIDER_ARRIVED', 'SERVICE_IN_PROGRESS'].includes(b.status) && (
+                      {(isAssigned || ['PROVIDER_ASSIGNED', 'PROVIDER_ACCEPTED', 'PROVIDER_ON_THE_WAY', 'PROVIDER_ARRIVED', 'SERVICE_IN_PROGRESS', 'INSPECTION_RECEIVED', 'INSPECTIONRECEIVED'].includes(b.status)) && (
                         <TouchableOpacity
                           style={[styles.actionBtn, { backgroundColor: '#7c3aed', flexDirection: 'row', alignItems: 'center', gap: 5 }]}
                           onPress={() => setLiveTrackingBooking(b)}
