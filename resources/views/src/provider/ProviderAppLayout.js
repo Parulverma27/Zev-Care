@@ -6,9 +6,72 @@ import ZevotaLogo from '../components/ZevotaLogo';
 import { VectorTabIcon } from '../components/TabIcons';
 
 export default function ProviderAppLayout() {
-  const { activeProvider } = useApp();
+  const { activeProvider, bookings, updateProviderLocation } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Real-time GPS broadcasting from the exact moment an order is accepted
+  React.useEffect(() => {
+    if (!activeProvider || typeof window === 'undefined' || !navigator?.geolocation) return undefined;
+
+    const provIdStr = activeProvider.id != null ? String(activeProvider.id) : (activeProvider.provider_id ? String(activeProvider.provider_id) : '');
+    const provPhone = (activeProvider.phone || '').replace(/\D/g, '').slice(-10);
+    const provName = (activeProvider.name || '').trim().toLowerCase();
+
+    // Check all active jobs accepted by this provider
+    const activeJobs = (bookings || []).filter((b) => {
+      const isMine =
+        (provIdStr && b.provider_id != null && String(b.provider_id) === provIdStr) ||
+        (provPhone && b.provider_phone && (b.provider_phone.replace(/\D/g, '').slice(-10) === provPhone)) ||
+        (provName && b.provider_name && b.provider_name.trim().toLowerCase() === provName);
+      return isMine && ['PROVIDER_ACCEPTED', 'PROVIDER_ON_THE_WAY', 'PROVIDER_ARRIVED', 'SERVICE_IN_PROGRESS'].includes(b.status);
+    });
+
+    if (activeJobs.length === 0) return undefined;
+
+    const broadcastCurrentPosition = (pos) => {
+      if (!pos?.coords) return;
+      const { latitude, longitude, speed, heading, accuracy } = pos.coords;
+      activeJobs.forEach((job) => {
+        if (typeof updateProviderLocation === 'function') {
+          updateProviderLocation(job.booking_id, latitude, longitude, { speed, heading, accuracy });
+        }
+      });
+    };
+
+    // 1. Immediate initial ping
+    navigator.geolocation.getCurrentPosition(
+      broadcastCurrentPosition,
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+    );
+
+    // 2. Continuous watchPosition
+    let watchId = null;
+    try {
+      watchId = navigator.geolocation.watchPosition(
+        broadcastCurrentPosition,
+        () => {},
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+      );
+    } catch (e) {}
+
+    // 3. 10-second interval fallback
+    const intervalId = setInterval(() => {
+      navigator.geolocation.getCurrentPosition(
+        broadcastCurrentPosition,
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 5000 }
+      );
+    }, 10000);
+
+    return () => {
+      if (watchId != null && navigator?.geolocation) {
+        try { navigator.geolocation.clearWatch(watchId); } catch (e) {}
+      }
+      clearInterval(intervalId);
+    };
+  }, [activeProvider, bookings, updateProviderLocation]);
 
   const isAuthPage = location.pathname.includes('/login') || location.pathname.includes('/register');
 

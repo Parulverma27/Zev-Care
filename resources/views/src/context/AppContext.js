@@ -1291,6 +1291,28 @@ export function AppProvider({ children }) {
           }
         } catch (err) {}
       }
+      if (e.key === 'zevota_live_telemetry_event' && e.newValue) {
+        try {
+          const t = JSON.parse(e.newValue);
+          if (t && t.booking_id && Number.isFinite(t.lat) && Number.isFinite(t.lng)) {
+            setBookings((prev) =>
+              prev.map((b) =>
+                b.booking_id === t.booking_id
+                  ? {
+                      ...b,
+                      provider_lat: t.lat,
+                      provider_lng: t.lng,
+                      provider_coords: { lat: t.lat, lng: t.lng },
+                      provider_speed: t.speed ?? b.provider_speed,
+                      provider_heading: t.heading ?? b.provider_heading,
+                      last_location_update: t.timestamp || new Date().toISOString(),
+                    }
+                  : b
+              )
+            );
+          }
+        } catch (err) {}
+      }
     };
 
     const handleCustomSync = (e) => {
@@ -1299,6 +1321,26 @@ export function AppProvider({ children }) {
       }
       if (e.detail?.key === 'zevota_active_provider' && e.detail.value) {
         setActiveProvider(e.detail.value);
+      }
+      if (e.detail?.key === 'zevota_live_telemetry_event' && e.detail.value) {
+        const t = e.detail.value;
+        if (t && t.booking_id && Number.isFinite(t.lat) && Number.isFinite(t.lng)) {
+          setBookings((prev) =>
+            prev.map((b) =>
+              b.booking_id === t.booking_id
+                ? {
+                    ...b,
+                    provider_lat: t.lat,
+                    provider_lng: t.lng,
+                    provider_coords: { lat: t.lat, lng: t.lng },
+                    provider_speed: t.speed ?? b.provider_speed,
+                    provider_heading: t.heading ?? b.provider_heading,
+                    last_location_update: t.timestamp || new Date().toISOString(),
+                  }
+                : b
+            )
+          );
+        }
       }
     };
 
@@ -2519,20 +2561,80 @@ export function AppProvider({ children }) {
     );
   };
 
-  const updateProviderLocation = (bookingId, lat, lng) => {
+  const updateProviderLocation = (bookingId, lat, lng, extraTelemetry = {}) => {
+    const numericLat = Number(lat);
+    const numericLng = Number(lng);
+    if (!Number.isFinite(numericLat) || !Number.isFinite(numericLng)) return;
+
+    const timestamp = new Date().toISOString();
+    const telemetryPayload = {
+      booking_id: bookingId,
+      lat: numericLat,
+      lng: numericLng,
+      speed: extraTelemetry?.speed != null ? Number(extraTelemetry.speed) : undefined,
+      heading: extraTelemetry?.heading != null ? Number(extraTelemetry.heading) : undefined,
+      accuracy: extraTelemetry?.accuracy != null ? Number(extraTelemetry.accuracy) : undefined,
+      timestamp,
+    };
+
     setBookings((prev) =>
       prev.map((b) =>
         b.booking_id === bookingId
           ? {
               ...b,
-              provider_lat: lat,
-              provider_lng: lng,
-              provider_coords: { lat, lng },
-              last_location_update: new Date().toISOString(),
+              provider_lat: numericLat,
+              provider_lng: numericLng,
+              provider_coords: { lat: numericLat, lng: numericLng },
+              provider_speed: telemetryPayload.speed ?? b.provider_speed,
+              provider_heading: telemetryPayload.heading ?? b.provider_heading,
+              last_location_update: timestamp,
             }
           : b
       )
     );
+
+    setProviders((prev) =>
+      prev.map((p) => {
+        const target = (bookings || []).find((b) => b.booking_id === bookingId);
+        if (
+          target?.provider_id &&
+          (p.id === target.provider_id || String(p.provider_id) === String(target.provider_id) || (target.provider_name && p.name === target.provider_name))
+        ) {
+          return {
+            ...p,
+            current_lat: numericLat,
+            current_lng: numericLng,
+            last_location_update: timestamp,
+          };
+        }
+        return p;
+      })
+    );
+
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(
+          'zevota_live_telemetry_event',
+          JSON.stringify({
+            ...telemetryPayload,
+            _eventId: `${bookingId}_${Date.now()}`,
+          })
+        );
+      } catch (e) {}
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(
+          new CustomEvent('zevota_storage_sync', {
+            detail: {
+              key: 'zevota_live_telemetry_event',
+              value: telemetryPayload,
+            },
+          })
+        );
+      } catch (e) {}
+    }
   };
 
   const updateBookingArrivalTelemetry = (bookingId, telemetry) => {

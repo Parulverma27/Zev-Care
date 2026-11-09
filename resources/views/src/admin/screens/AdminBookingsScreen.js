@@ -2225,148 +2225,153 @@ export default function AdminBookingsScreen() {
       </Modal>
 
       {/* LIVE DISPATCH & GOOGLE MAPS TRACKING MODAL */}
-      <Modal
-        visible={Boolean(liveTrackingBooking)}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setLiveTrackingBooking(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { maxWidth: 680, padding: 20 }]}>
-            {/* Modal Header */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 10 }}>
-              <View style={{ gap: 2 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: liveTrackingBooking?.status === 'PROVIDER_ARRIVED' ? '#0e7490' : '#10b981' }} />
-                  <Text style={styles.modalTitle}>Field Partner Real-Time Tracking</Text>
-                </View>
-                <Text style={styles.modalSub}>
-                  Work Order #{liveTrackingBooking?.booking_id} • Service: {liveTrackingBooking?.service_name}
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => setLiveTrackingBooking(null)}
-                style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
-                activeOpacity={0.7}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </TouchableOpacity>
-            </View>
-
-            {/* Telemetry Summary Cards */}
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
-              {/* Technician Card */}
-              <View style={{ flex: 1, backgroundColor: '#f8fafc', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', gap: 3 }}>
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Assigned Technician</Text>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#7c3aed' }}>
-                  {liveTrackingBooking?.provider_name || 'Rajesh Sharma'}
-                </Text>
-                <Text style={{ fontSize: 11, color: '#475569' }}>
-                  {liveTrackingBooking?.provider_phone || '+91 99887 76655'}
-                </Text>
-                {liveTrackingBooking?.status === 'PROVIDER_ARRIVED' ? (
-                  <View style={{ backgroundColor: '#ecfdf5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
+      {(() => {
+        const activeTrackedBooking = (bookings || []).find((x) => x.booking_id === liveTrackingBooking?.booking_id) || liveTrackingBooking;
+        return (
+          <Modal
+            visible={Boolean(liveTrackingBooking)}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setLiveTrackingBooking(null)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, { maxWidth: 680, padding: 20 }]}>
+                {/* Modal Header */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 10 }}>
+                  <View style={{ gap: 2 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: activeTrackedBooking?.status === 'PROVIDER_ARRIVED' ? '#0e7490' : '#10b981' }} />
+                      <Text style={styles.modalTitle}>Field Partner Real-Time Tracking</Text>
+                    </View>
+                    <Text style={styles.modalSub}>
+                      Work Order #{activeTrackedBooking?.booking_id} • Service: {activeTrackedBooking?.service_name}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setLiveTrackingBooking(null)}
+                    style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
+                    activeOpacity={0.7}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>Doorstep Arrived</Text>
-                  </View>
-                ) : (
-                  <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 2 }}>
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#1d4ed8' }}>En Route • GPS Active</Text>
-                  </View>
-                )}
-              </View>
-
-              {/* Customer Destination Card */}
-              <View style={{ flex: 1, backgroundColor: '#f8fafc', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', gap: 3 }}>
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Customer Destination</Text>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0f172a' }}>
-                  {liveTrackingBooking?.user_name || liveTrackingBooking?.userName || 'Customer'}
-                </Text>
-                <Text style={{ fontSize: 11, color: '#475569' }}>
-                  {liveTrackingBooking?.user_phone || '—'}
-                </Text>
-                <Text style={{ fontSize: 10.5, color: '#64748b' }} numberOfLines={1}>
-                  {liveTrackingBooking?.address_text || liveTrackingBooking?.address || 'DLF Phase 2, Gurugram'}
-                </Text>
-              </View>
-            </View>
-
-            {/* Geofence Check-in Banner */}
-            {liveTrackingBooking?.status === 'PROVIDER_ARRIVED' ? (
-              <View style={{ backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0', padding: 10, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#10b981', justifyContent: 'center', alignItems: 'center' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  </TouchableOpacity>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#065f46' }}>
-                    Doorstep Arrival Verified via GPS Geofence
-                  </Text>
-                  <Text style={{ fontSize: 11, color: '#047857' }}>
-                    Technician verified within {liveTrackingBooking?.arrival_distance_m || 35} meters of customer doorstep.
-                  </Text>
+
+                {/* Telemetry Summary Cards */}
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+                  {/* Technician Card */}
+                  <View style={{ flex: 1, backgroundColor: '#f8fafc', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', gap: 3 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Assigned Technician</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#7c3aed' }}>
+                      {activeTrackedBooking?.provider_name || 'Rajesh Sharma'}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: '#475569' }}>
+                      {activeTrackedBooking?.provider_phone || '+91 99887 76655'}
+                    </Text>
+                    {activeTrackedBooking?.status === 'PROVIDER_ARRIVED' ? (
+                      <View style={{ backgroundColor: '#ecfdf5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>Doorstep Arrived</Text>
+                      </View>
+                    ) : (
+                      <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 2 }}>
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#1d4ed8' }}>En Route • GPS Active</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Customer Destination Card */}
+                  <View style={{ flex: 1, backgroundColor: '#f8fafc', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', gap: 3 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Customer Destination</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#0f172a' }}>
+                      {activeTrackedBooking?.user_name || activeTrackedBooking?.userName || 'Customer'}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: '#475569' }}>
+                      {activeTrackedBooking?.user_phone || '—'}
+                    </Text>
+                    <Text style={{ fontSize: 10.5, color: '#64748b' }} numberOfLines={1}>
+                      {activeTrackedBooking?.address_text || activeTrackedBooking?.address || 'DLF Phase 2, Gurugram'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Geofence Check-in Banner */}
+                {activeTrackedBooking?.status === 'PROVIDER_ARRIVED' ? (
+                  <View style={{ backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0', padding: 10, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#10b981', justifyContent: 'center', alignItems: 'center' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#065f46' }}>
+                        Doorstep Arrival Verified via GPS Geofence
+                      </Text>
+                      <Text style={{ fontSize: 11, color: '#047857' }}>
+                        Technician verified within {activeTrackedBooking?.arrival_distance_m || 35} meters of customer doorstep.
+                      </Text>
+                    </View>
+                  </View>
+                ) : null}
+
+                {/* Live Google Maps Tracking Component */}
+                <View style={{ width: '100%', marginTop: 2 }}>
+                  <LiveProviderTrackingMap
+                    customerCoords={{
+                      lat: Number(activeTrackedBooking?.customer_lat || activeTrackedBooking?.lat || 28.4986),
+                      lng: Number(activeTrackedBooking?.customer_lng || activeTrackedBooking?.lng || 77.0878),
+                    }}
+                    customerAddress={activeTrackedBooking?.address_text || activeTrackedBooking?.address || 'Service Destination'}
+                    providerName={activeTrackedBooking?.provider_name || 'Technician'}
+                    providerPhone={activeTrackedBooking?.provider_phone || ''}
+                    providerCoords={
+                      activeTrackedBooking?.provider_coords || (activeTrackedBooking?.provider_lat && activeTrackedBooking?.provider_lng ? { lat: Number(activeTrackedBooking.provider_lat), lng: Number(activeTrackedBooking.provider_lng) } : null)
+                    }
+                    bookingStatus={activeTrackedBooking?.status || 'PROVIDER_ON_THE_WAY'}
+                    lastUpdatedAt={activeTrackedBooking?.last_location_update || null}
+                    mapHeight={320}
+                  />
+                </View>
+
+                {/* Footer Actions */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 10 }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      const pLat = activeTrackedBooking?.provider_coords?.lat || activeTrackedBooking?.provider_lat || 28.4986;
+                      const pLng = activeTrackedBooking?.provider_coords?.lng || activeTrackedBooking?.provider_lng || 77.0878;
+                      const cLat = activeTrackedBooking?.customer_lat || activeTrackedBooking?.lat || 28.4986;
+                      const cLng = activeTrackedBooking?.customer_lng || activeTrackedBooking?.lng || 77.0878;
+                      const url = `https://www.google.com/maps/dir/?api=1&origin=${pLat},${pLng}&destination=${cLat},${cLng}`;
+                      if (typeof window !== 'undefined') window.open(url, '_blank');
+                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, cursor: 'pointer' }}
+                    activeOpacity={0.8}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                      <line x1="8" y1="2" x2="8" y2="18" />
+                      <line x1="16" y1="6" x2="16" y2="22" />
+                    </svg>
+                    <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#2563eb' }}>Open Full Google Maps Route</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setLiveTrackingBooking(null)}
+                    style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, cursor: 'pointer' }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>Close Tracking</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-            ) : null}
-
-            {/* Live Google Maps Tracking Component */}
-            <View style={{ width: '100%', marginTop: 2 }}>
-              <LiveProviderTrackingMap
-                customerCoords={{
-                  lat: Number(liveTrackingBooking?.customer_lat || liveTrackingBooking?.lat || 28.4986),
-                  lng: Number(liveTrackingBooking?.customer_lng || liveTrackingBooking?.lng || 77.0878),
-                }}
-                customerAddress={liveTrackingBooking?.address_text || liveTrackingBooking?.address || 'Service Destination'}
-                providerName={liveTrackingBooking?.provider_name || 'Technician'}
-                providerPhone={liveTrackingBooking?.provider_phone || ''}
-                providerCoords={
-                  liveTrackingBooking?.provider_coords || (liveTrackingBooking?.provider_lat && liveTrackingBooking?.provider_lng ? { lat: Number(liveTrackingBooking.provider_lat), lng: Number(liveTrackingBooking.provider_lng) } : null)
-                }
-                bookingStatus={liveTrackingBooking?.status || 'PROVIDER_ON_THE_WAY'}
-                lastUpdatedAt={liveTrackingBooking?.last_location_update || null}
-                mapHeight={320}
-              />
             </View>
-
-            {/* Footer Actions */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 10 }}>
-              <TouchableOpacity
-                onPress={() => {
-                  const pLat = liveTrackingBooking?.provider_coords?.lat || liveTrackingBooking?.provider_lat || 28.4986;
-                  const pLng = liveTrackingBooking?.provider_coords?.lng || liveTrackingBooking?.provider_lng || 77.0878;
-                  const cLat = liveTrackingBooking?.customer_lat || liveTrackingBooking?.lat || 28.4986;
-                  const cLng = liveTrackingBooking?.customer_lng || liveTrackingBooking?.lng || 77.0878;
-                  const url = `https://www.google.com/maps/dir/?api=1&origin=${pLat},${pLng}&destination=${cLat},${cLng}`;
-                  if (typeof window !== 'undefined') window.open(url, '_blank');
-                }}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, cursor: 'pointer' }}
-                activeOpacity={0.8}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-                  <line x1="8" y1="2" x2="8" y2="18" />
-                  <line x1="16" y1="6" x2="16" y2="22" />
-                </svg>
-                <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#2563eb' }}>Open Full Google Maps Route</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setLiveTrackingBooking(null)}
-                style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, cursor: 'pointer' }}
-                activeOpacity={0.8}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>Close Tracking</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+          </Modal>
+        );
+      })()}
     </ScrollView>
   );
 }

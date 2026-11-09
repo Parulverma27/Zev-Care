@@ -273,9 +273,9 @@ export default function ProviderJobDetailScreen({ bookingId: propsBookingId }) {
     }
   };
 
-  // Auto-broadcast GPS while en route so customer map stays live
+  // Auto-broadcast GPS as soon as accepted and en route so customer and admin map stays live
   useEffect(() => {
-    if (!bk || bk.status !== 'PROVIDER_ON_THE_WAY') return undefined;
+    if (!bk || !['PROVIDER_ACCEPTED', 'PROVIDER_ON_THE_WAY', 'PROVIDER_ARRIVED', 'SERVICE_IN_PROGRESS'].includes(bk.status)) return undefined;
     handleShareGpsLocation();
     const id = setInterval(() => {
       if (typeof window !== 'undefined' && navigator?.geolocation) {
