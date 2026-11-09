@@ -2,7 +2,7 @@
  * Shared service catalog tree — image map injected by caller (Metro vs Node).
  */
 
-export const CATALOG_VERSION = '19-compressor-image';
+export const CATALOG_VERSION = '20-compressor-full-border';
 
 export function buildServiceCatalog(SERVICE_IMAGES) {
   const item = (name, description, imageKey = 'homeAppliances', extra = {}) => ({
