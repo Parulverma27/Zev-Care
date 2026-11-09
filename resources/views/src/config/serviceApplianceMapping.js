@@ -8,6 +8,7 @@ import { getApplianceById } from './applianceCatalog';
 const SERVICE_NAME_TO_APPLIANCE_TYPE = {
   // Electrician & Appliances
   AC: 'air_conditioner',
+  'Compressor (AC)': 'air_conditioner',
   'Washing Machine': 'washing_machine',
   TV: 'television',
   'Air Cooler': 'air_cooler',
@@ -107,6 +108,7 @@ export function getApplianceTypeIdForService(serviceName) {
   }
   // Fuzzy: match inventory name or catalog
   const lower = key.toLowerCase();
+  if (lower.includes('compressor')) return 'air_conditioner';
   if (lower.includes('sofa')) return lower.includes('leather') ? 'leather_sofa' : 'fabric_sofa';
   if (lower.includes('carpet') || lower.includes('rug')) return 'carpet';
   if (lower.includes('curtain') || lower.includes('blind')) return 'curtains';

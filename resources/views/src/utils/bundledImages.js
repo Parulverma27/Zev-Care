@@ -140,6 +140,7 @@ export const SERVICE_IMAGES = {
 /** Display-name → hardcoded image for every catalog service item */
 export const SERVICE_ITEM_IMAGE_KEYS = {
   AC: SERVICE_IMAGES.ac,
+  'Compressor (AC)': SERVICE_IMAGES.ac,
   'Washing Machine': SERVICE_IMAGES.washingMachine,
   TV: SERVICE_IMAGES.tv,
   'Air Cooler': SERVICE_IMAGES.cooler,

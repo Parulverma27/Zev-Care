@@ -6,6 +6,8 @@ const OTHER = { id: 'other', label: 'Other', isOther: true };
 
 const AC_ISSUES = [
   { id: 'not_cooling', label: 'Not Cooling' },
+  { id: 'compressor_issue', label: 'Compressor Not Starting / Tripping' },
+  { id: 'compressor_noise', label: 'Compressor Making Loud Noise' },
   { id: 'water_leakage', label: 'Water Leakage' },
   { id: 'making_noise', label: 'Making Noise' },
   { id: 'not_turning_on', label: 'Not Turning On' },

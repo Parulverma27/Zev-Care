@@ -63,7 +63,7 @@ export const APPLIANCE_CATALOG = [
   entry({
     id: 'air_conditioner',
     name: 'Air Conditioner',
-    aliases: ['ac', 'air conditioner', 'split ac', 'window ac', 'inverter ac'],
+    aliases: ['ac', 'air conditioner', 'split ac', 'window ac', 'inverter ac', 'compressor (ac)', 'compressor'],
     imageKey: 'ac',
     fields: [
       commonName('e.g. Living Room Split AC'),

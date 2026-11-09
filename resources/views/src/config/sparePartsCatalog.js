@@ -87,7 +87,7 @@ export const SPARE_PARTS_CATALOG = [
 
 export function getApplicablePartsForService(serviceName = '', categoryName = '') {
   const combined = `${serviceName} ${categoryName}`.toLowerCase();
-  if (combined.includes('ac') || combined.includes('air')) {
+  if (combined.includes('ac') || combined.includes('air') || combined.includes('compressor')) {
     return SPARE_PARTS_CATALOG.filter((p) => p.category === 'AC');
   }
   if (combined.includes('wash') || combined.includes('laundry')) {
