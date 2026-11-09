@@ -25,6 +25,7 @@ export const SERVICE_IMAGES = {
 
   // Home appliances / electrical services
   ac: getImageUrl(require('../../assets/services/catalog/ac.png')),
+  compressor: getImageUrl(require('../../assets/services/catalog/compressor.jpg')),
   washingMachine: getImageUrl(require('../../assets/services/catalog/washing-machine.png')),
   tv: getImageUrl(require('../../assets/services/catalog/tv.png')),
   cooler: getImageUrl(require('../../assets/services/catalog/cooler.png')),
@@ -140,7 +141,8 @@ export const SERVICE_IMAGES = {
 /** Display-name → hardcoded image for every catalog service item */
 export const SERVICE_ITEM_IMAGE_KEYS = {
   AC: SERVICE_IMAGES.ac,
-  'Compressor (AC)': SERVICE_IMAGES.ac,
+  'Compressor (AC)': SERVICE_IMAGES.compressor,
+  Compressor: SERVICE_IMAGES.compressor,
   'Washing Machine': SERVICE_IMAGES.washingMachine,
   TV: SERVICE_IMAGES.tv,
   'Air Cooler': SERVICE_IMAGES.cooler,

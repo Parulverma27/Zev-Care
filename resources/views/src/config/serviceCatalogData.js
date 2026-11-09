@@ -2,7 +2,7 @@
  * Shared service catalog tree — image map injected by caller (Metro vs Node).
  */
 
-export const CATALOG_VERSION = '18-add-compressor-ac';
+export const CATALOG_VERSION = '19-compressor-image';
 
 export function buildServiceCatalog(SERVICE_IMAGES) {
   const item = (name, description, imageKey = 'homeAppliances', extra = {}) => ({
@@ -32,7 +32,7 @@ export function buildServiceCatalog(SERVICE_IMAGES) {
       groups: [
         group('Home Appliances', 'AC, TV, fans, geyser, wiring & appliance repairs', 'homeAppliances', [
           item('AC', 'Repair, service & installation', 'ac'),
-          item('Compressor (AC)', 'Compressor repair, gas charging & outdoor unit servicing', 'ac'),
+          item('Compressor (AC)', 'Compressor repair, gas charging & outdoor unit servicing', 'compressor'),
           item('Washing Machine', 'Motor, drainage & spin cycle fixes', 'washingMachine'),
           item('TV', 'Mounting, wiring & display issues', 'tv'),
           item('Air Cooler', 'Motor, pump & cooling pad replacement', 'cooler'),

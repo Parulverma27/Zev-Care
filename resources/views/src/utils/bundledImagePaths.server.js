@@ -19,6 +19,7 @@ export const SERVICE_IMAGES = {
   cabinet: c('cabinet-hinges.png'),
 
   ac: c('ac.png'),
+  compressor: c('compressor.jpg'),
   washingMachine: c('washing-machine.png'),
   tv: c('tv.png'),
   cooler: c('cooler.png'),
