@@ -131,11 +131,12 @@ export const SERVICE_IMAGES = {
   amcWrench3d: getImageUrl(require('../../assets/amc-wrench-3d.jpg')),
   amcMechanic3d: getImageUrl(require('../../assets/amc-mechanic-3d.jpg')),
 
-  // Login / Register Slideshow Images (login 1-4)
+  // Login / Register Slideshow Images (login 1-5)
   loginSlide1: getImageUrl(require('../../assets/login-1.png')),
   loginSlide2: getImageUrl(require('../../assets/login-2.png')),
   loginSlide3: getImageUrl(require('../../assets/login-3.png')),
   loginSlide4: getImageUrl(require('../../assets/login-4.png')),
+  loginSlide5: getImageUrl(require('../../assets/login-5.png')),
 };
 
 /** Display-name → hardcoded image for every catalog service item */
